@@ -4,12 +4,12 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Quản lý Order tại bàn</h1>
+                    <h1>Quản lý Order</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="{{ url('admin/') }}">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Order tại bàn</li>
+                        <li class="breadcrumb-item active">Order</li>
                     </ol>
                 </div>
             </div>
@@ -19,7 +19,7 @@
     <section class="content">
         <div class="row">
             <!-- Cột hiển thị bàn -->
-            <div class="col-md-9">
+            <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Danh sách bàn</h3>
@@ -41,7 +41,7 @@
                                                  data-table-id="{{ $table->id }}"
                                                  data-table-name="{{ $table->name }}"
                                                  style="cursor: pointer;"
-                                                 onclick="handleTableClick({{ $table->id }}, '{{ $table->name }}', {{ $isOccupied ? 'true' : 'false' }})">
+                                                 onclick="handleTableClick({{ $table->id }}, '{{ $table->name }}', {{ $isOccupied ? 'true' : 'false' }}, '{{ $floor->name }}')">
                                                 <div class="text-center p-3 border rounded" 
                                                      style="background-color: {{ $isOccupied ? '#ffc107' : '#28a745' }}; color: white; min-height: 100px; display: flex; flex-direction: column; justify-content: center;">
                                                     <i class="fas fa-chair fa-2x mb-2"></i>
@@ -63,18 +63,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Sidebar Order -->
-            <div class="col-md-3">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Order món</h3>
-                    </div>
-                    <div class="card-body" id="orderSidebar">
-                        <p class="text-muted">Vui lòng chọn bàn để bắt đầu order</p>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -83,7 +71,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Đăng ký bàn: <span id="modalTableName"></span></h5>
+                    <h5 class="modal-title"><span id="modalTableName"></span></h5>
                     <button type="button" class="close" data-dismiss="modal">
                         <span>&times;</span>
                     </button>
@@ -101,6 +89,13 @@
                         <div class="form-group">
                             <label for="customerName">Tên khách hàng <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="customerName" name="customer_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="customerGender">Giới tính</label>
+                            <select class="form-control" id="customerGender" name="gender">
+                                <option value="1">Nam</option>
+                                <option value="0">Nữ</option>
+                            </select>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -189,7 +184,7 @@
         let currentOrderId = null;
 
         // Xử lý click vào bàn
-        function handleTableClick(tableId, tableName, isOccupied) {
+        function handleTableClick(tableId, tableName, isOccupied, floorName) {
             currentTableId = tableId;
             
             if (isOccupied) {
@@ -200,11 +195,13 @@
                 $('#orderModal').modal('show');
             } else {
                 // Bàn trống, hiển thị form đăng ký
-                $('#modalTableName').text(tableName);
+                $('#modalTableName').text((floorName ? (floorName + ' - ') : '') + tableName);
                 $('#selectedTableId').val(tableId);
                 $('#customerPhone').val('');
                 $('#customerName').val('');
                 $('#customerName').prop('disabled', false);
+                $('#customerGender').val('1');
+                $('#customerGender').prop('disabled', false);
                 $('#registerTableModal').modal('show');
             }
         }
@@ -224,15 +221,26 @@
                         if (response.success && response.user) {
                             $('#customerName').val(response.user.fullname);
                             $('#customerName').prop('disabled', true);
+                            if (response.user.gender !== null && response.user.gender !== undefined) {
+                                $('#customerGender').val(String(response.user.gender));
+                                $('#customerGender').prop('disabled', true);
+                            } else {
+                                $('#customerGender').val('1');
+                                $('#customerGender').prop('disabled', false);
+                            }
                             toastr.success('Đã tìm thấy khách hàng: ' + response.user.fullname);
                         } else {
                             $('#customerName').val('');
                             $('#customerName').prop('disabled', false);
+                            $('#customerGender').val('1');
+                            $('#customerGender').prop('disabled', false);
                         }
                     },
                     error: function() {
                         $('#customerName').val('');
                         $('#customerName').prop('disabled', false);
+                        $('#customerGender').val('1');
+                        $('#customerGender').prop('disabled', false);
                     }
                 });
             }
@@ -245,12 +253,13 @@
             $.ajax({
                 url: '{{ route("admin.table-order.registerTable") }}',
                 method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    table_id: $('#selectedTableId').val(),
-                    phone: $('#customerPhone').val(),
-                    customer_name: $('#customerName').val()
-                },
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        table_id: $('#selectedTableId').val(),
+                        phone: $('#customerPhone').val(),
+                        customer_name: $('#customerName').val(),
+                        gender: $('#customerGender').val()
+                    },
                 success: function(response) {
                     if (response.success) {
                         toastr.success(response.message);
@@ -466,4 +475,3 @@
         });
     </script>
 </x-layout-backend>
-

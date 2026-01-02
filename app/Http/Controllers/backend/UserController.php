@@ -58,8 +58,9 @@ class UserController extends Controller
         $users = $users->orderBy('created_at', 'DESC')->paginate(6)->appends([
             'status' => $status
         ]);
-
-        return view('backend.user.customers', compact('users'));
+        
+        $type = 'customers';
+        return view('backend.user.index', compact('users', 'type'));
     }
 
     /**
@@ -300,9 +301,10 @@ class UserController extends Controller
            $users = User::where('roles', 'admin')
                ->where('admin_lever', 2)
                ->orderBy('created_at', 'DESC')
-               ->get();
-
-           return view('backend.user.employees', compact('users'));
+               ->paginate(10);
+            
+           $type = 'employees';
+           return view('backend.user.index', compact('users', 'type'));
     }
 
 

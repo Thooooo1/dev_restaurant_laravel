@@ -48,6 +48,20 @@ class TableOrderController extends Controller
         $user = User::where('phone', $phone)->first();
 
         if ($user) {
+            $genderVal = null;
+            if (!is_null($user->gender)) {
+                $g = $user->gender;
+                if (is_numeric($g)) {
+                    $genderVal = (int) $g;
+                } else {
+                    $t = strtolower($g);
+                    if (in_array($t, ['male', 'nam', 'm'])) {
+                        $genderVal = 1;
+                    } elseif (in_array($t, ['female', 'nu', 'nữ', 'f'])) {
+                        $genderVal = 0;
+                    }
+                }
+            }
             return response()->json([
                 'success' => true,
                 'user' => [
@@ -55,6 +69,7 @@ class TableOrderController extends Controller
                     'fullname' => $user->fullname,
                     'phone' => $user->phone,
                     'email' => $user->email ?? '',
+                    'gender' => $genderVal,
                 ]
             ]);
         }
@@ -71,6 +86,7 @@ class TableOrderController extends Controller
             'table_id' => 'required|exists:tables,id',
             'phone' => 'required|string|max:20',
             'customer_name' => 'required|string|max:255',
+            'gender' => 'nullable|in:0,1',
         ], [
             'table_id.required' => 'Vui lòng chọn bàn',
             'table_id.exists' => 'Bàn không tồn tại',
@@ -94,6 +110,20 @@ class TableOrderController extends Controller
         // Tìm user theo số điện thoại
         $user = User::where('phone', $request->phone)->first();
         $userId = $user ? $user->id : null;
+
+        if (!$user) {
+            $newUser = new User();
+            $newUser->fullname = $request->customer_name;
+            $newUser->gender = $request->input('gender', '1');
+            $newUser->phone = $request->phone;
+            $newUser->roles = 'customer';
+            $newUser->admin_lever = 2;
+            $newUser->status = 1;
+            $newUser->created_by = Auth::id() ?? 1;
+            $newUser->save();
+            $user = $newUser;
+            $userId = $newUser->id;
+        }
 
         // Tạo order mới với orderStyle = 2 (nhân viên order)
         $order = Order::create([
@@ -259,4 +289,3 @@ class TableOrderController extends Controller
         ]);
     }
 }
-

@@ -46,13 +46,6 @@
                                 </select>
                             </div>
                         </div>
-                        @if (request('floor_id'))
-                            <div class="col-md-3 d-flex align-items-end">
-                                <a href="{{ route('admin.table.index') }}" class="btn btn-secondary">
-                                    <i class="fas fa-times"></i> Xóa bộ lọc
-                                </a>
-                            </div>
-                        @endif
                     </div>
                 </form>
 
