@@ -17,26 +17,29 @@ class AuthController extends Controller
         return view("backend.login");
     }
     function dologin(Request $request){
-        $username =$request->email;
+        $request->validate([
+            'phone' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        $phone = $request->phone;
         $password = $request->password;
-        $data_login=[
-            'email'=>$username,
-            'password'=>$password
-        
+
+        $credentials = [
+            'phone' => $phone,
+            'password' => $password,
         ];
-        print_r($data_login);
-        if(Auth::attempt($data_login)){
+
+        if (Auth::attempt($credentials)) {
             return redirect()->route('admin.dashboard');
-            // echo"thanh cong";
         }
-        else{
-            return redirect()->route('admin.login')->with('error','Thông tin không chính xác!');
-        }
-        // return redirect()->route('admin.login')->with('error','Thông tin không chính xác!');
+
+        return redirect()->route('admin.login')->with('error','Thông tin không chính xác!');
     }
+
     function logout(){
         Auth::logout();
-        return redirect('admin.login');
+        return redirect()->route('admin.login');
     }
 
     /**

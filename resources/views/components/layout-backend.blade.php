@@ -87,6 +87,18 @@
                             </a>
                         </li>
                         <li class="nav-item pl-1">
+                            <a href="{{ url('admin/table/') }}" class="nav-link">
+                                <i class="fa-solid fa-chair"></i>
+                                <p>Bàn ăn</p>
+                            </a>
+                        </li>
+                        <li class="nav-item pl-1">
+                            <a href="{{ route('admin.table-order.index') }}" class="nav-link">
+                                <i class="fa-solid fa-cash-register"></i>
+                                <p>Order tại bàn</p>
+                            </a>
+                        </li>
+                        <li class="nav-item pl-1">
                             <a href="{{ url('admin/inquiries/') }}" class="nav-link">
                                 <i class="fa-solid fa-comment"></i>
                                 <p>Tư vấn</p>
@@ -226,23 +238,23 @@
                         </li>
                         <li class="nav-item">
                             <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-table"></i>
+                                <i class="nav-icon fas fa-users"></i>
                                 <p>
-                                    Thành viên
+                                    Quản lý người dùng
                                     <i class="fas fa-angle-left right"></i>
                                 </p>
                             </a>
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
-                                    <a href="{{ url('admin/user/') }}" class="nav-link">
+                                    <a href="{{ route('admin.user.customers') }}" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
-                                        <p>Tất cả thành viên</p>
+                                        <p>Khách hàng</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="{{ url('admin/user/create') }}" class="nav-link">
+                                    <a href="{{ route('admin.user.employees') }}" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
-                                        <p>Thêm thành viên</p>
+                                        <p>QL người làm</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -251,17 +263,8 @@
                                         <p>Nhân viên</p>
                                     </a>
                                 </li>
-                                {{-- <li class="nav-item">
-                                    <a href="{{ url('admin/user/') }}" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Quản lý admin</p>
-                                    </a>
-                                </li> --}}
                             </ul>
                         </li>
-
-
-
                     </ul>
                 </nav>
             </div>

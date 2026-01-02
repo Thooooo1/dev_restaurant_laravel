@@ -10,7 +10,7 @@ class Table extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'cdw1_tables';
+    protected $table = 'tables';
 
     protected $fillable = [
         'floor_id',
@@ -23,6 +23,11 @@ class Table extends Model
     public function floor()
     {
         return $this->belongsTo(Floor::class, 'floor_id');
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'table_id');
     }
 }
 

@@ -7,7 +7,7 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1>Thêm thành viên</h1>
+                        <h1>{{ $role == 'admin' ? 'Cập nhật nhân viên' : 'Cập nhật khách hàng' }}</h1>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
@@ -26,9 +26,15 @@
                             <button type="submit" name="create" class="btn btn-sm btn-success">
                                 <i class="fa fa-save"></i> Lưu
                             </button>
-                            <a class="btn btn-sm btn-info" href="{{ url('admin/user/') }}">
-                                <i class="fa fa-arrow-left"></i> Về danh sách
-                            </a>
+                            @if($role == 'admin')
+                                <a class="btn btn-sm btn-info" href="{{ route('admin.user.employees') }}">
+                                    <i class="fa fa-arrow-left"></i> Về danh sách
+                                </a>
+                            @else
+                                <a class="btn btn-sm btn-info" href="{{ route('admin.user.customers') }}">
+                                    <i class="fa fa-arrow-left"></i> Về danh sách
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -52,7 +58,7 @@
                             <div class="mb-3">
                                 <label for="email">Email</label>
                                 <input type="text" value="{{ old('email', $user->email) }}" name="email" id="email" class="form-control @error('email') is-invalid @enderror">
-                                @error('phone')
+                                @error('email')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -88,10 +94,12 @@
                             </div>
                             <div class="mb-3">
                                 <label for="roles">Quyền</label>
-                                <select name="roles" id="roles" class="form-control">
-                                    <option value="customer" {{ old('roles', $user->roles) == "customer" ? 'selected' : '' }} > Khách hàng</option>
-                                    <option value="admin" {{ old('roles', $user->roles) == "admin" ? 'selected' : '' }}>Quản lý</option>
+                                <select name="roles" id="roles" class="form-control" disabled>
+                                    <option value="customer" {{ $role == "customer" ? 'selected' : '' }}>Khách hàng</option>
+                                    <option value="admin" {{ $role == "admin" ? 'selected' : '' }}>Nhân viên</option>
                                 </select>
+                                <input type="hidden" name="roles" value="{{ $role }}">
+                                <small class="form-text text-muted">Quyền không thể thay đổi</small>
                             </div>
                             <div class="mb-3">
                                 <label for="image">Hình</label>

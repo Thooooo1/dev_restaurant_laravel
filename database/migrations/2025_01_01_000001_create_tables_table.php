@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cdw1_tables', function (Blueprint $table) {
+        Schema::create('tables', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('floor_id');
             $table->string('name', 100);
@@ -23,7 +23,7 @@ return new class extends Migration
 
             $table->foreign('floor_id')
                 ->references('id')
-                ->on('cdw1_floors')
+                ->on('floors')
                 ->onDelete('cascade');
         });
     }
@@ -33,7 +33,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cdw1_tables');
+        Schema::dropIfExists('tables');
     }
 };
 

@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('cdw1_floors', function (Blueprint $table) {
+        Schema::create('floors', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
+            $table->unsignedInteger('order')->default(0)->nullable();
             $table->timestamps();
         });
     }
@@ -23,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cdw1_floors');
+        Schema::dropIfExists('floors');
     }
 };
 

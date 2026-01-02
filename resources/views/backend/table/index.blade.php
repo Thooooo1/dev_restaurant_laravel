@@ -30,6 +30,32 @@
             </div>
 
             <div class="card-body">
+                <!-- Form lọc -->
+                <form method="GET" action="{{ route('admin.table.index') }}" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Lọc theo tầng:</label>
+                                <select name="floor_id" class="form-control" onchange="this.form.submit()">
+                                    <option value="">-- Tất cả tầng --</option>
+                                    @foreach ($floors as $floor)
+                                        <option value="{{ $floor->id }}" {{ request('floor_id') == $floor->id ? 'selected' : '' }}>
+                                            {{ $floor->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        @if (request('floor_id'))
+                            <div class="col-md-3 d-flex align-items-end">
+                                <a href="{{ route('admin.table.index') }}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Xóa bộ lọc
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                </form>
+
                 <table class="table table-bordered table-striped table-hover">
                     <thead>
                         <tr>
@@ -40,7 +66,6 @@
                             <th>Thứ tự</th>
                             <th>Trạng thái</th>
                             <th class="text-center" style="width:200px;">Chức năng</th>
-                            <th class="text-center" style="width:30px;">ID</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -79,7 +104,6 @@
                                         <i class="fas fa-trash"></i>
                                     </a>
                                 </td>
-                                <td class="text-center">{{ $table->id }}</td>
                             </tr>
                         @endforeach
                     </tbody>

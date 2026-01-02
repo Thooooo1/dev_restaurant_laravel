@@ -9,10 +9,11 @@ class Floor extends Model
 {
     use HasFactory;
 
-    protected $table = 'cdw1_floors';
+    protected $table = 'floors';
 
     protected $fillable = [
         'name',
+        'order',
     ];
 
     public function tables()

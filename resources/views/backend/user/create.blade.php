@@ -6,7 +6,7 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1>Thêm thành viên</h1>
+                        <h1>{{ $role == 'admin' ? 'Thêm nhân viên' : 'Thêm khách hàng' }}</h1>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
@@ -25,9 +25,15 @@
                             <button type="submit" name="create" class="btn btn-sm btn-success">
                                 <i class="fa fa-save"></i> Lưu
                             </button>
-                            <a class="btn btn-sm btn-info" href="{{ url('admin/user/') }}">
-                                <i class="fa fa-arrow-left"></i> Về danh sách
-                            </a>
+                            @if($role == 'admin')
+                                <a class="btn btn-sm btn-info" href="{{ route('admin.user.employees') }}">
+                                    <i class="fa fa-arrow-left"></i> Về danh sách
+                                </a>
+                            @else
+                                <a class="btn btn-sm btn-info" href="{{ route('admin.user.customers') }}">
+                                    <i class="fa fa-arrow-left"></i> Về danh sách
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -36,24 +42,25 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="fullname">Họ tên</label>
-                                <input type="text" value="" name="fullname" id="fullname" class="form-control @error('fullname') is-invalid @enderror">
+                                <input type="text" value="{{ old('fullname', '') }}" name="fullname" id="fullname" class="form-control @error('fullname') is-invalid @enderror">
                                 @error('fullname')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="mb-3">
                                 <label for="phone">Điện thoại</label>
-                                <input type="text" value="" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror">
+                                <input type="text" value="{{ old('phone', '') }}" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror">
                                 @error('phone')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="mb-3">
                                 <label for="email">Email</label>
-                                <input type="text" value="" name="email" id="email" class="form-control @error('email') is-invalid @enderror">
-                                @error('phone')
+                                <input type="text" value="{{ old('email', '') }}" name="email" id="email" class="form-control @error('email') is-invalid @enderror" autocomplete="off">
+                                @error('email')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
+                                <small class="form-text text-muted">Để trống nếu tạo khách hàng (customer)</small>
                             </div>
                             <div class="mb-3">
                                 <label for="gender">Giới tính</label>
@@ -64,7 +71,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="address">Địa chỉ</label>
-                                <input type="text" value="" name="address" id="address" class="form-control @error('address') is-invalid @enderror">
+                                <input type="text" value="{{ old('address', '') }}" name="address" id="address" class="form-control @error('address') is-invalid @enderror">
                                 @error('address')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
@@ -73,17 +80,19 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="username">Tên người dùng</label>
-                                <input type="text" value="" name="username" id="username" class="form-control @error('username') is-invalid @enderror">
+                                <input type="text" value="{{ old('username', '') }}" name="username" id="username" class="form-control @error('username') is-invalid @enderror" autocomplete="off">
                                 @error('username')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
+                                <small class="form-text text-muted">Để trống nếu tạo khách hàng (customer)</small>
                             </div>
                             <div class="mb-3">
                                 <label for="password">Mật khẩu</label>
-                                <input type="password" value="" name="password" id="password" class="form-control @error('password') is-invalid @enderror">
+                                <input type="password" value="" name="password" id="password" class="form-control @error('password') is-invalid @enderror" autocomplete="new-password">
                                 @error('password')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
+                                <small class="form-text text-muted">Để trống nếu tạo khách hàng (customer)</small>
                             </div>
                             <div class="mb-3">
                                 <label for="password_re">Xác nhận mật khẩu</label>
@@ -92,10 +101,12 @@
                             </div>
                             <div class="mb-3">
                                 <label for="roles">Quyền</label>
-                                <select name="roles" id="roles" class="form-control">
-                                    <option value="customer">Khách hàng</option>
-                                    <option value="admin">Quản lý</option>
+                                <select name="roles" id="roles" class="form-control" disabled>
+                                    <option value="customer" {{ $role == 'customer' ? 'selected' : '' }}>Khách hàng</option>
+                                    <option value="admin" {{ $role == 'admin' ? 'selected' : '' }}>Nhân viên</option>
                                 </select>
+                                <input type="hidden" name="roles" value="{{ $role }}">
+                                <small class="form-text text-muted">Quyền được xác định tự động dựa trên menu bạn chọn</small>
                             </div>
                             <div class="mb-3">
                                 <label for="image">Hình</label>

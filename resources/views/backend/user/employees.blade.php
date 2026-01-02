@@ -21,12 +21,9 @@
             <div class="card-header">
                 <div class="row">
                     <div class="col-12 text-right">
-                        {{-- <a class="btn btn-sm btn-success" href="{{ url('admin/user/create') }}">
-                            <i class="fas fa-plus"></i> Thêm
+                        <a class="btn btn-sm btn-success" href="{{ route('admin.user.create', ['role' => 'admin']) }}">
+                            <i class="fas fa-plus"></i> Thêm nhân viên
                         </a>
-                        <a class="btn btn-sm btn-danger" href="{{ url('admin/user.trash') }}">
-                            <i class="fas fa-trash"></i> Thùng rác
-                        </a> --}}
                     </div>
                 </div>
             </div>

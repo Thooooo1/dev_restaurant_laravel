@@ -25,36 +25,56 @@
                 </div>
                 <div class="card-body">
                     <div class="form-group">
-                        <label>Tầng</label>
-                        <select name="floor_id" class="form-control" required>
+                        <label>Tầng <span class="text-danger">*</span></label>
+                        <select name="floor_id" class="form-control @error('floor_id') is-invalid @enderror">
                             <option value="">-- Chọn tầng --</option>
                             @foreach ($floors as $floor)
-                                <option value="{{ $floor->id }}">{{ $floor->name }}</option>
+                                <option value="{{ $floor->id }}" {{ old('floor_id') == $floor->id ? 'selected' : '' }}>
+                                    {{ $floor->name }}
+                                </option>
                             @endforeach
                         </select>
+                        @error('floor_id')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="form-group">
-                        <label>Tên bàn</label>
-                        <input type="text" name="name" class="form-control" required placeholder="VD: Bàn 1, Bàn VIP 01">
+                        <label>Tên bàn <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror" 
+                               value="{{ old('name') }}" placeholder="VD: Bàn 1, Bàn VIP 01">
+                        @error('name')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="form-group">
-                        <label>Số lượng chỗ ngồi</label>
-                        <input type="number" name="seats" class="form-control" min="1" required>
+                        <label>Số lượng chỗ ngồi <span class="text-danger">*</span></label>
+                        <input type="number" name="seats" class="form-control @error('seats') is-invalid @enderror" 
+                               min="1" value="{{ old('seats') }}">
+                        @error('seats')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="form-group">
                         <label>Thứ tự</label>
-                        <input type="number" name="sort_order" class="form-control" value="0">
+                        <input type="number" name="sort_order" class="form-control @error('sort_order') is-invalid @enderror" 
+                               value="{{ old('sort_order', 0) }}">
+                        @error('sort_order')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
                     </div>
 
                     <div class="form-group">
-                        <label>Trạng thái</label>
-                        <select name="status" class="form-control">
-                            <option value="1">Hoạt động</option>
-                            <option value="2">Ẩn</option>
+                        <label>Trạng thái <span class="text-danger">*</span></label>
+                        <select name="status" class="form-control @error('status') is-invalid @enderror">
+                            <option value="1" {{ old('status', 1) == 1 ? 'selected' : '' }}>Hoạt động</option>
+                            <option value="2" {{ old('status') == 2 ? 'selected' : '' }}>Ẩn</option>
                         </select>
+                        @error('status')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 <div class="card-footer">

@@ -15,18 +15,32 @@ class StoreUserRequest extends FormRequest
     
     public function rules(): array
     {
-        return [
+        $role = $this->input('roles', 'customer');
+        
+        $rules = [
             'fullname' => 'required|string|max:255',
-            'phone' => 'required|string|digits_between:10,15',
-            'email' => 'required|email|unique:user,email',
-            'username' => 'required|string|min:4|max:50|unique:user,username',
-            'password' => 'required|string|min:6|max:50',
+            'phone' => 'required|string|digits_between:10,15|unique:user,phone',
             'gender' => 'required|in:0,1',
             'address' => 'nullable|string|max:255',
             'roles' => 'required|in:customer,admin',
             'status' => 'required|in:1,2',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', 
         ];
+
+        // Với customer: email, username, password, image là optional
+        if ($role === 'customer') {
+            $rules['email'] = 'nullable|email|unique:user,email';
+            $rules['username'] = 'nullable|string|min:4|max:50|unique:user,username';
+            $rules['password'] = 'nullable|string|min:6|max:50';
+            $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
+        } else {
+            // Với admin: username, password là required
+            $rules['email'] = 'nullable|email|unique:user,email';
+            $rules['username'] = 'required|string|min:4|max:50|unique:user,username';
+            $rules['password'] = 'required|string|min:6|max:50';
+            $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
+        }
+
+        return $rules;
     }
 
     /**
@@ -38,7 +52,7 @@ class StoreUserRequest extends FormRequest
             'fullname.required' => 'Họ tên không được để trống.',
             'phone.required' => 'Số điện thoại không được để trống.',
             'phone.digits_between' => 'Số điện thoại phải có từ 10 đến 15 chữ số.',
-            'email.required' => 'Email không được để trống.',
+            'phone.unique' => 'Số điện thoại này đã tồn tại.',
             'email.email' => 'Email không đúng định dạng.',
             'email.unique' => 'Email này đã tồn tại.',
             'username.required' => 'Tên người dùng không được để trống.',

@@ -1,2 +1,362 @@
 <?php
- use Illuminate\Support\Facades\Route; use App\Http\Controllers\frontend\HomeController as TrangchuController; use App\Http\Controllers\frontend\ProductController as SanPhamController; use App\Http\Controllers\frontend\ContactController as LienheController; use App\Http\Controllers\frontend\AboutController as GioithieuController; use App\Http\Controllers\frontend\BlogController as BaivietController; use App\Http\Controllers\frontend\ImageController as HinhAnhController; use App\Http\Controllers\frontend\UserController as NguoidungController; use App\Http\Controllers\frontend\CartController as GiohangController; use App\Http\Controllers\frontend\AuthController as ThanhVienController; use App\Http\Controllers\frontend\ChinhSachController; use App\Http\Controllers\frontend\BookingController as DatBanController; use App\Http\Controllers\frontend\ReviewController as DanhGiaController; use App\Http\Controllers\frontend\OrderController as DonHangController; use App\Http\Controllers\frontend\UserFavoriteController as YeuThichController; use App\Http\Controllers\frontend\InquiryController as YeuCauController; use App\Http\Controllers\backend\DashboardController; use App\Http\Controllers\backend\ReviewController; use App\Http\Controllers\backend\ProductController; use App\Http\Controllers\backend\CategoryController; use App\Http\Controllers\backend\BrandController; use App\Http\Controllers\backend\BannerController; use App\Http\Controllers\backend\BlogController; use App\Http\Controllers\backend\TopicController; use App\Http\Controllers\backend\ImageController; use App\Http\Controllers\backend\UserController; use App\Http\Controllers\backend\OrderController; use App\Http\Controllers\backend\ContactController; use App\Http\Controllers\backend\KeywordController; use App\Http\Controllers\backend\MenuController; use App\Http\Controllers\backend\BookingController; use App\Http\Controllers\backend\InquiryController; use App\Http\Controllers\auth\AuthController; goto te6QJ; VvMXK: Route::get("\x2f\144\x65\x6c\x63\x61\x72\x74\x2f\x7b\x69\144\175", array(GiohangController::class, "\x64\x65\154\x63\141\x72\164"))->name("\163\151\164\145\x2e\144\x65\x6c\143\141\162\x74"); goto dtipG; aFz0N: Route::get("\57\x63\150\151\156\150\x2d\163\x61\x63\150\x2d\x6c\x69\145\156\x2d\150\145", array(ChinhSachController::class, "\x63\163\x6c\150"))->name("\x73\151\164\x65\56\143\x68\x69\156\x68\x73\x61\143\150\56\x63\163\154\x68"); goto f0NrK; JXHwk: Route::post("\57\141\x64\144\x63\141\162\x74\57\173\151\x64\175", array(GiohangController::class, "\x61\x64\x64\143\141\162\x74"))->name("\x73\x69\x74\145\56\x61\x64\x64\143\x61\x72\164"); goto eCUwc; XFo2Q: Route::delete("\57\162\145\x76\x69\x65\x77\x73\57\173\x72\145\x76\x69\145\167\137\151\x64\x7d", array(DanhGiaController::class, "\x64\145\x6c\x65\164\145"))->name("\x72\145\166\151\x65\x77\x73\x2e\x64\145\x6c\145\164\x65"); goto YImY4; yUYKv: Route::post("\x2f\x71\165\x65\156\x2d\155\141\x74\x2d\153\x68\141\165", array(ThanhVienController::class, "\x73\x65\156\144\x4f\x74\160"))->name("\x73\151\x74\x65\x2e\163\145\x6e\x64\x5f\x6f\x74\160"); goto QzOXb; z503T: Route::post("\57\141\x64\x6d\151\x6e\x2f\154\157\x67\151\156", array(AuthController::class, "\x64\x6f\154\157\147\151\156"))->name("\x61\x64\x6d\x69\156\x2e\144\x6f\x6c\157\x67\151\156"); goto wQf8F; Hcdso: Route::post("\57\144\x61\x74\x2d\x6c\141\151\x2d\155\x61\x74\x2d\153\150\141\165", array(ThanhVienController::class, "\x72\x65\x73\145\164\120\141\163\x73\167\157\162\x64"))->name("\163\x69\164\145\x2e\162\x65\x73\145\x74\137\160\141\x73\163\x77\157\162\144"); goto m_jRt; mDjZ9: Route::get("\x2f\143\141\155\55\157\x6e", array(GiohangController::class, "\x74\x68\x61\156\x6b\163"))->name("\163\151\164\145\56\x74\x68\141\x6e\x6b\x73"); goto ZP1z6; T7vxz: Route::post("\x2f\x74\150\141\x6e\150\55\x74\157\x61\156", array(GiohangController::class, "\143\x68\x65\x63\x6b\x6f\x75\164"))->name("\163\151\164\x65\x2e\143\150\x65\x63\x6b\x6f\x75\164"); goto mDjZ9; ubw_4: Route::get("\57\x64\x69\x65\165\x2d\x6b\x68\157\x61\156\55\x73\x75\x2d\144\165\156\147", array(ChinhSachController::class, "\x64\x6b\163\x64"))->name("\163\x69\164\145\x2e\143\x68\x69\156\150\x73\x61\x63\150\x2e\x64\153\x73\144"); goto i49xd; d586G: Route::get("\57\142\x61\x69\55\x76\x69\145\164", array(BaivietController::class, "\151\156\144\145\170"))->name("\x73\151\164\x65\x2e\142\154\x6f\147"); goto CTOjb; dysJS: Route::get("\x2f\171\x65\165\x2d\164\150\151\x63\x68", array(YeuThichController::class, "\x69\x6e\x64\x65\170"))->name("\x73\151\x74\x65\x2e\146\141\166\157\x72\x69\164\145\x73"); goto uu6Aq; ZSmqb: Route::post("\57\144\x6f\x6e\55\x68\141\x6e\147\x2f\173\151\x64\x7d\57\150\x75\x79", array(DonHangController::class, "\143\x61\156\143\x65\x6c"))->name("\x73\151\164\x65\x2e\157\162\x64\145\x72\x73\x2e\x63\x61\156\x63\145\154"); goto ctS3H; pjBvT: Route::get("\x2f\164\x68\165\x63\x2d\144\157\x6e", array(SanPhamController::class, "\x69\x6e\144\145\170"))->name("\x73\x69\x74\145\56\160\162\x6f\144\x75\x63\164"); goto xuoLR; m_jRt: Route::get("\57\x64\x61\x74\x2d\154\141\151\55\155\x61\x74\55\x6b\x68\141\165", array(ThanhVienController::class, "\163\x68\x6f\167\x52\x65\x73\145\x74\x50\141\x73\x73\x77\157\162\x64\106\157\162\x6d"))->name("\x73\151\x74\145\56\163\150\157\167\137\162\145\163\145\x74\137\160\x61\163\x73\x77\x6f\x72\x64"); goto JXHwk; Yj2bP: Route::get("\57\x64\141\x6e\150\x2d\x73\141\x63\150", array(SanPhamController::class, "\x70\x72\157\x64\x75\x63\164\x5f\x67\162\x69\x64\166\151\x65\167"))->name("\x73\151\x74\145\x2e\x70\162\x6f\144\x75\143\x74\x2e\x67\x72\x69\144\x76\x69\145\167"); goto j1z14; i49xd: Route::get("\57\143\x68\x69\x6e\150\55\163\141\143\150\x2d\142\x61\x6f\55\155\x61\164", array(ChinhSachController::class, "\x63\x73\142\x6d"))->name("\x73\151\164\x65\x2e\143\x68\151\156\150\163\x61\x63\x68\56\143\x73\142\x6d"); goto Xs5pW; q3WDY: Route::get("\57\144\x6f\x6e\x2d\x68\141\156\147\57\x7b\x69\144\x7d", array(DonHangController::class, "\x64\x65\x74\x61\151\154"))->name("\163\151\x74\145\56\157\162\144\x65\x72\163\x2e\144\145\164\141\151\154"); goto ZSmqb; WGD9K: Route::post("\x2f\x64\x61\x6e\x67\x2d\x6b\171", array(ThanhVienController::class, "\x64\x6f\x72\145\147\x69\163\x74\145\162"))->name("\x73\x69\164\x65\x2e\x64\157\x72\x65\147\151\163\164\x65\162"); goto u36pF; xuoLR: Route::get("\57\x63\150\x69\x2d\x74\x69\145\x74\55\163\x61\156\55\x70\150\141\155\x2f\173\163\x6c\x75\147\175", array(SanPhamController::class, "\x70\162\157\144\165\x63\164\137\144\145\164\x61\151\154"))->name("\163\151\164\x65\x2e\160\x72\x6f\x64\165\x63\x74\x2e\144\145\x74\141\x69\154"); goto lIvlS; PZND1: Route::get("\x2f\143\150\151\x6e\x68\x2d\x73\141\x63\x68\x2d\x61\x6e\55\164\x6f\x61\x6e\x2d\164\150\165\143\x2d\x70\x68\x61\155", array(ChinhSachController::class, "\x61\x74\x74\x70"))->name("\x73\151\x74\x65\x2e\x63\x68\151\156\x68\163\x61\143\150\x2e\x61\164\x74\x70"); goto aFz0N; ByT4Q: Route::put("\x2f\164\150\157\x6e\x67\55\x74\x69\156", array(ThanhVienController::class, "\165\x70\x64\141\164\145\120\162\157\146\151\154\145"))->name("\x73\x69\x74\145\x2e\x75\x70\144\141\164\145\x50\x72\x6f\x66\151\154\x65"); goto DKU55; TjHSy: Route::get("\57\x67\x6f\x6f\147\154\x65\57\x63\x61\154\x6c\x62\141\143\x6b", array(ThanhVienController::class, "\150\141\156\x64\x6c\x65\107\x6f\157\x67\154\145\103\141\x6c\x6c\142\141\x63\x6b"))->name("\147\157\x6f\147\x6c\145\x2e\x63\141\x6c\x6c\142\x61\143\153"); goto Q4yYP; d6LfF: Route::get("\x2f\154\151\145\156\x2d\x68\x65", array(LienheController::class, "\x69\x6e\144\x65\170"))->name("\x73\x69\164\145\x2e\143\x6f\156\164\x61\143\x74"); goto S7bvT; te6QJ: Route::get("\57\141\x64\155\151\x6e\x2f\x6c\157\x67\x69\x6e", array(AuthController::class, "\x6c\157\147\151\156"))->name("\141\x64\155\151\x6e\x2e\x6c\x6f\x67\x69\156"); goto z503T; VTFIZ: Route::get("\x2f\144\141\156\x67\x2d\x6b\171", array(ThanhVienController::class, "\162\x65\147\151\x73\x74\145\162"))->name("\x73\151\164\145\x2e\x72\145\x67\x69\x73\164\145\x72"); goto WGD9K; CTOjb: Route::get("\57\150\x69\156\x68\x2d\x61\156\x68", array(HinhAnhController::class, "\x69\x6e\x64\145\170"))->name("\x73\151\x74\145\x2e\x69\x6d\141\147\145"); goto Yj2bP; ctS3H: Route::get("\x64\x6f\x6e\x2d\x68\141\156\x67\57\x72\x65\157\x72\144\x65\x72\x2f\173\151\144\175", array(DonHangController::class, "\162\145\157\162\144\145\x72"))->name("\x73\151\x74\145\56\157\162\144\x65\x72\163\x2e\x72\x65\157\x72\144\145\162"); goto Z2Mmn; Z2Mmn: Route::post("\57\x72\x65\166\151\145\167\x73", array(DanhGiaController::class, "\x73\164\x6f\x72\145"))->name("\x72\145\x76\x69\145\167\x73\56\163\x74\157\x72\x65"); goto XFo2Q; uu6Aq: Route::post("\x2f\171\x65\165\x2d\x74\150\x69\x63\x68\57\173\160\162\157\x64\x75\143\x74\x49\x64\x7d", array(YeuThichController::class, "\x73\164\157\162\145"))->name("\x73\x69\164\x65\56\146\141\166\x6f\x72\151\164\x65\163\56\141\x64\x64"); goto vN2I5; lIvlS: Route::get("\x2f\x63\x68\x69\x2d\164\151\x65\164\x2d\x62\x61\151\55\166\151\145\164\57\173\163\154\x75\x67\x7d", array(BaivietController::class, "\142\154\157\x67\137\144\x65\164\141\x69\x6c"))->name("\x73\151\164\145\x2e\142\154\157\x67\56\x64\145\164\x61\151\154"); goto d6LfF; j1z14: Route::get("\x2f\147\x69\x6f\55\x68\141\x6e\147", array(GiohangController::class, "\x69\x6e\x64\145\170"))->name("\x73\x69\164\145\56\x63\x61\162\164"); goto ubw_4; vN2I5: Route::delete("\57\x79\145\x75\55\x74\150\151\x63\x68\x2f\x7b\160\x72\x6f\x64\165\x63\x74\111\x64\x7d", array(YeuThichController::class, "\144\x65\x73\164\x72\x6f\x79"))->name("\x73\151\164\145\56\146\141\166\x6f\162\151\164\145\x73\x2e\162\145\x6d\157\x76\x65"); goto Xxexb; QzOXb: Route::post("\57\x78\x61\143\x2d\x6e\150\x61\x6e\55\157\x74\x70", array(ThanhVienController::class, "\166\145\162\x69\x66\171\117\x74\x70"))->name("\x73\x69\164\145\56\x76\x65\x72\x69\x66\x79\x5f\157\164\160"); goto Hcdso; lgHy7: Route::get("\x2f\x67\x6f\157\x67\154\x65\57\x72\x65\x64\x69\x72\x65\x63\x74", array(ThanhVienController::class, "\x72\x65\x64\151\162\x65\143\x74\124\x6f\x47\x6f\157\147\x6c\145"))->name("\x67\157\x6f\x67\x6c\145\x2e\x72\x65\144\151\x72\145\x63\164"); goto TjHSy; DKU55: Route::get("\57\164\150\x6f\x6e\147\55\x74\151\x6e", array(ThanhVienController::class, "\160\162\157\x66\x69\x6c\x65"))->name("\163\151\x74\x65\56\x70\162\157\x66\x69\154\x65"); goto lgHy7; wQf8F: Route::get("\57\141\144\x6d\151\156\57\x6c\157\147\x6f\165\164", array(AuthController::class, "\154\x6f\x67\157\165\x74"))->name("\x61\x64\155\x69\x6e\56\x6c\157\x67\x6f\165\164"); goto nc2vH; S7bvT: Route::get("\x2f\x67\x69\157\x69\x2d\x74\x68\x69\145\165", array(GioithieuController::class, "\x69\156\x64\x65\x78"))->name("\163\151\x74\x65\56\141\142\x6f\165\164"); goto d586G; eCUwc: Route::post("\x2f\165\160\x64\x61\x74\x65\x63\141\x72\x74", array(GiohangController::class, "\165\160\x64\x61\x74\x65\x63\x61\162\x74"))->name("\x73\x69\x74\x65\56\165\x70\x64\141\x74\x65\143\141\162\164"); goto VvMXK; u36pF: Route::get("\57\144\141\x6e\x67\x2d\170\165\x61\x74", array(ThanhVienController::class, "\x6c\x6f\x67\x6f\x75\x74"))->name("\x73\x69\164\145\56\x6c\x6f\147\157\x75\164"); goto ByT4Q; cz3yJ: Route::post("\x2f\144\141\x6e\147\55\x6e\x68\x61\160", array(ThanhVienController::class, "\x64\x6f\x6c\x6f\x67\x69\156"))->name("\x73\151\x74\x65\56\144\x6f\154\157\147\x69\156"); goto VTFIZ; djTn3: Route::get("\x2f\x74\x68\x61\x6e\x68\55\x74\157\x61\156", array(GiohangController::class, "\143\x68\x65\143\x6b\x6f\165\x74\106\x6f\x72\155"))->name("\x73\151\164\x65\x2e\143\x68\145\143\x6b\157\165\164\106\x6f\x72\x6d"); goto T7vxz; EB9oO: Route::post("\57\x64\141\164\x2d\142\141\156", array(DatBanController::class, "\x73\164\157\162\x65"))->name("\163\151\x74\145\56\142\x6f\157\x6b\151\x6e\147\56\163\x74\157\162\x65"); goto dysJS; YImY4: Route::get("\x2f\x64\x61\164\55\142\141\156", array(DatBanController::class, "\x69\x6e\x64\x65\x78"))->name("\x73\151\164\145\x2e\142\157\x6f\153\x69\156\147"); goto EB9oO; dtipG: Route::get("\57\x67\151\157\x2d\150\141\156\147", array(GiohangController::class, "\x69\156\144\x65\170"))->name("\163\x69\164\145\x2e\x63\141\x72\164"); goto djTn3; Xxexb: Route::post("\57\171\x65\x75\55\143\x61\165", array(YeuCauController::class, "\x73\164\157\162\145"))->name("\x69\156\161\165\x69\x72\151\145\x73\x2e\x73\164\x6f\162\x65"); goto OnuRm; f0NrK: Route::get("\57\x64\x61\x6e\x67\55\156\150\x61\x70", array(ThanhVienController::class, "\x6c\157\x67\151\x6e"))->name("\x73\151\x74\145\x2e\154\x6f\147\151\156"); goto cz3yJ; nc2vH: Route::get("\57", array(TrangchuController::class, "\151\x6e\x64\x65\x78"))->name("\x73\151\x74\145\x2e\x68\157\x6d\145"); goto pjBvT; ZP1z6: Route::get("\x2f\144\x6f\x6e\55\150\141\x6e\147", array(DonHangController::class, "\x69\156\144\145\170"))->name("\163\151\x74\145\x2e\x6f\x72\144\x65\x72\163"); goto q3WDY; Q4yYP: Route::get("\x2f\161\165\x65\x6e\55\x6d\x61\x74\55\153\150\x61\x75", array(ThanhVienController::class, "\x66\x6f\162\x67\x6f\164\120\141\163\163\167\157\162\144"))->name("\163\151\164\x65\56\x66\x6f\162\x67\x6f\164\137\x70\141\163\x73\x77\x6f\x72\x64"); goto yUYKv; Xs5pW: Route::get("\57\143\150\x69\156\150\55\x73\141\143\150\55\166\x61\x6e\x2d\x63\x68\x75\171\145\156", array(ChinhSachController::class, "\x63\163\x76\143"))->name("\163\x69\x74\x65\x2e\143\150\x69\156\150\x73\141\143\150\56\x63\163\166\143"); goto PZND1; OnuRm: Route::prefix("\141\x64\x6d\151\156")->middleware("\154\157\147\x69\156\x2d\141\144\x6d\151\156")->group(function () { Route::get("\57", array(DashboardController::class, "\151\x6e\144\x65\x78"))->name("\141\x64\x6d\151\x6e\56\144\141\163\150\x62\157\141\x72\x64"); Route::prefix("\x70\x72\157\x64\x75\x63\164")->group(function () { Route::get("\57", array(ProductController::class, "\151\156\x64\x65\x78"))->name("\x61\144\155\x69\156\x2e\160\x72\x6f\x64\165\143\x74\56\151\156\144\x65\170"); Route::get("\x63\162\x65\141\x74\145", array(ProductController::class, "\143\162\145\141\x74\x65"))->name("\x61\144\x6d\151\156\56\160\162\157\144\x75\x63\164\x2e\143\x72\145\141\x74\x65"); Route::get("\173\x70\x72\157\x64\165\143\x74\175\x2f\145\x64\151\x74", array(ProductController::class, "\145\x64\151\x74"))->name("\x61\144\x6d\151\156\56\x70\x72\157\144\x75\x63\164\x2e\x65\x64\151\x74"); Route::get("\173\x70\x72\157\144\165\x63\164\175\57\x73\x68\x6f\167", array(ProductController::class, "\163\x68\157\x77"))->name("\x61\x64\x6d\x69\x6e\x2e\x70\x72\157\x64\165\143\x74\x2e\163\x68\x6f\167"); Route::put("\x7b\160\162\157\x64\165\143\164\175\57\x75\160\144\x61\164\x65", array(ProductController::class, "\x75\160\x64\x61\x74\x65"))->name("\x61\144\155\151\156\56\160\x72\157\x64\x75\x63\x74\56\165\160\x64\x61\x74\145"); Route::get("\x7b\160\x72\x6f\144\x75\x63\164\x7d\57\144\x65\154\x65\x74\145", array(ProductController::class, "\144\x65\154\x65\164\145"))->name("\141\144\x6d\151\156\56\160\x72\157\x64\165\143\164\x2e\x64\x65\x6c\x65\164\x65"); Route::delete("\x7b\x70\x72\x6f\x64\165\x63\164\x7d\x2f\x64\145\x73\x74\162\157\x79", array(ProductController::class, "\x64\145\163\x74\162\x6f\x79"))->name("\141\144\x6d\x69\x6e\x2e\160\162\157\144\x75\143\164\x2e\x64\145\163\164\162\x6f\171"); Route::get("\x74\162\x61\x73\x68", array(ProductController::class, "\164\162\141\163\x68"))->name("\141\x64\x6d\151\x6e\56\x70\162\x6f\144\x75\143\164\56\x74\162\x61\163\x68"); Route::post("\163\164\157\162\145", array(ProductController::class, "\x73\164\x6f\162\145"))->name("\141\x64\x6d\x69\156\x2e\160\162\x6f\144\165\143\164\x2e\163\x74\157\x72\x65"); Route::get("\173\160\162\157\144\165\143\164\175\x2f\x73\x74\x61\x74\x75\x73", array(ProductController::class, "\x73\x74\141\x74\x75\x73"))->name("\141\x64\x6d\151\x6e\56\160\x72\x6f\x64\x75\x63\164\56\163\x74\x61\x74\x75\x73"); Route::get("\173\160\162\157\144\x75\143\164\175\57\162\x65\163\x74\x6f\162\x65", array(ProductController::class, "\x72\x65\163\x74\x6f\162\x65"))->name("\141\x64\155\x69\156\56\x70\162\157\x64\x75\143\164\56\162\145\163\164\x6f\x72\x65"); Route::get("\173\x70\162\x6f\144\x75\143\x74\x7d\57\x72\145\166\x69\x65\x77\x73", array(ProductController::class, "\x73\150\x6f\x77\x52\x65\x76\151\145\x77\x73"))->name("\x61\x64\155\151\156\56\160\x72\x6f\x64\x75\143\164\56\x72\145\166\151\x65\x77\x73"); Route::post("\x72\x65\x76\151\145\167\57\x72\x65\163\160\157\x6e\144\x2f\x7b\160\162\157\144\x75\143\164\175\57\173\x72\145\166\x69\x65\x77\x7d", array(ReviewController::class, "\162\145\163\x70\157\156\144"))->name("\141\144\155\151\x6e\x2e\x72\x65\x76\x69\x65\167\x2e\x72\145\163\160\157\156\144"); }); Route::prefix("\x63\141\x74\145\x67\157\x72\171")->group(function () { Route::get("\x2f", array(CategoryController::class, "\x69\156\144\x65\170"))->name("\x61\144\155\151\x6e\56\x63\141\164\x65\147\157\162\x79\56\x69\156\x64\x65\x78"); Route::get("\143\x72\145\x61\x74\145", array(CategoryController::class, "\143\162\145\141\x74\145"))->name("\141\x64\155\151\156\x2e\x63\141\x74\145\x67\157\x72\171\56\143\x72\145\x61\164\145"); Route::get("\x7b\x63\141\164\x65\x67\x6f\162\171\x7d\x2f\x73\150\x6f\x77", array(CategoryController::class, "\x73\150\157\x77"))->name("\141\x64\x6d\x69\x6e\56\143\141\x74\145\x67\x6f\x72\171\56\163\150\x6f\x77"); Route::put("\173\143\x61\x74\x65\x67\x6f\x72\x79\175\x2f\x75\160\x64\141\x74\x65", array(CategoryController::class, "\x75\160\x64\x61\164\145"))->name("\141\144\155\x69\156\56\x63\x61\x74\145\x67\x6f\x72\x79\56\165\160\x64\x61\x74\145"); Route::delete("\173\x63\x61\x74\x65\147\x6f\x72\x79\175\57\144\145\163\164\162\157\x79", array(CategoryController::class, "\x64\x65\x73\x74\162\157\171"))->name("\141\144\155\151\156\56\x63\141\x74\145\x67\157\x72\x79\x2e\x64\x65\163\164\162\157\x79"); Route::get("\x7b\143\141\164\145\x67\x6f\162\x79\175\57\145\x64\151\x74", array(CategoryController::class, "\145\x64\x69\164"))->name("\x61\x64\x6d\x69\x6e\56\x63\x61\x74\x65\147\157\162\171\x2e\x65\144\151\164"); Route::post("\163\x74\x6f\x72\x65", array(CategoryController::class, "\163\x74\x6f\x72\145"))->name("\141\144\x6d\151\x6e\x2e\143\141\x74\145\147\157\x72\171\56\x73\x74\x6f\162\x65"); Route::get("\173\x63\141\x74\145\x67\157\x72\171\175\x2f\x64\x65\154\145\164\145", array(CategoryController::class, "\144\x65\154\x65\164\x65"))->name("\141\144\x6d\151\x6e\x2e\x63\x61\164\145\147\x6f\162\171\56\x64\x65\154\145\164\145"); Route::get("\x74\x72\x61\163\150", array(CategoryController::class, "\164\162\x61\163\150"))->name("\141\x64\155\151\156\x2e\143\141\164\145\x67\x6f\162\171\56\x74\x72\x61\163\150"); Route::get("\x7b\143\x61\x74\145\x67\157\x72\x79\175\x2f\x73\164\141\164\x75\163", array(CategoryController::class, "\x73\164\x61\x74\165\x73"))->name("\x61\144\x6d\x69\156\56\x63\141\164\x65\147\x6f\x72\x79\x2e\x73\x74\141\x74\165\x73"); Route::get("\x7b\143\141\164\x65\147\157\x72\x79\175\57\162\x65\163\x74\x6f\x72\x65", array(CategoryController::class, "\x72\145\163\164\x6f\162\145"))->name("\141\144\x6d\x69\x6e\x2e\143\x61\x74\x65\147\x6f\x72\171\x2e\162\x65\163\x74\x6f\x72\145"); }); Route::prefix("\157\x72\x64\x65\x72")->group(function () { Route::get("\57", array(OrderController::class, "\x69\x6e\144\x65\170"))->name("\141\144\x6d\151\156\56\x6f\162\144\x65\x72\56\x69\x6e\144\x65\170"); Route::get("\157\x72\x64\x65\x72\x73\x2f\x7b\x69\144\175", array(OrderController::class, "\x64\x65\164\141\151\154"))->name("\x61\x64\155\x69\156\56\x6f\x72\x64\x65\162\x2e\x6f\162\x64\x65\x72\144\145\x74\x61\x69\154"); Route::get("\x2f\x70\x72\x69\156\x74\57\x7b\x69\x64\x7d", array(OrderController::class, "\160\x72\151\156\x74"))->name("\x61\x64\155\151\156\56\x6f\162\x64\145\x72\56\x70\x72\x69\x6e\164\157\162\144\x65\x72"); Route::get("\x7b\151\144\175\x2f\x65\144\151\164", array(OrderController::class, "\x65\144\x69\164"))->name("\141\144\155\151\156\56\x6f\x72\x64\x65\162\x2e\145\x64\151\x74"); Route::post("\x7b\151\x64\x7d\57\x75\160\144\x61\164\x65", array(OrderController::class, "\x75\160\144\x61\x74\145"))->name("\x61\x64\x6d\151\156\x2e\x6f\162\x64\145\162\x2e\x75\x70\144\141\x74\145"); }); Route::prefix("\142\157\157\x6b\151\x6e\x67")->group(function () { Route::get("\x2f", array(BookingController::class, "\151\x6e\x64\145\x78"))->name("\141\x64\155\151\156\56\142\157\157\153\151\156\x67\56\151\x6e\144\x65\x78"); Route::get("\x2f\x7b\x69\x64\x7d\x2f\145\144\x69\164", array(BookingController::class, "\145\144\151\x74"))->name("\x61\x64\x6d\151\156\x2e\x62\x6f\157\153\x69\156\x67\x2e\x65\x64\x69\x74"); Route::post("\57\173\151\x64\175\x2f\x75\160\144\141\x74\145", array(BookingController::class, "\165\x70\x64\141\164\x65"))->name("\x61\144\155\151\x6e\x2e\x62\157\157\x6b\x69\x6e\x67\56\165\x70\144\141\164\x65"); Route::get("\57\173\151\x64\175\x2f\144\x65\164\141\151\x6c", array(BookingController::class, "\x64\145\164\141\151\154"))->name("\x61\x64\x6d\151\156\56\x62\x6f\157\153\x69\156\147\x2e\x64\145\164\141\151\x6c"); }); Route::prefix("\x69\156\161\165\151\x72\151\145\163")->group(function () { Route::get("\57", array(InquiryController::class, "\x69\x6e\144\145\x78"))->name("\141\144\155\x69\x6e\x2e\151\x6e\161\x75\151\162\171\56\x69\x6e\144\x65\x78"); Route::get("\57\x7b\x69\144\175", array(InquiryController::class, "\163\150\157\167"))->name("\141\144\x6d\x69\156\56\x69\156\161\x75\151\x72\171\56\163\150\x6f\167"); Route::post("\57\x7b\151\144\175\57\165\160\144\x61\164\145\55\163\x74\141\164\x75\x73", array(InquiryController::class, "\165\x70\144\x61\164\145\123\x74\x61\x74\x75\x73"))->name("\141\144\x6d\x69\156\x2e\x69\x6e\x71\x75\x69\x72\171\56\x75\160\144\141\164\145\123\164\x61\164\x75\163"); }); Route::prefix("\142\x72\141\156\x64")->group(function () { Route::get("\x2f", array(BrandController::class, "\151\x6e\x64\145\x78"))->name("\141\x64\x6d\151\156\x2e\x62\162\x61\156\144\56\x69\x6e\144\145\x78"); Route::get("\173\142\x72\141\x6e\144\x7d\57\x73\150\x6f\167", array(BrandController::class, "\x73\x68\x6f\x77"))->name("\x61\144\x6d\x69\x6e\x2e\142\162\141\x6e\x64\56\163\150\157\167"); Route::delete("\173\x62\162\141\x6e\x64\175\57\x64\145\x73\x74\x72\157\x79", array(BrandController::class, "\144\145\163\x74\x72\157\x79"))->name("\x61\144\x6d\151\x6e\x2e\x62\x72\141\156\144\x2e\x64\x65\x73\164\x72\157\171"); Route::post("\x73\x74\157\162\x65", array(BrandController::class, "\x73\164\x6f\x72\145"))->name("\141\144\x6d\x69\156\56\x62\x72\141\x6e\144\x2e\x73\164\x6f\162\x65"); Route::get("\143\162\x65\x61\x74\145", array(BrandController::class, "\143\x72\x65\x61\164\x65"))->name("\x61\144\155\151\156\56\142\x72\x61\156\144\56\x63\x72\145\x61\x74\x65"); Route::put("\173\x62\x72\x61\156\144\175\57\165\160\144\x61\x74\x65", array(BrandController::class, "\165\x70\x64\141\164\145"))->name("\x61\144\x6d\151\x6e\x2e\x62\x72\x61\x6e\x64\56\165\x70\x64\x61\x74\145"); Route::get("\173\x62\162\x61\x6e\x64\175\x2f\145\144\x69\164", array(BrandController::class, "\x65\x64\151\164"))->name("\x61\144\x6d\151\x6e\56\142\162\141\x6e\x64\x2e\x65\x64\151\164"); Route::get("\x7b\142\162\x61\156\x64\x7d\57\x64\145\x6c\145\x74\145", array(BrandController::class, "\144\x65\x6c\145\x74\145"))->name("\x61\x64\155\x69\156\56\142\x72\141\x6e\144\x2e\x64\x65\154\145\164\x65"); Route::get("\164\162\141\x73\x68", array(BrandController::class, "\164\162\x61\x73\x68"))->name("\x61\x64\155\151\156\x2e\x62\162\141\x6e\144\56\x74\162\x61\163\x68"); Route::get("\173\x62\162\141\x6e\144\x7d\57\163\164\141\164\x75\x73", array(BrandController::class, "\x73\x74\141\x74\165\x73"))->name("\141\x64\x6d\x69\x6e\x2e\142\162\x61\x6e\x64\x2e\x73\164\x61\164\x75\x73"); Route::get("\173\142\162\141\156\144\x7d\x2f\162\145\163\164\157\162\x65", array(BrandController::class, "\x72\x65\x73\x74\157\162\145"))->name("\x61\x64\x6d\x69\x6e\56\142\x72\x61\x6e\144\56\162\x65\x73\164\x6f\162\x65"); }); Route::prefix("\142\x61\156\x6e\x65\x72")->group(function () { Route::get("\57", array(BannerController::class, "\x69\x6e\144\145\170"))->name("\141\144\x6d\151\156\56\142\x61\156\156\x65\162\x2e\151\156\144\x65\x78"); Route::get("\173\142\x61\x6e\156\145\x72\x7d\x2f\163\x68\157\167", array(BannerController::class, "\163\x68\157\167"))->name("\x61\144\155\x69\156\x2e\x62\141\156\x6e\x65\162\56\x73\x68\x6f\x77"); Route::delete("\173\x62\x61\156\x6e\x65\x72\175\x2f\144\145\x73\x74\x72\157\x79", array(BannerController::class, "\144\145\x73\x74\x72\157\x79"))->name("\141\x64\x6d\x69\x6e\56\142\x61\156\156\145\162\x2e\144\145\163\164\x72\x6f\171"); Route::put("\x7b\x62\141\156\x6e\145\x72\175\x2f\165\x70\144\141\x74\x65", array(BannerController::class, "\165\x70\x64\x61\164\x65"))->name("\x61\x64\155\151\156\56\x62\141\156\156\145\162\x2e\165\160\144\x61\164\x65"); Route::post("\x73\164\x6f\162\145", array(BannerController::class, "\163\x74\x6f\x72\x65"))->name("\141\x64\155\151\x6e\56\142\x61\156\156\145\x72\56\x73\164\157\162\x65"); Route::get("\x63\x72\145\x61\x74\145", array(BannerController::class, "\x63\162\x65\x61\164\145"))->name("\x61\x64\x6d\x69\156\x2e\142\x61\156\x6e\x65\x72\x2e\x63\162\145\141\164\145"); Route::get("\173\x62\141\x6e\x6e\x65\x72\175\x2f\145\144\151\164", array(BannerController::class, "\x65\144\x69\x74"))->name("\x61\144\x6d\x69\x6e\56\142\141\156\156\145\162\x2e\x65\x64\x69\x74"); Route::get("\x7b\x62\141\156\x6e\x65\162\175\x2f\x64\x65\x6c\x65\x74\x65", array(BannerController::class, "\144\145\154\145\x74\145"))->name("\x61\144\x6d\151\x6e\x2e\142\141\x6e\x6e\145\x72\56\x64\x65\x6c\145\164\145"); Route::get("\164\162\x61\163\150", array(BannerController::class, "\164\x72\x61\x73\x68"))->name("\x61\144\x6d\x69\x6e\56\142\141\x6e\x6e\x65\x72\x2e\164\162\x61\163\x68"); Route::get("\173\x62\141\156\156\145\x72\x7d\x2f\x73\164\x61\164\165\163", array(BannerController::class, "\x73\x74\141\x74\x75\163"))->name("\141\x64\155\151\x6e\56\x62\141\156\x6e\x65\162\x2e\x73\164\x61\x74\165\x73"); Route::get("\173\142\x61\x6e\156\145\x72\x7d\57\x72\145\163\x74\x6f\x72\x65", array(BannerController::class, "\162\x65\x73\164\x6f\x72\x65"))->name("\141\144\155\x69\156\56\x62\141\x6e\x6e\145\162\x2e\162\x65\163\x74\x6f\162\x65"); }); Route::prefix("\x62\154\157\147")->group(function () { Route::get("\57", array(BlogController::class, "\151\x6e\144\145\170"))->name("\141\144\x6d\151\x6e\56\142\x6c\157\147\56\151\156\144\x65\x78"); Route::get("\x63\162\x65\x61\164\x65", array(BlogController::class, "\143\x72\145\x61\x74\x65"))->name("\x61\144\155\151\x6e\x2e\x62\154\x6f\x67\x2e\143\162\x65\141\164\145"); Route::get("\x7b\142\x6c\x6f\x67\175\x2f\x73\150\157\167", array(BlogController::class, "\163\x68\x6f\x77"))->name("\x61\144\155\151\x6e\x2e\x62\x6c\157\147\56\163\150\x6f\x77"); Route::put("\173\x62\x6c\157\147\175\x2f\x75\x70\144\x61\x74\145", array(BlogController::class, "\165\160\144\141\164\145"))->name("\x61\144\155\x69\156\x2e\142\x6c\157\x67\x2e\x75\160\x64\x61\164\x65"); Route::post("\163\x74\157\162\145", array(BlogController::class, "\x73\164\157\x72\145"))->name("\x61\x64\155\x69\x6e\56\142\154\157\x67\x2e\163\164\157\162\x65"); Route::delete("\173\x62\154\157\147\175\57\144\x65\x73\x74\x72\x6f\171", array(BlogController::class, "\144\x65\163\164\162\x6f\x79"))->name("\141\144\x6d\151\156\x2e\142\x6c\157\147\56\x64\145\163\164\162\157\171"); Route::get("\x7b\x62\154\157\147\x7d\57\x65\x64\x69\164", array(BlogController::class, "\145\144\x69\164"))->name("\x61\144\x6d\x69\156\x2e\x62\154\x6f\147\x2e\x65\x64\x69\164"); Route::get("\x7b\142\x6c\157\x67\175\57\x64\x65\x6c\x65\x74\145", array(BlogController::class, "\144\x65\154\x65\164\x65"))->name("\141\144\x6d\x69\x6e\56\142\x6c\x6f\x67\x2e\144\x65\154\x65\164\x65"); Route::get("\164\x72\x61\163\x68", array(BlogController::class, "\164\x72\x61\x73\150"))->name("\x61\144\x6d\x69\x6e\x2e\142\154\x6f\147\x2e\x74\162\x61\163\150"); Route::get("\173\142\x6c\157\147\x7d\x2f\x73\x74\141\x74\x75\163", array(BlogController::class, "\163\x74\141\x74\165\163"))->name("\x61\144\x6d\151\x6e\56\x62\154\157\147\x2e\x73\x74\141\164\x75\x73"); Route::get("\173\142\154\157\147\x7d\x2f\x72\145\163\x74\x6f\x72\x65", array(BlogController::class, "\x72\145\163\164\157\162\x65"))->name("\x61\144\155\x69\x6e\x2e\142\154\x6f\147\56\162\145\x73\x74\x6f\x72\x65"); }); Route::prefix("\x74\x6f\x70\151\143")->group(function () { Route::get("\x2f", array(TopicController::class, "\x69\x6e\144\x65\x78"))->name("\141\x64\155\x69\156\x2e\164\x6f\x70\x69\143\x2e\x69\156\x64\145\x78"); Route::get("\x7b\x74\157\160\x69\x63\175\x2f\x73\150\x6f\167", array(TopicController::class, "\163\x68\157\167"))->name("\141\x64\x6d\151\156\56\164\x6f\x70\x69\143\56\163\x68\157\x77"); Route::put("\173\164\x6f\x70\151\x63\175\57\x75\x70\144\141\x74\145", array(TopicController::class, "\165\x70\144\x61\x74\x65"))->name("\x61\144\x6d\151\156\x2e\x74\157\x70\151\143\56\x75\x70\x64\x61\x74\x65"); Route::post("\163\164\157\x72\145", array(TopicController::class, "\x73\164\157\162\x65"))->name("\141\x64\x6d\151\156\56\x74\157\160\151\x63\56\x73\x74\157\x72\x65"); Route::delete("\173\x74\157\x70\x69\x63\175\x2f\144\x65\x73\x74\162\157\171", array(TopicController::class, "\x64\x65\x73\164\162\157\x79"))->name("\141\x64\x6d\151\x6e\x2e\164\x6f\160\151\143\x2e\x64\145\x73\x74\x72\157\171"); Route::get("\143\x72\x65\x61\x74\145", array(TopicController::class, "\143\x72\145\x61\164\145"))->name("\141\x64\155\x69\x6e\x2e\x74\x6f\x70\151\x63\x2e\x63\x72\x65\x61\x74\145"); Route::get("\173\164\x6f\160\151\143\175\57\x65\x64\151\x74", array(TopicController::class, "\145\144\151\x74"))->name("\x61\144\x6d\151\156\x2e\164\157\x70\x69\143\x2e\145\144\151\x74"); Route::get("\173\x74\157\x70\151\x63\175\57\144\x65\x6c\145\164\145", array(TopicController::class, "\144\145\x6c\145\164\x65"))->name("\141\144\x6d\x69\x6e\x2e\x74\157\x70\x69\143\56\x64\145\154\145\x74\x65"); Route::get("\x74\162\141\163\x68", array(TopicController::class, "\164\162\x61\x73\150"))->name("\x61\144\x6d\151\156\x2e\x74\157\x70\x69\x63\x2e\164\x72\141\163\x68"); Route::get("\x7b\x74\x6f\160\151\143\175\57\x73\x74\x61\164\165\x73", array(TopicController::class, "\x73\164\141\x74\x75\x73"))->name("\x61\x64\x6d\x69\156\56\x74\x6f\x70\x69\x63\x2e\163\x74\x61\164\165\x73"); Route::get("\x7b\x74\157\x70\x69\x63\175\x2f\162\x65\163\x74\x6f\x72\145", array(TopicController::class, "\162\145\x73\x74\157\162\145"))->name("\x61\x64\155\x69\x6e\56\164\x6f\x70\151\143\x2e\x72\x65\x73\x74\157\x72\145"); }); Route::prefix("\x69\155\141\x67\x65")->group(function () { Route::get("\x2f", array(ImageController::class, "\151\x6e\x64\x65\170"))->name("\141\144\155\x69\x6e\x2e\x69\155\x61\x67\145\56\151\156\x64\145\170"); Route::get("\x63\x72\x65\141\164\145", array(ImageController::class, "\x63\x72\x65\141\x74\145"))->name("\x61\144\x6d\151\156\56\151\155\x61\147\x65\x2e\143\162\x65\x61\x74\x65"); Route::get("\173\151\155\141\x67\145\175\x2f\145\x64\151\x74", array(ImageController::class, "\145\x64\x69\x74"))->name("\x61\144\155\x69\156\x2e\x69\155\x61\147\x65\56\x65\144\151\x74"); Route::get("\x7b\151\155\141\x67\x65\x7d\x2f\163\x68\157\x77", array(ImageController::class, "\163\x68\x6f\167"))->name("\141\x64\155\151\156\56\151\155\141\x67\145\x2e\163\150\x6f\x77"); Route::put("\x7b\151\x6d\x61\147\145\175\57\165\x70\144\x61\164\145", array(ImageController::class, "\x75\x70\144\141\164\145"))->name("\141\x64\x6d\x69\156\56\x69\x6d\x61\x67\145\56\165\160\144\141\164\x65"); Route::post("\163\164\157\162\x65", array(ImageController::class, "\x73\164\157\x72\x65"))->name("\x61\x64\x6d\x69\x6e\56\151\x6d\x61\147\x65\56\x73\x74\157\162\145"); Route::delete("\x7b\151\155\x61\147\145\175\x2f\x64\x65\x73\x74\x72\x6f\x79", array(ImageController::class, "\144\145\x73\164\x72\x6f\171"))->name("\141\x64\155\x69\x6e\x2e\151\x6d\141\147\x65\x2e\144\145\163\x74\162\157\171"); Route::get("\x74\162\141\163\150", array(ImageController::class, "\x74\162\141\x73\150"))->name("\x61\x64\x6d\x69\x6e\56\x69\x6d\x61\147\x65\56\x74\162\141\163\150"); Route::get("\173\x69\155\141\147\145\x7d\x2f\x73\x74\x61\x74\165\x73", array(ImageController::class, "\163\x74\x61\x74\x75\x73"))->name("\141\144\155\151\x6e\56\x69\155\x61\x67\145\x2e\163\x74\x61\164\x75\x73"); Route::get("\x7b\151\155\141\x67\145\x7d\57\x64\x65\154\145\164\x65", array(ImageController::class, "\x64\x65\154\x65\x74\145"))->name("\141\x64\155\x69\x6e\56\x69\x6d\x61\147\145\56\144\x65\154\x65\x74\145"); Route::get("\173\x69\x6d\x61\147\x65\x7d\57\162\x65\x73\164\x6f\x72\x65", array(ImageController::class, "\x72\145\163\x74\x6f\x72\145"))->name("\141\144\x6d\x69\156\x2e\x69\155\x61\147\145\56\162\x65\163\164\x6f\x72\145"); }); Route::prefix("\143\157\156\164\141\143\x74")->group(function () { Route::get("\x2f", array(ContactController::class, "\151\x6e\144\145\170"))->name("\141\144\x6d\151\x6e\x2e\x63\157\156\164\x61\x63\x74\x2e\151\156\x64\145\170"); Route::get("\x63\x72\145\x61\164\x65", array(ContactController::class, "\x63\x72\145\141\164\x65"))->name("\x61\x64\155\x69\x6e\56\x63\x6f\156\x74\x61\x63\164\x2e\143\x72\145\x61\164\145"); Route::get("\173\143\x6f\156\x74\x61\143\x74\x7d\x2f\x73\150\157\167", array(ContactController::class, "\163\x68\x6f\167"))->name("\141\144\x6d\151\x6e\x2e\143\157\156\x74\141\143\x74\56\163\x68\157\167"); Route::put("\x7b\x63\x6f\156\164\x61\143\164\175\x2f\165\160\144\141\x74\145", array(ContactController::class, "\165\x70\x64\141\164\x65"))->name("\x61\144\x6d\x69\x6e\x2e\143\157\156\164\x61\x63\164\56\165\x70\144\x61\x74\x65"); Route::post("\163\x74\x6f\x72\145", array(ContactController::class, "\x73\x74\x6f\162\x65"))->name("\141\144\x6d\151\x6e\x2e\x63\157\x6e\164\x61\143\x74\x2e\x73\164\x6f\x72\145"); Route::delete("\x7b\x63\x6f\156\x74\141\143\x74\x7d\57\144\145\x73\164\162\157\171", array(ContactController::class, "\144\x65\x73\164\162\x6f\171"))->name("\141\x64\x6d\151\x6e\x2e\143\157\x6e\164\x61\x63\x74\x2e\144\x65\163\164\162\157\171"); Route::get("\x7b\143\157\x6e\x74\x61\x63\x74\175\x2f\145\x64\151\x74", array(ContactController::class, "\145\144\x69\x74"))->name("\141\144\x6d\x69\x6e\x2e\x63\157\x6e\164\141\x63\x74\x2e\145\x64\151\x74"); Route::get("\173\x63\157\156\x74\x61\143\164\175\57\144\x65\x6c\145\x74\x65", array(ContactController::class, "\x64\145\x6c\x65\164\x65"))->name("\141\144\x6d\x69\156\x2e\x63\157\x6e\x74\x61\x63\164\x2e\144\x65\154\145\164\145"); Route::get("\164\162\x61\x73\x68", array(ContactController::class, "\164\x72\x61\x73\150"))->name("\141\144\x6d\151\156\x2e\143\157\x6e\x74\141\143\164\56\164\x72\x61\163\x68"); Route::get("\173\x63\x6f\156\164\x61\143\x74\175\x2f\163\164\x61\x74\165\x73", array(ContactController::class, "\x73\164\141\x74\x75\163"))->name("\x61\x64\x6d\151\x6e\56\143\x6f\x6e\x74\x61\x63\164\56\x73\x74\x61\164\165\x73"); Route::get("\x7b\x63\157\156\164\x61\x63\164\175\57\x72\x65\163\x74\x6f\162\x65", array(ContactController::class, "\x72\x65\x73\164\x6f\x72\x65"))->name("\x61\144\x6d\x69\156\56\x63\x6f\x6e\x74\x61\143\164\x2e\x72\145\163\164\x6f\x72\145"); }); Route::prefix("\165\163\x65\x72")->middleware("\x61\144\155\151\156\x2d\141\143\143\x65\163\x73")->group(function () { Route::get("\x2f", array(UserController::class, "\151\x6e\x64\x65\x78"))->name("\141\x64\155\x69\x6e\x2e\165\163\x65\x72\56\x69\156\144\x65\170"); Route::get("\x63\162\x65\x61\x74\145", array(UserController::class, "\x63\x72\145\x61\164\x65"))->name("\141\x64\155\151\x6e\x2e\x75\x73\x65\162\56\143\162\145\141\x74\x65"); Route::get("\x7b\x75\x73\145\162\x7d\57\x73\x68\x6f\167", array(UserController::class, "\x73\x68\x6f\x77"))->name("\141\x64\x6d\151\x6e\x2e\x75\x73\x65\x72\x2e\163\150\x6f\x77"); Route::put("\x7b\165\x73\x65\162\175\57\165\x70\144\141\164\x65", array(UserController::class, "\165\160\x64\141\x74\x65"))->name("\x61\144\155\151\x6e\56\165\x73\145\162\x2e\165\x70\x64\x61\164\145"); Route::post("\x73\x74\x6f\x72\145", array(UserController::class, "\x73\164\157\162\145"))->name("\141\x64\155\151\156\56\165\163\145\x72\x2e\163\x74\x6f\x72\145"); Route::delete("\x7b\x75\x73\145\162\175\x2f\x64\x65\x73\164\x72\157\x79", array(UserController::class, "\144\145\163\164\162\157\171"))->name("\x61\x64\x6d\151\156\56\x75\x73\145\x72\x2e\144\x65\163\x74\x72\x6f\171"); Route::get("\173\165\163\145\162\x7d\57\x65\x64\151\164", array(UserController::class, "\x65\144\151\164"))->name("\x61\x64\155\151\156\56\x75\x73\x65\x72\56\145\144\151\x74"); Route::get("\173\x75\163\x65\x72\175\57\144\x65\154\x65\x74\145", array(UserController::class, "\x64\x65\x6c\x65\164\145"))->name("\x61\144\155\x69\x6e\56\x75\x73\145\x72\56\x64\x65\x6c\145\164\145"); Route::get("\x74\x72\141\x73\x68", array(UserController::class, "\164\162\141\163\x68"))->name("\x61\144\x6d\151\156\56\165\x73\145\162\56\x74\x72\141\163\x68"); Route::get("\x7b\x75\163\x65\x72\175\x2f\x73\164\x61\x74\165\163", array(UserController::class, "\x73\x74\141\x74\165\163"))->name("\141\144\x6d\x69\x6e\x2e\x75\x73\x65\162\56\163\x74\x61\164\165\x73"); Route::get("\173\x75\x73\145\x72\x7d\57\162\145\x73\164\x6f\x72\145", array(UserController::class, "\162\x65\x73\164\x6f\x72\145"))->name("\x61\x64\x6d\x69\156\x2e\x75\x73\x65\x72\x2e\x72\145\x73\164\x6f\x72\145"); Route::get("\x7b\165\x73\145\162\x7d\x2f\x72\x65\155\x6f\166\x65\55\x61\144\155\x69\x6e", array(UserController::class, "\162\145\x6d\x6f\x76\x65\101\144\x6d\x69\156"))->name("\141\144\x6d\151\156\x2e\x75\x73\x65\x72\x2e\x72\145\155\x6f\x76\x65\101\144\x6d\151\156"); Route::get("\x7b\165\163\x65\162\x7d\57\x61\144\144\x2d\x61\144\x6d\151\x6e", array(UserController::class, "\141\x64\x64\101\144\155\x69\x6e"))->name("\141\144\155\x69\156\56\x75\x73\x65\162\x2e\x61\x64\144\x41\x64\155\151\156"); }); Route::get("\165\x73\145\162\x2f\x65\155\x70\x6c\157\x79\x65\145\x73", array(UserController::class, "\154\151\x73\x74\105\x6d\x70\154\x6f\x79\145\x65\x73"))->name("\141\x64\x6d\x69\156\56\165\163\145\x72\56\x65\x6d\x70\154\157\171\x65\x65\163"); Route::get("\x75\163\145\162\57\173\165\x73\145\x72\175\x2f\164\x6f\147\147\154\145\55\154\151\156\145", array(UserController::class, "\164\x6f\x67\x67\154\145\114\151\156\145"))->name("\141\x64\x6d\151\x6e\x2e\165\x73\x65\x72\x2e\164\157\x67\147\154\x65\x4c\151\156\x65"); Route::prefix("\153\145\x79\167\x6f\x72\x64")->group(function () { Route::get("\57", array(KeywordController::class, "\151\156\x64\145\x78"))->name("\141\x64\155\151\x6e\x2e\x6b\x65\171\167\x6f\x72\144\x2e\151\x6e\x64\x65\x78"); Route::get("\143\162\x65\141\x74\x65", array(KeywordController::class, "\x63\162\x65\141\164\x65"))->name("\141\x64\x6d\151\x6e\x2e\x6b\x65\171\167\x6f\x72\x64\x2e\143\162\x65\141\x74\x65"); Route::get("\173\153\145\171\x77\x6f\162\144\x7d\57\x73\150\x6f\167", array(KeywordController::class, "\x73\x68\x6f\167"))->name("\141\144\155\151\x6e\56\153\145\x79\x77\x6f\x72\144\56\x73\x68\157\x77"); Route::put("\173\153\x65\171\167\x6f\162\x64\175\57\x75\x70\144\141\x74\x65", array(KeywordController::class, "\x75\160\x64\x61\x74\x65"))->name("\141\144\155\151\x6e\x2e\153\x65\171\x77\157\162\144\56\x75\x70\144\x61\x74\x65"); Route::post("\163\x74\x6f\162\145", array(KeywordController::class, "\x73\164\157\x72\x65"))->name("\141\x64\x6d\151\x6e\56\153\x65\171\167\x6f\162\x64\x2e\x73\x74\x6f\162\145"); Route::delete("\173\153\x65\x79\x77\x6f\x72\144\x7d\x2f\144\145\163\x74\x72\x6f\171", array(KeywordController::class, "\144\145\163\164\162\x6f\x79"))->name("\141\x64\x6d\151\x6e\x2e\153\145\x79\x77\x6f\162\144\56\x64\x65\163\x74\x72\x6f\171"); Route::get("\173\x6b\x65\x79\167\x6f\x72\144\175\x2f\145\x64\151\x74", array(KeywordController::class, "\x65\144\151\164"))->name("\x61\144\155\x69\x6e\x2e\x6b\x65\171\x77\x6f\x72\x64\56\145\144\x69\164"); Route::get("\x7b\153\145\171\167\x6f\x72\144\x7d\x2f\144\145\x6c\145\x74\x65", array(KeywordController::class, "\144\x65\x6c\x65\x74\x65"))->name("\141\x64\x6d\151\x6e\x2e\153\145\x79\167\157\162\144\x2e\144\x65\154\x65\164\x65"); Route::get("\164\x72\x61\163\150", array(KeywordController::class, "\164\x72\141\163\150"))->name("\141\144\x6d\x69\156\x2e\153\145\171\x77\x6f\x72\x64\x2e\x74\x72\141\163\x68"); Route::get("\173\153\x65\171\167\157\x72\x64\175\57\163\x74\x61\x74\165\163", array(KeywordController::class, "\163\x74\141\164\x75\163"))->name("\141\144\155\151\156\56\153\x65\171\x77\x6f\162\144\56\x73\164\x61\x74\165\163"); Route::get("\x7b\153\x65\x79\x77\x6f\x72\x64\175\57\162\x65\x73\164\x6f\x72\145", array(KeywordController::class, "\x72\145\x73\164\x6f\162\x65"))->name("\141\144\x6d\151\x6e\56\x6b\x65\x79\x77\x6f\162\144\x2e\x72\x65\x73\164\157\x72\x65"); }); Route::prefix("\155\145\x6e\165")->group(function () { Route::get("\57", array(MenuController::class, "\x69\156\x64\x65\x78"))->name("\x61\x64\155\x69\156\56\x6d\x65\156\x75\56\x69\x6e\x64\145\x78"); Route::get("\x63\x72\x65\x61\164\145", array(MenuController::class, "\143\162\145\x61\x74\145"))->name("\x61\x64\155\151\156\x2e\155\145\x6e\165\56\143\162\x65\141\164\x65"); Route::get("\173\x6d\145\156\165\175\x2f\x65\144\151\164", array(MenuController::class, "\145\x64\151\x74"))->name("\141\x64\x6d\x69\156\56\155\x65\156\165\56\x65\x64\x69\164"); Route::get("\173\x6d\x65\x6e\165\x7d\x2f\163\x68\157\x77", array(MenuController::class, "\163\x68\x6f\167"))->name("\141\144\155\x69\x6e\56\155\x65\x6e\165\x2e\163\150\157\x77"); Route::put("\x7b\155\145\156\165\175\x2f\165\x70\x64\x61\164\145", array(MenuController::class, "\x75\x70\144\141\164\145"))->name("\141\144\155\x69\x6e\56\x6d\145\156\165\56\x75\x70\144\141\164\145"); Route::post("\163\164\x6f\x72\x65", array(MenuController::class, "\163\x74\157\x72\x65"))->name("\x61\144\x6d\x69\x6e\x2e\155\145\156\165\x2e\163\x74\157\x72\x65"); Route::delete("\x7b\x6d\x65\x6e\x75\175\57\144\145\163\x74\x72\x6f\x79", array(MenuController::class, "\x64\x65\163\164\x72\157\x79"))->name("\x61\x64\x6d\151\x6e\x2e\155\x65\x6e\165\56\x64\x65\x73\x74\162\x6f\171"); Route::get("\173\x6d\145\x6e\165\x7d\x2f\144\x65\154\145\x74\x65", array(MenuController::class, "\x64\145\x6c\x65\x74\x65"))->name("\141\144\155\x69\156\56\x6d\x65\x6e\x75\x2e\144\x65\x6c\x65\164\x65"); Route::get("\164\x72\x61\163\150", array(MenuController::class, "\x74\x72\x61\163\150"))->name("\x61\x64\155\x69\156\56\155\x65\x6e\x75\x2e\164\x72\x61\x73\150"); Route::get("\x7b\x6d\145\156\165\175\57\x73\164\141\164\165\x73", array(MenuController::class, "\x73\x74\141\x74\165\163"))->name("\141\x64\155\151\156\56\155\x65\x6e\x75\56\x73\x74\x61\164\165\163"); Route::get("\173\155\145\x6e\x75\175\57\162\x65\x73\164\x6f\x72\145", array(MenuController::class, "\162\x65\x73\x74\x6f\x72\145"))->name("\x61\144\x6d\x69\156\56\155\145\156\165\x2e\162\145\163\x74\157\162\145"); }); });
+
+use Illuminate\Support\Facades\Route;
+
+// Frontend Controllers
+use App\Http\Controllers\frontend\HomeController as TrangchuController;
+use App\Http\Controllers\frontend\ProductController as SanPhamController;
+use App\Http\Controllers\frontend\ContactController as LienheController;
+use App\Http\Controllers\frontend\AboutController as GioithieuController;
+use App\Http\Controllers\frontend\BlogController as BaivietController;
+use App\Http\Controllers\frontend\ImageController as HinhAnhController;
+use App\Http\Controllers\frontend\UserController as NguoidungController;
+use App\Http\Controllers\frontend\CartController as GiohangController;
+use App\Http\Controllers\frontend\AuthController as ThanhVienController;
+use App\Http\Controllers\frontend\ChinhSachController;
+use App\Http\Controllers\frontend\BookingController as DatBanController;
+use App\Http\Controllers\frontend\ReviewController as DanhGiaController;
+use App\Http\Controllers\frontend\OrderController as DonHangController;
+use App\Http\Controllers\frontend\UserFavoriteController as YeuThichController;
+use App\Http\Controllers\frontend\InquiryController as YeuCauController;
+
+// Backend Controllers
+use App\Http\Controllers\backend\DashboardController;
+use App\Http\Controllers\backend\ReviewController;
+use App\Http\Controllers\backend\ProductController;
+use App\Http\Controllers\backend\CategoryController;
+use App\Http\Controllers\backend\BrandController;
+use App\Http\Controllers\backend\BannerController;
+use App\Http\Controllers\backend\BlogController;
+use App\Http\Controllers\backend\TopicController;
+use App\Http\Controllers\backend\ImageController;
+use App\Http\Controllers\backend\UserController;
+use App\Http\Controllers\backend\OrderController;
+use App\Http\Controllers\backend\ContactController;
+use App\Http\Controllers\backend\KeywordController;
+use App\Http\Controllers\backend\MenuController;
+use App\Http\Controllers\backend\BookingController;
+use App\Http\Controllers\backend\InquiryController;
+use App\Http\Controllers\backend\TableController;
+use App\Http\Controllers\backend\TableOrderController;
+
+// Auth Controllers
+use App\Http\Controllers\auth\AuthController;
+
+// ============================================
+// FRONTEND ROUTES
+// ============================================
+
+// Home
+Route::get('/', [TrangchuController::class, 'index'])->name('site.home');
+
+// Products
+Route::get('/thuc-don', [SanPhamController::class, 'index'])->name('site.product');
+Route::get('/danh-sach', [SanPhamController::class, 'product_gridview'])->name('site.product.gridview');
+Route::get('/chi-tiet-san-pham/{slug}', [SanPhamController::class, 'product_detail'])->name('site.product.detail');
+
+// Blog
+Route::get('/bai-viet', [BaivietController::class, 'index'])->name('site.blog');
+Route::get('/chi-tiet-bai-viet/{slug}', [BaivietController::class, 'blog_detail'])->name('site.blog.detail');
+
+// Image Gallery
+Route::get('/hinh-anh', [HinhAnhController::class, 'index'])->name('site.image');
+
+// Contact
+Route::get('/lien-he', [LienheController::class, 'index'])->name('site.contact');
+
+// About
+Route::get('/gioi-thieu', [GioithieuController::class, 'index'])->name('site.about');
+
+// Cart
+Route::get('/gio-hang', [GiohangController::class, 'index'])->name('site.cart');
+Route::post('/addcart/{id}', [GiohangController::class, 'addcart'])->name('site.addcart');
+Route::post('/updatecart', [GiohangController::class, 'updatecart'])->name('site.updatecart');
+Route::get('/delcart/{id}', [GiohangController::class, 'delcart'])->name('site.delcart');
+Route::get('/thanh-toan', [GiohangController::class, 'checkoutForm'])->name('site.checkoutForm');
+Route::post('/thanh-toan', [GiohangController::class, 'checkout'])->name('site.checkout');
+Route::get('/cam-on', [GiohangController::class, 'thanks'])->name('site.thanks');
+
+// Orders
+Route::get('/don-hang', [DonHangController::class, 'index'])->name('site.orders');
+Route::get('/don-hang/{id}', [DonHangController::class, 'detail'])->name('site.orders.detail');
+Route::get('/don-hang/reorder/{id}', [DonHangController::class, 'reorder'])->name('site.orders.reorder');
+Route::post('/don-hang/{id}/huy', [DonHangController::class, 'cancel'])->name('site.orders.cancel');
+
+// Booking
+Route::get('/dat-ban', [DatBanController::class, 'index'])->name('site.booking');
+Route::post('/dat-ban', [DatBanController::class, 'store'])->name('site.booking.store');
+
+// Reviews
+Route::post('/reviews', [DanhGiaController::class, 'store'])->name('reviews.store');
+Route::delete('/reviews/{review_id}', [DanhGiaController::class, 'delete'])->name('reviews.delete');
+
+// Favorites
+Route::get('/yeu-thich', [YeuThichController::class, 'index'])->name('site.favorites');
+Route::post('/yeu-thich/{productId}', [YeuThichController::class, 'store'])->name('site.favorites.add');
+Route::delete('/yeu-thich/{productId}', [YeuThichController::class, 'destroy'])->name('site.favorites.remove');
+
+// Inquiry
+Route::post('/yeu-cau', [YeuCauController::class, 'store'])->name('inquiries.store');
+
+// Policy Pages
+Route::get('/dieu-khoan-su-dung', [ChinhSachController::class, 'dksd'])->name('site.chinhsach.dksd');
+Route::get('/chinh-sach-bao-mat', [ChinhSachController::class, 'csbm'])->name('site.chinhsach.csbm');
+Route::get('/chinh-sach-van-chuyen', [ChinhSachController::class, 'csvc'])->name('site.chinhsach.csvc');
+Route::get('/chinh-sach-an-toan-thuc-pham', [ChinhSachController::class, 'attp'])->name('site.chinhsach.attp');
+Route::get('/chinh-sach-lien-he', [ChinhSachController::class, 'cslh'])->name('site.chinhsach.cslh');
+
+// Authentication
+Route::get('/dang-ky', [ThanhVienController::class, 'register'])->name('site.register');
+Route::post('/dang-ky', [ThanhVienController::class, 'doregister'])->name('site.doregister');
+Route::get('/dang-nhap', [ThanhVienController::class, 'login'])->name('site.login');
+Route::post('/dang-nhap', [ThanhVienController::class, 'dologin'])->name('site.dologin');
+Route::get('/dang-xuat', [ThanhVienController::class, 'logout'])->name('site.logout');
+Route::get('/thong-tin', [ThanhVienController::class, 'profile'])->name('site.profile');
+Route::put('/thong-tin', [ThanhVienController::class, 'updateProfile'])->name('site.updateProfile');
+
+// Password Reset
+Route::get('/quen-mat-khau', [ThanhVienController::class, 'forgotPassword'])->name('site.forgot_password');
+Route::post('/quen-mat-khau', [ThanhVienController::class, 'sendOtp'])->name('site.send_otp');
+Route::post('/xac-nhan-otp', [ThanhVienController::class, 'verifyOtp'])->name('site.verify_otp');
+Route::get('/dat-lai-mat-khau', [ThanhVienController::class, 'showResetPasswordForm'])->name('site.show_reset_password');
+Route::post('/dat-lai-mat-khau', [ThanhVienController::class, 'resetPassword'])->name('site.reset_password');
+
+// Google OAuth
+Route::get('/google/redirect', [ThanhVienController::class, 'redirectToGoogle'])->name('google.redirect');
+Route::get('/google/callback', [ThanhVienController::class, 'handleGoogleCallback'])->name('google.callback');
+
+// ============================================
+// ADMIN ROUTES
+// ============================================
+
+// Admin Auth
+Route::get('/admin/login', [AuthController::class, 'login'])->name('admin.login');
+Route::post('/admin/login', [AuthController::class, 'dologin'])->name('admin.dologin');
+Route::get('/admin/logout', [AuthController::class, 'logout'])->name('admin.logout');
+
+// Admin Dashboard (Protected)
+Route::prefix('admin')->middleware('login-admin')->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+
+    // Products
+    Route::prefix('product')->group(function () {
+        Route::get('/', [ProductController::class, 'index'])->name('admin.product.index');
+        Route::get('/create', [ProductController::class, 'create'])->name('admin.product.create');
+        Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('admin.product.edit');
+        Route::get('/{product}/show', [ProductController::class, 'show'])->name('admin.product.show');
+        Route::put('/{product}/update', [ProductController::class, 'update'])->name('admin.product.update');
+        Route::get('/{product}/delete', [ProductController::class, 'delete'])->name('admin.product.delete');
+        Route::delete('/{product}/destroy', [ProductController::class, 'destroy'])->name('admin.product.destroy');
+        Route::get('/trash', [ProductController::class, 'trash'])->name('admin.product.trash');
+        Route::post('/store', [ProductController::class, 'store'])->name('admin.product.store');
+        Route::get('/{product}/status', [ProductController::class, 'status'])->name('admin.product.status');
+        Route::get('/{product}/restore', [ProductController::class, 'restore'])->name('admin.product.restore');
+        Route::get('/{product}/reviews', [ProductController::class, 'showReviews'])->name('admin.product.reviews');
+        Route::post('/review/respond/{product}/{review}', [ReviewController::class, 'respond'])->name('admin.review.respond');
+    });
+
+    // Categories
+    Route::prefix('category')->group(function () {
+        Route::get('/', [CategoryController::class, 'index'])->name('admin.category.index');
+        Route::get('/create', [CategoryController::class, 'create'])->name('admin.category.create');
+        Route::get('/{category}/show', [CategoryController::class, 'show'])->name('admin.category.show');
+        Route::put('/{category}/update', [CategoryController::class, 'update'])->name('admin.category.update');
+        Route::delete('/{category}/destroy', [CategoryController::class, 'destroy'])->name('admin.category.destroy');
+        Route::get('/{category}/edit', [CategoryController::class, 'edit'])->name('admin.category.edit');
+        Route::post('/store', [CategoryController::class, 'store'])->name('admin.category.store');
+        Route::get('/{category}/delete', [CategoryController::class, 'delete'])->name('admin.category.delete');
+        Route::get('/trash', [CategoryController::class, 'trash'])->name('admin.category.trash');
+        Route::get('/{category}/status', [CategoryController::class, 'status'])->name('admin.category.status');
+        Route::get('/{category}/restore', [CategoryController::class, 'restore'])->name('admin.category.restore');
+    });
+
+    // Orders
+    Route::prefix('order')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('admin.order.index');
+        Route::get('/orders/{id}', [OrderController::class, 'detail'])->name('admin.order.orderdetail');
+        Route::get('/print/{id}', [OrderController::class, 'print'])->name('admin.order.printorder');
+        Route::get('/{id}/edit', [OrderController::class, 'edit'])->name('admin.order.edit');
+        Route::post('/{id}/update', [OrderController::class, 'update'])->name('admin.order.update');
+    });
+
+    // Table Orders (POS)
+    Route::prefix('table-order')->group(function () {
+        Route::get('/', [TableOrderController::class, 'index'])->name('admin.table-order.index');
+        Route::post('/check-user-by-phone', [TableOrderController::class, 'checkUserByPhone'])->name('admin.table-order.checkUserByPhone');
+        Route::post('/register-table', [TableOrderController::class, 'registerTable'])->name('admin.table-order.registerTable');
+        Route::post('/get-products', [TableOrderController::class, 'getProducts'])->name('admin.table-order.getProducts');
+        Route::post('/get-table-order', [TableOrderController::class, 'getTableOrder'])->name('admin.table-order.getTableOrder');
+        Route::post('/add-product-to-order', [TableOrderController::class, 'addProductToOrder'])->name('admin.table-order.addProductToOrder');
+        Route::post('/remove-product-from-order', [TableOrderController::class, 'removeProductFromOrder'])->name('admin.table-order.removeProductFromOrder');
+        Route::post('/update-product-qty', [TableOrderController::class, 'updateProductQty'])->name('admin.table-order.updateProductQty');
+    });
+
+    // Bookings
+    Route::prefix('booking')->group(function () {
+        Route::get('/', [BookingController::class, 'index'])->name('admin.booking.index');
+        Route::get('/{id}/edit', [BookingController::class, 'edit'])->name('admin.booking.edit');
+        Route::post('/{id}/update', [BookingController::class, 'update'])->name('admin.booking.update');
+        Route::get('/{id}/detail', [BookingController::class, 'detail'])->name('admin.booking.detail');
+    });
+
+    // Inquiries
+    Route::prefix('inquiries')->group(function () {
+        Route::get('/', [InquiryController::class, 'index'])->name('admin.inquiry.index');
+        Route::get('/{id}', [InquiryController::class, 'show'])->name('admin.inquiry.show');
+        Route::post('/{id}/update-status', [InquiryController::class, 'updateStatus'])->name('admin.inquiry.updateStatus');
+    });
+
+    // Brands
+    Route::prefix('brand')->group(function () {
+        Route::get('/', [BrandController::class, 'index'])->name('admin.brand.index');
+        Route::get('/{brand}/show', [BrandController::class, 'show'])->name('admin.brand.show');
+        Route::delete('/{brand}/destroy', [BrandController::class, 'destroy'])->name('admin.brand.destroy');
+        Route::post('/store', [BrandController::class, 'store'])->name('admin.brand.store');
+        Route::get('/create', [BrandController::class, 'create'])->name('admin.brand.create');
+        Route::put('/{brand}/update', [BrandController::class, 'update'])->name('admin.brand.update');
+        Route::get('/{brand}/edit', [BrandController::class, 'edit'])->name('admin.brand.edit');
+        Route::get('/{brand}/delete', [BrandController::class, 'delete'])->name('admin.brand.delete');
+        Route::get('/trash', [BrandController::class, 'trash'])->name('admin.brand.trash');
+        Route::get('/{brand}/status', [BrandController::class, 'status'])->name('admin.brand.status');
+        Route::get('/{brand}/restore', [BrandController::class, 'restore'])->name('admin.brand.restore');
+    });
+
+    // Banners
+    Route::prefix('banner')->group(function () {
+        Route::get('/', [BannerController::class, 'index'])->name('admin.banner.index');
+        Route::get('/{banner}/show', [BannerController::class, 'show'])->name('admin.banner.show');
+        Route::delete('/{banner}/destroy', [BannerController::class, 'destroy'])->name('admin.banner.destroy');
+        Route::put('/{banner}/update', [BannerController::class, 'update'])->name('admin.banner.update');
+        Route::post('/store', [BannerController::class, 'store'])->name('admin.banner.store');
+        Route::get('/create', [BannerController::class, 'create'])->name('admin.banner.create');
+        Route::get('/{banner}/edit', [BannerController::class, 'edit'])->name('admin.banner.edit');
+        Route::get('/{banner}/delete', [BannerController::class, 'delete'])->name('admin.banner.delete');
+        Route::get('/trash', [BannerController::class, 'trash'])->name('admin.banner.trash');
+        Route::get('/{banner}/status', [BannerController::class, 'status'])->name('admin.banner.status');
+        Route::get('/{banner}/restore', [BannerController::class, 'restore'])->name('admin.banner.restore');
+    });
+
+    // Blogs
+    Route::prefix('blog')->group(function () {
+        Route::get('/', [BlogController::class, 'index'])->name('admin.blog.index');
+        Route::get('/create', [BlogController::class, 'create'])->name('admin.blog.create');
+        Route::get('/{blog}/show', [BlogController::class, 'show'])->name('admin.blog.show');
+        Route::put('/{blog}/update', [BlogController::class, 'update'])->name('admin.blog.update');
+        Route::post('/store', [BlogController::class, 'store'])->name('admin.blog.store');
+        Route::delete('/{blog}/destroy', [BlogController::class, 'destroy'])->name('admin.blog.destroy');
+        Route::get('/{blog}/edit', [BlogController::class, 'edit'])->name('admin.blog.edit');
+        Route::get('/{blog}/delete', [BlogController::class, 'delete'])->name('admin.blog.delete');
+        Route::get('/trash', [BlogController::class, 'trash'])->name('admin.blog.trash');
+        Route::get('/{blog}/status', [BlogController::class, 'status'])->name('admin.blog.status');
+        Route::get('/{blog}/restore', [BlogController::class, 'restore'])->name('admin.blog.restore');
+    });
+
+    // Topics
+    Route::prefix('topic')->group(function () {
+        Route::get('/', [TopicController::class, 'index'])->name('admin.topic.index');
+        Route::get('/{topic}/show', [TopicController::class, 'show'])->name('admin.topic.show');
+        Route::put('/{topic}/update', [TopicController::class, 'update'])->name('admin.topic.update');
+        Route::post('/store', [TopicController::class, 'store'])->name('admin.topic.store');
+        Route::delete('/{topic}/destroy', [TopicController::class, 'destroy'])->name('admin.topic.destroy');
+        Route::get('/create', [TopicController::class, 'create'])->name('admin.topic.create');
+        Route::get('/{topic}/edit', [TopicController::class, 'edit'])->name('admin.topic.edit');
+        Route::get('/{topic}/delete', [TopicController::class, 'delete'])->name('admin.topic.delete');
+        Route::get('/trash', [TopicController::class, 'trash'])->name('admin.topic.trash');
+        Route::get('/{topic}/status', [TopicController::class, 'status'])->name('admin.topic.status');
+        Route::get('/{topic}/restore', [TopicController::class, 'restore'])->name('admin.topic.restore');
+    });
+
+    // Images
+    Route::prefix('image')->group(function () {
+        Route::get('/', [ImageController::class, 'index'])->name('admin.image.index');
+        Route::get('/create', [ImageController::class, 'create'])->name('admin.image.create');
+        Route::get('/{image}/edit', [ImageController::class, 'edit'])->name('admin.image.edit');
+        Route::get('/{image}/show', [ImageController::class, 'show'])->name('admin.image.show');
+        Route::put('/{image}/update', [ImageController::class, 'update'])->name('admin.image.update');
+        Route::post('/store', [ImageController::class, 'store'])->name('admin.image.store');
+        Route::delete('/{image}/destroy', [ImageController::class, 'destroy'])->name('admin.image.destroy');
+        Route::get('/trash', [ImageController::class, 'trash'])->name('admin.image.trash');
+        Route::get('/{image}/status', [ImageController::class, 'status'])->name('admin.image.status');
+        Route::get('/{image}/delete', [ImageController::class, 'delete'])->name('admin.image.delete');
+        Route::get('/{image}/restore', [ImageController::class, 'restore'])->name('admin.image.restore');
+    });
+
+    // Contacts
+    Route::prefix('contact')->group(function () {
+        Route::get('/', [ContactController::class, 'index'])->name('admin.contact.index');
+        Route::get('/create', [ContactController::class, 'create'])->name('admin.contact.create');
+        Route::get('/{contact}/show', [ContactController::class, 'show'])->name('admin.contact.show');
+        Route::put('/{contact}/update', [ContactController::class, 'update'])->name('admin.contact.update');
+        Route::post('/store', [ContactController::class, 'store'])->name('admin.contact.store');
+        Route::delete('/{contact}/destroy', [ContactController::class, 'destroy'])->name('admin.contact.destroy');
+        Route::get('/{contact}/edit', [ContactController::class, 'edit'])->name('admin.contact.edit');
+        Route::get('/{contact}/delete', [ContactController::class, 'delete'])->name('admin.contact.delete');
+        Route::get('/trash', [ContactController::class, 'trash'])->name('admin.contact.trash');
+        Route::get('/{contact}/status', [ContactController::class, 'status'])->name('admin.contact.status');
+        Route::get('/{contact}/restore', [ContactController::class, 'restore'])->name('admin.contact.restore');
+    });
+
+    // Users
+    Route::prefix('user')->middleware('admin-access')->group(function () {
+        Route::get('/', [UserController::class, 'index'])->name('admin.user.index');
+        Route::get('/customers', [UserController::class, 'customers'])->name('admin.user.customers');
+        Route::get('/employees', [UserController::class, 'listEmployees'])->name('admin.user.employees');
+        Route::get('/create', [UserController::class, 'create'])->name('admin.user.create');
+        Route::get('/{user}/show', [UserController::class, 'show'])->name('admin.user.show');
+        Route::put('/{user}/update', [UserController::class, 'update'])->name('admin.user.update');
+        Route::post('/store', [UserController::class, 'store'])->name('admin.user.store');
+        Route::delete('/{user}/destroy', [UserController::class, 'destroy'])->name('admin.user.destroy');
+        Route::get('/{user}/edit', [UserController::class, 'edit'])->name('admin.user.edit');
+        Route::get('/{user}/delete', [UserController::class, 'delete'])->name('admin.user.delete');
+        Route::get('/trash', [UserController::class, 'trash'])->name('admin.user.trash');
+        Route::get('/{user}/status', [UserController::class, 'status'])->name('admin.user.status');
+        Route::get('/{user}/restore', [UserController::class, 'restore'])->name('admin.user.restore');
+        Route::get('/{user}/remove-admin', [UserController::class, 'removeAdmin'])->name('admin.user.removeAdmin');
+        Route::get('/{user}/add-admin', [UserController::class, 'addAdmin'])->name('admin.user.addAdmin');
+    });
+    Route::get('/user/{user}/toggle-line', [UserController::class, 'toggleLine'])->name('admin.user.toggleLine');
+
+    // Keywords
+    Route::prefix('keyword')->group(function () {
+        Route::get('/', [KeywordController::class, 'index'])->name('admin.keyword.index');
+        Route::get('/create', [KeywordController::class, 'create'])->name('admin.keyword.create');
+        Route::get('/{keyword}/show', [KeywordController::class, 'show'])->name('admin.keyword.show');
+        Route::put('/{keyword}/update', [KeywordController::class, 'update'])->name('admin.keyword.update');
+        Route::post('/store', [KeywordController::class, 'store'])->name('admin.keyword.store');
+        Route::delete('/{keyword}/destroy', [KeywordController::class, 'destroy'])->name('admin.keyword.destroy');
+        Route::get('/{keyword}/edit', [KeywordController::class, 'edit'])->name('admin.keyword.edit');
+        Route::get('/{keyword}/delete', [KeywordController::class, 'delete'])->name('admin.keyword.delete');
+        Route::get('/trash', [KeywordController::class, 'trash'])->name('admin.keyword.trash');
+        Route::get('/{keyword}/status', [KeywordController::class, 'status'])->name('admin.keyword.status');
+        Route::get('/{keyword}/restore', [KeywordController::class, 'restore'])->name('admin.keyword.restore');
+    });
+
+    // Menus
+    Route::prefix('menu')->group(function () {
+        Route::get('/', [MenuController::class, 'index'])->name('admin.menu.index');
+        Route::get('/create', [MenuController::class, 'create'])->name('admin.menu.create');
+        Route::get('/{menu}/edit', [MenuController::class, 'edit'])->name('admin.menu.edit');
+        Route::get('/{menu}/show', [MenuController::class, 'show'])->name('admin.menu.show');
+        Route::put('/{menu}/update', [MenuController::class, 'update'])->name('admin.menu.update');
+        Route::post('/store', [MenuController::class, 'store'])->name('admin.menu.store');
+        Route::delete('/{menu}/destroy', [MenuController::class, 'destroy'])->name('admin.menu.destroy');
+        Route::get('/{menu}/delete', [MenuController::class, 'delete'])->name('admin.menu.delete');
+        Route::get('/trash', [MenuController::class, 'trash'])->name('admin.menu.trash');
+        Route::get('/{menu}/status', [MenuController::class, 'status'])->name('admin.menu.status');
+        Route::get('/{menu}/restore', [MenuController::class, 'restore'])->name('admin.menu.restore');
+    });
+
+    // Tables
+    Route::prefix('table')->group(function () {
+        Route::get('/', [TableController::class, 'index'])->name('admin.table.index');
+        Route::get('/create', [TableController::class, 'create'])->name('admin.table.create');
+        Route::post('/store', [TableController::class, 'store'])->name('admin.table.store');
+        Route::get('/{id}/edit', [TableController::class, 'edit'])->name('admin.table.edit');
+        Route::post('/{id}/update', [TableController::class, 'update'])->name('admin.table.update');
+        Route::get('/{id}/status', [TableController::class, 'status'])->name('admin.table.status');
+        Route::get('/{id}/delete', [TableController::class, 'delete'])->name('admin.table.delete');
+        Route::get('/trash', [TableController::class, 'trash'])->name('admin.table.trash');
+        Route::get('/{id}/restore', [TableController::class, 'restore'])->name('admin.table.restore');
+        Route::delete('/{id}/destroy', [TableController::class, 'destroy'])->name('admin.table.destroy');
+    });
+});

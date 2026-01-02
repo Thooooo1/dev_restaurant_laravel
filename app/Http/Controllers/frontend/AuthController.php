@@ -23,31 +23,46 @@ class AuthController extends Controller
     }
     function dologin(Request $request)
     {
-        $username = $request->email;
+        // Chuẩn hóa số điện thoại: loại bỏ khoảng trắng và ký tự đặc biệt, chỉ giữ số
+        $phone = preg_replace('/[^0-9]/', '', $request->phone);
         $password = $request->password;
-        $args = [
-            ['status', '=', 1],
-        ];
-
-        if (filter_var($username, FILTER_VALIDATE_EMAIL)) {
-            $args[] = ['email', '=', $username];
-        } else {
-            $args[] = ['username', '=', $username];
+        
+        if (empty($phone)) {
+            return redirect()->route('site.login')->with('error', 'Vui lòng nhập số điện thoại!');
         }
-        $user = User::where($args)->first();
+        
+        // Tìm user theo số điện thoại và status = 1
+        // Sử dụng REGEXP_REPLACE để chuẩn hóa số điện thoại trong database (MySQL)
+        // Hoặc tìm tất cả users có status = 1 và so sánh sau khi chuẩn hóa
+        $users = User::where('status', 1)->get();
+        $user = null;
+        
+        foreach ($users as $u) {
+            // Chuẩn hóa số điện thoại trong database
+            $dbPhone = preg_replace('/[^0-9]/', '', $u->phone);
+            if ($dbPhone === $phone) {
+                $user = $u;
+                break;
+            }
+        }
+            
         if ($user != null) {
-            if (Hash::check($password, $user->password)) {
-                session()->put('user_site', $user);
-                Auth::login($user);
-                return redirect()->route('site.home')->with('success', 'Đăng nhập thành công!');
-                // echo"thanh cong";
+            // Kiểm tra nếu user có password
+            if ($user->password) {
+                // User có password, kiểm tra password
+                if (Hash::check($password, $user->password)) {
+                    session()->put('user_site', $user);
+                    Auth::login($user);
+                    return redirect()->route('site.home')->with('success', 'Đăng nhập thành công!');
+                } else {
+                    return redirect()->route('site.login')->with('error', 'Mật khẩu không đúng!');
+                }
             } else {
-                return redirect()->route('site.login')->with('error', 'Mật khẩu không đúng!');
-                // echo"mk sai ";
+                // User không có password (customer đăng ký không có password)
+                return redirect()->route('site.login')->with('error', 'Tài khoản này chưa có mật khẩu. Vui lòng đặt mật khẩu hoặc liên hệ quản trị viên!');
             }
         } else {
-            return redirect()->route('site.login')->with('error', 'Tên đăng nhập hoặc email không tồn tại!');
-            // echo"khong dung tk hoac email";
+            return redirect()->route('site.login')->with('error', 'Số điện thoại không tồn tại hoặc tài khoản đã bị khóa!');
         }
     }
 
@@ -58,7 +73,34 @@ class AuthController extends Controller
     }
     function doregister(Request $request)
     {
-
+        // Validation cho customer: email, username, password, image là optional
+        $request->validate([
+            'fullname' => 'required|string|max:255',
+            'phone' => 'required|string|digits_between:10,15|unique:user,phone',
+            'email' => 'nullable|email|unique:user,email',
+            'username' => 'nullable|string|min:4|max:50|unique:user,username',
+            'password' => 'nullable|string|min:6|max:50',
+            'gender' => 'required|in:0,1',
+            'address' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ], [
+            'fullname.required' => 'Họ tên không được để trống.',
+            'phone.required' => 'Số điện thoại không được để trống.',
+            'phone.digits_between' => 'Số điện thoại phải có từ 10 đến 15 chữ số.',
+            'phone.unique' => 'Số điện thoại này đã tồn tại.',
+            'email.email' => 'Email không đúng định dạng.',
+            'email.unique' => 'Email này đã tồn tại.',
+            'username.min' => 'Tên người dùng phải có ít nhất 4 ký tự.',
+            'username.max' => 'Tên người dùng không được vượt quá 50 ký tự.',
+            'username.unique' => 'Tên người dùng đã tồn tại.',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
+            'password.max' => 'Mật khẩu không được vượt quá 50 ký tự.',
+            'gender.required' => 'Vui lòng chọn giới tính.',
+            'gender.in' => 'Giới tính không hợp lệ.',
+            'image.image' => 'Tệp tải lên phải là hình ảnh.',
+            'image.mimes' => 'Hình ảnh phải có định dạng: jpeg, png, jpg, gif.',
+            'image.max' => 'Kích thước hình ảnh không được vượt quá 2MB.',
+        ]);
 
         $user = new User();
         if ($request->hasFile('image')) {
@@ -66,16 +108,19 @@ class AuthController extends Controller
             $filename = date('YmdHis') . '.' . $file->extension();
             $file->move(public_path('images/user'), $filename);
             $user->image = $filename;
+        } else {
+            // Nếu không có ảnh upload, sử dụng ảnh mặc định
+            $user->image = 'non_image.png';
         }
 
-        $user->username = $request->username;
-        $user->password = Hash::make($request->password);
+        $user->username = $request->username ?? null;
+        $user->password = $request->password ? Hash::make($request->password) : null;
         $user->fullname = $request->fullname;
         $user->gender = $request->gender;
-        $user->email = $request->email;
+        $user->email = $request->email ?? null;
         $user->phone = $request->phone;
         $user->roles = 'customer';
-        $user->address = $request->address;
+        $user->address = $request->address ?? null;
         $user->created_by = Auth::id() ?? 1;
         $user->status = 1;
 

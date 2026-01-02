@@ -43,12 +43,33 @@ class UserController extends Controller
 
 
     /**
+     * Display a listing of customers.
+     */
+    public function customers(Request $request)
+    {
+        $status = $request->query('status'); 
+
+        $users = User::where('roles', 'customer');
+
+        if ($status !== null) {
+            $users->where('status', $status);
+        }
+
+        $users = $users->orderBy('created_at', 'DESC')->paginate(6)->appends([
+            'status' => $status
+        ]);
+
+        return view('backend.user.customers', compact('users'));
+    }
+
+    /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
+        $role = $request->query('role', 'customer'); // Mặc định là customer
         $users = User::get();
-        return view('backend.user.create',compact('users'));
+        return view('backend.user.create', compact('users', 'role'));
     }
 
     /**
@@ -57,28 +78,43 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         $user = new User();
+        
+        // Xử lý image (optional)
         if($request->hasFile('image')){
             $file = $request->file('image');
             $extension = $file->extension();
             $filename = date('YmdHis') . "." . $extension;
             $file->move(public_path('images/user'),$filename);
             $user->image = $filename;
-           
-            $user->username = $request->username;
-            $user->password = Hash::make($request->password);
-            $user->fullname = $request->fullname;
-            $user->gender = $request->gender;
-            $user->email = $request->email;
-            $user->phone = $request->phone;
-            $user->roles = $request->roles;
-            $user->address = $request->address;
-            $user->created_by = Auth::id() ?? 1;
-            $user->status = $request->status;
-            $user->save();
-            return redirect()->route('admin.user.index')->with('success','Thêm thành công');
+        } else {
+            // Nếu không có ảnh upload, sử dụng ảnh mặc định
+            $user->image = 'non_image.png';
         }
-        else{
-            return back()->with('error','Chưa chọn hình');
+       
+        $user->username = $request->username ?? null;
+        // Chỉ hash password nếu có password
+        if ($request->password) {
+            $user->password = Hash::make($request->password);
+        }
+        $user->fullname = $request->fullname;
+        $user->gender = $request->gender;
+        $user->email = $request->email ?? null;
+        $user->phone = $request->phone;
+        $user->roles = $request->roles;
+        // Set admin_lever khi tạo user với vai trò admin
+        if ($request->roles == 'admin') {
+            $user->admin_lever = 2;
+        }
+        $user->address = $request->address ?? null;
+        $user->created_by = Auth::id() ?? 1;
+        $user->status = $request->status;
+        $user->save();
+        
+        // Redirect về đúng trang dựa trên role
+        if ($request->roles == 'admin') {
+            return redirect()->route('admin.user.employees')->with('success','Thêm nhân viên thành công');
+        } else {
+            return redirect()->route('admin.user.customers')->with('success','Thêm khách hàng thành công');
         }
     }
 
@@ -101,7 +137,8 @@ class UserController extends Controller
     {
         $user = User::where('id',$id)->first();
         $users = User::get();
-        return view('backend.user.edit',compact('user','users'));
+        $role = $user->roles; // Lấy role từ user hiện tại
+        return view('backend.user.edit', compact('user', 'users', 'role'));
     }
 
     /**
@@ -110,8 +147,17 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, string $id)
     {
         $user = User::where('id',$id)->first();
-        $user->username = $request->username;
-        $user->password = Hash::make($request->password);
+        
+        // Chỉ cập nhật username nếu có giá trị
+        if ($request->has('username')) {
+            $user->username = $request->username ?? null;
+        }
+        
+        // Chỉ cập nhật password nếu có password mới
+        if ($request->password) {
+            $user->password = Hash::make($request->password);
+        }
+        
         // upload file 
         if($request->hasFile('image')){
             //xoa hinh
@@ -127,18 +173,28 @@ class UserController extends Controller
         //end upload file
         $user->fullname = $request->fullname;
         $user->gender = $request->gender;
-        $user->email = $request->email;
+        
+        // Chỉ cập nhật email nếu có giá trị
+        if ($request->has('email')) {
+            $user->email = $request->email ?? null;
+        }
+        
         $user->phone = $request->phone;
         $user->roles = $request->roles;
         $user->admin_lever = 2;
-        $user->address = $request->address;
+        $user->address = $request->address ?? null;
         $user->updated_by=Auth::id() ?? 1 ;
         $user->updated_at= date('Y-m-d H:i:s');
         $user->status = $request->status;
         if($user->save()){
-            return redirect()->route('admin.user.index')->with('success','user đã được cập nhật');
+            // Redirect về đúng trang dựa trên role
+            if ($request->roles == 'admin') {
+                return redirect()->route('admin.user.employees')->with('success','Nhân viên đã được cập nhật');
+            } else {
+                return redirect()->route('admin.user.customers')->with('success','Khách hàng đã được cập nhật');
+            }
         }
-        return redirect()->back()->with('error','Lỗi thêm');
+        return redirect()->back()->with('error','Lỗi cập nhật');
     }
 
     /**
@@ -241,12 +297,12 @@ class UserController extends Controller
 
     public function listEmployees()
     {
-        $users = User::where('roles', 'admin')
-             ->where('admin_lever', 2)
-             ->orderBy('created_at', 'DESC')
-             ->get();
+           $users = User::where('roles', 'admin')
+               ->where('admin_lever', 2)
+               ->orderBy('created_at', 'DESC')
+               ->get();
 
-        return view('backend.user.employees', compact('users'));
+           return view('backend.user.employees', compact('users'));
     }
 
 
