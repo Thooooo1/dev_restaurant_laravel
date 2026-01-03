@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\Orderdetail;
 use App\Models\Product;
 use App\Models\User;
+use App\Http\Requests\StoreTableOrderRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -80,20 +81,8 @@ class TableOrderController extends Controller
     /**
      * Đăng ký bàn cho khách
      */
-    public function registerTable(Request $request)
+    public function registerTable(StoreTableOrderRequest $request)
     {
-        $request->validate([
-            'table_id' => 'required|exists:tables,id',
-            'phone' => 'required|string|max:20',
-            'customer_name' => 'required|string|max:255',
-            'gender' => 'nullable|in:0,1',
-        ], [
-            'table_id.required' => 'Vui lòng chọn bàn',
-            'table_id.exists' => 'Bàn không tồn tại',
-            'phone.required' => 'Số điện thoại không được để trống',
-            'customer_name.required' => 'Tên khách hàng không được để trống',
-        ]);
-
         // Kiểm tra bàn đã có order đang active chưa
         $existingOrder = Order::where('table_id', $request->table_id)
             ->whereNull('deleted_at')
@@ -101,10 +90,7 @@ class TableOrderController extends Controller
             ->first();
 
         if ($existingOrder) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bàn này đang có khách. Vui lòng chọn bàn khác.'
-            ], 400);
+            return back()->withErrors(['table_id' => 'Bàn này đang có khách. Vui lòng chọn bàn khác.']);
         }
 
         // Tìm user theo số điện thoại
@@ -133,17 +119,13 @@ class TableOrderController extends Controller
             'email' => $user->email ?? '',
             'address' => '',
             'table_id' => $request->table_id,
+            'number_of_guests' => $request->number_of_guests,
             'orderStyle' => 2, // Nhân viên order
             'status' => 0, // Đang chờ xử lý
             'created_by' => Auth::id(),
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Đăng ký bàn thành công',
-            'order_id' => $order->id,
-            'table_id' => $order->table_id,
-        ]);
+        return redirect()->route('admin.table-order.index')->with('success', 'Đăng ký bàn thành công');
     }
 
     /**
@@ -171,7 +153,7 @@ class TableOrderController extends Controller
     }
 
     /**
-     * Lấy thông tin order của bàn
+     * Lấy thông tin order của bàn (POST)
      */
     public function getTableOrder(Request $request)
     {
@@ -180,6 +162,30 @@ class TableOrderController extends Controller
         if (!$tableId) {
             return response()->json(['success' => false, 'message' => 'Vui lòng chọn bàn']);
         }
+
+        $order = Order::where('table_id', $tableId)
+            ->whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->with(['orderDetails.product', 'table', 'user'])
+            ->first();
+
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Bàn chưa có order']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'order' => $order,
+            'order_details' => $order->orderDetails
+        ]);
+    }
+
+    /**
+     * Lấy chi tiết order theo table_id (GET)
+     */
+    public function getOrderDetails($id)
+    {
+        $tableId = $id;
 
         $order = Order::where('table_id', $tableId)
             ->whereNull('deleted_at')
@@ -286,6 +292,67 @@ class TableOrderController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Cập nhật số lượng thành công'
+        ]);
+    }
+
+    /**
+     * Lưu toàn bộ order (Thay thế cho các action lẻ)
+     */
+    public function saveTableOrder(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:order,id',
+            'items' => 'present|array', // items có thể rỗng nếu xóa hết
+            'items.*.product_id' => 'required|exists:product,id',
+            'items.*.qty' => 'required|integer|min:1',
+        ]);
+
+        $order = Order::findOrFail($request->order_id);
+        
+        // Lấy danh sách sản phẩm hiện tại trong order
+        $existingDetails = Orderdetail::where('order_id', $order->id)->get()->keyBy('product_id');
+        $submittedProductIds = [];
+
+        foreach ($request->items as $item) {
+            $productId = $item['product_id'];
+            $qty = $item['qty'];
+            $submittedProductIds[] = $productId;
+
+            $product = Product::find($productId);
+            $price = $product->price_sale ?? 0;
+            $discount = 0;
+            $amount = ($price - $discount) * $qty;
+
+            if ($existingDetails->has($productId)) {
+                // Cập nhật
+                $detail = $existingDetails[$productId];
+                $detail->qty = $qty;
+                $detail->amount = $amount;
+                $detail->save();
+            } else {
+                // Tạo mới
+                Orderdetail::create([
+                    'order_id' => $order->id,
+                    'product_id' => $productId,
+                    'qty' => $qty,
+                    'price' => $price,
+                    'discount' => $discount,
+                    'amount' => $amount,
+                ]);
+            }
+        }
+
+        // Xóa các sản phẩm không còn trong danh sách gửi lên
+        $productsToDelete = $existingDetails->keys()->diff($submittedProductIds);
+        if ($productsToDelete->isNotEmpty()) {
+            Orderdetail::where('order_id', $order->id)
+                ->whereIn('product_id', $productsToDelete)
+                ->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lưu đơn hàng thành công'
         ]);
     }
 }

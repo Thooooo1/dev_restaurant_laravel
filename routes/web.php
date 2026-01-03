@@ -186,9 +186,11 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::post('/register-table', [TableOrderController::class, 'registerTable'])->name('admin.table-order.registerTable');
         Route::post('/get-products', [TableOrderController::class, 'getProducts'])->name('admin.table-order.getProducts');
         Route::post('/get-table-order', [TableOrderController::class, 'getTableOrder'])->name('admin.table-order.getTableOrder');
+        Route::get('/get-order-details/{id}', [TableOrderController::class, 'getOrderDetails'])->name('admin.table-order.getOrderDetails');
         Route::post('/add-product-to-order', [TableOrderController::class, 'addProductToOrder'])->name('admin.table-order.addProductToOrder');
         Route::post('/remove-product-from-order', [TableOrderController::class, 'removeProductFromOrder'])->name('admin.table-order.removeProductFromOrder');
         Route::post('/update-product-qty', [TableOrderController::class, 'updateProductQty'])->name('admin.table-order.updateProductQty');
+        Route::post('/save-order', [TableOrderController::class, 'saveTableOrder'])->name('admin.table-order.saveOrder');
     });
 
     // Bookings
