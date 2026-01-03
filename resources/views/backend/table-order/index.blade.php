@@ -35,26 +35,46 @@
                                         @php
                                             $isOccupied = isset($activeOrders[$table->id]);
                                             $order = $isOccupied ? $activeOrders[$table->id] : null;
+                                            
+                                            $isLocked = false;
+                                            $mergedOrder = null;
+                                            if (!$isOccupied && $table->locked_order_id && isset($ordersById[$table->locked_order_id])) {
+                                                 $isLocked = true;
+                                                 $mergedOrder = $ordersById[$table->locked_order_id];
+                                            }
+                                            
+                                            $bgColor = '#424c54'; // available
+                                            if ($isOccupied) $bgColor = '#ffc107'; // occupied
+                                            if ($isLocked) $bgColor = '#42892f'; // locked/merged
                                         @endphp
                                         <div class="col-md-2 col-sm-3 col-4 mb-3">
-                                            <div class="table-card {{ $isOccupied ? 'occupied' : 'available' }}" 
+                                            <div class="table-card {{ $isOccupied || $isLocked ? 'occupied' : 'available' }}" 
                                                  data-table-id="{{ $table->id }}"
                                                  data-table-name="{{ $table->name }}"
                                                  data-floor-name="{{ $floor->name }}"
                                                  style="cursor: pointer;"
-                                                 onclick="handleTableClick({{ $table->id }}, '{{ $table->name }}', {{ $isOccupied ? 'true' : 'false' }}, '{{ $floor->name }}')">
-                                                <div class="p-3 border rounded text-white" 
-                                                     style="background-color: {{ $isOccupied ? '#ffc107' : '#343a40' }}; min-height: 120px; display: flex; flex-direction: column; justify-content: flex-start;">
+                                                 onclick="handleTableClick({{ $table->id }}, '{{ $table->name }}', {{ $isOccupied ? 'true' : 'false' }}, '{{ $floor->name }}', {{ $isLocked ? 'true' : 'false' }})">
+                                                <div class="p-2 border rounded text-white" 
+                                                     style="background-color: {{ $bgColor }}; min-height: 135px; display: flex; flex-direction: column; justify-content: flex-start; position: relative;">
                                                     <div class="font-weight-bold">{{ $table->name }}</div>
                                                     <hr style="border-color: rgba(255,255,255,0.3); margin: 8px 0;">
                                                     <div>
                                                         @if($isOccupied)
-                                                            <div>Trạng thái: Có khách</div>
+                                                            @php
+                                                               $totalSeats = $table->seats + ($lockedSeats[$order->id] ?? 0);
+                                                            @endphp
+                                                            <div class=""><i class="fas fa-users"></i> {{ $order->number_of_guests }}/{{ $totalSeats }}</div>
+
                                                             @if(isset($order) && $order->created_at)
-                                                                <small>Bắt đầu: {{ $order->created_at->format('H:i d/m/Y') }}</small>
+                                                                <div class="mt-1"><i class="fas fa-clock"></i> {{ $order->created_at->format('H:i d/m/y') }}</div>
                                                             @endif
+
+                                                        @elseif($isLocked)
+                                                            <span>Ghép với {{ $mergedOrder->table->name ?? '...' }}</span>
+                                                            <div class="mt-1"><i class="fas fa-lock"></i></div>
                                                         @else
-                                                            <div>Trạng thái: Trống</div>
+                                                            <div>Bàn Trống</div>
+                                                            <i class="fas fa-lock text-muted" style="cursor: pointer; position: absolute; bottom: 10px; right: 10px; font-size: 1.2rem;" onclick="event.stopPropagation(); showMergeModal({{ $table->id }}, '{{ $table->name }}')"></i>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -129,6 +149,31 @@
         </div>
     </div>
 
+    <!-- Modal Ghép bàn -->
+    <div class="modal fade" id="mergeTableModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ghép bàn <span id="mergeSourceTableName"></span></h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="mergeSourceTableId">
+                    <div class="form-group">
+                        <label>Chọn bàn muốn ghép vào (Bàn đang có khách)</label>
+                        <select class="form-control" id="mergeTargetTableId">
+                            <option value="">-- Chọn bàn --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary" onclick="submitMergeTable()">Xác nhận ghép</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Order món -->
     <div class="modal fade" id="orderModal" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-xl" role="document">
@@ -161,8 +206,7 @@
                     </div>
 
                     <!-- Danh sách món để chọn -->
-                    <div class="mb-3">
-                        <label>Chọn danh mục:</label>
+                    <div class="mb-3 product-category-container pt-2">
                         <div class="category-menu" id="categoryMenu">
                             <div class="category-item active" data-id="">Tất cả</div>
                             @php
@@ -221,7 +265,6 @@
         .category-item {
             display: inline-block;
             padding: 8px 15px;
-            margin-right: 10px;
             border: 1px solid #ddd;
             border-radius: 20px;
             cursor: pointer;
@@ -241,6 +284,9 @@
             object-fit: cover;
             border-radius: 5px 5px 0 0;
             margin-bottom: 10px;
+        }
+        .product-category-container {
+            border-top: 2px solid #c4c4c4;
         }
     </style>
 
@@ -329,8 +375,13 @@
         });
 
         // Xử lý click vào bàn
-        function handleTableClick(tableId, tableName, isOccupied, floorName) {
+        function handleTableClick(tableId, tableName, isOccupied, floorName, isLocked) {
             currentTableId = tableId;
+            
+            if (isLocked) {
+                toastr.info('Bàn này đang được ghép với bàn khác');
+                return;
+            }
             
             if (isOccupied) {
                 shouldReload = false;
@@ -399,7 +450,7 @@
 
         // Hiển thị danh sách món đã order (từ local state)
         function displayOrderItems() {
-            let html = '';
+            let html = '<div class="row">';
             let total = 0;
 
             if (currentOrderDetails && currentOrderDetails.length > 0) {
@@ -407,30 +458,34 @@
                     const itemTotal = item.price * item.qty;
                     total += itemTotal;
                     html += `
-                        <div class="order-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${item.product_name}</strong>
-                                    <br>
-                                    <small>${item.qty} x ${formatMoney(item.price)}</small>
-                                </div>
-                                <div class="text-right">
-                                    <div class="font-weight-bold">${formatMoney(itemTotal)}</div>
-                                    <div class="btn-group btn-group-sm mt-1">
-                                        <button class="btn btn-sm btn-secondary" onclick="updateQty(${item.product_id}, ${item.qty - 1})">-</button>
-                                        <span class="btn btn-sm">${item.qty}</span>
-                                        <button class="btn btn-sm btn-secondary" onclick="updateQty(${item.product_id}, ${item.qty + 1})">+</button>
-                                        <button class="btn btn-sm btn-danger" onclick="removeItem(${item.product_id})">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                        <div class="col-md-6 col-12">
+                            <div class="order-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${item.product_name}</strong>
+                                        <br>
+                                        <small>${item.qty} x ${formatMoney(item.price)}</small>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-weight-bold">${formatMoney(itemTotal)}</div>
+                                        <div class="btn-group mt-1">
+                                            <button class="btn btn-secondary px-3" onclick="updateQty(${item.product_id}, ${item.qty - 1})">-</button>
+                                            <span class="btn btn-light border px-2 d-flex align-items-center justify-content-center" style="min-width: 40px; font-weight: bold;">${item.qty}</span>
+                                            <button class="btn btn-secondary px-3" onclick="updateQty(${item.product_id}, ${item.qty + 1})">+</button>
+                                            <button class="btn btn-danger px-3" onclick="removeItem(${item.product_id})">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     `;
                 });
-                html += `<div class="mt-3 pt-3">
-                    <div class="d-flex justify-content-between">
+                html += '</div>'; // End row
+                
+                html += `<div class="mt-3">
+                    <div class="d-flex justify-content-between" style="font-size: 20px;">
                         <strong>Tổng tiền:</strong>
                         <strong class="text-danger">${formatMoney(total)}</strong>
                     </div>
@@ -582,10 +637,59 @@
 
         // Format tiền
         function formatMoney(amount) {
-            return new Intl.NumberFormat('vi-VN', {
-                style: 'currency',
-                currency: 'VND'
-            }).format(amount);
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+        }
+
+        // Xử lý ghép bàn
+        function showMergeModal(tableId, tableName) {
+            $('#mergeSourceTableId').val(tableId);
+            $('#mergeSourceTableName').text(tableName);
+            
+            // Populate active tables
+            let html = '<option value="">-- Chọn bàn --</option>';
+            $('.table-card.occupied').each(function() {
+                 let id = $(this).data('table-id');
+                 let name = $(this).data('table-name');
+                 // Exclude itself
+                 if (id != tableId) {
+                     html += `<option value="${id}">${name}</option>`;
+                 }
+            });
+            $('#mergeTargetTableId').html(html);
+            $('#mergeTableModal').modal('show');
+        }
+
+        function submitMergeTable() {
+            let sourceId = $('#mergeSourceTableId').val();
+            let targetId = $('#mergeTargetTableId').val();
+            if (!targetId) {
+                toastr.error('Vui lòng chọn bàn để ghép');
+                return;
+            }
+
+            $.ajax({
+                url: '{{ route("admin.table-order.mergeTable") }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    source_table_id: sourceId,
+                    target_table_id: targetId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        $('#mergeTableModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 500);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function() {
+                    toastr.error('Có lỗi xảy ra');
+                }
+            });
         }
     </script>
 </x-layout-backend>

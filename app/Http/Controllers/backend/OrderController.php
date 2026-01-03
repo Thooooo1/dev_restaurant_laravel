@@ -46,6 +46,11 @@ class OrderController extends Controller
         $order->status = $request->status;
         $order->save();
 
+        // Release merged tables if order is completed or cancelled
+        if (!in_array($order->status, [0, 1])) {
+             \App\Models\Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
+        }
+
         return redirect()->route('admin.order.index')->with('success', 'Cập nhật trạng thái thành công');
     }
 

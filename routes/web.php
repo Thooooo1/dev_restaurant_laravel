@@ -191,6 +191,7 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::post('/remove-product-from-order', [TableOrderController::class, 'removeProductFromOrder'])->name('admin.table-order.removeProductFromOrder');
         Route::post('/update-product-qty', [TableOrderController::class, 'updateProductQty'])->name('admin.table-order.updateProductQty');
         Route::post('/save-order', [TableOrderController::class, 'saveTableOrder'])->name('admin.table-order.saveOrder');
+        Route::post('/merge-table', [TableOrderController::class, 'mergeTable'])->name('admin.table-order.mergeTable');
     });
 
     // Bookings

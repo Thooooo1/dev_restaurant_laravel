@@ -25,14 +25,71 @@ class TableOrderController extends Controller
         }])->orderBy('order', 'ASC')->get();
 
         // Lấy danh sách order đang active (chưa thanh toán) để hiển thị trạng thái bàn
-        $activeOrders = Order::whereNull('deleted_at')
+        $orders = Order::whereNull('deleted_at')
             ->whereIn('status', [0, 1]) // Đang chờ xử lý hoặc đang vận chuyển
             ->whereNotNull('table_id')
             ->with('table')
-            ->get()
-            ->keyBy('table_id');
+            ->get();
 
-        return view('backend.table-order.index', compact('floors', 'activeOrders'));
+        $activeOrders = $orders->keyBy('table_id');
+        $ordersById = $orders->keyBy('id');
+
+        // Calculate total seats for merged tables
+        $lockedSeats = Table::whereNotNull('locked_order_id')
+             ->selectRaw('locked_order_id, sum(seats) as total_locked_seats')
+             ->groupBy('locked_order_id')
+             ->pluck('total_locked_seats', 'locked_order_id');
+
+        return view('backend.table-order.index', compact('floors', 'activeOrders', 'ordersById', 'lockedSeats'));
+    }
+
+    /**
+     * Ghép bàn
+     */
+    public function mergeTable(Request $request)
+    {
+        $request->validate([
+            'source_table_id' => 'required|exists:tables,id',
+            'target_table_id' => 'required|exists:tables,id',
+        ]);
+
+        if ($request->source_table_id == $request->target_table_id) {
+            return response()->json(['success' => false, 'message' => 'Không thể ghép cùng một bàn']);
+        }
+
+        $sourceTable = Table::find($request->source_table_id);
+        $targetTable = Table::find($request->target_table_id);
+
+        // Validate source is empty or just locked without active order?
+        // Source table must NOT have an active order of its own
+        $sourceActiveOrder = Order::where('table_id', $sourceTable->id)
+            ->whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->first();
+        
+        if ($sourceActiveOrder) {
+            return response()->json(['success' => false, 'message' => 'Bàn muốn ghép đang có khách']);
+        }
+
+        if ($sourceTable->locked_order_id) {
+             return response()->json(['success' => false, 'message' => 'Bàn này đang được ghép với bàn khác']);
+        }
+
+        // Validate target has active order
+        $targetActiveOrder = Order::where('table_id', $targetTable->id)
+            ->whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->first();
+
+        if (!$targetActiveOrder) {
+            return response()->json(['success' => false, 'message' => 'Bàn đích phải đang có khách']);
+        }
+
+        // Lock source table
+        $sourceTable->locked_order_id = $targetActiveOrder->id;
+        $sourceTable->save();
+
+        return response()->json(['success' => true, 'message' => 'Ghép bàn thành công']);
     }
 
     /**
