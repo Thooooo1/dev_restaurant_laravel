@@ -104,7 +104,7 @@
                                                 </a>
                                             @else
                                                 <a href="{{ route('admin.topic.status', ['topic' => $topic->id]) }}"
-                                                    class="btn btn-sm btn-success">
+                                                    class="btn btn-sm btn-secondary">
                                                     <i class="fas fa-toggle-off"></i>
                                                 </a>
                                             @endif

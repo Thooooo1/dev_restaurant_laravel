@@ -93,6 +93,27 @@ class TableOrderController extends Controller
     }
 
     /**
+     * Hủy ghép bàn
+     */
+    public function unmergeTable(Request $request)
+    {
+        $request->validate([
+            'table_id' => 'required|exists:tables,id',
+        ]);
+
+        $table = Table::find($request->table_id);
+
+        if (!$table->locked_order_id) {
+            return response()->json(['success' => false, 'message' => 'Bàn này chưa được ghép']);
+        }
+
+        $table->locked_order_id = null;
+        $table->save();
+
+        return response()->json(['success' => true, 'message' => 'Hủy ghép bàn thành công']);
+    }
+
+    /**
      * API: Check user theo số điện thoại
      */
     public function checkUserByPhone(Request $request)

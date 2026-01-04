@@ -61,7 +61,7 @@
                                         </a>
                                     @else
                                         <a href="{{ route('admin.contact.status', ['contact' => $contact->id]) }}"
-                                            class="btn btn-sm btn-success">
+                                            class="btn btn-sm btn-secondary">
                                             <i class="fas fa-toggle-off"></i>
                                         </a>
                                     @endif

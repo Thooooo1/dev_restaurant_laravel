@@ -118,7 +118,7 @@
                                         <i class="fas fa-toggle-on"></i>
                                     </a>
                                 @else
-                                <a href="{{route('admin.product.status',['product'=> $product->id])}}" class="btn btn-sm btn-success">
+                                <a href="{{route('admin.product.status',['product'=> $product->id])}}" class="btn btn-sm btn-secondary">
                                     <i class="fas fa-toggle-off"></i>
                                 </a>
                                 @endif

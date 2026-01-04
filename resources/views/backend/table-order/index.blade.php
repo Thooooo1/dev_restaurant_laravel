@@ -21,11 +21,14 @@
             <!-- Cột hiển thị bàn -->
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header">
+                    <!-- <div class="card-header">
                         <h3 class="card-title">Danh sách bàn</h3>
-                    </div>
+                    </div> -->
                     <div class="card-body">
                         @foreach($floors as $floor)
+                            @if(!$loop->first)
+                                <div class="floor-separator"></div>
+                            @endif
                             <div class="mb-4">
                                 <h4 class="mb-3">
                                     <i class="fas fa-layer-group"></i> {{ $floor->name }}
@@ -54,8 +57,8 @@
                                                  data-floor-name="{{ $floor->name }}"
                                                  style="cursor: pointer;"
                                                  onclick="handleTableClick({{ $table->id }}, '{{ $table->name }}', {{ $isOccupied ? 'true' : 'false' }}, '{{ $floor->name }}', {{ $isLocked ? 'true' : 'false' }})">
-                                                <div class="p-2 border rounded text-white" 
-                                                     style="background-color: {{ $bgColor }}; min-height: 135px; display: flex; flex-direction: column; justify-content: flex-start; position: relative;">
+                                                <div class="p-2 border rounded text-white table-card-inner" 
+                                                     style="background-color: {{ $bgColor }};">
                                                     <div class="font-weight-bold">{{ $table->name }}</div>
                                                     <hr style="border-color: rgba(255,255,255,0.3); margin: 8px 0;">
                                                     <div>
@@ -66,15 +69,16 @@
                                                             <div class=""><i class="fas fa-users"></i> {{ $order->number_of_guests }}/{{ $totalSeats }}</div>
 
                                                             @if(isset($order) && $order->created_at)
-                                                                <div class="mt-1"><i class="fas fa-clock"></i> {{ $order->created_at->format('H:i d/m/y') }}</div>
+                                                                <div class="mt-1"><i class="fas fa-clock"></i> {{ $order->created_at->timezone('Asia/Ho_Chi_Minh')->format('H:i d/m/y') }}</div>
                                                             @endif
 
                                                         @elseif($isLocked)
                                                             <span>Ghép với {{ $mergedOrder->table->name ?? '...' }}</span>
-                                                            <div class="mt-1"><i class="fas fa-lock"></i></div>
+                                                            <i class="fas fa-unlock text-white lock-format" onclick="event.stopPropagation(); confirmUnmerge({{ $table->id }})"></i>
                                                         @else
                                                             <div>Bàn Trống</div>
-                                                            <i class="fas fa-lock text-muted" style="cursor: pointer; position: absolute; bottom: 10px; right: 10px; font-size: 1.2rem;" onclick="event.stopPropagation(); showMergeModal({{ $table->id }}, '{{ $table->name }}')"></i>
+                                                            <div>0/{{ $table->seats }}</div>
+                                                            <i class="fas fa-lock text-muted lock-format" onclick="event.stopPropagation(); showMergeModal({{ $table->id }}, '{{ $table->name }}', '{{ $floor->name }}')"></i>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -154,7 +158,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Ghép bàn <span id="mergeSourceTableName"></span></h5>
+                    <h5 class="modal-title"><span id="mergeSourceTableName"></span></h5>
                     <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 </div>
                 <div class="modal-body">
@@ -235,9 +239,19 @@
         .table-card {
             transition: transform 0.2s;
         }
-        .table-card:hover {
-            transform: scale(1.05);
+        .table-card-inner {
+            min-height: 135px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            position: relative;
         }
+        .floor-separator {
+            border-top: 2px solid #e9ecef;
+            margin: 20px 0;
+        }
+        /* PC: 2 columns for order items */
+        /* Removed grid layout to fix layout issues as requested */
         .table-card.occupied {
             opacity: 0.9;
         }
@@ -287,6 +301,18 @@
         }
         .product-category-container {
             border-top: 2px solid #c4c4c4;
+        }
+        .lock-format { 
+            cursor: pointer; 
+            position: absolute; 
+            bottom: 10px; 
+            right: 10px; 
+            font-size: 2.0rem; 
+        }
+        @media (min-width: 992px) {
+            .order-item-container {
+                padding: 0 20px;
+            }
         }
     </style>
 
@@ -458,7 +484,7 @@
                     const itemTotal = item.price * item.qty;
                     total += itemTotal;
                     html += `
-                        <div class="col-md-6 col-12">
+                        <div class="col-md-6 col-12 order-item-container">
                             <div class="order-item">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
@@ -641,18 +667,19 @@
         }
 
         // Xử lý ghép bàn
-        function showMergeModal(tableId, tableName) {
+        function showMergeModal(tableId, tableName, floorName) {
             $('#mergeSourceTableId').val(tableId);
-            $('#mergeSourceTableName').text(tableName);
+            $('#mergeSourceTableName').text((floorName ? (floorName + ' - ') : '') + tableName);
             
             // Populate active tables
             let html = '<option value="">-- Chọn bàn --</option>';
             $('.table-card.occupied').each(function() {
                  let id = $(this).data('table-id');
                  let name = $(this).data('table-name');
+                 let fName = $(this).data('floor-name');
                  // Exclude itself
                  if (id != tableId) {
-                     html += `<option value="${id}">${name}</option>`;
+                     html += `<option value="${id}">${(fName ? fName + ' - ' : '') + name}</option>`;
                  }
             });
             $('#mergeTargetTableId').html(html);
@@ -690,6 +717,32 @@
                     toastr.error('Có lỗi xảy ra');
                 }
             });
+        }
+
+        function confirmUnmerge(tableId) {
+            if (confirm('Bạn có chắc chắn muốn hủy ghép bàn này?')) {
+                $.ajax({
+                    url: '{{ route("admin.table-order.unmergeTable") }}',
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        table_id: tableId
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success(response.message);
+                            setTimeout(function() {
+                                location.reload();
+                            }, 500);
+                        } else {
+                            toastr.error(response.message);
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Có lỗi xảy ra');
+                    }
+                });
+            }
         }
     </script>
 </x-layout-backend>
