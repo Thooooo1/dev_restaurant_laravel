@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Middleware\AdminAccess;
-use App\Http\Middleware\Lic;
 use App\Http\Middleware\LoginAdmin;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,11 +21,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->appendToGroup('admin-access',[
             AdminAccess::class,
-        ]);
-
-        $middleware->append([
-            \Illuminate\Middleware\VendorRequest::class,
-            \Illuminate\Middleware\Lic::class,
         ]);
     })
     
