@@ -8,7 +8,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Brand;
 use App\Models\Order;
-use App\Models\OrderDetail;
+use App\Models\Orderdetail;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -19,14 +19,14 @@ class DashboardController extends Controller
         $categoryCount = Category::count();
         $brandCount = Brand::count();
 
-        $todayRevenue = OrderDetail::whereIn('order_id', function ($query) {
+        $todayRevenue = Orderdetail::whereIn('order_id', function ($query) {
             $query->select('id')
                 ->from('order')
                 ->whereDate('created_at', Carbon::today())
                 ->where('status', 2);
         })->sum('amount');
 
-        $monthlyRevenue = OrderDetail::whereIn('order_id', function ($query) {
+        $monthlyRevenue = Orderdetail::whereIn('order_id', function ($query) {
             $query->select('id')
                 ->from('order')
                 ->whereMonth('created_at', Carbon::now()->month)

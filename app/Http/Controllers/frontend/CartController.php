@@ -127,7 +127,7 @@ class CartController extends Controller
         $order->save();
 
         foreach ($cart as $productId => $details) {
-            $orderDetail = new OrderDetail();
+            $orderDetail = new Orderdetail();
             $orderDetail->order_id = $order->id;
             $orderDetail->product_id = $productId;
             $orderDetail->qty = $details['qty'];
