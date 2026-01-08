@@ -18,11 +18,11 @@
 
     <section class="content">
         <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div>
-                    <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm" id="backBtn"><i class="fas fa-arrow-left"></i> Quay lại</a>
-                    <button type="button" class="btn btn-primary btn-sm ml-2" id="printKitchenBtn" onclick="printKitchen()" disabled><i class="fas fa-print"></i> In thực đơn</button>
-                    <a href="{{ route('admin.table-order.payment', $table->id) }}" class="btn btn-danger btn-sm ml-2" id="payBtn">Thanh toán</a>
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                <div class="mb-2 mb-md-0">
+                    <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm mb-1" id="backBtn"><i class="fas fa-arrow-left"></i> Quay lại</a>
+                    <button type="button" class="btn btn-primary btn-sm ml-2 mb-1" id="printKitchenBtn" onclick="printKitchen()" disabled><i class="fas fa-print"></i> In thực đơn</button>
+                    <a href="{{ route('admin.table-order.payment', $table->id) }}" class="btn btn-danger btn-sm ml-2 mb-1 {{ $orderDetails->isEmpty() ? 'disabled' : '' }}" id="payBtn"><i class="fas fa-money-bill-wave"></i> Thanh toán</a>
                 </div>
                 <div>
                     <span class="font-weight-bold">Tổng tiền:</span>
@@ -37,8 +37,59 @@
                             <h3 class="card-title">{{ $order->user->fullname ?? $order->customer_name ?? 'Khách lẻ' }} - {{ $order->user->phone ?? $order->customer_phone ?? '---' }}</h3>
                         </div>
                         <div class="card-body d-flex flex-column">
+                            <!-- Note Input -->
+                            <div class="form-group mb-2">
+                                <label for="orderNote" class="sr-only">Ghi chú</label>
+                                <textarea id="orderNote" class="form-control" rows="2" placeholder="Ghi chú món ăn (VD: Không cay, ít đường...)" style="resize: none;">{{ $order->note }}</textarea>
+                            </div>
+                            @if(isset($historyByTurn) && $historyByTurn->count() > 0)
+                                <div class="mb-3" id="historyAccordion">
+                                    @foreach($historyByTurn as $turn => $items)
+                                        <div class="card">
+                                            <div class="card-header p-2">
+                                                <h3 class="card-title m-0">
+                                                    <button class="btn btn-link p-0" data-toggle="collapse" data-target="#history-turn-{{ $turn }}">
+                                                        Gọi món lần: {{ $turn }}
+                                                    </button>
+                                                </h3>
+                                            </div>
+                                            <div id="history-turn-{{ $turn }}" class="collapse">
+                                                <div class="card-body p-2">
+                                                    @foreach($items as $it)
+                                                        @php
+                                                            $price = $it->price ?? ($it->product->price_sale ?? 0);
+                                                            $amount = $price * ($it->qty ?? 0);
+                                                        @endphp
+                                                        <div class="order-item bg-light" id="history-item-{{ $it->id }}" data-price="{{ $price }}">
+                                                            <div class="row align-items-center">
+                                                                <div class="col-6">
+                                                                    <div class="font-weight-bold">{{ $it->product->name ?? 'N/A' }}</div>
+                                                                    <div class="text-muted small">{{ number_format($price, 0, ',', '.') }} ₫</div>
+                                                                </div>
+                                                                <div class="col-3 text-center">
+                                                                    <div class="btn-group btn-group-sm">
+                                                                        <button class="btn btn-outline-secondary" onclick="decrementHistory({{ $it->id }})">-</button>
+                                                                        <span class="btn btn-light border" id="history-qty-{{ $it->id }}" style="min-width: 30px;">{{ $it->qty }}</span>
+                                                                        <button class="btn btn-outline-secondary" disabled>+</button>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-3 text-right">
+                                                                    <div class="font-weight-bold" id="history-amount-{{ $it->id }}">{{ number_format($amount, 0, ',', '.') }} ₫</div>
+                                                                    <button class="btn btn-sm btn-link text-danger p-0 mt-1" onclick="deleteHistory({{ $it->id }})">
+                                                                        <i class="fas fa-trash"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                             <!-- Order Items -->
-                            <div class="flex-grow-1" style="max-height: 500px;">
+                            <div class="flex-grow-1" style="max-height: 500px; overflow-y: auto;">
                                 <div id="orderItemsContent">
                                     <!-- Items will be rendered here via JS -->
                                 </div>
@@ -131,9 +182,11 @@
         let currentOrderId = {{ $order->id }};
         let orderTurn = {{ $order->order_turn ?? 1 }};
         let currentOrderDetails = [];
+        let existingOrderDetails = @json($orderDetails); // Load existing items
         let originalOrderDetails = [];
         let allProducts = [];
         let isOrderSaved = true;
+        let hasExistingItems = {{ $orderDetails->isNotEmpty() ? 'true' : 'false' }};
 
         $(document).ready(function() {
             // Initial render
@@ -149,9 +202,14 @@
                 loadProducts();
             });
 
+            // Monitor Note change
+            $('#orderNote').on('input', function() {
+                isOrderSaved = false;
+            });
+
             // Warn on leave if unsaved
             window.onbeforeunload = function() {
-                if (!isOrderSaved) {
+                if (!isOrderSaved && currentOrderDetails.length > 0) {
                     return "Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn rời đi?";
                 }
             };
@@ -207,7 +265,42 @@
             let html = '';
             let total = 0;
 
+            // 1. Render Existing Items (Read-only)
+            if (existingOrderDetails && existingOrderDetails.length > 0) {
+                html += '<div class="text-muted small mb-2 font-weight-bold text-uppercase border-bottom pb-1">Đã gọi (Lưu bếp)</div>';
+                existingOrderDetails.forEach(function(item) {
+                    // DB items have 'product' relation, or we fallback
+                    const productName = item.product ? item.product.name : (item.product_name || 'N/A');
+                    const price = item.price || 0;
+                    const qty = item.qty || 0;
+                    const itemTotal = price * qty;
+                    total += itemTotal;
+
+                    html += `
+                        <div class="order-item bg-light text-muted">
+                            <div class="row align-items-center">
+                                <div class="col-6">
+                                    <div class="font-weight-bold">${productName}</div>
+                                    <div class="text-muted small">${formatMoney(price)}</div>
+                                </div>
+                                <div class="col-3 text-center">
+                                    <span class="font-weight-bold">x${qty}</span>
+                                </div>
+                                <div class="col-3 text-right">
+                                    <div class="font-weight-bold">${formatMoney(itemTotal)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // 2. Render Current Items (Editable)
             if (currentOrderDetails && currentOrderDetails.length > 0) {
+                if (existingOrderDetails && existingOrderDetails.length > 0) {
+                     html += '<div class="text-primary small mb-2 mt-3 font-weight-bold text-uppercase border-bottom pb-1">Đang chọn (Chưa lưu)</div>';
+                }
+                
                 currentOrderDetails.forEach(function(item) {
                     const itemTotal = item.price * item.qty;
                     total += itemTotal;
@@ -235,21 +328,24 @@
                         </div>
                     `;
                 });
-                
-                html += `
-                    <div class="mt-3 pt-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0">Tổng tiền:</h4>
-                            <h4 class="text-danger mb-0">${formatMoney(total)}</h4>
-                        </div>
-                    </div>
-                `;
-            } else {
+            } 
+            
+            if ((!existingOrderDetails || existingOrderDetails.length === 0) && (!currentOrderDetails || currentOrderDetails.length === 0)) {
                 html = '<div class="text-center text-muted py-5"><i class="fas fa-utensils fa-3x mb-3"></i><p>Chưa có món nào được chọn</p></div>';
             }
+
             $('#orderItemsContent').html(html);
             $('#totalAmountDisplay').text(formatMoney(total));
+            
+            // Disable Print Kitchen if no NEW items
             $('#printKitchenBtn').prop('disabled', !(currentOrderDetails && currentOrderDetails.length > 0));
+
+            // Update Payment Button State: ENABLED only if hasExistingItems is true
+            if (hasExistingItems) {
+                $('#payBtn').removeClass('disabled');
+            } else {
+                $('#payBtn').addClass('disabled');
+            }
         }
 
         function addProductToOrder(productId) {
@@ -299,8 +395,68 @@
             displayOrderItems();
         }
 
+        function decrementHistory(detailId) {
+            const qtyEl = document.getElementById('history-qty-' + detailId);
+            if (!qtyEl) return;
+            const qty = parseInt(qtyEl.textContent, 10) || 0;
+            if (qty <= 0) return;
+            if (!confirm('Bạn có chắc muốn trừ 1 món này?')) return;
+            const newQty = qty - 1;
+            if (newQty < 1) {
+                deleteHistory(detailId);
+                return;
+            }
+            $.ajax({
+                url: '{{ route("admin.table-order.updateProductQty") }}',
+                method: 'POST',
+                data: { _token: '{{ csrf_token() }}', order_detail_id: detailId, qty: newQty },
+                success: function(resp) {
+                    if (resp.success) {
+                        toastr.success('Đã cập nhật số lượng');
+                        const amountEl = document.getElementById('history-amount-' + detailId);
+                        const itemEl = document.getElementById('history-item-' + detailId);
+                        qtyEl.textContent = String(newQty);
+                        const price = parseFloat(itemEl?.getAttribute('data-price') || '0') || 0;
+                        const newAmount = price * newQty;
+                        if (amountEl) amountEl.textContent = formatMoney(newAmount);
+                    } else {
+                        toastr.error(resp.message || 'Cập nhật thất bại');
+                    }
+                },
+                error: function(xhr) {
+                    let msg = 'Có lỗi xảy ra';
+                    if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                    toastr.error(msg);
+                }
+            });
+        }
+
+        function deleteHistory(detailId) {
+            if (!confirm('Bạn có chắc muốn xoá món này?')) return;
+            $.ajax({
+                url: '{{ route("admin.table-order.removeProductFromOrder") }}',
+                method: 'POST',
+                data: { _token: '{{ csrf_token() }}', order_detail_id: detailId },
+                success: function(resp) {
+                    if (resp.success) {
+                        toastr.success('Đã xoá món');
+                        const itemEl = document.getElementById('history-item-' + detailId);
+                        if (itemEl) itemEl.remove();
+                    } else {
+                        toastr.error(resp.message || 'Xoá thất bại');
+                    }
+                },
+                error: function(xhr) {
+                    let msg = 'Có lỗi xảy ra';
+                    if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                    toastr.error(msg);
+                }
+            });
+        }
+
         function printKitchen() {
             if (!currentOrderId || !currentOrderDetails || currentOrderDetails.length === 0) return;
+            const note = $('#orderNote').val();
             saveOrder(function() {
                 const items = currentOrderDetails.map((item, idx) => ({stt: idx+1, name: item.product_name, qty: item.qty}));
                 const html = generateKitchenTicketHTML({
@@ -309,6 +465,7 @@
                     customer_name: '{{ $order->user->fullname ?? $order->customer_name ?? 'Khách lẻ' }}',
                     customer_phone: '{{ $order->user->phone ?? $order->customer_phone ?? '---' }}',
                     order_turn: orderTurn,
+                    note: note,
                     items
                 });
                 const w = window.open('', 'PRINT', 'width=400,height=600');
@@ -318,12 +475,16 @@
                 w.print();
                 w.close();
                 $.post('{{ route('admin.table-order.incrementOrderTurn') }}', { _token: '{{ csrf_token() }}', order_id: currentOrderId })
-                    .always(function() { window.location.href = '{{ route('admin.table-order.index') }}'; });
+                    .always(function() { 
+                        // Reload to sync state
+                        window.location.reload(); 
+                    });
             });
         }
 
         function saveOrder(callback) {
             if (!currentOrderId) return;
+            const note = $('#orderNote').val();
 
             $.ajax({
                 url: '{{ route("admin.table-order.saveOrder") }}',
@@ -331,13 +492,18 @@
                 data: {
                     _token: '{{ csrf_token() }}',
                     order_id: currentOrderId,
-                    items: currentOrderDetails
+                    items: currentOrderDetails,
+                    note: note
                 },
                 success: function(response) {
                     if (response.success) {
                         toastr.success(response.message);
-                        originalOrderDetails = JSON.parse(JSON.stringify(currentOrderDetails));
+                        
+                        // Optimistically update state
                         isOrderSaved = true;
+                        hasExistingItems = true;
+                        $('#payBtn').removeClass('disabled');
+
                         if (typeof callback === 'function') callback();
                     } else {
                         toastr.error(response.message || 'Lưu thất bại');
@@ -359,7 +525,7 @@
         }
 
         function generateKitchenTicketHTML(data) {
-            const { floor, table, customer_name, customer_phone, order_turn, items } = data;
+            const { floor, table, customer_name, customer_phone, order_turn, note, items } = data;
             const now = new Date();
             const pad = n => String(n).padStart(2, '0');
             const dateStr = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
@@ -367,6 +533,7 @@
             items.forEach(i => {
                 rows += `<tr><td style="text-align:center;width:30px;">${i.stt}</td><td>${i.name}</td><td style="text-align:right;width:50px;">${i.qty}</td></tr>`;
             });
+            let noteHtml = note ? `<div class="meta" style="border:1px dashed #000; padding:5px; margin:5px 0;">Ghi chú: <strong>${note}</strong></div>` : '';
             return `<!doctype html><html><head><meta charset="utf-8"><title>Phiếu gọi món</title><style>
                 @media print { @page { size: 80mm auto; margin: 5mm; } }
                 body { font-family: Arial, sans-serif; width: 80mm; }
@@ -381,6 +548,7 @@
                 <div class="meta">Tầng: <strong>${floor}</strong> | Bàn: <strong>${table}</strong></div>
                 <div class="meta">Lần order: <strong>${order_turn}</strong> | Thời gian: ${dateStr}</div>
                 <div class="meta">Khách: <strong>${customer_name}</strong> | ĐT: ${customer_phone}</div>
+                ${noteHtml}
                 <table><thead><tr><th style="width:30px; text-align:center;">STT</th><th>Món</th><th style="width:50px; text-align:right;">SL</th></tr></thead><tbody>${rows}</tbody></table>
                 <div class="footer">In từ hệ thống nhà hàng</div>
             </body></html>`;

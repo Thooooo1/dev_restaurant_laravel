@@ -63,15 +63,27 @@ class TableOrderController extends Controller
             return redirect()->route('admin.table-order.index')->with('error', 'Bàn chưa được đăng ký khách');
         }
 
-        // Lấy chi tiết order
+        // Lấy chi tiết order của lần hiện tại
         $orderDetails = Orderdetail::where('order_id', $order->id)
+            ->where('order_turn', $order->order_turn ?? 1)
             ->with('product')
             ->get();
+        
+        // Kiểm tra có bất kỳ món đã lưu trong DB hay chưa
+        $hasAnyItems = Orderdetail::where('order_id', $order->id)->exists();
+        
+        // Lịch sử các lần order trước (accordion)
+        $historyItems = Orderdetail::where('order_id', $order->id)
+            ->where('order_turn', '<', $order->order_turn ?? 1)
+            ->with('product')
+            ->orderBy('order_turn', 'ASC')
+            ->get();
+        $historyByTurn = $historyItems->groupBy('order_turn');
 
         // Lấy danh mục sản phẩm
         $categories = Category::whereNull('deleted_at')->orderBy('name')->get();
 
-        return view('backend.table-order.order', compact('table', 'order', 'orderDetails', 'categories'));
+        return view('backend.table-order.order', compact('table', 'order', 'orderDetails', 'categories', 'hasAnyItems', 'historyByTurn'));
     }
 
     /**
@@ -414,9 +426,15 @@ class TableOrderController extends Controller
             'items' => 'present|array', // items có thể rỗng nếu xóa hết
             'items.*.product_id' => 'required|exists:product,id',
             'items.*.qty' => 'required|integer|min:1',
+            'note' => 'nullable|string',
         ]);
 
         $order = Order::findOrFail($request->order_id);
+        
+        if ($request->has('note')) {
+            $order->note = $request->note;
+            $order->save();
+        }
         
         foreach ($request->items as $item) {
             $productId = $item['product_id'];
@@ -452,6 +470,7 @@ class TableOrderController extends Controller
         ]);
         $order = Order::findOrFail($request->order_id);
         $order->order_turn = ($order->order_turn ?? 1) + 1;
+        $order->note = null; // Reset note after print/turn increment
         $order->save();
         return response()->json(['success' => true, 'order_turn' => $order->order_turn]);
     }
