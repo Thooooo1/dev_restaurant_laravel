@@ -194,7 +194,7 @@
             <div class="container mx-auto flex flex-wrap items-center">
                 <!-- Left Content -->
                 <div class="w-full lg:w-6/12 px-6">
-                    <p class="text-orange-500 font-semibold text-lg mb-2">VanHai Restaurant</p>
+                    <p class="text-orange-500 font-semibold text-lg mb-2">CIVILIZE Restaurant</p>
                     <h2 style="font-size: 35px;font-weight: bold;" class="font-bold">
                         Thưởng thức ẩm thực đỉnh cao tại nhà hàng của chúng tôi!
                     </h2>
@@ -1088,7 +1088,7 @@
                                         hàng</a>
                                 </h5>
                                 <p class="text-gray-600">
-                                    Không chỉ đặt bàn ăn mà có là điểm dừng chân lí tưởng để tổ chức tiệc, VanHai
+                                    Không chỉ đặt bàn ăn mà có là điểm dừng chân lí tưởng để tổ chức tiệc, CIVILIZE
                                     Restaurant sẽ luôn là sự lựa chọn hàng đầu của bạn.
                                 </p>
                             </div>

@@ -27,7 +27,7 @@
           <div class="mb-6">
             <h3 class="text-xl font-semibold text-gray-800">Địa Chỉ Văn Phòng</h3>
             <p class="text-gray-700">
-              VanHai Restaurant<br>
+              CIVILIZE Restaurant<br>
               212 Tăng Nhơn Phú, Phước Long B, Quận 9, Thành phố Thủ Đức
             </p>
           </div>
@@ -45,8 +45,8 @@
           <div class="mb-6">
             <h3 class="text-xl font-semibold text-gray-800">Email</h3>
             <p class="text-gray-700">
-              Email hỗ trợ khách hàng: <a href="mailto:vanhai@gmail.com" class="text-blue-500">vanhai@gmail.com</a><br>
-              Email bán hàng: <a href="mailto:vanhai@gmail.com" class="text-blue-500">vanhai@gmail.com</a>
+              Email hỗ trợ khách hàng: <a href="mailto:civilizerestaurant@gmail.com" class="text-blue-500">civilizerestaurant@gmail.com</a><br>
+              Email bán hàng: <a href="mailto:civilizerestaurant@gmail.com" class="text-blue-500">civilizerestaurant@gmail.com</a>
             </p>
           </div>
       

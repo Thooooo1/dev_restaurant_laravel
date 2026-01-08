@@ -49,7 +49,7 @@
                                     <a class="d-inline-block" href="blog_details.html">
                                         <h2 class="text-gray-800 text-xl font-bold">Tuyển tập 8 món xào đơn giản, tiết kiệm thời gian cho chị em</h2>
                                     </a>
-                                    <p class="mt-2">Cùng Bếp nhà VanHai khám phá công thức làm 8 món xào đơn giản, nhanh gọn trong bài viết dưới đây để làm phong phú, đa dạng thêm cho bữa cơm của gia đình mình nhé..</p>
+                                    <p class="mt-2">Cùng Bếp nhà CIVILIZE khám phá công thức làm 8 món xào đơn giản, nhanh gọn trong bài viết dưới đây để làm phong phú, đa dạng thêm cho bữa cơm của gia đình mình nhé..</p>
                                     <ul class="blog-info-link flex mt-4 space-x-4">
                                         <li><a href="#" class="text-blue-600"><i class="fa fa-user"></i> Công thức nấu ăn, Món ăn nhà hàng</a></li>
                                         <li><a href="#" class="text-blue-600"><i class="fa fa-comments"></i> 02 Bình luận</a></li>

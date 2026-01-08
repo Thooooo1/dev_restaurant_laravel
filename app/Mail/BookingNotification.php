@@ -21,7 +21,7 @@ class BookingNotification extends Mailable
 
     public function build()
     {
-        return $this->subject('Xác nhận đặt bàn tại VanHaiRestaurant')
+        return $this->subject('Xác nhận đặt bàn tại CIVILIZE Restaurant')
                     ->view('emails.booking_notification');
     }
 }

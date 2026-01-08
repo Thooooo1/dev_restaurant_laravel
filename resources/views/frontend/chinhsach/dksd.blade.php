@@ -71,7 +71,7 @@
             Nếu bạn có bất kỳ câu hỏi nào liên quan đến các điều khoản sử dụng, vui lòng liên hệ với chúng tôi qua thông tin liên lạc dưới đây:
           </p>
           <p class="text-gray-700">
-            Email: <a href="mailto:vanhai@gmail.com" class="text-blue-500">vanhai@gmail.com</a><br>
+            Email: <a href="mailto:civilizerestaurant@gmail.com" class="text-blue-500">civilizerestaurant@gmail.com</a><br>
             Điện thoại: <a href="tel:+84981487674" class="text-blue-500">+84 0981487674</a>
           </p>
       

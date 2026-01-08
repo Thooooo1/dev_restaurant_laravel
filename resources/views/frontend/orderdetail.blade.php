@@ -79,7 +79,7 @@
                         @endforeach
                     </tbody>
                 </table>
-                <p class="text-center font-bold my-4">Cảm ơn bạn đã đặt món tại VanHaiRestaurant !</p>
+                <p class="text-center font-bold my-4">Cảm ơn bạn đã đặt món tại CIVILIZE Restaurant !</p>
             </div>
 
             <!-- Tổng tiền -->

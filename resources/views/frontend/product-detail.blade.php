@@ -189,7 +189,7 @@
                                         @if (!empty($item->response))
 
                                             <div class="mt-2 bg-gray-100 p-2 rounded">
-                                                <span class="font-semibold text-gray-800">VanHai Restaurant: </span>
+                                                <span class="font-semibold text-gray-800">CIVILIZE Restaurant: </span>
                                                 <p class="text-gray-700 ">{{ $item->response }}</p>
                                             </div>
                                         @endif

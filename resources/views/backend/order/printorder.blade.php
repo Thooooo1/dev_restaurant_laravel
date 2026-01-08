@@ -53,7 +53,7 @@
             </tbody>
         </table>
         <div class="footer">
-            <p>Cảm ơn quý khách đã đặt món tại VanHaiRestaurant!</p>
+            <p>Cảm ơn quý khách đã đặt món tại CIVILIZE Restaurant!</p>
         </div>
     </div>
 </body>

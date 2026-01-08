@@ -15,7 +15,7 @@
                         <div class="flex justify-center">
                             <div class="w-full">
                                 <div class="hero-cap text-center ">
-                                    <h1 class="text-3xl font-bold text-orange-500"> VANHAI RESTAURANT</h1>
+                                    <h1 class="text-3xl font-bold text-orange-500"> CIVILIZE RESTAURANT</h1>
                                     <p class="text-gray-400">Chúng tôi luôn sẵn sàng lắng nghe ý kiến của bạn</p>
                                 </div>
                             </div>
@@ -31,12 +31,12 @@
             <div class="p-6 bg-gray-800 rounded-lg shadow-lg">
                 <h2 class="text-2xl font-bold text-orange-500 mb-4">Cửa hàng chính</h2>
                 <p class="text-gray-300 mb-6">
-                    VanHai Restaurant luôn bảo đảm về chất lượng cũng như an toàn thực phẩm.
+                    CIVILIZE Restaurant luôn bảo đảm về chất lượng cũng như an toàn thực phẩm.
                 </p>
                 <ul class="space-y-4 text-gray-300">
                     <li><i class="fas fa-map-marker-alt text-orange-500 mr-3"></i> 212 Tăng Nhơn Phú, Phước Long B, Quận
                         9, Thành phố Thủ Đức</li>
-                    <li><i class="fas fa-envelope text-orange-500 mr-3"></i> Vanhaistudio@gmail.com</li>
+                    <li><i class="fas fa-envelope text-orange-500 mr-3"></i> civilizerestaurant@gmail.com</li>
                     <li><i class="fas fa-phone text-orange-500 mr-3"></i> (84) 098-148-7674</li>
                     <li><i class="fas fa-clock text-orange-500 mr-3"></i> Các ngày trong tuần 7:00am - 22:00pm</li>
                 </ul>

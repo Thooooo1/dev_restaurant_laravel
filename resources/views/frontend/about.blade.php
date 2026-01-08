@@ -12,7 +12,7 @@
         <section class="section_about bg-white py-4 mr-4 px-8 ">
             <div class="container mx-auto flex flex-wrap items-center">
                 <div class="w-full lg:w-6/12 px-6">
-                    <p class="text-orange-500 font-semibold text-lg mb-2">VanHai Restaurant</p>
+                    <p class="text-orange-500 font-semibold text-lg mb-2">CIVILIZE Restaurant</p>
                     <h2 style="font-size: 35px;font-weight: bold;" class="font-bold">
                         Thưởng thức ẩm thực đỉnh cao tại nhà hàng của chúng tôi!
                     </h2>
@@ -69,10 +69,10 @@
                                     luôn tự hào về cách phục vụ cũng như các món ăn mà chúng tôi làm ra. Nhà hàng chúng
                                     tôi luôn luôn đặt khách hàng lên hàng đầu, tận tâm phục vụ, mang lại cho khách hàng
                                     những trãi nghiệm tuyệt với nhất. Các món ăn với công thức độc quyền sẽ mang lại
-                                    hương vị mới mẻ cho thực khách. VanHai Restaurant xin chân thành cảm ơn.
+                                    hương vị mới mẻ cho thực khách. CIVILIZE Restaurant xin chân thành cảm ơn.
                                 </p>
                                 <p class="text-gray-600 mb-6">
-                                    HÃY ĐẾN VANHAI RESTAURANT ĐỂ THƯỞNG THỨC NGAY BẠN NHÉ!
+                                    HÃY ĐẾN CIVILIZE RESTAURANT ĐỂ THƯỞNG THỨC NGAY BẠN NHÉ!
                                 </p>
                                 <a href="{{url('/danh-sach')}}"
                                     class="inline-block px-6 py-3 border-2 border-orange-500 text-orange-500 font-semibold rounded-lg hover:bg-orange-500 hover:text-white transition">
@@ -135,7 +135,7 @@
                                         hàng</a>
                                 </h5>
                                 <p class="text-gray-600">
-                                    Không chỉ đặt bàn ăn mà có là điểm dừng chân lí tưởng để tổ chức tiệc, VanHai
+                                    Không chỉ đặt bàn ăn mà có là điểm dừng chân lí tưởng để tổ chức tiệc, CIVILIZE
                                     Restaurant sẽ luôn là sự lựa chọn hàng đầu của bạn.
                                 </p>
                             </div>

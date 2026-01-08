@@ -109,8 +109,8 @@ return [
     */
 
     'from' => [
-        'address' => 'vanhairestaurant@gmail.com',
-        'name' => 'Van Hai Restaurant',
+        'address' => 'civilizerestaurant@gmail.com',
+        'name' => 'CIVILIZE Restaurant',
     ],
 
 

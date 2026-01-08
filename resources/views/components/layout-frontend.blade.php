@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dev Restaurant</title>
+    <title>CIVILIZE Restaurant</title>
     <link rel="shortcut icon" type="image/x-icon" href="../images/logo/logo.png">
     <!-- jQuery -->
     {{--
@@ -413,7 +413,7 @@
             <div class="flex gap-6">
                 <div class="basis-3/12">
                     <h3 class="title-footer py-2">Về chúng tôi</h3>
-                    <p>Dev Restaurant luôn bảo đảm về chất lượng cũng như an toàn thực phẩm.</p>
+                    <p>CIVILIZE Restaurant luôn bảo đảm về chất lượng cũng như an toàn thực phẩm.</p>
                     <ul class="list-icon">
                         <li> <i class="icon fa fa-map-marker" style="margin-right: 10px;"> </i>Hẻm 30, An Khánh, Ninh
                             Kiều, Cần Thơ</li>

@@ -409,6 +409,33 @@ class TableOrderController extends Controller
     }
 
     /**
+     * Cập nhật số lượng món (Batch Update)
+     */
+    public function updateTableOrderQuantities(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:order,id',
+            'items' => 'required|array',
+            'items.*.id' => 'required|exists:orderdetail,id',
+            'items.*.qty' => 'required|integer|min:1',
+        ]);
+
+        foreach ($request->items as $item) {
+            $detail = Orderdetail::find($item['id']);
+            if ($detail && $detail->order_id == $request->order_id) {
+                $detail->qty = $item['qty'];
+                $detail->amount = ($detail->price - $detail->discount) * $detail->qty;
+                $detail->save();
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật số lượng thành công'
+        ]);
+    }
+
+    /**
      * Lưu toàn bộ order (Thay thế cho các action lẻ)
      */
     public function saveTableOrder(Request $request)
@@ -494,6 +521,7 @@ class TableOrderController extends Controller
             ->orderBy('id', 'ASC')
             ->get();
         $totalAmount = $orderDetails->sum('amount');
-        return view('backend.table-order.payment', compact('table', 'order', 'orderDetails', 'totalAmount'));
+        $categories = Category::whereNull('deleted_at')->orderBy('name')->get();
+        return view('backend.table-order.payment', compact('table', 'order', 'orderDetails', 'totalAmount', 'categories'));
     }
 }
