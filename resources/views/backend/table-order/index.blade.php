@@ -178,62 +178,7 @@
         </div>
     </div>
 
-    <!-- Modal Order món -->
-    <div class="modal fade" id="orderModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><span id="orderModalTableName"></span></h5>
-                    <button type="button" class="close" data-dismiss="modal">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="orderTableId" name="table_id">
-                    <input type="hidden" id="currentOrderId" name="order_id">
-                    
-                    <!-- Thông tin khách hàng -->
-                    <div class="mb-3 p-2 bg-light rounded">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Khách hàng:</strong> <span id="orderCustomerName">---</span>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>SĐT:</strong> <span id="orderCustomerPhone">---</span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Danh sách món đã order -->
-                    <div id="orderItemsList" class="mb-3">
-                        <div id="orderItemsContent"></div>
-                    </div>
-
-                    <!-- Danh sách món để chọn -->
-                    <div class="mb-3 product-category-container pt-2">
-                        <div class="category-menu" id="categoryMenu">
-                            <div class="category-item active" data-id="">Tất cả</div>
-                            @php
-                                $categories = \App\Models\Category::whereNull('deleted_at')->orderBy('name')->get();
-                            @endphp
-                            @foreach($categories as $category)
-                                <div class="category-item" data-id="{{ $category->id }}">{{ $category->name }}</div>
-                            @endforeach
-                        </div>
-                        <input type="hidden" id="categoryFilter" value="">
-                    </div>
-
-                    <div id="productsList" class="row" style="max-height: 400px; overflow-y: auto;">
-                        <!-- Products will be loaded here -->
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" onclick="saveOrder()">Lưu lại</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <style>
         .table-card {
@@ -318,12 +263,7 @@
 
     <script>
         let currentTableId = null;
-        let currentOrderId = null;
-        let currentOrderDetails = [];
-        let originalOrderDetails = [];
-        let allProducts = [];
-        let isOrderSaved = true;
-        let shouldReload = false;
+
 
         $(document).ready(function() {
             @if($errors->has('phone') || $errors->has('customer_name') || $errors->has('number_of_guests') || $errors->has('table_id'))
@@ -384,20 +324,7 @@
                 });
             }
 
-            // Lọc theo danh mục (backup event)
-            $('#categoryFilter').on('change', function() {
-                loadProducts();
-            });
 
-            // Intercept modal close
-            $('#orderModal').on('hide.bs.modal', function(e) {
-                if (!isOrderSaved) {
-                    if (!confirm('Bạn có thay đổi chưa lưu. Nếu đóng, mọi thay đổi sẽ bị mất. Bạn có chắc chắn muốn đóng không?')) {
-                        e.preventDefault();
-                        return;
-                    }
-                }
-            });
         });
 
         // Xử lý click vào bàn
@@ -410,18 +337,8 @@
             }
             
             if (isOccupied) {
-                shouldReload = false;
-                $('#orderModalTableName').text((floorName ? (floorName + ' - ') : '') + tableName);
-                $('#orderTableId').val(tableId);
-                
-                // Reset UI before loading
-                $('#orderCustomerName').text('---');
-                $('#orderCustomerPhone').text('---');
-                $('#orderItemsContent').html('<p class="text-muted">Đang tải...</p>');
-
-                loadTableOrder(tableId);
-                
-                $('#orderModal').modal('show');
+                // Redirect to full page order
+                window.location.href = '{{ route("admin.table-order.order", ":id") }}'.replace(':id', tableId);
             } else {
                 $('#modalTableName').text((floorName ? (floorName + ' - ') : '') + tableName);
                 $('#selectedTableId').val(tableId);
@@ -434,237 +351,7 @@
             }
         }
 
-        // Load order của bàn
-        function loadTableOrder(tableId) {
-            $.ajax({
-                url: '{{ route("admin.table-order.getOrderDetails", ":id") }}'.replace(':id', tableId),
-                type: 'GET',
-                success: function(response) {
-                    if (response.success && response.order) {
-                        currentOrderId = response.order.id;
-                        $('#currentOrderId').val(response.order.id);
-                        
-                        if (response.order.user) {
-                            $('#orderCustomerName').text(response.order.user.fullname);
-                            $('#orderCustomerPhone').text(response.order.user.phone || '---');
-                        } else {
-                            $('#orderCustomerName').text(response.order.customer_name || 'Khách lẻ');
-                            $('#orderCustomerPhone').text(response.order.customer_phone || '---');
-                        }
 
-                        // Initialize local state
-                        // Cần chuẩn hóa dữ liệu để thống nhất cấu trúc
-                        currentOrderDetails = response.order_details.map(item => ({
-                            product_id: item.product_id,
-                            qty: item.qty,
-                            price: item.price,
-                            product_name: item.product ? item.product.name : 'N/A'
-                        }));
-                        
-                        originalOrderDetails = JSON.parse(JSON.stringify(currentOrderDetails));
-                        isOrderSaved = true;
-
-                        displayOrderItems();
-                        loadProducts();
-                    }
-                },
-                error: function() {
-                    toastr.error('Không thể tải thông tin order');
-                }
-            });
-        }
-
-        // Hiển thị danh sách món đã order (từ local state)
-        function displayOrderItems() {
-            let html = '<div class="row">';
-            let total = 0;
-
-            if (currentOrderDetails && currentOrderDetails.length > 0) {
-                currentOrderDetails.forEach(function(item) {
-                    const itemTotal = item.price * item.qty;
-                    total += itemTotal;
-                    html += `
-                        <div class="col-md-6 col-12 order-item-container">
-                            <div class="order-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>${item.product_name}</strong>
-                                        <br>
-                                        <small>${item.qty} x ${formatMoney(item.price)}</small>
-                                    </div>
-                                    <div class="text-right">
-                                        <div class="font-weight-bold">${formatMoney(itemTotal)}</div>
-                                        <div class="btn-group mt-1">
-                                            <button class="btn btn-secondary px-3" onclick="updateQty(${item.product_id}, ${item.qty - 1})">-</button>
-                                            <span class="btn btn-light border px-2 d-flex align-items-center justify-content-center" style="min-width: 40px; font-weight: bold;">${item.qty}</span>
-                                            <button class="btn btn-secondary px-3" onclick="updateQty(${item.product_id}, ${item.qty + 1})">+</button>
-                                            <button class="btn btn-danger px-3" onclick="removeItem(${item.product_id})">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                html += '</div>'; // End row
-                
-                html += `<div class="mt-3">
-                    <div class="d-flex justify-content-between" style="font-size: 20px;">
-                        <strong>Tổng tiền:</strong>
-                        <strong class="text-danger">${formatMoney(total)}</strong>
-                    </div>
-                </div>`;
-            } else {
-                html = '<p class="text-muted">Chưa có món nào</p>';
-            }
-            $('#orderItemsContent').html(html);
-        }
-
-        // Load danh sách sản phẩm và lưu vào allProducts
-        function loadProducts() {
-            const categoryId = $('#categoryFilter').val();
-            
-            $.ajax({
-                url: '{{ route("admin.table-order.getProducts") }}',
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    category_id: categoryId
-                },
-                success: function(response) {
-                    if (response.success) {
-                        let html = '';
-                        // Update allProducts cache (merge or replace? For simplicity, we just use what's loaded currently for adding)
-                        // Note: If we change category, allProducts might miss products from other categories. 
-                        // But we only add products visible on screen.
-                        // Better: Store loaded products in a map.
-                        
-                        response.products.forEach(function(product) {
-                            // Update global cache
-                            const existingIndex = allProducts.findIndex(p => p.id === product.id);
-                            if (existingIndex >= 0) {
-                                allProducts[existingIndex] = product;
-                            } else {
-                                allProducts.push(product);
-                            }
-
-                            let imagePath = product.image ? '{{ asset("/images/product") }}/' + product.image : '{{ asset("/images/default-product.png") }}';
-                            html += `
-                                <div class="col-md-4 mb-3">
-                                    <div class="product-card" onclick="addProductToOrder(${product.id})">
-                                        <img src="${imagePath}" class="product-img" alt="${product.name}" onerror="this.src='{{ asset("/images/default-product.png") }}'">
-                                        <div class="text-center">
-                                            <strong>${product.name}</strong>
-                                            <br>
-                                            <span class="text-danger">${formatMoney(product.price_sale || 0)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        $('#productsList').html(html);
-                    }
-                },
-                error: function() {
-                    toastr.error('Không thể tải danh sách sản phẩm');
-                }
-            });
-        }
-
-        // Thêm món vào order (Local)
-        function addProductToOrder(productId) {
-            if (!currentOrderId) {
-                toastr.error('Vui lòng đăng ký bàn trước');
-                return;
-            }
-
-            const product = allProducts.find(p => p.id === productId);
-            if (!product) {
-                toastr.error('Không tìm thấy thông tin sản phẩm');
-                return;
-            }
-
-            const existingItem = currentOrderDetails.find(item => item.product_id === productId);
-            if (existingItem) {
-                existingItem.qty += 1;
-            } else {
-                currentOrderDetails.push({
-                    product_id: product.id,
-                    qty: 1,
-                    price: product.price_sale || 0,
-                    product_name: product.name
-                });
-            }
-
-            isOrderSaved = false;
-            displayOrderItems();
-        }
-
-        // Cập nhật số lượng (Local)
-        function updateQty(productId, newQty) {
-            if (newQty < 1) {
-                removeItem(productId);
-                return;
-            }
-
-            const item = currentOrderDetails.find(item => item.product_id === productId);
-            if (item) {
-                item.qty = newQty;
-                isOrderSaved = false;
-                displayOrderItems();
-            }
-        }
-
-        // Xóa món (Local)
-        function removeItem(productId) {
-            if (!confirm('Bạn có chắc muốn xóa món này khỏi danh sách?')) {
-                return;
-            }
-
-            currentOrderDetails = currentOrderDetails.filter(item => item.product_id !== productId);
-            isOrderSaved = false;
-            displayOrderItems();
-        }
-
-        // Lưu order lên server
-        function saveOrder() {
-            if (!currentOrderId) return;
-
-            $.ajax({
-                url: '{{ route("admin.table-order.saveOrder") }}',
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    order_id: currentOrderId,
-                    items: currentOrderDetails
-                },
-                success: function(response) {
-                    if (response.success) {
-                        toastr.success(response.message);
-                        // Update original state to match current
-                        originalOrderDetails = JSON.parse(JSON.stringify(currentOrderDetails));
-                        isOrderSaved = true;
-                        shouldReload = true;
-                    } else {
-                        toastr.error(response.message || 'Lưu thất bại');
-                    }
-                },
-                error: function(xhr) {
-                    let msg = 'Có lỗi xảy ra';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        msg = xhr.responseJSON.message;
-                    }
-                    toastr.error(msg);
-                }
-            });
-        }
-
-        // Format tiền
-        function formatMoney(amount) {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-        }
 
         // Xử lý ghép bàn
         function showMergeModal(tableId, tableName, floorName) {

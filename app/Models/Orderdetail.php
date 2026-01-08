@@ -9,7 +9,7 @@ class Orderdetail extends Model
     protected $table = 'orderdetail';
     public $timestamps = false;
 
-    protected $fillable = ['order_id', 'product_id', 'qty', 'price', 'discount', 'amount'];
+    protected $fillable = ['order_id', 'product_id', 'qty', 'price', 'discount', 'amount', 'order_turn'];
 
     public function product()
     {
@@ -21,4 +21,3 @@ class Orderdetail extends Model
         return $this->belongsTo(Order::class, 'order_id');
     }
 }
-

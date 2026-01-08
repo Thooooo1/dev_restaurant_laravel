@@ -191,9 +191,12 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::post('/remove-product-from-order', [TableOrderController::class, 'removeProductFromOrder'])->name('admin.table-order.removeProductFromOrder');
         Route::post('/update-product-qty', [TableOrderController::class, 'updateProductQty'])->name('admin.table-order.updateProductQty');
         Route::post('/save-order', [TableOrderController::class, 'saveTableOrder'])->name('admin.table-order.saveOrder');
-    Route::post('/merge-table', [TableOrderController::class, 'mergeTable'])->name('admin.table-order.mergeTable');
-    Route::post('/unmerge-table', [TableOrderController::class, 'unmergeTable'])->name('admin.table-order.unmergeTable');
-});
+        Route::post('/increment-order-turn', [TableOrderController::class, 'incrementOrderTurn'])->name('admin.table-order.incrementOrderTurn');
+        Route::get('/{id}/order', [TableOrderController::class, 'order'])->name('admin.table-order.order');
+        Route::get('/{id}/payment', [TableOrderController::class, 'payment'])->name('admin.table-order.payment');
+        Route::post('/merge-table', [TableOrderController::class, 'mergeTable'])->name('admin.table-order.mergeTable');
+        Route::post('/unmerge-table', [TableOrderController::class, 'unmergeTable'])->name('admin.table-order.unmergeTable');
+    });
 
     // Bookings
     Route::prefix('booking')->group(function () {

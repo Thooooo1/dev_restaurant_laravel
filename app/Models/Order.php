@@ -22,6 +22,7 @@ class Order extends Model
         'note',
         'orderStyle',
         'table_id',
+        'order_turn',
     ];
 
     public function orderDetails()

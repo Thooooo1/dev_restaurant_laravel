@@ -8,6 +8,7 @@ use App\Models\Table;
 use App\Models\Order;
 use App\Models\Orderdetail;
 use App\Models\Product;
+use App\Models\Category;
 use App\Models\User;
 use App\Http\Requests\StoreTableOrderRequest;
 use Illuminate\Http\Request;
@@ -41,6 +42,36 @@ class TableOrderController extends Controller
              ->pluck('total_locked_seats', 'locked_order_id');
 
         return view('backend.table-order.index', compact('floors', 'activeOrders', 'ordersById', 'lockedSeats'));
+    }
+
+    /**
+     * Màn hình đặt món (Full page)
+     */
+    public function order($id)
+    {
+        $table = Table::with('floor')->findOrFail($id);
+        
+        // Lấy active order
+        $order = Order::where('table_id', $table->id)
+            ->whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->with(['user'])
+            ->first();
+
+        // Nếu bàn chưa có order, redirect về trang chủ hoặc thông báo lỗi
+        if (!$order) {
+            return redirect()->route('admin.table-order.index')->with('error', 'Bàn chưa được đăng ký khách');
+        }
+
+        // Lấy chi tiết order
+        $orderDetails = Orderdetail::where('order_id', $order->id)
+            ->with('product')
+            ->get();
+
+        // Lấy danh mục sản phẩm
+        $categories = Category::whereNull('deleted_at')->orderBy('name')->get();
+
+        return view('backend.table-order.order', compact('table', 'order', 'orderDetails', 'categories'));
     }
 
     /**
@@ -387,50 +418,70 @@ class TableOrderController extends Controller
 
         $order = Order::findOrFail($request->order_id);
         
-        // Lấy danh sách sản phẩm hiện tại trong order
-        $existingDetails = Orderdetail::where('order_id', $order->id)->get()->keyBy('product_id');
-        $submittedProductIds = [];
-
         foreach ($request->items as $item) {
             $productId = $item['product_id'];
             $qty = $item['qty'];
-            $submittedProductIds[] = $productId;
 
             $product = Product::find($productId);
             $price = $product->price_sale ?? 0;
             $discount = 0;
             $amount = ($price - $discount) * $qty;
 
-            if ($existingDetails->has($productId)) {
-                // Cập nhật
-                $detail = $existingDetails[$productId];
-                $detail->qty = $qty;
-                $detail->amount = $amount;
-                $detail->save();
-            } else {
-                // Tạo mới
-                Orderdetail::create([
-                    'order_id' => $order->id,
-                    'product_id' => $productId,
-                    'qty' => $qty,
-                    'price' => $price,
-                    'discount' => $discount,
-                    'amount' => $amount,
-                ]);
-            }
-        }
-
-        // Xóa các sản phẩm không còn trong danh sách gửi lên
-        $productsToDelete = $existingDetails->keys()->diff($submittedProductIds);
-        if ($productsToDelete->isNotEmpty()) {
-            Orderdetail::where('order_id', $order->id)
-                ->whereIn('product_id', $productsToDelete)
-                ->delete();
+            // Luôn tạo bản ghi mới cho mỗi lần order, gắn theo order_turn hiện tại
+            Orderdetail::create([
+                'order_id' => $order->id,
+                'product_id' => $productId,
+                'qty' => $qty,
+                'price' => $price,
+                'discount' => $discount,
+                'amount' => $amount,
+                'order_turn' => $order->order_turn ?? 1,
+            ]);
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Lưu đơn hàng thành công'
         ]);
+    }
+
+    public function incrementOrderTurn(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:order,id',
+        ]);
+        $order = Order::findOrFail($request->order_id);
+        $order->order_turn = ($order->order_turn ?? 1) + 1;
+        $order->save();
+        return response()->json(['success' => true, 'order_turn' => $order->order_turn]);
+    }
+
+    public function payment($id)
+    {
+        $table = Table::with('floor')->findOrFail($id);
+        $order = Order::where('table_id', $table->id)
+            ->whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->with(['user'])
+            ->first();
+        if (!$order) {
+            return redirect()->route('admin.table-order.index')->with('error', 'Bàn chưa được đăng ký khách');
+        }
+        $orderDetails = Orderdetail::where('order_id', $order->id)->with('product')->get();
+        $groupedDetails = $orderDetails->groupBy('product_id')->map(function($items) {
+            $first = $items->first();
+            $qty = $items->sum('qty');
+            $price = $first->price ?? ($first->product->price_sale ?? 0);
+            $amount = $price * $qty;
+            return (object)[
+                'product_id' => $first->product_id,
+                'name' => optional($first->product)->name ?? 'N/A',
+                'qty' => $qty,
+                'price' => $price,
+                'amount' => $amount,
+            ];
+        })->values();
+        $totalAmount = $groupedDetails->sum('amount');
+        return view('backend.table-order.payment', compact('table', 'order', 'groupedDetails', 'totalAmount'));
     }
 }
