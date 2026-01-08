@@ -96,18 +96,17 @@
                 </div>
 
                 <!-- Right Column: Menu -->
-                <div class="col-md-7">
+                <div class="col-md-7 order-menu-container">
                     <div class="card h-100">
                         <div class="card-body">
                              <!-- Categories -->
                             <div class="mb-3 product-category-container">
                                 <div class="category-menu" id="categoryMenu">
-                                    <div class="category-item active" data-id="">Tất cả</div>
                                     @foreach($categories as $category)
-                                        <div class="category-item" data-id="{{ $category->id }}">{{ $category->name }}</div>
+                                        <div class="category-item {{ $loop->first ? 'active' : '' }}" data-id="{{ $category->id }}">{{ $category->name }}</div>
                                     @endforeach
                                 </div>
-                                <input type="hidden" id="categoryFilter" value="">
+                                <input type="hidden" id="categoryFilter" value="{{ $categories->first()->id ?? '' }}">
                             </div>
 
                             <!-- Products Grid -->
@@ -122,6 +121,38 @@
     </section>
 
     <style>
+        @media (max-width: 768px) {
+            .order-menu-container {
+                margin-top: 10px;
+            }
+
+            .category-menu {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 10px;
+                margin-bottom: 15px;
+            }
+            .category-item {
+                display: inline-block;
+                padding: 8px 15px;
+                border: 1px solid #ddd;
+                border-radius: 20px;
+                cursor: pointer;
+                transition: all 0.2s;
+                margin-right: 5px;
+            }
+        }
+        @media (min-width: 992px) {
+            .category-item {
+                display: inline-block;
+                padding: 4px 10px;
+                border: 1px solid #ddd;
+                border-radius: 20px;
+                cursor: pointer;
+                transition: all 0.2s;
+                margin-bottom: 2px;
+            }
+        }
         .order-item {
             border-bottom: 1px solid #eee;
             padding: 10px 0;
@@ -139,28 +170,13 @@
             background-color: #f8f9fa;
             border-color: #007bff;
         }
-        .category-menu {
-            overflow-x: auto;
-            white-space: nowrap;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-        .category-item {
-            display: inline-block;
-            padding: 8px 15px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-right: 5px;
-        }
         .category-item:hover {
             background-color: #e9ecef;
         }
         .category-item.active {
-            background-color: #007bff;
+            background-color: #6c757d;
             color: white;
-            border-color: #007bff;
+            border-color: #6c757d;
         }
         .product-img {
             width: 100%;
@@ -241,8 +257,8 @@
                                     <div class="product-card" onclick="addProductToOrder(${product.id})">
                                         <img src="${imagePath}" class="product-img" alt="${product.name}" onerror="this.src='{{ asset("/images/default-product.png") }}'">
                                         <div class="text-center">
-                                            <div style="font-weight: bold; height: 40px; overflow: hidden;">${product.name}</div>
                                             <div class="text-danger font-weight-bold mt-1">${formatMoney(product.price_sale || 0)}</div>
+                                            <div style="font-weight: bold; overflow: hidden;">${product.name}</div>
                                         </div>
                                     </div>
                                 </div>
