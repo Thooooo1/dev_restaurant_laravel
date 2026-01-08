@@ -63,27 +63,19 @@ class TableOrderController extends Controller
             return redirect()->route('admin.table-order.index')->with('error', 'Bàn chưa được đăng ký khách');
         }
 
-        // Lấy chi tiết order của lần hiện tại
+        // Lấy toàn bộ chi tiết món đã lưu
         $orderDetails = Orderdetail::where('order_id', $order->id)
-            ->where('order_turn', $order->order_turn ?? 1)
             ->with('product')
+            ->orderBy('id', 'ASC')
             ->get();
         
-        // Kiểm tra có bất kỳ món đã lưu trong DB hay chưa
-        $hasAnyItems = Orderdetail::where('order_id', $order->id)->exists();
-        
-        // Lịch sử các lần order trước (accordion)
-        $historyItems = Orderdetail::where('order_id', $order->id)
-            ->where('order_turn', '<', $order->order_turn ?? 1)
-            ->with('product')
-            ->orderBy('order_turn', 'ASC')
-            ->get();
-        $historyByTurn = $historyItems->groupBy('order_turn');
+        // Có bất kỳ món đã lưu chưa
+        $hasAnyItems = $orderDetails->isNotEmpty();
 
         // Lấy danh mục sản phẩm
         $categories = Category::whereNull('deleted_at')->orderBy('name')->get();
 
-        return view('backend.table-order.order', compact('table', 'order', 'orderDetails', 'categories', 'hasAnyItems', 'historyByTurn'));
+        return view('backend.table-order.order', compact('table', 'order', 'orderDetails', 'categories', 'hasAnyItems'));
     }
 
     /**
@@ -445,16 +437,27 @@ class TableOrderController extends Controller
             $discount = 0;
             $amount = ($price - $discount) * $qty;
 
-            // Luôn tạo bản ghi mới cho mỗi lần order, gắn theo order_turn hiện tại
-            Orderdetail::create([
-                'order_id' => $order->id,
-                'product_id' => $productId,
-                'qty' => $qty,
-                'price' => $price,
-                'discount' => $discount,
-                'amount' => $amount,
-                'order_turn' => $order->order_turn ?? 1,
-            ]);
+            // Cộng dồn số lượng nếu món đã tồn tại, ngược lại tạo mới
+            $existing = Orderdetail::where('order_id', $order->id)
+                ->where('product_id', $productId)
+                ->orderBy('id', 'ASC')
+                ->first();
+            if ($existing) {
+                $existing->qty += $qty;
+                $existing->price = $price;
+                $existing->discount = $discount;
+                $existing->amount = ($existing->price - $existing->discount) * $existing->qty;
+                $existing->save();
+            } else {
+                Orderdetail::create([
+                    'order_id' => $order->id,
+                    'product_id' => $productId,
+                    'qty' => $qty,
+                    'price' => $price,
+                    'discount' => $discount,
+                    'amount' => $amount,
+                ]);
+            }
         }
 
         return response()->json([

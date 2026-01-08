@@ -42,47 +42,44 @@
                                 <label for="orderNote" class="sr-only">Ghi chú</label>
                                 <textarea id="orderNote" class="form-control" rows="2" placeholder="Ghi chú món ăn (VD: Không cay, ít đường...)" style="resize: none;">{{ $order->note }}</textarea>
                             </div>
-                            @if(isset($historyByTurn) && $historyByTurn->count() > 0)
+                            @if($orderDetails->count() > 0)
                                 <div class="" id="historyAccordion">
-                                    @foreach($historyByTurn as $turn => $items)
-                                        <div class="card">
-                                            <div class="card-header p-2 bg-warning ">
-                                                <button class="btn w-100 btn-link p-0 text-white" data-toggle="collapse" data-target="#history-turn-{{ $turn }}">
-                                                        Gọi món lần: {{ $turn }}
-                                                </button>
-                                            </div>
-                                            <div id="history-turn-{{ $turn }}" class="collapse">
-                                                <div class="card-body p-2">
-                                                    @foreach($items as $it)
-                                                        @php
-                                                            $price = $it->price ?? ($it->product->price_sale ?? 0);
-                                                            $amount = $price * ($it->qty ?? 0);
-                                                        @endphp
-                                                        <div class="order-item bg-light" id="history-item-{{ $it->id }}" data-price="{{ $price }}">
-                                                            <div class="row align-items-center">
-                                                                <div class="col-6">
-                                                                    <div class="font-weight-bold">{{ $it->product->name ?? 'N/A' }}</div>
-                                                                    <div class="text-muted small">{{ number_format($price, 0, ',', '.') }} ₫ x {{ $it->qty }}</div>
-                                                                </div>
-                                                                <div class="col-6 text-right">
-                                                                    <div class="font-weight-bold" id="history-amount-{{ $it->id }}">{{ number_format($amount, 0, ',', '.') }} ₫</div>
-                                                                    <div class="d-flex justify-content-end align-items-end h-100">
-                                                                        <div class="btn-group btn-group-sm">
-                                                                            <button class="btn btn-secondary" onclick="decrementHistory({{ $it->id }})">-</button>
-                                                                            <span class="btn btn-light border" id="history-qty-{{ $it->id }}" style="min-width: 30px;">{{ $it->qty }}</span>
-                                                                            <button class="btn btn-secondary" disabled>+</button>
-                                                                        </div>
-                                                                        <button class="btn btn-link text-danger p-0 ml-2" onclick="deleteHistory({{ $it->id }})"><i class="fas fa-trash fa-lg"></i></button>
+                                    <div class="card">
+                                        <div class="card-header p-2 bg-warning ">
+                                            <button class="btn w-100 btn-link p-0 text-white" data-toggle="collapse" data-target="#history-turn-all">
+                                                    Món ăn đã gọi
+                                            </button>
+                                        </div>
+                                        <div id="history-turn-all" class="collapse">
+                                            <div class="card-body p-2">
+                                                @foreach($orderDetails as $it)
+                                                    @php
+                                                        $price = $it->price ?? ($it->product->price_sale ?? 0);
+                                                        $amount = $price * ($it->qty ?? 0);
+                                                    @endphp
+                                                    <div class="order-item bg-light" id="history-item-{{ $it->id }}" data-price="{{ $price }}">
+                                                        <div class="row align-items-center">
+                                                            <div class="col-6">
+                                                                <div class="font-weight-bold">{{ $it->product->name ?? 'N/A' }}</div>
+                                                                <div class="text-muted small">{{ number_format($price, 0, ',', '.') }} ₫ x {{ $it->qty }}</div>
+                                                            </div>
+                                                            <div class="col-6 text-right">
+                                                                <div class="font-weight-bold" id="history-amount-{{ $it->id }}">{{ number_format($amount, 0, ',', '.') }} ₫</div>
+                                                                <div class="d-flex justify-content-end align-items-end h-100">
+                                                                    <div class="btn-group btn-group-sm">
+                                                                        <button class="btn btn-secondary" onclick="decrementHistory({{ $it->id }})">-</button>
+                                                                        <span class="btn btn-light border" id="history-qty-{{ $it->id }}" style="min-width: 30px;">{{ $it->qty }}</span>
+                                                                        <button class="btn btn-secondary" disabled>+</button>
                                                                     </div>
+                                                                    <button class="btn btn-link text-danger p-0 ml-2" onclick="deleteHistory({{ $it->id }})"><i class="fas fa-trash fa-lg"></i></button>
                                                                 </div>
-                                                                
                                                             </div>
                                                         </div>
-                                                    @endforeach
-                                                </div>
+                                                    </div>
+                                                @endforeach
                                             </div>
                                         </div>
-                                    @endforeach
+                                    </div>
                                 </div>
                             @endif
                             <!-- Order Items -->
@@ -286,33 +283,12 @@
             let html = '';
             let total = 0;
 
-            // 1. Render Existing Items (Read-only)
+            // 1. Cộng tổng các món đã lưu (hiển thị trong accordion)
             if (existingOrderDetails && existingOrderDetails.length > 0) {
-                html += '<div class="text-muted small mb-2 font-weight-bold text-uppercase border-bottom pb-1">Đã gọi (Lưu bếp)</div>';
                 existingOrderDetails.forEach(function(item) {
-                    // DB items have 'product' relation, or we fallback
-                    const productName = item.product ? item.product.name : (item.product_name || 'N/A');
                     const price = item.price || 0;
                     const qty = item.qty || 0;
-                    const itemTotal = price * qty;
-                    total += itemTotal;
-
-                    html += `
-                        <div class="order-item bg-light text-muted">
-                            <div class="row align-items-center">
-                                <div class="col-6">
-                                    <div class="font-weight-bold">${productName}</div>
-                                    <div class="text-muted small">${formatMoney(price)} x ${qty}</div>
-                                </div>
-                                <div class="col-3 text-center">
-                                    <span class="font-weight-bold">x${qty}</span>
-                                </div>
-                                <div class="col-3 text-right">
-                                    <div class="font-weight-bold">${formatMoney(itemTotal)}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                    total += price * qty;
                 });
             }
 
