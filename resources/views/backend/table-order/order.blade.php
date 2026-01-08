@@ -160,7 +160,7 @@
         .product-card {
             border: 1px solid #ddd;
             border-radius: 5px;
-            padding: 10px;
+            padding: 5px;
             margin-bottom: 10px;
             cursor: pointer;
             transition: background-color 0.2s;
@@ -184,6 +184,14 @@
             object-fit: cover;
             border-radius: 5px 5px 0 0;
             margin-bottom: 10px;
+        }
+        .product-name {
+            font-weight: bold;
+            font-size: 14px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
         }
         .product-category-container {
             border-bottom: 1px solid #eee;
@@ -253,12 +261,12 @@
 
                             let imagePath = product.image ? '{{ asset("/images/product") }}/' + product.image : '{{ asset("/images/default-product.png") }}';
                             html += `
-                                <div class="col-md-3 col-6 mb-3">
-                                    <div class="product-card" onclick="addProductToOrder(${product.id})">
+                                <div class="col-md-3 col-6 mb-3" style="height: 250px;">
+                                    <div class="product-card h-100" onclick="addProductToOrder(${product.id})">
                                         <img src="${imagePath}" class="product-img" alt="${product.name}" onerror="this.src='{{ asset("/images/default-product.png") }}'">
                                         <div class="text-center">
                                             <div class="text-danger font-weight-bold mt-1">${formatMoney(product.price_sale || 0)}</div>
-                                            <div style="font-weight: bold; overflow: hidden;">${product.name}</div>
+                                            <div class="product-name">${product.name}</div>
                                         </div>
                                     </div>
                                 </div>
