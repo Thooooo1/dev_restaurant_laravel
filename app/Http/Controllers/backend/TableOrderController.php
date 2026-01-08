@@ -489,21 +489,11 @@ class TableOrderController extends Controller
         if (!$order) {
             return redirect()->route('admin.table-order.index')->with('error', 'Bàn chưa được đăng ký khách');
         }
-        $orderDetails = Orderdetail::where('order_id', $order->id)->with('product')->get();
-        $groupedDetails = $orderDetails->groupBy('product_id')->map(function($items) {
-            $first = $items->first();
-            $qty = $items->sum('qty');
-            $price = $first->price ?? ($first->product->price_sale ?? 0);
-            $amount = $price * $qty;
-            return (object)[
-                'product_id' => $first->product_id,
-                'name' => optional($first->product)->name ?? 'N/A',
-                'qty' => $qty,
-                'price' => $price,
-                'amount' => $amount,
-            ];
-        })->values();
-        $totalAmount = $groupedDetails->sum('amount');
-        return view('backend.table-order.payment', compact('table', 'order', 'groupedDetails', 'totalAmount'));
+        $orderDetails = Orderdetail::where('order_id', $order->id)
+            ->with('product')
+            ->orderBy('id', 'ASC')
+            ->get();
+        $totalAmount = $orderDetails->sum('amount');
+        return view('backend.table-order.payment', compact('table', 'order', 'orderDetails', 'totalAmount'));
     }
 }

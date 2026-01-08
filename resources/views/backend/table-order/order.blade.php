@@ -22,7 +22,7 @@
                 <div class="mb-2 mb-md-0">
                     <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm mb-1" id="backBtn"><i class="fas fa-arrow-left"></i> Quay lại</a>
                     <button type="button" class="btn btn-primary btn-sm ml-2 mb-1" id="printKitchenBtn" onclick="printKitchen()" disabled><i class="fas fa-print"></i> In thực đơn</button>
-                    <a href="{{ route('admin.table-order.payment', $table->id) }}" class="btn btn-danger btn-sm ml-2 mb-1 {{ $hasAnyItems ? '' : 'disabled' }}" id="payBtn"><i class="fas fa-money-bill-wave"></i> Thanh toán</a>
+                    <a href="{{ route('admin.table-order.payment', $table->id) }}" class="btn btn-success btn-sm ml-2 mb-1 {{ $hasAnyItems ? '' : 'disabled' }}" id="payBtn"><i class="fas fa-money-bill-wave"></i> Thanh toán</a>
                 </div>
                 <div>
                     <span class="font-weight-bold">Tổng tiền:</span>

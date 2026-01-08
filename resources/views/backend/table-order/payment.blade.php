@@ -30,10 +30,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($groupedDetails as $i => $item)
+                            @foreach($orderDetails as $i => $item)
                                 <tr>
                                     <td>{{ $i + 1 }}</td>
-                                    <td>{{ $item->name }}</td>
+                                    <td>{{ $item->product->name ?? 'N/A' }}</td>
                                     <td class="text-right">{{ $item->qty }}</td>
                                     <td class="text-right">{{ number_format($item->price, 0, ',', '.') }} ₫</td>
                                     <td class="text-right">{{ number_format($item->amount, 0, ',', '.') }} ₫</td>
@@ -61,10 +61,10 @@
         }
         function printInvoice() {
             const items = [
-                @foreach($groupedDetails as $i => $item)
+                @foreach($orderDetails as $i => $item)
                     {
                         stt: {{ $i + 1 }},
-                        name: "{{ $item->name }}",
+                        name: "{{ $item->product->name ?? 'N/A' }}",
                         qty: {{ $item->qty }},
                         price: {{ $item->price }}
                     },
