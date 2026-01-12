@@ -111,13 +111,13 @@
                                 <td class="text-center">
                                     @if($isEmployee)
                                         @if (Auth::user()->admin_lever == 1 || Auth::user()->id == $user->id)
-                                            <a href="{{ route('admin.user.toggleLine', $user->id) }}" class="btn btn-sm {{ $user->line == 1 ? 'btn-success' : 'btn-secondary' }}" title="{{ $user->line == 1 ? 'Online' : 'Offline' }}">
+                                            <a href="{{ route('admin.user.toggleLine', $user->id) }}" class="btn btn-sm {{ $user->line == 1 ? 'btn-success' : 'btn-danger' }}" title="{{ $user->line == 1 ? 'Online' : 'Offline' }}">
                                                 <i class="fas {{ $user->line == 1 ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                                             </a>
                                         @endif
                                     @else
                                         <a href="{{ route('admin.user.status', ['user' => $user->id]) }}"
-                                            class="btn btn-sm {{ $user->status == 1 ? 'btn-success' : 'btn-secondary' }}">
+                                            class="btn btn-sm {{ $user->status == 1 ? 'btn-success' : 'btn-danger' }}">
                                             <i class="fas {{ $user->status == 1 ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
                                         </a>
                                     @endif

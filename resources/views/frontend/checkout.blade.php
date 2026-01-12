@@ -1,6 +1,6 @@
 <x-layout-frontend>
-    <section class="bg-gray-200 ml-5">
-        <div class="breadcrumb flex items-center text-gray-600 text-sm  ">
+    <section class="bg-gray-200 py-2 px-4">
+        <div class="breadcrumb flex items-center text-gray-600 text-sm container mx-auto">
             <span class="mr-4">Bạn đang ở đây:</span>
             <a href="{{ url('/') }}" class="hover:text-orange-500"> Quay lại Trang chủ</a>
             <span class="mx-2">></span>
@@ -47,40 +47,40 @@
             <h3 class="text-xl font-bold mb-4 text-center">Chọn phương thức thanh toán</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <label
-                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200">
-                    <input type="radio" name="payment_method" value="Momo" class="">
-                    <img src="{{asset('images/logo/momologo.png')}}" alt="Momo" class="w-10 h-10">
-                    <span>Momo</span>
+                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
+                    <input type="radio" name="payment_method" value="Momo" class="shrink-0">
+                    <img src="{{asset('images/logo/momologo.png')}}" alt="Momo" class="w-10 h-10 shrink-0">
+                    <span class="break-words">Momo</span>
                 </label>
                 <label
-                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200">
-                    <input type="radio" name="payment_method" value="ATM" class="">
-                    <img src="{{asset('images/logo/atmlogo.jpg')}}" alt="ATM" class="w-10 h-10">
-                    <span>ATM</span>
+                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
+                    <input type="radio" name="payment_method" value="ATM" class="shrink-0">
+                    <img src="{{asset('images/logo/atmlogo.jpg')}}" alt="ATM" class="w-10 h-10 shrink-0">
+                    <span class="break-words">ATM</span>
                 </label>
                 <label
-                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200">
-                    <input type="radio" name="payment_method" value="COD" class="">
-                    <img src="{{asset('images/logo/icon.png')}}" alt="COD" class="w-10 h-10">
-                    <span>Thanh toán khi nhận hàng</span>
+                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
+                    <input type="radio" name="payment_method" value="COD" class="shrink-0">
+                    <img src="{{asset('images/logo/icon.png')}}" alt="COD" class="w-10 h-10 shrink-0">
+                    <span class="break-words">Thanh toán khi nhận hàng</span>
                 </label>
                 <label
-                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200">
-                    <input type="radio" name="payment_method" value="ZaloPay" class="">
-                    <img src="{{asset('images/logo/zalopaylogo.png')}}" alt="ZaloPay" class="w-10 h-10">
-                    <span>ZaloPay</span>
+                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
+                    <input type="radio" name="payment_method" value="ZaloPay" class="shrink-0">
+                    <img src="{{asset('images/logo/zalopaylogo.png')}}" alt="ZaloPay" class="w-10 h-10 shrink-0">
+                    <span class="break-words">ZaloPay</span>
                 </label>
                 <label
-                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200">
-                    <input type="radio" name="payment_method" value="ApplePay" class="">
-                    <img src="{{asset('images/logo/applepay.png')}}" alt="ApplePay" class="w-10 h-10">
-                    <span>ApplePay</span>
+                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
+                    <input type="radio" name="payment_method" value="ApplePay" class="shrink-0">
+                    <img src="{{asset('images/logo/applepay.png')}}" alt="ApplePay" class="w-10 h-10 shrink-0">
+                    <span class="break-words">ApplePay</span>
                 </label>
                 <label
-                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200">
-                    <input type="radio" name="payment_method" value="VNPAY" class="">
-                    <img src="{{asset('images/logo/vnpay.jpg')}}" alt="VNPAY" class="w-10 h-10">
-                    <span>VNPAY</span>
+                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
+                    <input type="radio" name="payment_method" value="VNPAY" class="shrink-0">
+                    <img src="{{asset('images/logo/vnpay.jpg')}}" alt="VNPAY" class="w-10 h-10 shrink-0">
+                    <span class="break-words">VNPAY</span>
                 </label>
             </div>
            

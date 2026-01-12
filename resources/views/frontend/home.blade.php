@@ -112,8 +112,8 @@
             @endforeach           
         </section>
         <section class="section_chinhsach py-4">
-            <div class="container mx-auto">
-                <div class="flex justify-between items-start">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="item mx-auto">
                         <div class="flex items-center gap-3">
                             <div class="icon">
@@ -170,10 +170,10 @@
             </div>
         </section>
         <section class="section_search py-4">
-            <div class="container mx-auto">
-                <div class=" flex justify-center items-center gap-6">
-                    <div class="basis-5/12 mx-auto ml-10">
-                        <h3 class="text-3x1 uppercase mb-2 font-bold ">Ăn gì hôm nay?</h3>
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row justify-center items-center gap-6">
+                    <div class="w-full md:w-5/12 mx-auto md:ml-10">
+                        <h3 class="text-2xl md:text-3xl uppercase mb-2 font-bold ">Ăn gì hôm nay?</h3>
                         <form action="{{ route('site.product.gridview') }}" method="GET" id="searchForm">
                             <input type="search" name="search" id="searchInput"
                                 class="bg-slate-200 hover:bg-gray-300 rounded-xl p-3 w-full" placeholder="Tìm kiếm" />
@@ -182,7 +182,7 @@
                         </form>
 
                     </div>
-                    <div class="basic-7/12 mx-auto">
+                    <div class="w-full md:w-7/12 mx-auto">
                         <h3 class="font-bold">Từ khóa nổi bật hôm nay</h3>
                         <x-key-word-hot />
                     </div>
@@ -190,19 +190,19 @@
             </div>
         </section>
 
-        <section class="section_about bg-white py-4 mr-4">
+        <section class="section_about bg-white py-4 mr-0 md:mr-4">
             <div class="container mx-auto flex flex-wrap items-center">
                 <!-- Left Content -->
                 <div class="w-full lg:w-6/12 px-6">
                     <p class="text-orange-500 font-semibold text-lg mb-2">CIVILIZE Restaurant</p>
-                    <h2 style="font-size: 35px;font-weight: bold;" class="font-bold">
+                    <h2 class="text-2xl md:text-4xl font-bold mb-4">
                         Thưởng thức ẩm thực đỉnh cao tại nhà hàng của chúng tôi!
                     </h2>
                     <p class="text-gray-600 mb-8 leading-relaxed">
                         Luôn đặt cái tâm trong công việc, chúng tôi luôn sẵn sàng phục vụ các bạn. Tiêu chí nhà hàng
                         luôn được chúng tôi để tâm
                     </p>
-                    <div class="grid grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="flex items-start">
                             <i class="fa-solid fa-user text-orange-500 text-3xl mr-4"></i>
                             <p class="text-gray-600">Đầu bếp chuyên nghiệp.</p>
@@ -222,7 +222,7 @@
                     </div>
                 </div>
                 <!-- Right Image -->
-                <div class="w-full lg:w-6/12 px-6">
+                <div class="w-full lg:w-6/12 px-6 mt-6 lg:mt-0">
                     <img src="../images/gallery/about.png" alt="Chef" class="rounded-lg shadow-lg w-full">
                 </div>
             </div>
@@ -995,7 +995,7 @@
                         <div class="col-12">
                             <form action="{{ route('site.booking.store') }}" method="POST" class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
                                 @csrf
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div class="w-full mb-4">
                                         <input type="text" name="name" placeholder="Tên của bạn" required class="w-full px-4 py-2 border rounded-md" />
                                     </div>

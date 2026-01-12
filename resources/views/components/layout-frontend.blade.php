@@ -52,82 +52,41 @@
 
 <body class="flex flex-col min-h-screen">
     @include('components.alert')
-    <header class="bg-white border-b py-6 sticky top-0 left-0 w-full z-50">
+    <header class="bg-white border-b py-6 sticky top-0 left-0 w-full z-50" x-data="{ openMenu: false }">
 
-        <div class="container mx-auto">
-            <div class="flex items-center ">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap items-center justify-between">
                 <!-- Logo -->
-                <div style="margin-left: 30px;" class="basis-3/12">
+                <div class="w-4/12 md:w-3/12 lg:basis-3/12">
                     <a href="{{ url('/') }}">
                         <img src="{{ asset('images/logo/logo.png') }}" alt="All food" class="h-12">
                         {{-- ../images/logo/logo.png --}}
                     </a>
                 </div>
+
+                <!-- Mobile Actions & Hamburger -->
+                <div class="w-8/12 md:hidden flex justify-end items-center gap-3">
+                    <a href="{{ route('site.booking') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center">
+                        <i class="fa-solid fa-calendar-check text-xl"></i>
+                        <span class="text-[10px] font-medium leading-none mt-1">Đặt bàn</span>
+                    </a>
+                    <a href="{{ url('/gio-hang') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center">
+                        <i class="fa-solid fa-cart-shopping text-xl"></i>
+                        <span class="text-[10px] font-medium leading-none mt-1">Giỏ hàng</span>
+                    </a>
+                    <button @click="openMenu = !openMenu" class="text-gray-800 focus:outline-none ml-2 flex flex-col items-center">
+                        <i class="fas fa-bars text-2xl"></i>
+                        {{-- <span class="text-[10px] font-medium leading-none mt-1">Menu</span> --}}
+                    </button>
+                </div>
+
                 <!-- Menu -->
-                {{-- <div class="basis-6/12 flex justify-center gap-6">
-                    <a href="{{ url('/')}}" class="text-gray-800 hover:text-blue-500">Trang chủ</a>
-                    <a href="{{ url('/gioi-thieu')}}" class="text-gray-800 hover:text-blue-500">Giới thiệu</a>
-                    <a href="{{ url('/thuc-don')}}" class="text-gray-800 hover:text-blue-500">Thực đơn</a>
-                    <a href="{{ url('/bai-viet')}}" class="text-gray-800 hover:text-blue-500">Bài viết</a>
-                    <a href="{{ url('/hinh-anh')}}" class="text-gray-800 hover:text-blue-500">Hình ảnh</a>
-                    <a href="{{ url('/lien-he') }}" class="text-gray-800 hover:text-blue-500">Liên hệ</a>
-                </div> --}}
-                <x-main-menu />
+                <div :class="openMenu ? 'block' : 'hidden'" class="w-full md:!block md:w-auto lg:basis-5/12 mt-4 md:mt-0 order-3 md:order-2">
+                    <x-main-menu />
+                </div>
 
-                <!-- Card Button -->
-                {{-- <div style="margin-right: 30px;" class="basis-4/12 ">
-                    <div class="flex justify-end gap-4 items-center">
-                        <a style="margin-right: 10px;" href="#" class="text-gray-800 hover:text-blue-500"> <i
-                                class="fa-solid fa-calendar-check" style="margin-right: 5px;"></i>Đặt bàn </a>
-                        
-                            <div x-data="{ open: false }" class="relative inline-block text-left">
-                                    <a @click="open = !open" class="cursor-pointer text-gray-800 hover:text-blue-500" style="margin-right: 10px;">
-                                        <i class="fa-solid fa-user" style="margin-right: 5px;"></i> Tài khoản
-                                    </a>
-
-                                    <!-- Dropdown menu -->
-                                    <div x-show="open" @click.away="open = false" x-transition
-                                        class="absolute mt-2 bg-white border rounded shadow-md z-50 w-52"
-                                        style="left: 0;">
-                                        <a href="{{ route('site.profile') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            <i class="fa-solid fa-user-circle mr-[5px]"></i>
-                                            Hồ sơ
-                                        </a>
-                                        <a href="{{ route('site.booking') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            <i class="fa-solid fa-calendar-check mr-[5px]"></i>
-                                            Đặt bàn
-                                        </a>
-                                        <a href="{{ route('site.orders') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            <i class="fa-solid fa-clipboard mr-[5px]"></i>
-                                            Đơn hàng
-                                        </a>
-                                        <a href="{{ route('site.favorites') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            <i class="fa-solid fa-heart mr-[5px]"></i>
-                                            Yêu thích
-                                        </a>
-                                        <a href="{{ route('site.logout') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                            <i class="fa-solid fa-right-from-bracket mr-[5px]"></i>
-                                            Đăng xuất
-                                        </a>
-                                        
-                                        
-                                    </div>
-                                </div>
-
-
-                        <a style="margin-right: 10px;" href="{{ url('/gio-hang') }}"
-                            class="text-gray-800 hover:text-blue-500"> <i class="fa-solid fa-cart-shopping"
-                                style="margin-right: 5px;"></i>Giỏ hàng </a>
-                        
-                    
-                                
-                            </div>
-                        
-                </div> --}}
-
-
-                <div style="margin-right: 30px;" class="basis-4/12">
-                    <div class="flex justify-end gap-4 items-center">
+                <div :class="openMenu ? 'block' : 'hidden'" class="w-full md:!block md:w-4/12 lg:basis-4/12 mt-4 md:mt-0 order-4 md:order-3">
+                    <div class="flex flex-col md:flex-row justify-end gap-4 items-center">
                         <a style="margin-right: 10px;" href="{{ route('site.booking') }}"
                             class="text-gray-800 hover:text-blue-500">
                             <i class="fa-solid fa-calendar-check" style="margin-right: 5px;"></i>Đặt bàn
@@ -149,7 +108,7 @@
 
                                 <!-- Dropdown menu -->
                                 <div x-show="open" @click.away="open = false" x-transition
-                                    class="absolute mt-2 bg-white border rounded shadow-md z-50 w-52" style="left: 0;">
+                                    class="absolute mt-2 bg-white border rounded shadow-md z-50 w-52 right-0 md:left-0" style="left: auto;">
                                     <a href="{{ route('site.profile') }}"
                                         class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                         <i class="fa-solid fa-user-circle mr-[5px]"></i> Hồ sơ
@@ -176,7 +135,7 @@
 
                         <!-- Giỏ hàng -->
                         <a style="margin-right: 10px;" href="{{ url('/gio-hang') }}"
-                            class="text-gray-800 hover:text-blue-500">
+                            class="hidden md:block text-gray-800 hover:text-blue-500">
                             <i class="fa-solid fa-cart-shopping" style="margin-right: 5px;"></i>Giỏ hàng
                         </a>
                     </div>
@@ -409,9 +368,9 @@
         {{ $slot }}
     </main>
     <footer class="bg-cover bg-center py-4" style="background-image: url('../images/gallery/section_bg02.png');">
-        <div class="container mx-auto text-white">
-            <div class="flex gap-6">
-                <div class="basis-3/12">
+        <div class="container mx-auto text-white px-4">
+            <div class="flex flex-col md:flex-row gap-6">
+                <div class="w-full md:w-3/12">
                     <h3 class="title-footer py-2">Về chúng tôi</h3>
                     <p>CIVILIZE Restaurant luôn bảo đảm về chất lượng cũng như an toàn thực phẩm.</p>
                     <ul class="list-icon">
@@ -425,38 +384,37 @@
                     </ul>
 
                 </div>
-                <div class="basis-3/12">
+                <div class="w-full md:w-3/12">
                     <h3 class="title-footer ">Chính sách</h3>
                     {{-- <ul class="*:text-white">
                         <a href="{{url('/dieu-khoan-su-dung')}}">
                             <li>- Điều khoản sử dụng</li>
                         </a>
                         <a href="{{url('/chinh-sach-bao-mat')}}">
-                            <li>- Chính sách bảo mật</li>
-                        </a>
-                        <a href="{{url('/chinh-sach-van-chuyen')}}">
-                            <li>- Chính sách vận chuyện</li>
+                            <li>- Chính sách bảo mật thông tin</li>
                         </a>
                         <a href="{{url('/chinh-sach-an-toan-thuc-pham')}}">
-                            <li>- Chính sách An toàn thực phẩm</li>
+                            <li>- Chính sách an toàn thực phẩm</li>
+                        </a>
+                        <a href="{{url('/co-so-vat-chat')}}">
+                            <li>- Cơ sở vật chất</li>
                         </a>
                         <a href="{{url('/chinh-sach-lien-he')}}">
                             <li>- Chính sách liên hệ</li>
                         </a>
+
                     </ul> --}}
                     <x-footer-menu />
                 </div>
-                <div class="basis-3/12">Instagram Feed
-                    <div class="flex py-2">
+                <div class="w-full md:w-3/12">
+                    <h3 class="title-footer py-2">Thư viện ảnh</h3>
+                    <div class="grid grid-cols-3 gap-2">
                         <img src="../images//gallery/instagram1.png" alt=""
                             style="width: 70px;height: 70px;">
                         <img src="../images//gallery/instagram2.png" alt=""
                             style="width: 70px;height: 70px;">
                         <img src="../images//gallery/instagram3.png" alt=""
                             style="width: 70px;height: 70px;">
-
-                    </div>
-                    <div class="flex py-2">
                         <img src="../images//gallery/instagram4.png" alt=""
                             style="width: 70px;height: 70px;">
                         <img src="../images//gallery/instagram5.png" alt=""
@@ -466,7 +424,7 @@
                     </div>
 
                 </div>
-                <div class="basis-3/12">
+                <div class="w-full md:w-3/12">
                     <img src="../images//logo/logo2_footer.png" alt="" class="py-2">
                     Theo dõi nhà hàng qua
                     <div class="footer-social f-right">

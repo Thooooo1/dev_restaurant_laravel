@@ -1,13 +1,13 @@
 <x-layout-frontend>
-  <section class="bg-gray-200 ml-5">
-    <div class="breadcrumb flex items-center text-gray-600 text-sm  ">
+  <section class="bg-gray-200 py-2 px-4">
+    <div class="breadcrumb flex items-center text-gray-600 text-sm container mx-auto">
         <span class="mr-4">Bạn đang ở đây:</span>
         <a href="{{url('/')}}" class="hover:text-orange-500"> Quay lại Trang chủ</a>
         <span class="mx-2">></span>
         <span class="font-semibold text-gray-800">Đăng nhập</span>
     </div>
 </section>
-<div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg my-12">
+<div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg my-12 mx-4 md:mx-auto">
         <div class="text-center mb-4">  
           <h4 class="text-2xl font-semibold">Đăng nhập</h4>
         </div>

@@ -1,6 +1,6 @@
 <x-layout-frontend>
-    <section class="bg-gray-200 ml-5">
-        <div class="breadcrumb flex items-center text-gray-600 text-sm  ">
+    <section class="bg-gray-200 py-2 px-4">
+        <div class="breadcrumb flex items-center text-gray-600 text-sm container mx-auto">
             <span class="mr-4">Bạn đang ở đây:</span>
             <a href="{{url('/')}}" class="hover:text-orange-500"> Quay lại Trang chủ</a>
             <span class="mx-2">></span>

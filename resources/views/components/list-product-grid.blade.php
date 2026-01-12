@@ -1,10 +1,10 @@
 @foreach ($products as $product)
-<div class="bg-white rounded-lg shadow mb-4 p-4 flex gap-4">
-    <div class="w-1/4">
-        <img src="{{ asset('/images/product/' . $product->image) }}" alt="{{$product->name }}" class="rounded-lg">
+<div class="bg-white rounded-lg shadow mb-4 p-4 flex flex-col md:flex-row gap-4">
+    <div class="w-full md:w-1/4">
+        <img src="{{ asset('/images/product/' . $product->image) }}" alt="{{$product->name }}" class="rounded-lg w-full object-cover">
        
     </div>
-    <div class="w-2/4">
+    <div class="w-full md:w-2/4">
         <h3 class="text-lg font-bold text-orange-600">{{ $product->name }}  
         @if ($product->new_p == 1)
             <span class=" bg-red-500 text-white text-xs px-2 py-1 rounded-tl-md rounded-br-md ml-2">Mới</span>
@@ -13,7 +13,7 @@
         <div class="flex items-center gap-2 text-yellow-500">
             <span class="text-gray-600 text-sm">{{ $product->slug }}</span>
         </div>
-        <div class="flex items-center gap-2 mt-2 text-sm text-gray-500">
+        <div class="flex flex-wrap items-center gap-2 mt-2 text-sm text-gray-500">
             <span class="px-2 py-1 border rounded">Đã xác minh</span>
             <span class="px-2 py-1 border rounded"> Số lượng : {{ $product->qty }}</span>
             <span class="px-2 py-1 border rounded"> {{ $product->reviews_count }} Đánh giá</span>
@@ -23,7 +23,7 @@
             {{ $product->description }}
         </p>
     </div>
-    <div class="w-2/4 text-right">
+    <div class="w-full md:w-1/4 text-left md:text-right">
         <div class="text-orange-600 text-lg font-bold">
             <span class="line-through text-gray-400 ml-2">{{ number_format($product->price_buy, 0, ',', '.') . ' VND' }}</span>
             <span class="text-orange-500 font-semibold text-lg">{{ $product->price_sale ? number_format($product->price_sale, 0, ',', '.') . ' VND' : 'Liên hệ' }}</span>           

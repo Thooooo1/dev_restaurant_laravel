@@ -11,12 +11,12 @@
                 <!-- timkiem  -->
                 
                 <!-- filter -->
-                {{-- <div
-                    class="flex justify-center items-center gap-4 mb-8 filter-bar bg-white sticky top-0 z-10 shadow-md py-4">
-                    <span class=" absolute top-0 left-10 mt-4 mr-4">Tùy chọn lọc theo </span>
-                    <div>
+                <div
+                    class="flex flex-col md:flex-row justify-center items-center gap-4 mb-8 filter-bar bg-white sticky top-0 z-10 shadow-md py-4 px-4">
+                    <span class="md:absolute md:top-0 md:left-10 md:mt-4 md:mr-4 w-full text-center md:text-left md:w-auto font-medium text-gray-700">Tùy chọn lọc theo </span>
+                    <div class="w-full md:w-auto">
                         <label for="brandFilter" class="block text-sm font-medium text-gray-700">Thương hiệu</label>
-                        <select id="brandFilter" class="block w-48 p-2 border border-gray-300 rounded-lg">
+                        <select id="brandFilter" class="block w-full md:w-48 p-2 border border-gray-300 rounded-lg">
                             <option value="all">Tất cả</option>
                             <option value="morning">Buổi sáng</option>
                             <option value="afternoon">Buổi trưa</option>
@@ -24,9 +24,9 @@
                         </select>
                         
                     </div>
-                    <div>
+                    <div class="w-full md:w-auto">
                         <label for="categoryFilter" class="block text-sm font-medium text-gray-700">Danh mục</label>
-                        <select id="categoryFilter" class="block w-48 p-2 border border-gray-300 rounded-lg">
+                        <select id="categoryFilter" class="block w-full md:w-48 p-2 border border-gray-300 rounded-lg">
                             <option value="all">Tất cả</option>
                             <option value="rate">Đánh giá cao</option>
                             <option value="des">Phổ biến</option>
@@ -34,9 +34,9 @@
                         </select>
                     </div>
 
-                    <div>
+                    <div class="w-full md:w-auto">
                         <label for="sortFilter" class="block text-sm font-medium text-gray-700">Sắp xếp</label>
-                        <select id="sortFilter" class="block w-48 p-2 border border-gray-300 rounded-lg">
+                        <select id="sortFilter" class="block w-full md:w-48 p-2 border border-gray-300 rounded-lg">
                             <option value="default">Mặc định</option>
                             <option value="priceAsc">Giá tăng dần</option>
                             <option value="priceDesc">Giá giảm dần</option>
@@ -45,19 +45,19 @@
                             <option value="oldest">Cũ nhất</option>
                         </select>
                     </div>
-                    <div class="ml-5 mr-2">
-                        <label class="flex mt-3">
+                    <div class="w-full md:w-auto ml-0 md:ml-5 mr-0 md:mr-2">
+                        <label class="flex mt-3 items-center justify-center md:justify-start">
                             <input type="checkbox" class="custom-control-input">
                             <div class="ml-2"> Free ship
                             </div>
                         </label>
                     </div>
                     <button id="resetFilter"
-                        class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 mt-4">Đặt lại</button>
-                    <div class="absolute top-0 right-0 mt-4 mr-4 flex space-x-1 ">
+                        class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 mt-4 w-full md:w-auto">Đặt lại</button>
+                    <div class="md:absolute md:top-0 md:right-0 md:mt-4 md:mr-4 flex justify-center space-x-1 w-full md:w-auto mt-4">
                         <!-- Nút List -->
                         <a href="{{ url('/thuc-don')}}"
-                            class="flex items-center px-4 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 mt-4">
+                            class="flex items-center px-4 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -67,7 +67,7 @@
                         </a>
                         <!-- Nút Grid -->
                         <a href="{{ url('/danh-sach')}}"
-                            class="flex items-center px-4 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300 mt-4">
+                            class="flex items-center px-4 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

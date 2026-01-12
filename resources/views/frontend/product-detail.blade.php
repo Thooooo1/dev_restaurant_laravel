@@ -15,8 +15,8 @@
         </script>
     </x-slot:footer>
     <main>
-        <section class="bg-gray-200 ml-5">
-            <div class="breadcrumb flex items-center text-gray-600 text-sm  ">
+        <section class="bg-gray-200 py-2">
+            <div class="container mx-auto px-4 breadcrumb flex items-center text-gray-600 text-sm">
                 <span class="mr-4">Bạn đang ở đây:</span>
                 <a href="{{ url('/') }}" class="hover:text-orange-500"> Quay lại Trang chủ</a>
                 <span class="mx-2">></span>
@@ -29,9 +29,9 @@
             <div class="container mx-auto px-4 ">
                 <div class="flex flex-wrap gap-8">
                     <!-- Bố cục sản phẩm -->
-                    <div class="flex  gap-4 w-300 lg:w-8/12">
+                    <div class="flex flex-col md:flex-row gap-8 w-full lg:w-8/12">
                         <!-- Hình ảnh sản phẩm -->
-                        <div class="basis-full md:basis-5/12 ">
+                        <div class="w-full md:w-5/12 ">
                             <div class="relative rounded-lg shadow-lg overflow-hidden">
                                 <img src="{{ asset('/images/product/' . $product->image) }}" alt="{{ $product->name }}"
                                     class="w-full h-64 object-cover transition-all duration-300 group-hover:opacity-60">
@@ -47,7 +47,7 @@
                         </div>
 
                         <!-- Thông tin sản phẩm -->
-                        <div class="basis-full md:basis-7/12">
+                        <div class="w-full md:w-7/12">
                             <div class="flex  items-center  ">
                                 <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ $product->name }}</h1>
                                 @if ($product->new_p == 1)
@@ -94,6 +94,7 @@
                             </form>
 
 
+
                             <script>
                                 function updateQuantity(value) {
                                     const qtyInput = document.getElementById('quantity');
@@ -108,7 +109,7 @@
                 </div>
                 <!-- Tabs thông tin chi tiết -->
                 <div class="mt-10">
-                    <div class="tabs border-b pb-2 flex gap-8">
+                    <div class="tabs border-b pb-2 flex flex-wrap gap-4 md:gap-8">
                         <button class="tab-item text-blue-600 border-b-2 border-blue-600 px-4 py-2 active"
                             data-tab="description">Mô tả món ăn</button>
 
@@ -302,7 +303,7 @@
                         <div id="csach" class="tab-pane hidden">
                             <h2 class="text-2xl font-bold text-gray-800 mb-4 ">Chính sách sản phẩm</h2>
                             {{-- --}}
-                            <div class="basis-3/12">
+                            <div class="w-full md:w-3/12">
                                 <ul class="text-black">
                                     <x-footer-menu />
                                 </ul>

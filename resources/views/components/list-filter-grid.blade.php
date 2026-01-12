@@ -1,5 +1,5 @@
-<div class="container mx-auto px-4 flex gap-4">
-    <div class="w-1/4 bg-white rounded-lg shadow p-4">
+<div class="container mx-auto px-4 flex flex-col md:flex-row gap-4">
+    <div class="w-full md:w-1/4 bg-white rounded-lg shadow p-4">
         <h2 class="text-lg font-bold mb-4">Danh mục</h2>
         <form method="GET" action="{{ url()->current() }}">
             <ul class="space-y-2">
@@ -56,21 +56,21 @@
         </form>
     </div>
 
-    <div class="w-3/4">
-        <div class="flex justify-between items-center mb-4">
+    <div class="w-full md:w-3/4">
+        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
             <span class="text-gray-700">{{ $productCount }} Món ăn</span>
-            <div class="flex items-center">
+            <div class="flex items-center w-full md:w-auto">
                 <input type="text" id="searchInput" placeholder="Tìm món ăn"
-                    class="w-96 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    class="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
 
                 <button id="searchButton"
                     class="px-4 py-2 bg-orange-500 text-white border border-orange-500 rounded-r-lg hover:bg-orange-600 focus:ring-2 focus:ring-orange-500">
                     <i class="fa fa-search mr-2"></i> Tìm
                 </button>
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-2 w-full md:w-auto justify-between md:justify-end">
                 <div>
-                    <select id="sortFilter" class="block w-48 p-2 border border-gray-300 rounded-lg">
+                    <select id="sortFilter" class="block w-full md:w-48 p-2 border border-gray-300 rounded-lg">
                         <option value="default" {{ request()->get('sort') == 'default' ? 'selected' : '' }}>Mặc định
                         </option>
                         <option value="priceAsc" {{ request()->get('sort') == 'priceAsc' ? 'selected' : '' }}>Giá tăng

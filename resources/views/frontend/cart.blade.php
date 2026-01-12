@@ -2,8 +2,8 @@
     @php
     $cart = session()->get('cart_' . Auth::id(), []);
     @endphp
-  <section class="bg-gray-200 ml-5">
-    <div class="breadcrumb flex items-center text-gray-600 text-sm">
+  <section class="bg-gray-200 py-2 px-4">
+    <div class="breadcrumb flex items-center text-gray-600 text-sm container mx-auto">
         <span class="mr-4">Bạn đang ở đây:</span>
         <a href="{{url('/')}}" class="hover:text-orange-500"> Quay lại Trang chủ</a>
         <span class="mx-2">></span>
@@ -24,24 +24,27 @@
                 <form action="{{ route('site.updatecart') }}" method="POST">
                     @csrf
                     @foreach ($cart as $id => $item)
-                        <div class="flex justify-between border-b pb-4">
-                            <div class="flex space-x-4">
+                        <div class="flex flex-col md:flex-row justify-between items-center border-b pb-4 gap-4">
+                            <div class="flex space-x-4 w-full md:w-5/12">
                                 <img src="{{ asset('images/product/' . $item['image']) }}" alt="{{ $item['name'] }}"
-                                    class="w-24 h-24 object-cover rounded-md">
+                                    class="w-24 h-24 object-cover rounded-md flex-shrink-0">
                                 <div>
                                     <h3 class="text-lg font-semibold">{{ $item['name'] }}</h3>
                                     <p class="text-sm text-gray-500">Giá: {{ number_format($item['price'], 0, ',', '.') }} VND</p>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <input type="number" name="qty[{{ $id }}]" value="{{ $item['qty'] }}" class="w-16 text-center border rounded-md py-1" min="1">
+                            <div class="flex justify-between md:justify-center items-center w-full md:w-4/12 gap-4">
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" name="qty[{{ $id }}]" value="{{ $item['qty'] }}" class="w-16 text-center border rounded-md py-1" min="1">
+                                </div>
+                                <div class="text-lg font-semibold text-gray-800">
+                                    {{ number_format($item['price'] * $item['qty'], 0, ',', '.') }} VND
+                                </div>
                             </div>
-                            <div class="text-lg font-semibold text-gray-800">
-                                {{ number_format($item['price'] * $item['qty'], 0, ',', '.') }} VND
+                            <div class="flex justify-end w-full md:w-3/12 gap-4">
+                                <a href="{{ route('site.product.detail', $item['slug']) }}" class="text-blue-500 hover:text-blue-700">Chi tiết</a>
+                                <a href="{{ route('site.delcart', $id) }}" class="text-red-500 hover:text-red-700">Xóa</a>
                             </div>
-                            <a href="{{ route('site.product.detail', $item['slug']) }}" class="text-red-500 hover:text-red-700">Chi tiết</a>
-
-                            <a href="{{ route('site.delcart', $id) }}" class="text-red-500 hover:text-red-700">Xóa</a>
                         </div>
                     @endforeach
                     <div class="mt-6">

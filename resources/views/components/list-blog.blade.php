@@ -65,7 +65,7 @@
             <!-- Widget Instagram Feeds -->
             <aside class="single_sidebar_widget instagram_feeds">
                 <h4 class="widget_title text-gray-800 text-xl mb-4 font-bold">Instagram Feeds</h4>
-                <ul class="instagram_row space-x-2 flex">
+                <ul class="instagram_row flex flex-wrap gap-2">
                     <li><a href="#"><img class="w-20 h-20 object-cover rounded-md"
                                 src="../images/gallery/instagram1.png" alt=""></a></li>
                     <li><a href="#"><img class="w-20 h-20 object-cover rounded-md"

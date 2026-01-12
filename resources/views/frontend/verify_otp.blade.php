@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg my-12">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg my-12 mx-4 md:mx-auto">
         <h4 class="text-center text-2xl font-semibold mb-4">Xác nhận OTP</h4>
         <form action="{{ route('site.verify_otp') }}" method="POST">
             @csrf

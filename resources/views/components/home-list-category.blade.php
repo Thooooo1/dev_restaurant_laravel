@@ -10,7 +10,7 @@
                 </h2>
             </div>
             <div>
-                <div class="flex justify-center space-x-4">
+                <div class="flex flex-wrap justify-center gap-2 md:gap-4">
                     @foreach ($categories as  $categoryitem)
                     <button class="tab-btn text-sm py-2 px-4 bg-orange-500 text-white rounded-lg"
                         data-tab="{{$categoryitem->id}}">{{$categoryitem->name}}</button> 

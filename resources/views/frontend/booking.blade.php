@@ -15,7 +15,7 @@
 
                 <div class="row justify-center">
                     <div class="">
-                        <div class="text-center mb-16 ml-10">
+                        <div class="text-center mb-16">
                             <span class="text-orange-500 font-semibold uppercase text-sm tracking-wide">Đặt
                                 bàn</span>
                             <h2 class="text-3xl font-bold text-gray-800 mt-2">Lên lịch đặt bàn</h2>
@@ -27,7 +27,7 @@
                     <div class="col-12">
                         <form action="{{ route('site.booking.store') }}" method="POST" class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
                             @csrf
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="w-full mb-4">
                                     <input type="text" name="name" placeholder="Tên của bạn" required class="w-full px-4 py-2 border rounded-md" />
                                 </div>

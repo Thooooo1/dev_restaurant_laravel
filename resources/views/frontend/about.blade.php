@@ -1,7 +1,7 @@
 <x-layout-frontend>
     <main>  
-        <section class="bg-gray-200 ml-5">
-            <div class="breadcrumb flex items-center text-gray-600 text-sm  ">
+        <section class="bg-gray-200 py-2 px-4">
+            <div class="breadcrumb flex items-center text-gray-600 text-sm container mx-auto">
                 <span class="mr-4">Bạn đang ở đây:</span>
                 <a href="{{url('/')}}" class="hover:text-orange-500"> Quay lại Trang chủ</a>
                 <span class="mx-2">></span>
@@ -9,18 +9,18 @@
             </div>
         </section>
         
-        <section class="section_about bg-white py-4 mr-4 px-8 ">
+        <section class="section_about bg-white py-4 px-4 md:px-8">
             <div class="container mx-auto flex flex-wrap items-center">
-                <div class="w-full lg:w-6/12 px-6">
+                <div class="w-full lg:w-6/12 px-0 md:px-6 mb-8 lg:mb-0">
                     <p class="text-orange-500 font-semibold text-lg mb-2">CIVILIZE Restaurant</p>
-                    <h2 style="font-size: 35px;font-weight: bold;" class="font-bold">
+                    <h2 class="font-bold text-3xl md:text-4xl mb-4">
                         Thưởng thức ẩm thực đỉnh cao tại nhà hàng của chúng tôi!
                     </h2>
                     <p class="text-gray-600 mb-8 leading-relaxed">
                         Luôn đặt cái tâm trong công việc, chúng tôi luôn sẵn sàng phục vụ các bạn. Tiêu chí nhà hàng
                         luôn được chúng tôi để tâm
                     </p>
-                    <div class="grid grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="flex items-start">
                             <i class="fa-solid fa-user text-orange-500 text-3xl mr-4"></i>
                             <p class="text-gray-600">Đầu bếp chuyên nghiệp.</p>
@@ -39,8 +39,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="w-full lg:w-6/12 px-6">
-                    <img src="../images/gallery/about.png" alt="Chef" class="rounded-lg shadow-lg w-full">
+                <div class="w-full lg:w-6/12 px-0 md:px-6">
+                    <img src="{{ asset('images/gallery/about.png') }}" alt="Chef" class="rounded-lg shadow-lg w-full">
                 </div>
             </div>
         </section>
