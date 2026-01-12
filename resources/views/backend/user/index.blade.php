@@ -13,13 +13,13 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>
+                    <strong class="fw-bold h4 text-danger">
                         @if($isEmployee)
-                            Quản lý nhân viên
+                            QUẢN LÝ NHÂN VIÊN
                         @else
-                            Quản lý khách hàng
+                            QUẢN LÝ KHÁCH HÀNG
                         @endif
-                    </h1>
+                    </strong>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">

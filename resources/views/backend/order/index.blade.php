@@ -4,7 +4,7 @@
 				<div class="container-fluid">
 					<div class="row mb-2">
 						<div class="col-sm-6">
-							<h1>Quản lý đơn hàng</h1>
+							<strong class="fw-bold h4 text-danger">ĐƠN HÀNG ONLINE</strong>
 						</div>
 						<div class="col-sm-6">
 							<ol class="breadcrumb float-sm-right">

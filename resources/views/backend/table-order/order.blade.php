@@ -4,7 +4,7 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>{{ $table->floor->name ?? '' }} - {{ $table->name }}</h1>
+                    <strong class="fw-bold h4 text-danger">{{ $table->floor->name ?? '' }} - {{ $table->name }} | GỌI MÓN</strong>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
@@ -24,9 +24,9 @@
                     <button type="button" class="btn btn-primary btn-sm ml-2 mb-1" id="printKitchenBtn" onclick="printKitchen()" disabled><i class="fas fa-print"></i> In thực đơn</button>
                     <a href="{{ route('admin.table-order.payment', $table->id) }}" class="btn btn-success btn-sm ml-2 mb-1 {{ $hasAnyItems ? '' : 'disabled' }}" id="payBtn"><i class="fas fa-money-bill-wave"></i> Thanh toán</a>
                 </div>
-                <div>
-                    <span class="font-weight-bold">Tổng tiền:</span>
-                    <span class="text-danger font-weight-bold" id="totalAmountDisplay">0 ₫</span>
+                <div class="w-100 w-md-auto d-flex justify-content-between justify-content-md-end align-items-center mt-2 mt-md-0">
+                    <span class="font-weight-bold mr-2">Tổng tiền:</span>
+                    <span class="h5 text-danger font-weight-bold" id="totalAmountDisplay">0 ₫</span>
                 </div>
             </div>
             <div class="row">

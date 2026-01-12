@@ -1,7 +1,7 @@
 <x-layout-backend>
     <div class="card">
         <div class="card-header">
-            <h3 class="card-title">Quản lý nhập hàng</h3>
+            <strong class="fw-bold h4 text-danger">QUẢN LÝ NHẬP HÀNG</strong>
             <div class="card-tools">
                 <a href="{{ route('admin.import-goods.create') }}" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus"></i> Thêm mới

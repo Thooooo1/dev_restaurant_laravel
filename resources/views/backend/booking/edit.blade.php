@@ -3,7 +3,7 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Cập nhật đặt bàn</h1>
+                    <strong class="fw-bold h4 text-danger">Cập nhật đặt bàn </strong>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">

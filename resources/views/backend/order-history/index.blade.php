@@ -3,7 +3,7 @@
         <div class="card-header">
             <div class="row">
                 <div class="col-md-6">
-                    <strong class="text-danger">LỊCH SỬ ĐƠN HÀNG</strong>
+                    <strong class="fw-bold h4 text-danger">LỊCH SỬ ORDER</strong>
                 </div>
                 <div class="col-md-6 text-right">
                     <a href="{{ route('admin.order-history.export', request()->all()) }}" class="btn btn-success btn-sm">

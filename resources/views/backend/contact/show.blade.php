@@ -4,7 +4,7 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Chi tiết liên hệ </h1>
+                    <strong class="fw-bold h4 text-danger">CHI TIẾT LIÊN HỆ</strong>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">

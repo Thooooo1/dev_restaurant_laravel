@@ -3,9 +3,9 @@
         <div class="container-fluid">
             <div class="row align-items-center">
                 <div class="col-12 col-md">
-                    <h1 class="mb-2 mb-md-0">{{ $table->floor->name ?? '' }} - {{ $table->name }} | Thanh toán</h1>
+                    <strong class="fw-bold h4 text-danger">{{ $table->floor->name ?? '' }} - {{ $table->name }} | THANH TOÁN</strong>
                 </div>
-                <div class="col-12 col-md-auto mt-1 mt-md-0">
+                <div class="col-12 col-md-auto mt-3 mt-md-0">
                     <div class="d-flex flex-wrap justify-content-md-end">
                         <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm mb-2 mr-2"><i class="fas fa-arrow-left"></i> Quay lại</a>
                         <button class="btn btn-warning btn-sm mb-2 mr-2" id="btnEditMode" onclick="toggleEditMode()"><i class="fas fa-edit"></i> Sửa</button>
@@ -22,35 +22,35 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header p-2 p-md-3">
                             <strong>Khách:</strong> {{ $order->user->fullname ?? $order->name ?? 'Khách lẻ' }}
-                            <span class="ml-3"><strong>ĐT:</strong> {{ $order->user->phone ?? $order->phone ?? '---' }}</span>
+                            <span class="ml-2 ml-md-3"><strong>ĐT:</strong> {{ $order->user->phone ?? $order->phone ?? '---' }}</span>
                         </div>
-                        <div class="card-body">
+                        <div class="card-body p-2 p-md-3">
                             <!-- Payment Info Row -->
                             <div class="row mb-4 align-items-center">
-                                <div class="col-12 col-md-6 d-flex align-items-center">
+                                <div class="col-12 col-md-6 d-flex justify-content-between justify-content-md-start align-items-center">
                                     <label class="mb-0 mr-2">Phương thức:</label>
                                     <select class="form-control form-control-sm w-auto" name="payment_method" id="paymentMethodSelect">
                                         <option value="1" selected>Tiền mặt</option>
                                         <option value="2">Chuyển khoản NH</option>
                                     </select>
                                 </div>
-                                <div class="col-12 col-md-6 d-flex justify-content-md-end align-items-center text-left text-md-right mt-2 mt-md-0">
+                                <div class="col-12 col-md-6 d-flex justify-content-between justify-content-md-end align-items-center text-left text-md-right mt-2 mt-md-0">
                                     <label class="mb-0 mr-2">Tổng tiền:</label>
-                                    <span class="h2 text-danger font-weight-bold mb-0" id="total-amount-header">{{ number_format($totalAmount, 0, ',', '.') }} ₫</span>
+                                    <span class="h5 text-danger font-weight-bold mb-0" id="total-amount-header">{{ number_format($totalAmount, 0, ',', '.') }} ₫</span>
                                 </div>
                             </div>
 
                             <table class="table table-sm" id="paymentTable">
                                 <thead>
                                     <tr>
-                                        <th>STT</th>
+                                        <th>#</th>
                                         <th>Tên món</th>
                                         <th class="text-right">SL</th>
                                         <th class="text-right">Đơn giá</th>
                                         <th class="text-right">Thành tiền</th>
-                                        <th class="text-center action-col">#</th>
+                                        <th class="text-center action-col"></th>
                                     </tr>
                                 </thead>
                                 <tbody>

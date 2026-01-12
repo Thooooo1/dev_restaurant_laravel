@@ -1,6 +1,6 @@
 <x-layout-backend>
     <section class="content-header">
-        <h1>Thùng rác</h1>
+        <strong class="fw-bold h4 text-danger">XOÁ NGƯỜI DÙNG</strong>
         <a href="{{ route('admin.user.index') }}" class="btn btn-primary py-2 mt-2">Quay lại danh sách </a>
     </section>
     <section class="content">

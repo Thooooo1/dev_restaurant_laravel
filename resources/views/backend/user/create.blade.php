@@ -6,7 +6,7 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1>{{ $role == 'admin' ? 'Thêm nhân viên' : 'Thêm khách hàng' }}</h1>
+                        <strong class="fw-bold h4 text-danger">{{ $role == 'admin' ? 'THÊM NHÂN VIÊN' : 'THÊM KHÁCH HÀNG' }}</strong>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
