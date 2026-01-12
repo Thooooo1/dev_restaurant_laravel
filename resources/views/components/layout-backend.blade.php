@@ -67,8 +67,8 @@
             </ul>
         </nav>
         <aside class="main-sidebar sidebar-dark-primary elevation-4">
-            <a href="{{ url('admin/') }}" class="brand-link">
-
+            <a href="{{ route('admin.table-order.index') }}" class="brand-link">
+            <!-- <a href="{{ url('admin/') }}" class="brand-link"> -->
                 <img src=" {{ asset('images/logo/logo.png') }}" alt="AdminLTE Logo"
                     class="brand-image img-circle elevation-3" style="opacity: .8">
                 <span class="brand-text font-weight-light">Trang quản trị</span>
@@ -86,51 +86,55 @@
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
                         data-accordion="false">
 
-
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/order/') }}" class="nav-link {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? 'active' : '' }}">
-                                <i class="fas fa-shopping-bag"></i>
-                                <p>Đơn hàng</p>
-                            </a>
-                        </li>
-                        <li class="nav-item pl-1">
-                            <a href="{{ route('admin.order-history.index') }}" class="nav-link {{ request()->routeIs('admin.order-history.*') ? 'active' : '' }}">
-                                <i class="fas fa-history"></i>
-                                <p>Lịch sử order</p>
-                            </a>
-                        </li>
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/booking/') }}" class="nav-link {{ request()->is('admin/booking*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-clipboard"></i>
-                                <p>Đặt bàn</p>
-                            </a>
-                        </li>
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/table/') }}" class="nav-link {{ request()->routeIs('admin.table.*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-chair"></i>
-                                <p>Bàn ăn</p>
-                            </a>
-                        </li>
+                        <!-- 1. Quản lý Order -->
                         <li class="nav-item pl-1">
                             <a href="{{ route('admin.table-order.index') }}" class="nav-link {{ request()->routeIs('admin.table-order.*') ? 'active' : '' }}">
                                 <i class="fa-solid fa-cash-register"></i>
                                 <p>Quản lý Order</p>
                             </a>
                         </li>
+
+                        <!-- 2. Lịch sử order -->
                         <li class="nav-item pl-1">
-                            <a href="{{ url('admin/inquiries/') }}" class="nav-link {{ request()->is('admin/inquiries*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-comment"></i>
-                                <p>Tư vấn</p>
+                            <a href="{{ route('admin.order-history.index') }}" class="nav-link {{ request()->routeIs('admin.order-history.*') ? 'active' : '' }}">
+                                <i class="fas fa-history"></i>
+                                <p>Lịch sử order</p>
                             </a>
                         </li>
 
+                        <!-- 3. Đặt bàn -->
                         <li class="nav-item pl-1">
-                            <a href="{{ url('admin/contact/') }}" class="nav-link {{ request()->is('admin/contact*') ? 'active' : '' }}">
-                                <i class="fas fa-id-card"></i>
-                                <p>Liên hệ</p>
+                            <a href="{{ url('admin/booking/') }}" class="nav-link {{ request()->is('admin/booking*') ? 'active' : '' }}">
+                                <i class="fa-solid fa-clipboard"></i>
+                                <p>Đặt bàn</p>
                             </a>
                         </li>
 
+                        <!-- 4. Đơn hàng -->
+                        <li class="nav-item pl-1">
+                            <a href="{{ url('admin/order/') }}" class="nav-link {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? 'active' : '' }}">
+                                <i class="fas fa-shopping-bag"></i>
+                                <p>Đơn hàng</p>
+                            </a>
+                        </li>
+
+                        <!-- 5. Quản lý nhập hàng -->
+                        <li class="nav-item pl-1">
+                            <a href="{{ route('admin.import-goods.index') }}" class="nav-link {{ request()->routeIs('admin.import-goods.*') ? 'active' : '' }}">
+                                <i class="fa-solid fa-file-import"></i>
+                                <p>Quản lý nhập hàng</p>
+                            </a>
+                        </li>
+
+                        <!-- 6. Bàn ăn -->
+                        <li class="nav-item pl-1">
+                            <a href="{{ url('admin/table/') }}" class="nav-link {{ request()->routeIs('admin.table.*') ? 'active' : '' }}">
+                                <i class="fa-solid fa-chair"></i>
+                                <p>Bàn ăn</p>
+                            </a>
+                        </li>
+
+                        <!-- 7. Món ăn -->
                         <li class="nav-item {{ request()->is('admin/product*') || request()->is('admin/category*') || request()->is('admin/brand*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('admin/product*') || request()->is('admin/category*') || request()->is('admin/brand*') ? 'active' : '' }}">
                                 <i class="fa-solid fa-utensils ml-2"></i>
@@ -160,6 +164,8 @@
                                 </li>
                             </ul>
                         </li>
+
+                        <!-- 8. Bài viết -->
                         <li class="nav-item {{ request()->is('admin/blog*') || request()->is('admin/topic*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('admin/blog*') || request()->is('admin/topic*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-copy"></i>
@@ -184,48 +190,7 @@
                             </ul>
                         </li>
 
-
-                        <li class="nav-item {{ request()->is('admin/warehouse*') || request()->is('admin/keyword*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->is('admin/warehouse*') || request()->is('admin/keyword*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-warehouse ml-1"></i>
-                                <p class="ml-2">
-                                    Quản lý kho
-                                    <i class="fas fa-angle-left right "></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Thực phẩm đông lạnh</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Đồ tươi</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="#" class="nav-link">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Pha chế</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ url('admin/keyword/') }}" class="nav-link {{ request()->is('admin/keyword*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Đồ khô</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="nav-item pl-1">
-                            <a href="{{ route('admin.import-goods.index') }}" class="nav-link {{ request()->routeIs('admin.import-goods.*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-file-import"></i>
-                                <p>Quản lý nhập hàng</p>
-                            </a>
-                        </li>
+                        <!-- 9. Giao diện -->
                         <li class="nav-item {{ request()->is('admin/menu*') || request()->is('admin/banner*') || request()->is('admin/image*') || request()->is('admin/keyword*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('admin/menu*') || request()->is('admin/banner*') || request()->is('admin/image*') || request()->is('admin/keyword*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-edit"></i>
@@ -261,6 +226,8 @@
                                 </li>
                             </ul>
                         </li>
+
+                        <!-- 10. Người dùng -->
                         <li class="nav-item {{ request()->routeIs('admin.user.*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->routeIs('admin.user.*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-users"></i>
@@ -283,6 +250,21 @@
                                     </a>
                                 </li>
                             </ul>
+                        </li>
+
+                        <!-- Others -->
+                        <li class="nav-item pl-1">
+                            <a href="{{ url('admin/inquiries/') }}" class="nav-link {{ request()->is('admin/inquiries*') ? 'active' : '' }}">
+                                <i class="fa-solid fa-comment"></i>
+                                <p>Tư vấn</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-item pl-1">
+                            <a href="{{ url('admin/contact/') }}" class="nav-link {{ request()->is('admin/contact*') ? 'active' : '' }}">
+                                <i class="fas fa-id-card"></i>
+                                <p>Liên hệ</p>
+                            </a>
                         </li>
                     </ul>
                 </nav>

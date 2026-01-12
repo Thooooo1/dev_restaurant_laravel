@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Floor;
 use App\Models\Table;
 use Illuminate\Http\Request;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class TableController extends Controller
 {
@@ -174,6 +175,21 @@ class TableController extends Controller
             ->with('error', 'Bàn ăn không tồn tại');
     }
 
+    public function downloadQr($id)
+    {
+        $table = Table::find($id);
+        if (!$table) {
+            return redirect()->back()->with('error', 'Bàn không tồn tại.');
+        }
+
+        $url = route('site.table.scan', ['id' => $table->id]);
+        
+        // Tạo QR Code
+        $qrcode = QrCode::size(300)->generate($url);
+        
+        return view('backend.table.qr', compact('table', 'qrcode', 'url'));
+    }
+
     public function destroy(string $id)
     {
         $table = Table::withTrashed()->where('id', $id)->first();
@@ -188,5 +204,4 @@ class TableController extends Controller
             ->with('error', 'Bàn ăn không tồn tại');
     }
 }
-
 

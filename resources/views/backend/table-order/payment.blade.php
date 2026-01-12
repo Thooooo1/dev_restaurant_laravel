@@ -16,13 +16,30 @@
     <section class="content">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
                             <strong>Khách:</strong> {{ $order->user->fullname ?? $order->name ?? 'Khách lẻ' }}
                             <span class="ml-3"><strong>ĐT:</strong> {{ $order->user->phone ?? $order->phone ?? '---' }}</span>
                         </div>
                         <div class="card-body">
+                            <!-- Payment Info Row -->
+                            <div class="row mb-4 align-items-end">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-0" style="max-width: 300px;">
+                                        <label>Phương thức thanh toán:</label>
+                                        <select class="form-control" name="payment_method" id="paymentMethodSelect">
+                                            <option value="1" selected>Tiền mặt</option>
+                                            <option value="2">Chuyển khoản NH</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <label>Tổng tiền cần thanh toán:</label>
+                                    <h2 class="text-danger font-weight-bold mb-0" id="total-amount-header">{{ number_format($totalAmount, 0, ',', '.') }} ₫</h2>
+                                </div>
+                            </div>
+
                             <table class="table table-sm" id="paymentTable">
                                 <thead>
                                     <tr>
@@ -51,42 +68,10 @@
                                         </tr>
                                     @endforeach
                                 </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <th colspan="4" class="text-right">Tổng cộng</th>
-                                        <th class="text-right text-danger" id="total-amount-display">{{ number_format($totalAmount, 0, ',', '.') }} ₫</th>
-                                        <th class="action-col"></th>
-                                    </tr>
-                                </tfoot>
                             </table>
                         </div>
                         <div class="card-footer text-right">
                             <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary">Quay lại</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header bg-success text-white">
-                            <h3 class="card-title">Thanh toán</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-group">
-                                <label>Tổng tiền cần thanh toán:</label>
-                                <h2 class="text-danger font-weight-bold">{{ number_format($totalAmount, 0, ',', '.') }} ₫</h2>
-                            </div>
-                            <hr>
-                            <div class="form-group">
-                                <label>Phương thức thanh toán:</label>
-                                <select class="form-control" name="payment_method" id="paymentMethodSelect">
-                                    <option value="1" selected>Tiền mặt</option>
-                                    <option value="2">Chuyển khoản NH</option>
-                                </select>
-                            </div>
-                            <hr>
-                            <button class="btn btn-success btn-lg btn-block" onclick="handlePayment()">
-                                <i class="fas fa-check-circle"></i> THANH TOÁN & KẾT THÚC
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -165,11 +150,13 @@
             const inputs = document.querySelectorAll('.qty-input');
             const items = [];
             let isValid = true;
+            let currentTotal = 0;
 
             inputs.forEach(input => {
                 const qty = parseInt(input.value);
                 const tr = input.closest('tr');
                 const id = tr.dataset.id;
+                const price = parseInt(tr.dataset.price);
                 
                 if (qty < 1 || isNaN(qty)) {
                     toastr.error('Số lượng món không hợp lệ');
@@ -181,9 +168,15 @@
                     id: id,
                     qty: qty
                 });
+                
+                currentTotal += qty * price;
             });
 
             if (!isValid) return;
+
+            const paymentMethod = document.getElementById('paymentMethodSelect').value;
+
+            if(!confirm('Xác nhận thanh toán và in hoá đơn?')) return;
 
             // Save order first
             $.ajax({
@@ -196,9 +189,8 @@
                 },
                 success: function(res) {
                     if (res.success) {
-                        printInvoice();
-                        // Optional: Reload page after print to reflect saved data in case print is cancelled but data saved
-                        setTimeout(() => location.reload(), 1000);
+                        // After update success, process payment
+                        processPaymentAndPrint(paymentMethod, currentTotal);
                     } else {
                         toastr.error(res.message);
                     }
@@ -209,38 +201,36 @@
             });
         }
 
-        function handlePayment() {
-            const paymentMethod = document.getElementById('paymentMethodSelect').value;
-            const totalPrice = {{ $totalAmount }};
-            
-            if(!confirm('Xác nhận thanh toán đơn hàng này?')) return;
-
-            fetch('{{ route("admin.table-order.processPayment") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
+        function processPaymentAndPrint(paymentMethod, total) {
+             $.ajax({
+                url: '{{ route("admin.table-order.processPayment") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
                     order_id: {{ $order->id }},
                     payment_method: paymentMethod,
-                    total_price: totalPrice
-                })
-            })
-            .then(response => response.json())
-            .then(res => {
-                if (res.success) {
-                    toastr.success(res.message);
-                    setTimeout(() => {
-                        window.location.href = '{{ route("admin.table-order.index") }}';
-                    }, 1000);
-                } else {
-                    toastr.error(res.message);
+                    total_price: total
+                },
+                success: function(res) {
+                    if (res.success) {
+                        toastr.success('Thanh toán thành công');
+                        printInvoice();
+                        // Redirect to index after printing
+                        setTimeout(() => {
+                             window.location.href = '{{ route("admin.table-order.index") }}';
+                        }, 2000);
+                    } else {
+                        toastr.error(res.message);
+                    }
+                },
+                error: function(err) {
+                     toastr.error('Lỗi thanh toán');
                 }
-            })
-            .catch(err => {
-                toastr.error('Lỗi thanh toán');
             });
+        }
+
+        function handlePayment() {
+            // Deprecated function, logic moved to handlePrintInvoice
         }
 
         function printInvoice() {
@@ -272,7 +262,9 @@
                     total += price * qty;
                 }
             });
-            document.getElementById('total-amount-display').innerText = new Intl.NumberFormat('vi-VN').format(total) + ' ₫';
+            const formattedTotal = new Intl.NumberFormat('vi-VN').format(total) + ' ₫';
+            document.getElementById('total-amount-display').innerText = formattedTotal;
+            document.getElementById('total-amount-header').innerText = formattedTotal;
         }
 
         function confirmDeleteItem(id) {

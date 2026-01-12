@@ -84,6 +84,9 @@ Route::get('/don-hang/{id}', [DonHangController::class, 'detail'])->name('site.o
 Route::get('/don-hang/reorder/{id}', [DonHangController::class, 'reorder'])->name('site.orders.reorder');
 Route::post('/don-hang/{id}/huy', [DonHangController::class, 'cancel'])->name('site.orders.cancel');
 
+// Table QR Scan
+Route::get('/ban/{id}/goi-mon', [App\Http\Controllers\frontend\TableOrderController::class, 'scan'])->name('site.table.scan');
+
 // Booking
 Route::get('/dat-ban', [DatBanController::class, 'index'])->name('site.booking');
 Route::post('/dat-ban', [DatBanController::class, 'store'])->name('site.booking.store');
@@ -387,5 +390,7 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::get('/trash', [TableController::class, 'trash'])->name('admin.table.trash');
         Route::get('/{id}/restore', [TableController::class, 'restore'])->name('admin.table.restore');
         Route::delete('/{id}/destroy', [TableController::class, 'destroy'])->name('admin.table.destroy');
+        // Download QR
+        Route::get('/{id}/qr', [TableController::class, 'downloadQr'])->name('admin.table.qr');
     });
 });

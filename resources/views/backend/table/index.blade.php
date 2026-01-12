@@ -89,6 +89,10 @@
                                         </a>
                                     @endif
 
+                                    <a href="{{ route('admin.table.qr', $table->id) }}" class="btn btn-sm btn-info" title="Mã QR">
+                                        <i class="fas fa-qrcode"></i>
+                                    </a>
+
                                     <a href="{{ route('admin.table.edit', $table->id) }}" class="btn btn-sm btn-primary">
                                         <i class="far fa-edit"></i>
                                     </a>

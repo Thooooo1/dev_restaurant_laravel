@@ -44,7 +44,14 @@
                     class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-200"></textarea>
             </div>
 
-            <h3 class="text-xl font-bold mb-4 text-center">Chọn phương thức thanh toán</h3>
+            @if(session('table_id'))
+                <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded relative mb-4 text-center">
+                    <strong class="font-bold">Đang gọi món tại: {{ session('table_name') }}</strong>
+                    <span class="block sm:inline">Vui lòng xác nhận đơn hàng để nhà bếp chuẩn bị.</span>
+                    <input type="hidden" name="payment_method" value="TaiBan">
+                </div>
+            @else
+            <h3 class="text-xl font-bold mb-4">Phương thức thanh toán</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <label
                     class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
@@ -83,11 +90,12 @@
                     <span class="break-words">VNPAY</span>
                 </label>
             </div>
+            @endif
            
             <div class="text-center mt-6">
                 <button type="submit" id="ok"
                     class="bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none focus:ring focus:ring-orange-300">
-                    Xác nhận
+                    {{ session('table_id') ? 'Gửi gọi món' : 'Xác nhận' }}
                 </button>
             </div>
         </div>

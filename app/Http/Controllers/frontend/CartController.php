@@ -124,6 +124,16 @@ class CartController extends Controller
         $order->address = $request->address;
         $order->created_by = $userId ?? 1;
         $order->status = 0;
+
+        // Xử lý nếu là Order tại bàn
+        if (session('table_id')) {
+            $order->table_id = session('table_id');
+            // Nếu phương thức thanh toán là 'TaiBan', có thể set status hoặc xử lý khác nếu cần
+            if ($request->payment_method == 'TaiBan') {
+                $order->payment_method = 2; // Giả sử 2 là thanh toán sau/tiền mặt/tại quầy
+            }
+        }
+
         $order->save();
 
         foreach ($cart as $productId => $details) {
