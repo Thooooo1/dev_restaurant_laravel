@@ -180,6 +180,14 @@
 
             if(!confirm('Xác nhận thanh toán và in hoá đơn?')) return;
 
+            // Open print window immediately to prevent popup blocker
+            const printWindow = window.open('', 'PRINT', 'width=400,height=650');
+            if (!printWindow) {
+                toastr.error('Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup.');
+                return;
+            }
+            printWindow.document.write('Đang xử lý hoá đơn...');
+
             // Save order first
             $.ajax({
                 url: '{{ route("admin.table-order.updateTableOrderQuantities") }}',
@@ -192,18 +200,20 @@
                 success: function(res) {
                     if (res.success) {
                         // After update success, process payment
-                        processPaymentAndPrint(paymentMethod, currentTotal);
+                        processPaymentAndPrint(paymentMethod, currentTotal, printWindow);
                     } else {
                         toastr.error(res.message);
+                        printWindow.close();
                     }
                 },
                 error: function(err) {
                     toastr.error('Lỗi cập nhật đơn hàng');
+                    printWindow.close();
                 }
             });
         }
 
-        function processPaymentAndPrint(paymentMethod, total) {
+        function processPaymentAndPrint(paymentMethod, total, printWindow) {
              $.ajax({
                 url: '{{ route("admin.table-order.processPayment") }}',
                 type: 'POST',
@@ -216,17 +226,19 @@
                 success: function(res) {
                     if (res.success) {
                         toastr.success('Thanh toán thành công');
-                        printInvoice();
+                        printInvoice(printWindow);
                         // Redirect to index after printing
                         setTimeout(() => {
                              window.location.href = '{{ route("admin.table-order.index") }}';
                         }, 2000);
                     } else {
                         toastr.error(res.message);
+                        if(printWindow) printWindow.close();
                     }
                 },
                 error: function(err) {
                      toastr.error('Lỗi thanh toán');
+                     if(printWindow) printWindow.close();
                 }
             });
         }
@@ -235,7 +247,7 @@
             // Deprecated function, logic moved to handlePrintInvoice
         }
 
-        function printInvoice() {
+        function printInvoice(w) {
              const paymentMethodValue = document.getElementById('paymentMethodSelect').value;
              const paymentMethodText = paymentMethodValue === '2' ? 'Chuyển khoản NH' : 'Tiền mặt';
 
@@ -272,11 +284,17 @@
                  total
              });
 
-             const w = window.open('', 'PRINT', 'width=400,height=650');
+             // If w is provided (opened early), use it. Otherwise try opening new (may be blocked)
+             if (!w) {
+                 w = window.open('', 'PRINT', 'width=400,height=650');
+             }
+             
              if (!w) {
                  toastr.error('Trình duyệt đang chặn cửa sổ in');
                  return;
              }
+             
+             w.document.open(); // Reset document if it has content
              w.document.write(html);
              w.document.close();
              w.focus();
