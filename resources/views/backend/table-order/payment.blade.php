@@ -1,14 +1,18 @@
 <x-layout-backend>
     <section class="content-header">
-        <div class="container-fluid d-flex justify-content-between align-items-center">
-            <div>
-                <h1>{{ $table->floor->name ?? '' }} - {{ $table->name }} | Thanh toán</h1>
-            </div>
-            <div>
-                <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Quay lại</a>
-                <button class="btn btn-warning btn-sm ml-2" id="btnEditMode" onclick="toggleEditMode()"><i class="fas fa-edit"></i> Sửa</button>
-                <button class="btn btn-success btn-sm ml-2" data-toggle="modal" data-target="#modalAddProduct"><i class="fas fa-plus"></i> Thêm sản phẩm</button>
-                <button class="btn btn-primary btn-sm ml-2" onclick="handlePrintInvoice()"><i class="fas fa-print"></i> In hoá đơn</button>
+        <div class="container-fluid">
+            <div class="row align-items-center">
+                <div class="col-12 col-md">
+                    <h1 class="mb-2 mb-md-0">{{ $table->floor->name ?? '' }} - {{ $table->name }} | Thanh toán</h1>
+                </div>
+                <div class="col-12 col-md-auto mt-1 mt-md-0">
+                    <div class="d-flex flex-wrap justify-content-md-end">
+                        <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm mb-2 mr-2"><i class="fas fa-arrow-left"></i> Quay lại</a>
+                        <button class="btn btn-warning btn-sm mb-2 mr-2" id="btnEditMode" onclick="toggleEditMode()"><i class="fas fa-edit"></i> Sửa</button>
+                        <button class="btn btn-success btn-sm mb-2 mr-2" data-toggle="modal" data-target="#modalAddProduct"><i class="fas fa-plus"></i> Thêm sản phẩm</button>
+                        <button class="btn btn-primary btn-sm mb-2" onclick="handlePrintInvoice()"><i class="fas fa-print"></i> In hoá đơn</button>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -24,19 +28,17 @@
                         </div>
                         <div class="card-body">
                             <!-- Payment Info Row -->
-                            <div class="row mb-4 align-items-end">
-                                <div class="col-md-6">
-                                    <div class="form-group mb-0" style="max-width: 300px;">
-                                        <label>Phương thức thanh toán:</label>
-                                        <select class="form-control" name="payment_method" id="paymentMethodSelect">
-                                            <option value="1" selected>Tiền mặt</option>
-                                            <option value="2">Chuyển khoản NH</option>
-                                        </select>
-                                    </div>
+                            <div class="row mb-4 align-items-center">
+                                <div class="col-12 col-md-6 d-flex align-items-center">
+                                    <label class="mb-0 mr-2">Phương thức:</label>
+                                    <select class="form-control form-control-sm w-auto" name="payment_method" id="paymentMethodSelect">
+                                        <option value="1" selected>Tiền mặt</option>
+                                        <option value="2">Chuyển khoản NH</option>
+                                    </select>
                                 </div>
-                                <div class="col-md-6 text-right">
-                                    <label>Tổng tiền cần thanh toán:</label>
-                                    <h2 class="text-danger font-weight-bold mb-0" id="total-amount-header">{{ number_format($totalAmount, 0, ',', '.') }} ₫</h2>
+                                <div class="col-12 col-md-6 d-flex justify-content-md-end align-items-center text-left text-md-right mt-2 mt-md-0">
+                                    <label class="mb-0 mr-2">Tổng tiền:</label>
+                                    <span class="h2 text-danger font-weight-bold mb-0" id="total-amount-header">{{ number_format($totalAmount, 0, ',', '.') }} ₫</span>
                                 </div>
                             </div>
 
