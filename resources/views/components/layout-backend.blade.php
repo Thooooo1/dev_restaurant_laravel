@@ -88,9 +88,15 @@
 
 
                         <li class="nav-item pl-1">
-                            <a href="{{ url('admin/order/') }}" class="nav-link {{ request()->is('admin/order*') ? 'active' : '' }}">
+                            <a href="{{ url('admin/order/') }}" class="nav-link {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? 'active' : '' }}">
                                 <i class="fas fa-shopping-bag"></i>
                                 <p>Đơn hàng</p>
+                            </a>
+                        </li>
+                        <li class="nav-item pl-1">
+                            <a href="{{ route('admin.order-history.index') }}" class="nav-link {{ request()->routeIs('admin.order-history.*') ? 'active' : '' }}">
+                                <i class="fas fa-history"></i>
+                                <p>Lịch sử order</p>
                             </a>
                         </li>
                         <li class="nav-item pl-1">
@@ -213,6 +219,12 @@
                                     </a>
                                 </li>
                             </ul>
+                        </li>
+                        <li class="nav-item pl-1">
+                            <a href="{{ route('admin.import-goods.index') }}" class="nav-link {{ request()->routeIs('admin.import-goods.*') ? 'active' : '' }}">
+                                <i class="fa-solid fa-file-import"></i>
+                                <p>Quản lý nhập hàng</p>
+                            </a>
                         </li>
                         <li class="nav-item {{ request()->is('admin/menu*') || request()->is('admin/banner*') || request()->is('admin/image*') || request()->is('admin/keyword*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('admin/menu*') || request()->is('admin/banner*') || request()->is('admin/image*') || request()->is('admin/keyword*') ? 'active' : '' }}">

@@ -31,6 +31,7 @@ use App\Http\Controllers\backend\TopicController;
 use App\Http\Controllers\backend\ImageController;
 use App\Http\Controllers\backend\UserController;
 use App\Http\Controllers\backend\OrderController;
+use App\Http\Controllers\backend\OrderHistoryController;
 use App\Http\Controllers\backend\ContactController;
 use App\Http\Controllers\backend\KeywordController;
 use App\Http\Controllers\backend\MenuController;
@@ -38,6 +39,7 @@ use App\Http\Controllers\backend\BookingController;
 use App\Http\Controllers\backend\InquiryController;
 use App\Http\Controllers\backend\TableController;
 use App\Http\Controllers\backend\TableOrderController;
+use App\Http\Controllers\backend\ImportGoodsController;
 
 // Auth Controllers
 use App\Http\Controllers\auth\AuthController;
@@ -179,6 +181,14 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::post('/{id}/update', [OrderController::class, 'update'])->name('admin.order.update');
     });
 
+    // Order History
+    Route::prefix('order-history')->group(function () {
+        Route::get('/', [OrderHistoryController::class, 'index'])->name('admin.order-history.index');
+        Route::get('/export', [OrderHistoryController::class, 'export'])->name('admin.order-history.export');
+        Route::get('/{id}', [OrderHistoryController::class, 'show'])->name('admin.order-history.show');
+    });
+
+
     // Table Orders (POS)
     Route::prefix('table-order')->group(function () {
         Route::get('/', [TableOrderController::class, 'index'])->name('admin.table-order.index');
@@ -197,6 +207,7 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::get('/{id}/payment', [TableOrderController::class, 'payment'])->name('admin.table-order.payment');
         Route::post('/merge-table', [TableOrderController::class, 'mergeTable'])->name('admin.table-order.mergeTable');
         Route::post('/unmerge-table', [TableOrderController::class, 'unmergeTable'])->name('admin.table-order.unmergeTable');
+        Route::post('/process-payment', [TableOrderController::class, 'processPayment'])->name('admin.table-order.processPayment');
     });
 
     // Bookings
@@ -212,6 +223,16 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::get('/', [InquiryController::class, 'index'])->name('admin.inquiry.index');
         Route::get('/{id}', [InquiryController::class, 'show'])->name('admin.inquiry.show');
         Route::post('/{id}/update-status', [InquiryController::class, 'updateStatus'])->name('admin.inquiry.updateStatus');
+    });
+
+    // Import Goods (Quản lý nhập hàng)
+    Route::prefix('import-goods')->group(function () {
+        Route::get('/', [ImportGoodsController::class, 'index'])->name('admin.import-goods.index');
+        Route::get('/create', [ImportGoodsController::class, 'create'])->name('admin.import-goods.create');
+        Route::post('/', [ImportGoodsController::class, 'store'])->name('admin.import-goods.store');
+        Route::get('/{id}/edit', [ImportGoodsController::class, 'edit'])->name('admin.import-goods.edit');
+        Route::put('/{id}', [ImportGoodsController::class, 'update'])->name('admin.import-goods.update');
+        Route::delete('/{id}', [ImportGoodsController::class, 'destroy'])->name('admin.import-goods.destroy');
     });
 
     // Brands

@@ -524,4 +524,29 @@ class TableOrderController extends Controller
         $categories = Category::whereNull('deleted_at')->orderBy('name')->get();
         return view('backend.table-order.payment', compact('table', 'order', 'orderDetails', 'totalAmount', 'categories'));
     }
+
+    public function processPayment(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:order,id',
+            'payment_method' => 'required|in:1,2',
+            'total_price' => 'required|numeric|min:0',
+        ]);
+
+        $order = Order::findOrFail($request->order_id);
+        
+        // Update order status to 2 (Completed) and save payment method
+        $order->status = 2;
+        $order->payment_method = $request->payment_method;
+        $order->total_price = $request->total_price;
+        $order->save();
+
+        // Clear table lock if exists
+        $table = Table::find($order->table_id);
+        if ($table && $table->locked_order_id == $order->id) {
+             Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Thanh toán thành công']);
+    }
 }

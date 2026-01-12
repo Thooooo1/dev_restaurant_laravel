@@ -23,6 +23,8 @@ class Order extends Model
         'orderStyle',
         'table_id',
         'order_turn',
+        'payment_method',
+        'total_price',
     ];
 
     public function orderDetails()

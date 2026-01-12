@@ -15,51 +15,80 @@
 
     <section class="content">
         <div class="container-fluid">
-            <div class="card">
-                <div class="card-header">
-                    <strong>Khách:</strong> {{ $order->user->fullname ?? $order->name ?? 'Khách lẻ' }}
-                    <span class="ml-3"><strong>ĐT:</strong> {{ $order->user->phone ?? $order->phone ?? '---' }}</span>
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <strong>Khách:</strong> {{ $order->user->fullname ?? $order->name ?? 'Khách lẻ' }}
+                            <span class="ml-3"><strong>ĐT:</strong> {{ $order->user->phone ?? $order->phone ?? '---' }}</span>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm" id="paymentTable">
+                                <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Tên món</th>
+                                        <th class="text-right">SL</th>
+                                        <th class="text-right">Đơn giá</th>
+                                        <th class="text-right">Thành tiền</th>
+                                        <th class="text-center action-col">#</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($orderDetails as $i => $item)
+                                        <tr data-id="{{ $item->id }}" data-price="{{ $item->price }}" data-name="{{ $item->product->name ?? 'N/A' }}">
+                                            <td>{{ $i + 1 }}</td>
+                                            <td>{{ $item->product->name ?? 'N/A' }}</td>
+                                            <td class="text-right">
+                                                <span class="qty-display">{{ $item->qty }}</span>
+                                                <input type="number" class="form-control form-control-sm qty-input d-none" style="width: 70px; display: inline-block; text-align: right;" value="{{ $item->qty }}" min="1" oninput="updateRowTotal(this)">
+                                            </td>
+                                            <td class="text-right">{{ number_format($item->price, 0, ',', '.') }} ₫</td>
+                                            <td class="text-right amount-display">{{ number_format($item->amount, 0, ',', '.') }} ₫</td>
+                                            <td class="text-center action-col">
+                                                <button class="btn btn-danger btn-sm btn-delete-item" disabled onclick="confirmDeleteItem({{ $item->id }})"><i class="fas fa-trash"></i></button>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <th colspan="4" class="text-right">Tổng cộng</th>
+                                        <th class="text-right text-danger" id="total-amount-display">{{ number_format($totalAmount, 0, ',', '.') }} ₫</th>
+                                        <th class="action-col"></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <div class="card-footer text-right">
+                            <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary">Quay lại</a>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <table class="table table-sm" id="paymentTable">
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>Tên món</th>
-                                <th class="text-right">SL</th>
-                                <th class="text-right">Đơn giá</th>
-                                <th class="text-right">Thành tiền</th>
-                                <th class="text-center action-col">#</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($orderDetails as $i => $item)
-                                <tr data-id="{{ $item->id }}" data-price="{{ $item->price }}" data-name="{{ $item->product->name ?? 'N/A' }}">
-                                    <td>{{ $i + 1 }}</td>
-                                    <td>{{ $item->product->name ?? 'N/A' }}</td>
-                                    <td class="text-right">
-                                        <span class="qty-display">{{ $item->qty }}</span>
-                                        <input type="number" class="form-control form-control-sm qty-input d-none" style="width: 70px; display: inline-block; text-align: right;" value="{{ $item->qty }}" min="1" oninput="updateRowTotal(this)">
-                                    </td>
-                                    <td class="text-right">{{ number_format($item->price, 0, ',', '.') }} ₫</td>
-                                    <td class="text-right amount-display">{{ number_format($item->amount, 0, ',', '.') }} ₫</td>
-                                    <td class="text-center action-col">
-                                        <button class="btn btn-danger btn-sm btn-delete-item" disabled onclick="confirmDeleteItem({{ $item->id }})"><i class="fas fa-trash"></i></button>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th colspan="4" class="text-right">Tổng cộng</th>
-                                <th class="text-right text-danger" id="total-amount-display">{{ number_format($totalAmount, 0, ',', '.') }} ₫</th>
-                                <th class="action-col"></th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                <div class="card-footer text-right">
-                    <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary">Quay lại</a>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h3 class="card-title">Thanh toán</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Tổng tiền cần thanh toán:</label>
+                                <h2 class="text-danger font-weight-bold">{{ number_format($totalAmount, 0, ',', '.') }} ₫</h2>
+                            </div>
+                            <hr>
+                            <div class="form-group">
+                                <label>Phương thức thanh toán:</label>
+                                <select class="form-control" name="payment_method" id="paymentMethodSelect">
+                                    <option value="1" selected>Tiền mặt</option>
+                                    <option value="2">Chuyển khoản NH</option>
+                                </select>
+                            </div>
+                            <hr>
+                            <button class="btn btn-success btn-lg btn-block" onclick="handlePayment()">
+                                <i class="fas fa-check-circle"></i> THANH TOÁN & KẾT THÚC
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -180,8 +209,70 @@
             });
         }
 
-        function updateItemQty(id, el) {
-            // Function no longer used for direct AJAX, but kept if needed for simple validation
+        function handlePayment() {
+            const paymentMethod = document.getElementById('paymentMethodSelect').value;
+            const totalPrice = {{ $totalAmount }};
+            
+            if(!confirm('Xác nhận thanh toán đơn hàng này?')) return;
+
+            fetch('{{ route("admin.table-order.processPayment") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    order_id: {{ $order->id }},
+                    payment_method: paymentMethod,
+                    total_price: totalPrice
+                })
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    toastr.success(res.message);
+                    setTimeout(() => {
+                        window.location.href = '{{ route("admin.table-order.index") }}';
+                    }, 1000);
+                } else {
+                    toastr.error(res.message);
+                }
+            })
+            .catch(err => {
+                toastr.error('Lỗi thanh toán');
+            });
+        }
+
+        function printInvoice() {
+             // Open print window
+             window.open('{{ route("admin.order.printorder", ["id" => $order->id]) }}', '_blank');
+        }
+
+        // Functions for Edit Mode (Delete, Add, Update Qty)
+        function updateRowTotal(input) {
+             const qty = parseInt(input.value);
+             const tr = input.closest('tr');
+             const price = parseInt(tr.dataset.price);
+             const amountDisplay = tr.querySelector('.amount-display');
+             
+             if (!isNaN(qty) && qty > 0) {
+                 const amount = price * qty;
+                 amountDisplay.innerText = new Intl.NumberFormat('vi-VN').format(amount) + ' ₫';
+                 updateTotal();
+             }
+        }
+
+        function updateTotal() {
+            let total = 0;
+            document.querySelectorAll('#paymentTable tbody tr').forEach(tr => {
+                const qtyInput = tr.querySelector('.qty-input');
+                const qty = parseInt(qtyInput.value);
+                const price = parseInt(tr.dataset.price);
+                if (!isNaN(qty) && qty > 0) {
+                    total += price * qty;
+                }
+            });
+            document.getElementById('total-amount-display').innerText = new Intl.NumberFormat('vi-VN').format(total) + ' ₫';
         }
 
         function confirmDeleteItem(id) {
@@ -199,182 +290,58 @@
                         } else {
                             alert(res.message);
                         }
-                    },
-                    error: function(err) {
-                        alert('Lỗi xóa món');
                     }
                 });
             }
         }
 
         function loadProducts(categoryId) {
-            const productSelect = $('#productSelect');
-            
-            if (!categoryId) {
-                productSelect.html('<option value="">-- Chọn sản phẩm --</option>');
-                return;
-            }
-
-            // Show loading state
-            productSelect.html('<option value="">Đang tải...</option>');
-            productSelect.prop('disabled', true);
-
+            if (!categoryId) return;
             $.ajax({
                 url: '{{ route("admin.table-order.getProducts") }}',
                 type: 'POST',
-                data: { 
+                data: {
                     _token: '{{ csrf_token() }}',
-                    category_id: categoryId 
+                    category_id: categoryId
                 },
                 success: function(res) {
                     if (res.success) {
                         let html = '<option value="">-- Chọn sản phẩm --</option>';
                         res.products.forEach(p => {
-                            html += `<option value="${p.id}">${p.name} - ${new Intl.NumberFormat('vi-VN').format(p.price_sale)} đ</option>`;
+                            html += `<option value="${p.id}">${p.name}</option>`;
                         });
-                        productSelect.html(html);
-                    } else {
-                        productSelect.html('<option value="">Không có sản phẩm</option>');
+                        $('#productSelect').html(html);
                     }
-                },
-                error: function() {
-                    productSelect.html('<option value="">Lỗi tải dữ liệu</option>');
-                },
-                complete: function() {
-                    productSelect.prop('disabled', false);
                 }
             });
         }
 
         function addProductToOrder() {
-            const btn = $('#btnAddProduct');
-            const productId = $('#productSelect').val();
-            const qty = $('#productQty').val();
-            
-            if (!productId) {
-                toastr.warning('Vui lòng chọn sản phẩm');
-                return;
-            }
-            if (qty < 1) {
-                toastr.warning('Số lượng phải lớn hơn 0');
-                return;
-            }
+             const productId = $('#productSelect').val();
+             const qty = $('#productQty').val();
+             
+             if (!productId) {
+                 toastr.error('Vui lòng chọn sản phẩm');
+                 return;
+             }
 
-            // Disable button
-            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang thêm...');
-
-            $.ajax({
-                url: '{{ route("admin.table-order.addProductToOrder") }}',
-                type: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    order_id: {{ $order->id }},
-                    product_id: productId,
-                    qty: qty
-                },
-                success: function(res) {
-                    if (res.success) {
-                        toastr.success('Thêm món thành công');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 500);
-                    } else {
-                        toastr.error(res.message);
-                        btn.prop('disabled', false).text('Thêm');
-                    }
-                },
-                error: function(err) {
-                    toastr.error('Lỗi thêm món');
-                    btn.prop('disabled', false).text('Thêm');
-                }
-            });
-        }
-
-        function updateRowTotal(el) {
-            const tr = el.closest('tr');
-            const price = parseFloat(tr.dataset.price);
-            const qty = parseInt(el.value);
-            
-            if (qty < 1 || isNaN(qty)) return;
-
-            const amount = price * qty;
-            tr.querySelector('.amount-display').textContent = formatMoney(amount);
-            
-            updateOrderTotal();
-        }
-
-        function updateOrderTotal() {
-            let total = 0;
-            document.querySelectorAll('#paymentTable tbody tr').forEach(tr => {
-                const price = parseFloat(tr.dataset.price);
-                const input = tr.querySelector('.qty-input');
-                const qty = parseInt(input.value);
-                
-                if (qty >= 1 && !isNaN(qty)) {
-                    total += price * qty;
-                }
-            });
-            document.getElementById('total-amount-display').textContent = formatMoney(total);
-        }
-
-        function formatMoney(amount) {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-        }
-
-        function printInvoice() {
-            const items = [];
-            document.querySelectorAll('#paymentTable tbody tr').forEach((tr, index) => {
-                const name = tr.dataset.name;
-                const price = parseFloat(tr.dataset.price);
-                const input = tr.querySelector('.qty-input');
-                const qty = parseInt(input.value);
-                
-                if (qty >= 1 && !isNaN(qty)) {
-                    items.push({
-                        stt: index + 1,
-                        name: name,
-                        qty: qty,
-                        price: price
-                    });
-                }
-            });
-
-            let rows = '';
-            let totalAmount = 0;
-            items.forEach(i => {
-                const amount = i.price * i.qty;
-                totalAmount += amount;
-                rows += `<tr>
-                    <td style="text-align:center;width:30px;">${i.stt}</td>
-                    <td>${i.name}</td>
-                    <td style="text-align:right;width:50px;">${i.qty}</td>
-                    <td style="text-align:right;width:70px;">${formatMoney(i.price)}</td>
-                    <td style="text-align:right;width:90px;">${formatMoney(amount)}</td>
-                </tr>`;
-            });
-            const now = new Date();
-            const pad = n => String(n).padStart(2,'0');
-            const dateStr = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-            const html = `<!doctype html><html><head><meta charset="utf-8"><title>Hóa đơn thanh toán</title><style>
-                @media print { @page { size: 80mm auto; margin: 5mm; } }
-                body { font-family: Arial, sans-serif; width: 80mm; }
-                .title { text-align:center; font-size:16px; font-weight:bold; margin-bottom:6px; }
-                .meta { font-size:12px; margin-bottom:6px; }
-                table { width:100%; border-collapse: collapse; font-size:12px; }
-                th, td { padding:4px 0; border-bottom:1px dashed #000; }
-                th { text-align:left; border-top:1px dashed #000; }
-                .footer { margin-top:8px; font-size:11px; text-align:center; }
-            </style></head><body>
-                <div class="title">HÓA ĐƠN THANH TOÁN</div>
-                <div class="meta">Tầng: <strong>{{ $table->floor->name ?? '' }}</strong> | Bàn: <strong>{{ $table->name }}</strong></div>
-                <div class="meta">Khách: <strong>{{ $order->user->fullname ?? $order->name ?? 'Khách lẻ' }}</strong> | ĐT: {{ $order->user->phone ?? $order->phone ?? '---' }}</div>
-                <div class="meta">Thời gian: ${dateStr}</div>
-                <table><thead><tr><th style="width:30px; text-align:center;">STT</th><th>Món</th><th style="width:50px; text-align:right;">SL</th><th style="width:70px; text-align:right;">Đơn giá</th><th style="width:90px; text-align:right;">Thành tiền</th></tr></thead><tbody>${rows}</tbody></table>
-                <div class="meta" style="text-align:right;"><strong>Tổng cộng: ${formatMoney(totalAmount)}</strong></div>
-                <div class="footer">Cảm ơn quý khách!</div>
-            </body></html>`;
-            const w = window.open('', 'PRINT', 'width=400,height=600');
-            w.document.write(html); w.document.close(); w.focus(); w.print(); w.close();
+             $.ajax({
+                 url: '{{ route("admin.table-order.addProductToOrder") }}',
+                 type: 'POST',
+                 data: {
+                     _token: '{{ csrf_token() }}',
+                     order_id: {{ $order->id }},
+                     product_id: productId,
+                     qty: qty
+                 },
+                 success: function(res) {
+                     if (res.success) {
+                         location.reload();
+                     } else {
+                         toastr.error(res.message);
+                     }
+                 }
+             });
         }
     </script>
 </x-layout-backend>

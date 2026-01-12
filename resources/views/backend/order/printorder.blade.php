@@ -29,7 +29,15 @@
         <p><strong>Điện thoại:</strong> {{ $order->phone }}</p>
         <p><strong>Địa chỉ:</strong> {{ $order->address }}</p>
         <p><strong>Ghi chú:</strong> {{ $order->note }}</p>
-        <p><strong>Thanh toán:</strong> {{ $order->payment_method }}</p>
+        <p><strong>Thanh toán:</strong> 
+            @if($order->payment_method == 1)
+                Tiền mặt
+            @elseif($order->payment_method == 2)
+                Chuyển khoản NH
+            @else
+                Khác
+            @endif
+        </p>
         <table class="table">
             <thead>
                 <tr>
