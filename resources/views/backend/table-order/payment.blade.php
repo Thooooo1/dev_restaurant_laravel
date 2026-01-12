@@ -234,8 +234,159 @@
         }
 
         function printInvoice() {
-             // Open print window
-             window.open('{{ route("admin.order.printorder", ["id" => $order->id]) }}', '_blank');
+             const paymentMethodValue = document.getElementById('paymentMethodSelect').value;
+             const paymentMethodText = paymentMethodValue === '2' ? 'Chuyển khoản NH' : 'Tiền mặt';
+
+             const items = [];
+             let total = 0;
+
+             document.querySelectorAll('#paymentTable tbody tr').forEach((tr, idx) => {
+                 const name = tr.dataset.name || 'N/A';
+                 const price = parseInt(tr.dataset.price);
+                 const qtyInput = tr.querySelector('.qty-input');
+                 const qty = qtyInput ? parseInt(qtyInput.value) : 0;
+                 if (isNaN(price) || isNaN(qty) || qty < 1) return;
+                 const amount = price * qty;
+                 total += amount;
+                 items.push({ stt: idx + 1, name, price, qty, amount });
+             });
+
+             const customerName = @json($order->user->fullname ?? $order->name ?? 'Khách lẻ');
+             const customerPhone = @json($order->user->phone ?? $order->phone ?? '---');
+             const floorName = @json($table->floor->name ?? '');
+             const tableName = @json($table->name ?? '');
+             const orderId = @json($order->id);
+             const createdAt = @json(optional($order->created_at)->format('H:i d/m/Y'));
+
+             const html = generateInvoiceHTML({
+                 floorName,
+                 tableName,
+                 orderId,
+                 createdAt,
+                 customerName,
+                 customerPhone,
+                 paymentMethodText,
+                 items,
+                 total
+             });
+
+             const w = window.open('', 'PRINT', 'width=400,height=650');
+             if (!w) {
+                 toastr.error('Trình duyệt đang chặn cửa sổ in');
+                 return;
+             }
+             w.document.write(html);
+             w.document.close();
+             w.focus();
+             setTimeout(() => {
+                 w.print();
+                 setTimeout(() => w.close(), 200);
+             }, 250);
+        }
+
+        function generateInvoiceHTML(data) {
+            const {
+                floorName,
+                tableName,
+                orderId,
+                createdAt,
+                customerName,
+                customerPhone,
+                paymentMethodText,
+                items,
+                total
+            } = data;
+
+            const nf = new Intl.NumberFormat('vi-VN');
+            const rows = items.map(i => {
+                return `
+                    <tr>
+                        <td class="c">${i.stt}</td>
+                        <td class="l">${escapeHtml(i.name)}</td>
+                        <td class="q">${i.qty}</td>
+                        <td class="p">${nf.format(i.price)} đ</td>
+                        <td class="a">${nf.format(i.amount)} đ</td>
+                    </tr>
+                `;
+            }).join('');
+
+            const totalText = `${nf.format(total)} đ`;
+            const title = 'HÓA ĐƠN';
+            const metaFloorTable = `${floorName ? `Tầng: <strong>${escapeHtml(floorName)}</strong> | ` : ''}Bàn: <strong>${escapeHtml(tableName)}</strong>`;
+            const metaInvoiceId = `Mã HĐ: <strong>#${escapeHtml(String(orderId))}</strong>`;
+            const metaCustomer = `Khách: <strong>${escapeHtml(customerName)}</strong> | SĐT: <strong>${escapeHtml(customerPhone)}</strong>`;
+            const metaPayment = `Phương thức thanh toán: <strong>${escapeHtml(paymentMethodText)}</strong>`;
+            const metaTime = `Thời gian: <strong>${escapeHtml(createdAt || '')}</strong>`;
+
+            return `<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>In hóa đơn</title>
+  <style>
+    @media print { @page { size: 80mm auto; margin: 3mm; } }
+    html, body { padding: 0; margin: 0; }
+    body { font-family: Arial, sans-serif; font-size: 12px; width: 80mm; }
+    .bill { width: 74mm; margin: 0 auto; }
+    .title { text-align: center; font-size: 16px; font-weight: 700; margin: 4px 0 6px; }
+    .meta { font-size: 11px; margin-bottom: 4px; }
+    .line { border-top: 1px dashed #000; margin: 6px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th, td { padding: 4px 0; vertical-align: top; }
+    thead th { border-top: 1px dashed #000; border-bottom: 1px dashed #000; font-weight: 700; }
+    tbody tr td { border-bottom: 1px dashed #000; }
+    .c { text-align: center; width: 24px; }
+    .l { text-align: left; }
+    .q { text-align: right; white-space: nowrap; width: 32px; }
+    .p { text-align: right; white-space: nowrap; width: 62px; }
+    .a { text-align: right; white-space: nowrap; width: 64px; }
+    .sum { font-weight: 700; }
+    .footer { text-align: center; font-size: 11px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="bill">
+    <div class="title">${title}</div>
+    <div class="meta">${metaFloorTable}</div>
+    <div class="meta">${metaInvoiceId}</div>
+    <div class="meta">${metaCustomer}</div>
+    <div class="meta">${metaPayment}</div>
+    <div class="meta">${metaTime}</div>
+    <div class="line"></div>
+    <table>
+      <thead>
+        <tr>
+          <th class="c">#</th>
+          <th class="l">Tên món ăn</th>
+          <th class="q">SL</th>
+          <th class="p">Đơn giá</th>
+          <th class="a">Thành tiền</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" class="l sum">Tổng cộng</td>
+          <td class="a sum">${totalText}</td>
+        </tr>
+      </tfoot>
+    </table>
+    <div class="footer">Cảm ơn quý khách!</div>
+  </div>
+</body>
+</html>`;
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
         }
 
         // Functions for Edit Mode (Delete, Add, Update Qty)
