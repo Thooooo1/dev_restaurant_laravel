@@ -35,7 +35,7 @@
                 @csrf
                 <button
                     type="submit"
-                    class="bg-orange-600 text-white py-2 px-4 rounded hover:bg-orange-500">
+                    class="bg-orange-600 text-white py-2 px-4 rounded hover:bg-orange-500 whitespace-nowrap md:min-w-[170px] text-center">
                     Thêm vào giỏ hàng
                 </button>
             </form>

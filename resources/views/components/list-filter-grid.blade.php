@@ -3,7 +3,7 @@
         <h2 class="text-lg font-bold mb-4">Danh mục</h2>
         <form method="GET" action="{{ url()->current() }}">
             <ul class="space-y-2">
-                <li>
+                <li class="only-pc">
                     <label class="flex items-center">
                         <input type="radio" name="category" value="all"
                             {{ $categoryitem === 'all' ? 'checked' : '' }}>
@@ -21,8 +21,8 @@
                 @endforeach
             </ul>
 
-            <h2 class="text-lg font-bold mt-6 mb-4">Thương hiệu</h2>
-            <ul class="space-y-2">
+            <h2 class="text-lg font-bold mt-6 mb-4 only-pc">Thương hiệu</h2>
+            <ul class="space-y-2 only-pc">
                 <li>
                     <label class="flex items-center">
                         <input type="radio" name="brand" value="all" {{ $branditem === 'all' ? 'checked' : '' }}>
@@ -40,8 +40,8 @@
                 @endforeach
             </ul>
 
-            <h2 class="text-lg font-bold mt-6 mb-4">Lọc theo giá</h2>
-            <div class="flex items-center gap-2">
+            <h2 class="text-lg font-bold mt-6 mb-4 only-pc">Lọc theo giá</h2>
+            <div class="flex items-center gap-2 only-pc">
                 <input type="text" name="price_min" value="{{ request()->get('price_min') }}" placeholder="Từ"
                     class="border rounded p-2 w-24">
                 <span>-</span>
@@ -112,6 +112,13 @@
         </div>
         <x-list-product-grid :categoryitem="$categoryitem" :branditem="$branditem" />
     </div>
+    <style>
+  .only-pc { display: none; }
+
+  @media (min-width: 768px) {
+    .only-pc { display: block; }
+  }
+</style>
 </div>
 <script>
     document.getElementById('searchButton').addEventListener('click', function() {

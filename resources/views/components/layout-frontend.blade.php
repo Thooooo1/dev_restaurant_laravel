@@ -81,11 +81,11 @@
                 </div>
 
                 <!-- Menu -->
-                <div :class="openMenu ? 'block' : 'hidden'" class="w-full md:!block md:w-auto lg:basis-5/12 mt-4 md:mt-0 order-3 md:order-2">
+                <div :class="openMenu ? 'block' : 'hidden'" class="w-full md:!block md:w-auto lg:basis-6/12 mt-4 md:mt-0 order-3 md:order-2">
                     <x-main-menu />
                 </div>
 
-                <div :class="openMenu ? 'block' : 'hidden'" class="w-full md:!block md:w-4/12 lg:basis-4/12 mt-4 md:mt-0 order-4 md:order-3">
+                <div :class="openMenu ? 'block' : 'hidden'" class="w-full md:!block md:w-4/12 lg:basis-3/12 mt-4 md:mt-0 order-4 md:order-3">
                     <div class="flex flex-col md:flex-row justify-end gap-4 items-center">
                         <a style="margin-right: 10px;" href="{{ route('site.booking') }}"
                             class="text-gray-800 hover:text-blue-500">
@@ -425,7 +425,7 @@
 
                 </div>
                 <div class="w-full md:w-3/12">
-                    <img src="../images//logo/logo2_footer.png" alt="" class="py-2">
+                    <img src="../images//logo/logo.png" alt="" class="py-2">
                     Theo dõi nhà hàng qua
                     <div class="footer-social f-right">
                         <span>Follow Us __</span>
