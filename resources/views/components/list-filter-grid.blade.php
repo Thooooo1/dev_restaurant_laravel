@@ -2,7 +2,7 @@
     <div class="w-full md:w-1/4 bg-white rounded-lg shadow p-4">
         <h2 class="text-lg font-bold mb-4">Danh mục</h2>
         <form method="GET" action="{{ url()->current() }}">
-            <ul class="space-y-2">
+            <ul class="space-y-2 category-list">
                 <li class="only-pc">
                     <label class="flex items-center">
                         <input type="radio" name="category" value="all"
@@ -59,7 +59,7 @@
     <div class="w-full md:w-3/4">
         <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
             <span class="text-gray-700">{{ $productCount }} Món ăn</span>
-            <div class="flex items-center w-full md:w-auto">
+            <div class="flex items-center w-full md:w-auto only-pc">
                 <input type="text" id="searchInput" placeholder="Tìm món ăn"
                     class="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
 
@@ -68,7 +68,7 @@
                     <i class="fa fa-search mr-2"></i> Tìm
                 </button>
             </div>
-            <div class="flex items-center space-x-2 w-full md:w-auto justify-between md:justify-end">
+            <div class="flex items-center space-x-2 w-full md:w-auto justify-between md:justify-end only-pc">
                 <div>
                     <select id="sortFilter" class="block w-full md:w-48 p-2 border border-gray-300 rounded-lg">
                         <option value="default" {{ request()->get('sort') == 'default' ? 'selected' : '' }}>Mặc định
@@ -113,12 +113,32 @@
         <x-list-product-grid :categoryitem="$categoryitem" :branditem="$branditem" />
     </div>
     <style>
-  .only-pc { display: none; }
+        .only-pc {
+            display: none;
+        }
 
-  @media (min-width: 768px) {
-    .only-pc { display: block; }
-  }
-</style>
+        @media (min-width: 768px) {
+            .only-pc {
+                display: block;
+            }
+        }
+
+        /* SP: danh mục 2 cột, PC giữ dạng danh sách dọc */
+        @media (max-width: 767.98px) {
+            .category-list {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                column-gap: 0.5rem;
+                row-gap: 0.5rem;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .category-list {
+                display: block;
+            }
+        }
+    </style>
 </div>
 <script>
     document.getElementById('searchButton').addEventListener('click', function() {
