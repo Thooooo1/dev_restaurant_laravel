@@ -57,59 +57,63 @@
     </div>
 
     <div class="w-full md:w-3/4">
-        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-            <span class="text-gray-700">{{ $productCount }} Món ăn</span>
-            <div class="flex items-center w-full md:w-auto only-pc">
-                <input type="text" id="searchInput" placeholder="Tìm món ăn"
-                    class="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+        <div class="only-pc">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                <span class="text-gray-700">{{ $productCount }} Món ăn</span>
+                <div class="flex items-center w-full md:w-auto">
+                    <input type="text" id="searchInput" placeholder="Tìm món ăn"
+                        class="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
 
-                <button id="searchButton"
-                    class="px-4 py-2 bg-orange-500 text-white border border-orange-500 rounded-r-lg hover:bg-orange-600 focus:ring-2 focus:ring-orange-500">
-                    <i class="fa fa-search mr-2"></i> Tìm
-                </button>
-            </div>
-            <div class="flex items-center space-x-2 w-full md:w-auto justify-between md:justify-end only-pc">
-                <div>
-                    <select id="sortFilter" class="block w-full md:w-48 p-2 border border-gray-300 rounded-lg">
-                        <option value="default" {{ request()->get('sort') == 'default' ? 'selected' : '' }}>Mặc định
-                        </option>
-                        <option value="priceAsc" {{ request()->get('sort') == 'priceAsc' ? 'selected' : '' }}>Giá tăng
-                            dần</option>
-                        <option value="priceDesc" {{ request()->get('sort') == 'priceDesc' ? 'selected' : '' }}>Giá
-                            giảm dần
-                        </option>
-                        <option value="alphabet" {{ request()->get('sort') == 'alphabet' ? 'selected' : '' }}>Theo chữ
-                            cái</option>
-                        <option value="newest" {{ request()->get('sort') == 'newest' ? 'selected' : '' }}>Mới nhất
-                        </option>
-                        <option value="oldest" {{ request()->get('sort') == 'oldest' ? 'selected' : '' }}>Cũ nhất
-                        </option>
-                    </select>
+                    <button id="searchButton"
+                        class="px-4 py-2 bg-orange-500 text-white border border-orange-500 rounded-r-lg hover:bg-orange-600 focus:ring-2 focus:ring-orange-500">
+                        <i class="fa fa-search mr-2"></i> Tìm
+                    </button>
                 </div>
-                <!-- Nút List -->
-                <a href="{{ url('/thuc-don') }}"
-                    class="flex items-center px-2 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                    <span class="ml-2"></span>
-                </a>
-                <!-- Nút Grid -->
-                <a href="{{ url('/danh-sach') }}"
-                    class="flex items-center px-2 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h7M4 12h7M4 18h7M14 6h6M14 12h6M14 18h6" />
-                    </svg>
-                    <span class="ml-2"></span>
-                </a>
-                <!-- Select -->
+                
+                <div class="flex items-center space-x-2 w-full md:w-auto justify-between md:justify-end ">
+                    <div>
+                        <select id="sortFilter" class="block w-full md:w-48 p-2 border border-gray-300 rounded-lg">
+                            <option value="default" {{ request()->get('sort') == 'default' ? 'selected' : '' }}>Mặc định
+                            </option>
+                            <option value="priceAsc" {{ request()->get('sort') == 'priceAsc' ? 'selected' : '' }}>Giá tăng
+                                dần</option>
+                            <option value="priceDesc" {{ request()->get('sort') == 'priceDesc' ? 'selected' : '' }}>Giá
+                                giảm dần
+                            </option>
+                            <option value="alphabet" {{ request()->get('sort') == 'alphabet' ? 'selected' : '' }}>Theo chữ
+                                cái</option>
+                            <option value="newest" {{ request()->get('sort') == 'newest' ? 'selected' : '' }}>Mới nhất
+                            </option>
+                            <option value="oldest" {{ request()->get('sort') == 'oldest' ? 'selected' : '' }}>Cũ nhất
+                            </option>
+                        </select>
+                    </div>
+                    <!-- Nút List -->
+                    <a href="{{ url('/thuc-don') }}"
+                        class="flex items-center px-2 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <span class="ml-2"></span>
+                    </a>
+                    <!-- Nút Grid -->
+                    <a href="{{ url('/danh-sach') }}"
+                        class="flex items-center px-2 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h7M4 12h7M4 18h7M14 6h6M14 12h6M14 18h6" />
+                        </svg>
+                        <span class="ml-2"></span>
+                    </a>
+                    <!-- Select -->
 
+                </div>
             </div>
         </div>
+        
         <x-list-product-grid :categoryitem="$categoryitem" :branditem="$branditem" />
     </div>
     <style>
@@ -158,5 +162,30 @@
         if (event.key === 'Enter') {
             document.getElementById('searchButton').click();
         }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!window.matchMedia('(max-width: 767.98px)').matches) {
+            return;
+        }
+
+        let params = new URLSearchParams(window.location.search);
+        let currentCategory = params.get('category') || 'all';
+        if (currentCategory !== 'all') {
+            return;
+        }
+
+        let categoryInputs = document.querySelectorAll('.category-list input[name="category"]');
+        let firstCategoryInput = Array.from(categoryInputs).find(function(input) {
+            return input.value !== 'all';
+        });
+
+        if (!firstCategoryInput) {
+            return;
+        }
+
+        firstCategoryInput.checked = true;
+        params.set('category', firstCategoryInput.value);
+        window.location.search = params.toString();
     });
 </script>

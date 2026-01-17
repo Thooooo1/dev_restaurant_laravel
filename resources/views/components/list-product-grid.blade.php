@@ -10,14 +10,11 @@
             <span class=" bg-red-500 text-white text-xs px-2 py-1 rounded-tl-md rounded-br-md ml-2">Mới</span>
         @endif
     </h3>
-        <div class="flex items-center gap-2 text-yellow-500">
-            <span class="text-gray-600 text-sm">{{ $product->slug }}</span>
-        </div>
         <div class="flex flex-wrap items-center gap-2 mt-2 text-sm text-gray-500">
-            <span class="px-2 py-1 border rounded">Đã xác minh</span>
-            <span class="px-2 py-1 border rounded"> Số lượng : {{ $product->qty }}</span>
+            <!-- <span class="px-2 py-1 border rounded"> Số lượng : {{ $product->qty }}</span> -->
             <span class="px-2 py-1 border rounded"> {{ $product->reviews_count }} Đánh giá</span>
             <span class="px-2 py-1 border rounded">{{ $product->brand->name }}</span>
+            <span class="px-2 py-1 border rounded">{{ $product->category->name }}</span>
         </div>
         <p class="text-sm mt-2 text-gray-600">
             {{ $product->description }}
@@ -28,8 +25,7 @@
             <span class="line-through text-gray-400 ml-2">{{ number_format($product->price_buy, 0, ',', '.') . ' VND' }}</span>
             <span class="text-orange-500 font-semibold text-lg">{{ $product->price_sale ? number_format($product->price_sale, 0, ',', '.') . ' VND' : 'Liên hệ' }}</span>           
         </div>
-        <div class="text-gray-500 text-sm">Còn món<nav></nav></div>
-        <div class="mt-2 text-gray-700">{{ $product->category->name }}</div>
+        <!-- <div class="mt-2 text-gray-700">{{ $product->category->name }}</div> -->
         <div class="flex justify-end items-center gap-2 mt-4">
             <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" class="flex items-center gap-2">
                 @csrf

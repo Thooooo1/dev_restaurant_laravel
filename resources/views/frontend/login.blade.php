@@ -11,12 +11,12 @@
         <div class="text-center mb-4">  
           <h4 class="text-2xl font-semibold">Đăng nhập</h4>
         </div>
-        <a onclick="return alert('Chức năng đang trong quá trình phát triển')" class="w-full flex items-center justify-center bg-blue-600 text-white py-2 px-4 rounded-md mb-2 hover:bg-blue-700">
+        <!-- <a onclick="return alert('Chức năng đang trong quá trình phát triển')" class="w-full flex items-center justify-center bg-blue-600 text-white py-2 px-4 rounded-md mb-2 hover:bg-blue-700">
           <i class="fab fa-facebook-f mr-2"></i> Đăng nhập với FaceBook
         </a>
         <a href="{{ route('google.redirect') }}" class="w-full flex items-center justify-center bg-red-600 text-white py-2 px-4 rounded-md mb-4 hover:bg-red-700">
           <i class="fab fa-google mr-2"></i> Đăng nhập với Google
-        </a>     
+        </a>      -->
         <form action="{{route('site.dologin')}}" method="POST">
           @csrf
           <div class="mb-4">
