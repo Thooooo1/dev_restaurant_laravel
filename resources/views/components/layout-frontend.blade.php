@@ -99,13 +99,18 @@
                                 <i class="fa-solid fa-user" style="margin-right: 5px;"></i> Đăng nhập
                             </a>
                         @else
+                            <!-- Giỏ hàng -->
+                            <a style="margin-right: 10px;" href="{{ url('/gio-hang') }}"
+                                class="text-gray-800 hover:text-blue-500">
+                                <i class="fa-solid fa-cart-shopping" style="margin-right: 5px;"></i>Giỏ hàng
+                            </a>
+
                             <!-- Dropdown tài khoản khi đã đăng nhập -->
                             <div x-data="{ open: false }" class="relative inline-block text-left">
                                 <a @click="open = !open" class="cursor-pointer text-gray-800 hover:text-blue-500"
                                     style="margin-right: 10px;">
                                     <i class="fa-solid fa-user" style="margin-right: 5px;"></i> Tài khoản
                                 </a>
-
                                 <!-- Dropdown menu -->
                                 <div x-show="open" @click.away="open = false" x-transition
                                     class="absolute mt-2 bg-white border rounded shadow-md z-50 w-52 right-0 md:left-0" style="left: auto;">
@@ -132,12 +137,6 @@
                                 </div>
                             </div>
                         @endif
-
-                        <!-- Giỏ hàng -->
-                        <a style="margin-right: 10px;" href="{{ url('/gio-hang') }}"
-                            class="hidden md:block text-gray-800 hover:text-blue-500">
-                            <i class="fa-solid fa-cart-shopping" style="margin-right: 5px;"></i>Giỏ hàng
-                        </a>
                     </div>
                 </div>
 
