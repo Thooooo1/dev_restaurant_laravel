@@ -22,7 +22,7 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
                             
-                                    <form action="{{ route('site.addcart', ['id' => $item->id]) }}" method="POST">
+                                    <form action="{{ route('site.addcart', ['id' => $item->id]) }}" method="POST" data-save-scroll="true">
                                         @csrf
                                         <button type="submit" 
                                                 class="flex justify-center items-center w-12 h-12 bg-white bg-opacity-20 text-white rounded-full hover:bg-opacity-40 transition transform hover:scale-110">

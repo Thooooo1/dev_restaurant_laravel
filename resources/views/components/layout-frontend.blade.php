@@ -370,12 +370,22 @@
             }
         </style>
         <script>
-            document.getElementById('chatButton').addEventListener('click', function() {
-                document.getElementById('chatForm').classList.remove('hidden');
-            });
+            document.addEventListener('DOMContentLoaded', function () {
+                const chatButton = document.getElementById('chatButton');
+                const chatForm = document.getElementById('chatForm');
+                const closeChatForm = document.getElementById('closeChatForm');
 
-            document.getElementById('closeChatForm').addEventListener('click', function() {
-                document.getElementById('chatForm').classList.add('hidden');
+                if (chatButton && chatForm) {
+                    chatButton.addEventListener('click', function () {
+                        chatForm.classList.remove('hidden');
+                    });
+                }
+
+                if (closeChatForm && chatForm) {
+                    closeChatForm.addEventListener('click', function () {
+                        chatForm.classList.add('hidden');
+                    });
+                }
             });
         </script>
 
@@ -467,6 +477,21 @@
     </footer>
     {{ $footer ?? '' }}
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var savedScrollY = sessionStorage.getItem('savedScrollY');
+            if (savedScrollY !== null) {
+                window.scrollTo(0, parseInt(savedScrollY, 10) || 0);
+                sessionStorage.removeItem('savedScrollY');
+            }
+
+            document.querySelectorAll('form[data-save-scroll="true"]').forEach(function (form) {
+                form.addEventListener('submit', function () {
+                    sessionStorage.setItem('savedScrollY', window.scrollY.toString());
+                });
+            });
+        });
+    </script>
 
     <script src="{{ asset('plugins/bootstrap/js/bootstrap.js') }}"></script>
     <script src="{{ asset('plugins/bootstrap/js/boot.js') }}"></script>

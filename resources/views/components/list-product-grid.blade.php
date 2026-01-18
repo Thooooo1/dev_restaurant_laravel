@@ -27,7 +27,7 @@
         </div>
         <!-- <div class="mt-2 text-gray-700">{{ $product->category->name }}</div> -->
         <div class="flex justify-end items-center gap-2 mt-4">
-            <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" class="flex items-center gap-2">
+            <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" class="flex items-center gap-2" data-save-scroll="true">
                 @csrf
                 <button
                     type="submit"

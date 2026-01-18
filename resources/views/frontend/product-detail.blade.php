@@ -66,7 +66,7 @@
                                 {{ $product->description }}
                             </p>
 
-                            <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST">
+                            <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" data-save-scroll="true">
                                 @csrf
                                 <div class="flex items-center gap-4 mb-6">
                                     <span class="text-gray-700">Số lượng:</span>
