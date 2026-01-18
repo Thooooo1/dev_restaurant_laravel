@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Order;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OtpMail;
@@ -53,6 +54,7 @@ class AuthController extends Controller
                 if (Hash::check($password, $user->password)) {
                     session()->put('user_site', $user);
                     Auth::login($user);
+                    $this->syncTableSessionForUser($user);
                     return redirect()->route('site.home')->with('success', 'Đăng nhập thành công!');
                 } else {
                     return redirect()->route('site.login')->with('error', 'Mật khẩu không đúng!');
@@ -173,6 +175,8 @@ class AuthController extends Controller
             Auth::login($user);
             session()->put('user_site', $user);
 
+            $this->syncTableSessionForUser($user);
+
             return redirect()->route('site.home')->with('success', 'Đăng nhập bằng Google thành công!');
         } catch (\Exception $e) {
             return redirect()->route('site.login')->with('error', 'Đăng nhập bằng Google thất bại! Vui lòng thử lại.');
@@ -185,6 +189,30 @@ class AuthController extends Controller
             return redirect()->route('site.login')->with('error', 'Bạn cần đăng nhập để xem trang cá nhân.');
         }
         return view('frontend.profile', compact('user'));
+    }
+
+    public function syncTableSessionForUser(User $user): void
+    {
+        $activeOrder = Order::whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->whereNotNull('table_id')
+            ->where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere('phone', $user->phone);
+            })
+            ->with('table')
+            ->latest('created_at')
+            ->first();
+
+        if ($activeOrder && $activeOrder->table) {
+            session([
+                'table_id' => $activeOrder->table_id,
+                'table_name' => $activeOrder->table->name,
+            ]);
+        } else {
+            session()->forget('table_id');
+            session()->forget('table_name');
+        }
     }
 
     public function updateProfile(Request $request)
@@ -212,6 +240,8 @@ class AuthController extends Controller
     {
         $userId = Auth::id();
         session()->forget("cart_$userId");
+        session()->forget('table_id');
+        session()->forget('table_name');
         Auth::logout();
         return redirect()->route(route: 'site.login')->with('success', 'Đăng xuất thành công!');
     }

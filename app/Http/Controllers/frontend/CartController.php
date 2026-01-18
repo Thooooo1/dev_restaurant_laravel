@@ -51,7 +51,38 @@ class CartController extends Controller
 
         $userId = Auth::id();
         $cart = session()->get("cart_$userId", []);
-        return view('frontend.cart', compact('cart'));
+        $tableOrder = null;
+        $tableOrderDetails = collect();
+        $kitchenItems = [];
+
+        if (session()->has('table_id')) {
+            $tableId = session('table_id');
+            $user = Auth::user();
+
+            $tableOrder = Order::where('table_id', $tableId)
+                ->whereNull('deleted_at')
+                ->whereIn('status', [0, 1])
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                        ->orWhere('phone', $user->phone);
+                })
+                ->with(['orderDetails.product', 'table.floor', 'user'])
+                ->first();
+
+            if ($tableOrder) {
+                $tableOrderDetails = $tableOrder->orderDetails;
+
+                foreach ($tableOrderDetails as $index => $detail) {
+                    $kitchenItems[] = [
+                        'stt' => $index + 1,
+                        'name' => $detail->product->name ?? 'N/A',
+                        'qty' => (int) ($detail->qty ?? 0),
+                    ];
+                }
+            }
+        }
+
+        return view('frontend.cart', compact('cart', 'tableOrder', 'tableOrderDetails', 'kitchenItems'));
     }
 
     function updatecart(Request $request)
@@ -68,7 +99,74 @@ class CartController extends Controller
         }
 
         session()->put("cart_$userId", $cart);
-        return redirect()->back()->with('success', 'Cập nhật giỏ hàng thành công!');
+
+        if (session()->has('table_id')) {
+            $tableId = session('table_id');
+            $user = Auth::user();
+
+            $order = Order::where('table_id', $tableId)
+                ->whereNull('deleted_at')
+                ->whereIn('status', [0, 1])
+                ->where(function ($query) use ($user) {
+                    $query->where('user_id', $user->id)
+                        ->orWhere('phone', $user->phone);
+                })
+                ->first();
+
+            if (!$order) {
+                $order = new Order();
+                $order->user_id = $userId ?? 0;
+                $order->name = $user->fullname ?? $user->name ?? 'Khách lẻ';
+                $order->email = $user->email ?? '';
+                $order->phone = $user->phone ?? '';
+                $order->address = '';
+                $order->table_id = $tableId;
+                $order->orderStyle = 1;
+                $order->status = 0;
+                $order->created_by = $userId ?? 1;
+                $order->order_turn = $order->order_turn ?? 1;
+                $order->save();
+            }
+
+            $productIdsInCart = array_keys($cart);
+
+            foreach ($cart as $productId => $details) {
+                $detail = Orderdetail::where('order_id', $order->id)
+                    ->where('product_id', $productId)
+                    ->first();
+
+                $price = $details['price'];
+                $quantity = $details['qty'];
+                $discount = $details['discount'] ?? 0;
+                $amount = ($price - $discount) * $quantity;
+
+                if ($detail) {
+                    $detail->qty = $quantity;
+                    $detail->price = $price;
+                    $detail->discount = $discount;
+                    $detail->amount = $amount;
+                    $detail->save();
+                } else {
+                    Orderdetail::create([
+                        'order_id' => $order->id,
+                        'product_id' => $productId,
+                        'qty' => $quantity,
+                        'price' => $price,
+                        'discount' => $discount,
+                        'amount' => $amount,
+                        'order_turn' => $order->order_turn ?? 1,
+                    ]);
+                }
+            }
+
+            Orderdetail::where('order_id', $order->id)
+                ->whereNotIn('product_id', $productIdsInCart)
+                ->delete();
+
+            session()->flash('kitchen_print_order_id', $order->id);
+        }
+
+        return redirect()->back()->with('success', 'Xác nhận giỏ hàng thành công!');
     }
 
     function delcart($id = null)
@@ -124,6 +222,7 @@ class CartController extends Controller
         $order->address = $request->address;
         $order->created_by = $userId ?? 1;
         $order->status = 0;
+        $order->orderStyle = 1;
 
         // Xử lý nếu là Order tại bàn
         if (session('table_id')) {

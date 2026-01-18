@@ -54,12 +54,7 @@ class TableOrderController extends Controller
                     ->with('error', 'Bàn này đang được sử dụng bởi khách hàng khác (Số điện thoại không khớp).');
             }
         }
-
-        // 4. Lưu thông tin bàn vào Session
-        session(['table_id' => $id]);
-        session(['table_name' => $table->name]);
-
-        // 5. Chuyển hướng đến trang thực đơn
+        
         return redirect()->route('site.product')->with('success', 'Bạn đang ngồi tại ' . $table->name . '. Hãy chọn món!');
     }
 }

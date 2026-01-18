@@ -57,7 +57,7 @@
         <div class="container mx-auto px-4">
             <div class="flex flex-wrap items-center justify-between">
                 <!-- Logo -->
-                <div class="w-4/12 md:w-3/12 lg:basis-3/12">
+                <div class="w-2/12">
                     <a href="{{ url('/') }}">
                         <img src="{{ asset('images/logo/logo.png') }}" alt="All food" class="h-12">
                         {{-- ../images/logo/logo.png --}}
@@ -65,7 +65,12 @@
                 </div>
 
                 <!-- Mobile Actions & Hamburger -->
-                <div class="w-8/12 md:hidden flex justify-end items-center gap-3">
+                <div class="w-9/12 md:hidden flex justify-end items-center gap-3">
+                    @if (session('table_name'))
+                        <span class="only-mobile items-center px-4 py-2 rounded-full bg-green-500 text-white font-semibold">
+                            {{ session('table_name') }}
+                        </span>
+                    @endif
                     <a href="{{ route('site.booking') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center">
                         <i class="fa-solid fa-calendar-check text-xl"></i>
                         <span class="text-[10px] font-medium leading-none mt-1">Đặt bàn</span>
@@ -85,7 +90,7 @@
                     <x-main-menu />
                 </div>
 
-                <div :class="openMenu ? 'block' : 'hidden'" class="w-full md:!block md:w-4/12 lg:basis-3/12 mt-4 md:mt-0 order-4 md:order-3">
+                <div :class="openMenu ? 'block' : 'hidden'" class="w-full md:!block md:w-4/12 lg:basis-4/12 mt-4 md:mt-0 order-4 md:order-3">
                     <div class="flex flex-col md:flex-row justify-end gap-4 items-center">
                         <a style="margin-right: 10px;" href="{{ route('site.booking') }}"
                             class="text-gray-800 hover:text-blue-500">
@@ -93,19 +98,22 @@
                         </a>
 
                         @if (!auth()->check())
-                            <!-- Hiện Đăng nhập khi chưa đăng nhập -->
                             <a href="{{ route('site.login') }}" class="text-gray-800 hover:text-blue-500"
                                 style="margin-right: 10px;">
                                 <i class="fa-solid fa-user" style="margin-right: 5px;"></i> Đăng nhập
                             </a>
                         @else
-                            <!-- Giỏ hàng -->
+                            @php
+                                if (!session()->has('table_id')) {
+                                    app(\App\Http\Controllers\frontend\AuthController::class)
+                                        ->syncTableSessionForUser(auth()->user());
+                                }
+                            @endphp
                             <a style="margin-right: 10px;" href="{{ url('/gio-hang') }}"
                                 class="text-gray-800 hover:text-blue-500">
                                 <i class="fa-solid fa-cart-shopping" style="margin-right: 5px;"></i>Giỏ hàng
                             </a>
 
-                            <!-- Dropdown tài khoản khi đã đăng nhập -->
                             <div x-data="{ open: false }" class="relative inline-block text-left">
                                 <a @click="open = !open" class="cursor-pointer text-gray-800 hover:text-blue-500"
                                     style="margin-right: 10px;">
@@ -202,6 +210,16 @@
         </script>
 
         <style>
+            .only-mobile {
+                display: block;
+            }
+
+            @media (min-width: 768px) {
+                .only-mobile {
+                    display: none;
+                }
+            }
+
             .slider-container {
                 position: relative;
                 width: 3.5rem;
