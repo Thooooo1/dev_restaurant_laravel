@@ -11,7 +11,7 @@
     </div>
   </section>
 
-  <section class="container mx-auto py-8">
+  <section class="container mx-auto">
     <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
         <h2 class="text-2xl font-bold mb-6">Giỏ Hàng</h2>
 
@@ -24,7 +24,10 @@
                 <form action="{{ route('site.updatecart') }}" method="POST">
                     @csrf
                     @foreach ($cart as $id => $item)
-                        <div class="flex flex-col md:flex-row justify-between items-center border-b pb-4 gap-4">
+                        <div class="flex flex-col md:flex-row justify-between items-center border-b pb-4 gap-4"
+                            data-cart-row="true"
+                            data-id="{{ $id }}"
+                            data-price="{{ $item['price'] }}">
                             <div class="flex space-x-4 w-full md:w-5/12">
                                 <img src="{{ asset('images/product/' . $item['image']) }}" alt="{{ $item['name'] }}"
                                     class="w-24 h-24 object-cover rounded-md flex-shrink-0">
@@ -39,7 +42,7 @@
                                     <input type="number" name="qty[{{ $id }}]" value="{{ $item['qty'] }}" class="w-16 text-center border-0 qty-input" min="1" data-id="{{ $id }}">
                                     <button type="button" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 btn-qty-plus" data-id="{{ $id }}">+</button>
                                 </div>
-                                <div class="text-lg font-semibold text-gray-800">
+                                <div class="text-lg font-semibold text-gray-800 item-amount">
                                     {{ number_format($item['price'] * $item['qty'], 0, ',', '.') }} VND
                                 </div>
                             </div>
@@ -49,39 +52,40 @@
                             </div>
                         </div>
                     @endforeach
-                    <div class="mt-6">
-                      <button type="submit" class="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none">
-                          Xác nhận
-                      </button>
-                  </div>
-                    <div class="flex justify-between border-t pt-4 mt-6">
+                    
+                    <div class="flex justify-between pt-4 mt-4">
                         <div class="font-semibold text-lg">Tổng cộng</div>
-                        <div class="font-semibold text-lg text-gray-800">
+                        <div id="cart-total-amount" class="font-semibold text-lg text-gray-800">
                             {{ number_format(array_sum(array_map(fn($item) => $item['price'] * $item['qty'], $cart)), 0, ',', '.') }} VND
                         </div>
                     </div>
-                    <div class="mb-6 py-2">
-                      <label for="discount" class="block text-gray-700 font-medium mb-2">Mã giảm giá:</label>
-                      <div class="flex">
-                          <input type="text" id="discount" name="discount" placeholder="Nhập mã giảm giá"
-                              class="flex-grow border border-gray-300 rounded-l-md p-2 focus:outline-none focus:ring focus:ring-blue-200">
-                          <button type="button" id="apply_discount"
-                              class="bg-blue-500 text-white px-4 rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300">
-                              Áp dụng
-                          </button>
-                      </div>
-                      <p id="discount_message" class="text-sm text-green-600 mt-2 hidden"></p>
-                  </div>
-      
-                    
+                    @if (session('table_name'))
+                        <div class="mt-6">
+                            <button type="submit" class="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none">
+                                Xác nhận
+                            </button>
+                        </div>
+                    @else
+                        <div class="mb-6 py-2">
+                            <label for="discount" class="block text-gray-700 font-medium mb-2">Mã giảm giá:</label>
+                            <div class="flex">
+                                <input type="text" id="discount" name="discount" placeholder="Nhập mã giảm giá"
+                                    class="flex-grow border border-gray-300 rounded-l-md p-2 focus:outline-none focus:ring focus:ring-blue-200">
+                                <button type="button" id="apply_discount"
+                                    class="bg-blue-500 text-white px-4 rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300">
+                                    Áp dụng
+                                </button>
+                            </div>
+                            <p id="discount_message" class="text-sm text-green-600 mt-2 hidden"></p>
+                        </div>
+                        <!-- Nút Thanh toán -->
+                        <div class="mt-6">
+                            <a href="{{ route('site.checkoutForm') }}" class="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 text-center block">
+                                Thanh toán
+                            </a>
+                        </div>
+                    @endif
                 </form>
-
-                <!-- Nút Thanh toán -->
-                <div class="mt-6">
-                    <a href="{{ route('site.checkoutForm') }}" class="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 text-center block">
-                        Thanh toán
-                    </a>
-                </div>
             @endif
         @else 
             <div class="text-red-500 font-semibold mb-4">
@@ -94,35 +98,36 @@
     </div>
   </section>
   @if(isset($tableOrder) && $tableOrder && isset($tableOrderDetails) && $tableOrderDetails->count() > 0)
-    <section class="container mx-auto pb-8">
+    <section class="container mx-auto pb-8 px-2">
         <div class="max-w-4xl mx-auto mt-4">
-            <div id="historyAccordion" class="">
-                <div class="card">
-                    <div class="card-header p-2 bg-yellow-500">
-                        <button class="btn w-100 btn-link p-0 text-white" data-toggle="collapse" data-target="#history-turn-all">
-                            Món ăn đã gọi
-                        </button>
-                    </div>
-                    <div id="history-turn-all" class="collapse">
-                        <div class="card-body p-2">
-                            @foreach($tableOrderDetails as $detail)
-                                @php
-                                    $price = $detail->price ?? ($detail->product->price_sale ?? 0);
-                                    $amount = $price * ($detail->qty ?? 0);
-                                @endphp
-                                <div class="order-item bg-light border-b" id="history-item-{{ $detail->id }}" data-price="{{ $price }}">
-                                    <div class="row align-items-center">
-                                        <div class="col-6">
-                                            <div class="font-weight-bold">{{ $detail->product->name ?? 'N/A' }}</div>
-                                            <div class="text-muted small">{{ number_format($price, 0, ',', '.') }} ₫ x {{ $detail->qty }}</div>
-                                        </div>
-                                        <div class="col-6 text-right">
-                                            <div class="font-weight-bold" id="history-amount-{{ $detail->id }}">{{ number_format($amount, 0, ',', '.') }} ₫</div>
-                                        </div>
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <button type="button"
+                        id="history-toggle"
+                        class="w-full flex items-center justify-between px-4 py-3 bg-yellow-500 text-white focus:outline-none">
+                    <span class="font-semibold">Món ăn đã gọi</span>
+                    <span id="history-toggle-icon" class="text-xl leading-none transform transition-transform">⌄</span>
+                </button>
+                <div id="history-turn-all" class="history-collapse border-t border-gray-200 hidden">
+                    <div class="p-3 space-y-2">
+                        @foreach($tableOrderDetails as $detail)
+                            @php
+                                $price = $detail->price ?? ($detail->product->price_sale ?? 0);
+                                $amount = $price * ($detail->qty ?? 0);
+                            @endphp
+                            <div id="history-item-{{ $detail->id }}"
+                                 data-price="{{ $price }}"
+                                 class="flex justify-between items-center py-2 border-b last:border-b-0 bg-gray-50">
+                                <div>
+                                    <div class="font-semibold text-gray-800">{{ $detail->product->name ?? 'N/A' }}</div>
+                                    <div class="text-sm text-gray-500">{{ number_format($price, 0, ',', '.') }} ₫ x {{ $detail->qty }}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-semibold text-gray-900" id="history-amount-{{ $detail->id }}">
+                                        {{ number_format($amount, 0, ',', '.') }} ₫
                                     </div>
                                 </div>
-                            @endforeach
-                        </div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -165,7 +170,62 @@
             }
 
             input.value = current;
+
+            var row = button.closest('[data-cart-row="true"]');
+            if (row) {
+                var price = parseInt(row.getAttribute('data-price'), 10) || 0;
+                var amountElement = row.querySelector('.item-amount');
+                if (amountElement) {
+                    var lineTotal = price * current;
+                    amountElement.textContent = formatCurrency(lineTotal) + ' VND';
+                }
+            }
+
+            updateCartTotal();
         });
+
+        function formatCurrency(value) {
+            if (typeof Intl !== 'undefined' && Intl.NumberFormat) {
+                return new Intl.NumberFormat('vi-VN').format(value);
+            }
+            return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function updateCartTotal() {
+            var rows = document.querySelectorAll('[data-cart-row="true"]');
+            var total = 0;
+
+            rows.forEach(function (row) {
+                var price = parseInt(row.getAttribute('data-price'), 10) || 0;
+                var input = row.querySelector('.qty-input');
+                if (!input) {
+                    return;
+                }
+                var qty = parseInt(input.value, 10);
+                if (isNaN(qty) || qty < 1) {
+                    qty = 1;
+                }
+                total += price * qty;
+            });
+
+            var totalElement = document.getElementById('cart-total-amount');
+            if (totalElement) {
+                totalElement.textContent = formatCurrency(total) + ' VND';
+            }
+        }
+
+        var historyToggle = document.getElementById('history-toggle');
+        var historyBody = document.getElementById('history-turn-all');
+        var historyIcon = document.getElementById('history-toggle-icon');
+        if (historyToggle && historyBody) {
+            historyToggle.addEventListener('click', function (e) {
+                e.preventDefault();
+                historyBody.classList.toggle('hidden');
+                if (historyIcon) {
+                    historyIcon.classList.toggle('rotate-180');
+                }
+            });
+        }
     });
 
     @if(session('kitchen_print_order_id') && isset($tableOrder) && $tableOrder && isset($kitchenItems) && count($kitchenItems) > 0 && $tableOrder->id === session('kitchen_print_order_id'))

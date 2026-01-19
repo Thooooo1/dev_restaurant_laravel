@@ -67,6 +67,7 @@ class CartController extends Controller
                         ->orWhere('phone', $user->phone);
                 })
                 ->with(['orderDetails.product', 'table.floor', 'user'])
+                ->orderByDesc('id')
                 ->first();
 
             if ($tableOrder) {
@@ -159,11 +160,9 @@ class CartController extends Controller
                 }
             }
 
-            Orderdetail::where('order_id', $order->id)
-                ->whereNotIn('product_id', $productIdsInCart)
-                ->delete();
-
             session()->flash('kitchen_print_order_id', $order->id);
+
+            session()->forget("cart_$userId");
         }
 
         return redirect()->back()->with('success', 'Xác nhận giỏ hàng thành công!');
