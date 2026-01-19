@@ -70,11 +70,13 @@
                         <span class="only-mobile items-center px-4 py-2 rounded-full bg-green-500 text-white font-semibold">
                             {{ session('table_name') }}
                         </span>
-                    @endif
-                    <a href="{{ route('site.booking') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center">
-                        <i class="fa-solid fa-calendar-check text-xl"></i>
-                        <span class="text-[10px] font-medium leading-none mt-1">Đặt bàn</span>
-                    </a>
+                    @else
+                        <a href="{{ route('site.booking') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center">
+                            <i class="fa-solid fa-calendar-check text-xl"></i>
+                            <span class="text-[10px] font-medium leading-none mt-1">Đặt bàn</span>
+                        </a>
+                    @endif 
+                    
                     <a href="{{ url('/gio-hang') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center">
                         <i class="fa-solid fa-cart-shopping text-xl"></i>
                         <span class="text-[10px] font-medium leading-none mt-1">Giỏ hàng</span>

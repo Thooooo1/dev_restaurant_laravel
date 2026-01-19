@@ -24,13 +24,13 @@
                 <form action="{{ route('site.updatecart') }}" method="POST">
                     @csrf
                     @foreach ($cart as $id => $item)
-                        <div class="flex flex-col md:flex-row justify-between items-center border-b pb-4 gap-4"
+                        <div class="flex flex-col md:flex-row justify-between items-center border-b pb-2 gap-4"
                             data-cart-row="true"
                             data-id="{{ $id }}"
                             data-price="{{ $item['price'] }}">
-                            <div class="flex space-x-4 w-full md:w-5/12">
+                            <div class="flex space-x-4 w-full md:w-5/12 mt-2">
                                 <img src="{{ asset('images/product/' . $item['image']) }}" alt="{{ $item['name'] }}"
-                                    class="w-24 h-24 object-cover rounded-md flex-shrink-0">
+                                    class="w-28 h-28 object-cover rounded-md flex-shrink-0">
                                 <div>
                                     <h3 class="text-lg font-semibold">{{ $item['name'] }}</h3>
                                     <p class="text-sm text-gray-500">Giá: {{ number_format($item['price'], 0, ',', '.') }} VND</p>
