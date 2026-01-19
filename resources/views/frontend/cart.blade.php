@@ -61,7 +61,7 @@
                     </div>
                     @if (session('table_name'))
                         <div class="mt-6">
-                            <button type="submit" class="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none">
+                            <button type="submit" onclick="return confirm('Xác nhận thực đơn với đầu bếp!')" class="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none">
                                 Xác nhận
                             </button>
                         </div>
