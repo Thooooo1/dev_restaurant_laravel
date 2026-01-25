@@ -182,8 +182,8 @@ class TableController extends Controller
             return redirect()->back()->with('error', 'Bàn không tồn tại.');
         }
 
-        // Hướng người dùng đến trang login của client, kèm theo tham số redirect đến danh sách món ăn
-        $url = route('site.login', ['redirect' => route('site.product.gridview')]);
+        // Hướng người dùng đến trang login của client
+        $url = route('site.login');
         
         // Tạo QR Code
         $qrcode = QrCode::size(300)->generate($url);
