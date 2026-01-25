@@ -1,12 +1,12 @@
 
-<section class="gallery-area">
+<section class="gallery-area px-2">
     <div class="gallery-top bg-cover bg-center py-20 "
         style="background-image: url('assets/img/gallery/section_bg01.png');">
         <div class="container mx-auto text-center">
             <div class="mb-10">
                 <p class="text-orange-500 font-semibold text-lg mb-4">Thực đơn</p>
                 <h2 class="text-3xl font-bold">
-                    Một số món ăn phổ biến theo thực đơn của nhà hàng
+                    Thực đơn của nhà hàng
                 </h2>
             </div>
             <div>

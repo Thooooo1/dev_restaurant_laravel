@@ -24,47 +24,127 @@ class AuthController extends Controller
     }
     function dologin(Request $request)
     {
-        // Chuẩn hóa số điện thoại: loại bỏ khoảng trắng và ký tự đặc biệt, chỉ giữ số
         $phone = preg_replace('/[^0-9]/', '', $request->phone);
         $password = $request->password;
-        
+        $confirm_password = $request->confirm_password;
+        $redirectUrl = $request->input('redirect');
+
         if (empty($phone)) {
-            return redirect()->route('site.login')->with('error', 'Vui lòng nhập số điện thoại!');
+             return redirect()->route('site.login')->with('error', 'Vui lòng nhập số điện thoại!');
         }
-        
-        // Tìm user theo số điện thoại và status = 1
-        // Sử dụng REGEXP_REPLACE để chuẩn hóa số điện thoại trong database (MySQL)
-        // Hoặc tìm tất cả users có status = 1 và so sánh sau khi chuẩn hóa
+
+        // Find user by normalized phone
         $users = User::where('status', 1)->get();
         $user = null;
-        
         foreach ($users as $u) {
-            // Chuẩn hóa số điện thoại trong database
             $dbPhone = preg_replace('/[^0-9]/', '', $u->phone);
             if ($dbPhone === $phone) {
                 $user = $u;
                 break;
             }
         }
-            
-        if ($user != null) {
-            // Kiểm tra nếu user có password
-            if ($user->password) {
-                // User có password, kiểm tra password
-                if (Hash::check($password, $user->password)) {
-                    session()->put('user_site', $user);
-                    Auth::login($user);
-                    $this->syncTableSessionForUser($user);
-                    return redirect()->route('site.home')->with('success', 'Đăng nhập thành công!');
-                } else {
-                    return redirect()->route('site.login')->with('error', 'Mật khẩu không đúng!');
-                }
+
+        // Scenario: Register or Update Password
+        if ($confirm_password) {
+            if ($password !== $confirm_password) {
+                 return redirect()->back()->with('error', 'Mật khẩu xác nhận không khớp!')->withInput();
+            }
+
+            if (!$user) {
+                // Create new user
+                $user = User::create([
+                    'phone' => $phone,
+                    'password' => Hash::make($password),
+                    'fullname' => 'Khách hàng', // Default
+                    'status' => 1,
+                    'roles' => 'customer',
+                    'username' => $phone,
+                    'email' => null,
+                    'gender' => 'Đang cập nhật',
+                    'address' => 'Đang cập nhật',
+                    'created_by' => 1 // Admin
+                ]);
             } else {
-                // User không có password (customer đăng ký không có password)
-                return redirect()->route('site.login')->with('error', 'Tài khoản này chưa có mật khẩu. Vui lòng đặt mật khẩu hoặc liên hệ quản trị viên!');
+                // Update password
+                $user->password = Hash::make($password);
+                $user->save();
+            }
+        }
+
+        // Login Logic
+        if ($user) {
+            if (Auth::loginUsingId($user->id)) {
+                 if ($password && $user->password && !Hash::check($password, $user->password)) {
+                     Auth::logout();
+                     return redirect()->route('site.login')->with('error', 'Mật khẩu không đúng!');
+                 }
+                 
+                 session()->put('user_site', $user);
+                 $this->syncTableSessionForUser($user);
+                 
+                 if ($redirectUrl) {
+                     return redirect($redirectUrl)->with('success', 'Đăng nhập thành công!');
+                 }
+                 return redirect()->route('site.home')->with('success', 'Đăng nhập thành công!');
+            }
+        }
+
+        return redirect()->route('site.login')->with('error', 'Đăng nhập thất bại!');
+    }
+
+    public function checkPhone(Request $request)
+    {
+        $phone = preg_replace('/[^0-9]/', '', $request->phone);
+        
+        if (empty($phone)) {
+            return response()->json(['status' => 'error', 'message' => 'Vui lòng nhập số điện thoại!']);
+        }
+
+        // Priority 1: Check Order
+        // Find order with normalized phone
+        $orders = Order::where('status', 0)->whereNotNull('table_id')->get();
+        $order = null;
+        foreach ($orders as $o) {
+            $dbPhone = preg_replace('/[^0-9]/', '', $o->phone);
+            if ($dbPhone === $phone) {
+                $order = $o;
+                break;
+            }
+        }
+
+        if ($order && $order->user_id) {
+            $user = User::find($order->user_id);
+            if ($user) {
+                Auth::login($user);
+                session()->put('user_site', $user);
+                $this->syncTableSessionForUser($user);
+                
+                return response()->json([
+                    'status' => 'success',
+                    'redirect' => route('site.home')
+                ]);
+            }
+        }
+
+        // Priority 2: Check User
+        $users = User::where('status', 1)->get();
+        $user = null;
+        foreach ($users as $u) {
+            $dbPhone = preg_replace('/[^0-9]/', '', $u->phone);
+            if ($dbPhone === $phone) {
+                $user = $u;
+                break;
+            }
+        }
+
+        if ($user) {
+            if (!empty($user->password)) {
+                return response()->json(['status' => 'require_password']);
+            } else {
+                return response()->json(['status' => 'require_register']);
             }
         } else {
-            return redirect()->route('site.login')->with('error', 'Số điện thoại không tồn tại hoặc tài khoản đã bị khóa!');
+            return response()->json(['status' => 'require_register']);
         }
     }
 

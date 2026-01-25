@@ -123,7 +123,7 @@
                             </div>
                             <div class="text">
                                 <h4 class="font-bold">Miễn phí vận chuyển</h4>
-                                <p>Cho đơn hàng từ 500k</p>
+                                <p>Cho đơn hàng từ 599.000₫</p>
                             </div>
                         </div>
                     </div>
@@ -136,7 +136,7 @@
                             </div>
                             <div class="text">
                                 <h4 class="font-bold">Bảo hiểm món ăn</h4>
-                                <p>Đảm chất lượng đồ ăn</p>
+                                <p>Đảm chất lượng tất cả món ăn</p>
                             </div>
                         </div>
                     </div>
@@ -172,8 +172,8 @@
         <section class="section_search py-4">
             <div class="container mx-auto px-4">
                 <div class="flex flex-col md:flex-row justify-center items-center gap-6">
-                    <div class="w-full md:w-5/12 mx-auto md:ml-10">
-                        <h3 class="text-2xl md:text-3xl uppercase mb-2 font-bold ">Ăn gì hôm nay?</h3>
+                    <div class="w-full md:w-5/12 mx-auto md:ml-10 only-pc">
+                        <h3 class="text-2xl md:text-3xl uppercase mb-2 font-bold">Ăn gì hôm nay?</h3>
                         <form action="{{ route('site.product.gridview') }}" method="GET" id="searchForm">
                             <input type="search" name="search" id="searchInput"
                                 class="bg-slate-200 hover:bg-gray-300 rounded-xl p-3 w-full" placeholder="Tìm kiếm" />
@@ -183,7 +183,7 @@
 
                     </div>
                     <div class="w-full md:w-7/12 mx-auto">
-                        <h3 class="font-bold">Từ khóa nổi bật hôm nay</h3>
+                        <h3 class="font-bold title-key-word-on-sp">Từ khóa nổi bật hôm nay</h3>
                         <x-key-word-hot />
                     </div>
                 </div>
@@ -984,7 +984,7 @@
                 <div class="container mx-auto">
                     <div class="row justify-center">
                         <div class="xl:w-10/12 lg:w-9/12 md:w-10/12">
-                            <div class="text-center mb-16 ml-10">
+                            <div class="text-center mb-16">
                                 <span class="text-orange-500 font-semibold uppercase text-sm tracking-wide">Đặt
                                     bàn</span>
                                 <h2 class="text-3xl font-bold text-gray-800 mt-2">Lên lịch đặt bàn</h2>
@@ -1184,5 +1184,23 @@
             </div>
         </section> --}}
         <x-post-new />
+        <style>
+        .only-pc {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .only-pc {
+                display: block;
+            }
+        }
+
+         @media (max-width: 767.98px) {
+            .title-key-word-on-sp {
+                font-size: 24px;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
     </div>
 </x-layout-frontend>

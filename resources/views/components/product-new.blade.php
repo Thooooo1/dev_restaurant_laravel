@@ -1,5 +1,5 @@
 
-<section class="product_new">
+<section class="product_new px-2">
     <section class="gallery-area">
         <div class="gallery-top bg-cover bg-center py-20"
             style="background-image: url('assets/img/gallery/section_bg01.png');">
@@ -9,9 +9,9 @@
                     <h2 class="text-3xl font-bold">Món ăn mới</h2>
                 </div>
             </div>
-            <div class="slick-slider flex overflow-x-auto gap-x-4 ">
+            <div class="product-new-slider lg:w-[800px] lg:mx-auto flex">
                 @foreach ($products as $item)
-                <div class="gallery-box relative bg-white rounded-lg shadow-md overflow-hidden group w-48">
+                <div class="gallery-box relative bg-white rounded-lg shadow-md overflow-hidden group mx-2">
                     <div class="relative">
                          <img src="{{ asset('/images/product/' . $item->image) }}" alt="{{$item->name }}"
                             class="w-full h-64 object-cover transition-all duration-300 group-hover:opacity-60">
@@ -49,3 +49,30 @@
         </div>
     </section>
 </section>
+
+<script>
+    $(document).ready(function () {
+        $('.product-new-slider').slick({
+            infinite: true,
+            slidesToShow: 3,
+            slidesToScroll: 1,
+            vertical: false,
+            arrows: false,
+            dots: true,
+            responsive: [
+                {
+                    breakpoint: 1024,
+                    settings: {
+                        slidesToShow: 2,
+                    }
+                },
+                {
+                    breakpoint: 600,
+                    settings: {
+                        slidesToShow: 1,
+                    }
+                }
+            ]
+        });
+    });
+</script>

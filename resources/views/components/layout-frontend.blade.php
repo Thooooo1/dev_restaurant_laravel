@@ -253,7 +253,7 @@
             <div id="notification"
                 class="notification bg-red-500 text-white rounded-lg px-4 py-2 shadow-lg flex items-center gap-2">
                 <span class="dot bg-white rounded-full w-3 h-3"></span>
-                <span>Chuyên Viên Tư Vấn đang sẵn sàng để hỗ trợ bạn!</span>
+                <span>Liên hệ tư vấn!</span>
             </div>
         </div>
 

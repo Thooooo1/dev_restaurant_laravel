@@ -114,6 +114,7 @@ Route::get('/chinh-sach-lien-he', [ChinhSachController::class, 'cslh'])->name('s
 Route::get('/dang-ky', [ThanhVienController::class, 'register'])->name('site.register');
 Route::post('/dang-ky', [ThanhVienController::class, 'doregister'])->name('site.doregister');
 Route::get('/dang-nhap', [ThanhVienController::class, 'login'])->name('site.login');
+Route::post('/check-phone', [ThanhVienController::class, 'checkPhone'])->name('site.check_phone');
 Route::post('/dang-nhap', [ThanhVienController::class, 'dologin'])->name('site.dologin');
 Route::get('/dang-xuat', [ThanhVienController::class, 'logout'])->name('site.logout');
 Route::get('/thong-tin', [ThanhVienController::class, 'profile'])->name('site.profile');
