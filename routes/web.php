@@ -12,7 +12,7 @@ use App\Http\Controllers\frontend\ImageController as HinhAnhController;
 use App\Http\Controllers\frontend\UserController as NguoidungController;
 use App\Http\Controllers\frontend\CartController as GiohangController;
 use App\Http\Controllers\frontend\AuthController as ThanhVienController;
-use App\Http\Controllers\frontend\ChinhSachController;
+use App\Http\Controllers\frontend\ChinhsachController;
 use App\Http\Controllers\frontend\BookingController as DatBanController;
 use App\Http\Controllers\frontend\ReviewController as DanhGiaController;
 use App\Http\Controllers\frontend\OrderController as DonHangController;
@@ -104,11 +104,11 @@ Route::delete('/yeu-thich/{productId}', [YeuThichController::class, 'destroy'])-
 Route::post('/yeu-cau', [YeuCauController::class, 'store'])->name('inquiries.store');
 
 // Policy Pages
-Route::get('/dieu-khoan-su-dung', [ChinhSachController::class, 'dksd'])->name('site.chinhsach.dksd');
-Route::get('/chinh-sach-bao-mat', [ChinhSachController::class, 'csbm'])->name('site.chinhsach.csbm');
-Route::get('/chinh-sach-van-chuyen', [ChinhSachController::class, 'csvc'])->name('site.chinhsach.csvc');
-Route::get('/chinh-sach-an-toan-thuc-pham', [ChinhSachController::class, 'attp'])->name('site.chinhsach.attp');
-Route::get('/chinh-sach-lien-he', [ChinhSachController::class, 'cslh'])->name('site.chinhsach.cslh');
+Route::get('/dieu-khoan-su-dung', [ChinhsachController::class, 'dksd'])->name('site.chinhsach.dksd');
+Route::get('/chinh-sach-bao-mat', [ChinhsachController::class, 'csbm'])->name('site.chinhsach.csbm');
+Route::get('/chinh-sach-van-chuyen', [ChinhsachController::class, 'csvc'])->name('site.chinhsach.csvc');
+Route::get('/chinh-sach-an-toan-thuc-pham', [ChinhsachController::class, 'attp'])->name('site.chinhsach.attp');
+Route::get('/chinh-sach-lien-he', [ChinhsachController::class, 'cslh'])->name('site.chinhsach.cslh');
 
 // Authentication
 Route::get('/dang-ky', [ThanhVienController::class, 'register'])->name('site.register');
