@@ -612,7 +612,7 @@
         }
 
         getDateSession() {
-            return "2026-02-12";
+            return "2050-12-01";
         }
 
         isCartActive() {
