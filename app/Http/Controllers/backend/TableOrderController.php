@@ -541,11 +541,8 @@ class TableOrderController extends Controller
         $order->total_price = $request->total_price;
         $order->save();
 
-        // Clear table lock if exists
-        $table = Table::find($order->table_id);
-        if ($table && $table->locked_order_id == $order->id) {
-             Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
-        }
+        // Clear table lock for all tables linked to this order
+        Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
 
         return response()->json(['success' => true, 'message' => 'Thanh toán thành công']);
     }

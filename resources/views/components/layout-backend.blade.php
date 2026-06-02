@@ -260,7 +260,7 @@
                         <li class="nav-item pl-1">
                             <a href="{{ url('admin/contact/') }}" class="nav-link {{ request()->is('admin/contact*') ? 'active' : '' }}">
                                 <i class="fas fa-id-card"></i>
-                                <p>Liên hệ</p>
+                                <p>Liên lạc</p>
                             </a>
                         </li>
                     </ul>

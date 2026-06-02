@@ -5,11 +5,11 @@
                 <div class="col-md-6">
                     <strong class="fw-bold h4 text-danger">LỊCH SỬ ORDER</strong>
                 </div>
-                <div class="col-md-6 text-right">
+                <!-- <div class="col-md-6 text-right">
                     <a href="{{ route('admin.order-history.export', request()->all()) }}" class="btn btn-success btn-sm">
                         <i class="fas fa-file-excel"></i> Xuất Excel
                     </a>
-                </div>
+                </div> -->
             </div>
         </div>
         <div class="card-body">
