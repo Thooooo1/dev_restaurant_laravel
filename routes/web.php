@@ -212,6 +212,8 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::post('/merge-table', [TableOrderController::class, 'mergeTable'])->name('admin.table-order.mergeTable');
         Route::post('/unmerge-table', [TableOrderController::class, 'unmergeTable'])->name('admin.table-order.unmergeTable');
         Route::post('/process-payment', [TableOrderController::class, 'processPayment'])->name('admin.table-order.processPayment');
+        Route::post('/cancel-table', [TableOrderController::class, 'cancelTable'])->name('admin.table-order.cancelTable');
+        Route::post('/change-table', [TableOrderController::class, 'changeTable'])->name('admin.table-order.changeTable');
     });
 
     // Bookings

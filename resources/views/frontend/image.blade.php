@@ -11,7 +11,7 @@
        <section>
         <div class="py-16 px-4">
             <div class="max-w-7xl mx-auto">
-                <h1 class="text-4xl font-bold text-center mb-12">Thư Viện Ảnh</h1>               
+                <h1 class="text-4xl font-bold text-center mb-12">Thư Viện Ảnh 12</h1>               
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                     @foreach ($images as $item)
                     <div class="group relative">

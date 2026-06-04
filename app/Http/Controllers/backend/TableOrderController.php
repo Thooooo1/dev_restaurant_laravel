@@ -75,7 +75,29 @@ class TableOrderController extends Controller
         // Lấy danh mục sản phẩm
         $categories = Category::whereNull('deleted_at')->orderBy('name')->get();
 
-        return view('backend.table-order.order', compact('table', 'order', 'orderDetails', 'categories', 'hasAnyItems'));
+        // Lấy danh sách bàn trống (chưa có khách, chưa bị khóa)
+        $floors = Floor::with(['tables' => function($query) {
+            $query->orderBy('sort_order', 'ASC');
+        }])->orderBy('order', 'ASC')->get();
+        
+        // Lấy danh sách order đang active để kiểm tra
+        $activeOrders = Order::whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->whereNotNull('table_id')
+            ->pluck('table_id')
+            ->toArray();
+        
+        // Lọc bàn trống
+        $availableTables = [];
+        foreach ($floors as $floor) {
+            foreach ($floor->tables as $tbl) {
+                if (!in_array($tbl->id, $activeOrders) && is_null($tbl->locked_order_id)) {
+                    $availableTables[] = $tbl;
+                }
+            }
+        }
+
+        return view('backend.table-order.order', compact('table', 'order', 'orderDetails', 'categories', 'hasAnyItems', 'availableTables'));
     }
 
     /**
@@ -545,5 +567,64 @@ class TableOrderController extends Controller
         Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
 
         return response()->json(['success' => true, 'message' => 'Thanh toán thành công']);
+    }
+
+    /**
+     * Huỷ bàn
+     */
+    public function cancelTable(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:order,id',
+        ]);
+
+        $order = Order::findOrFail($request->order_id);
+
+        // Kiểm tra xem order có món ăn không
+        $orderDetails = Orderdetail::where('order_id', $order->id)->count();
+        if ($orderDetails > 0) {
+            return response()->json(['success' => false, 'message' => 'Không thể huỷ bàn vì đã có món ăn']);
+        }
+
+        // Xoá order
+        $order->delete();
+
+        return response()->json(['success' => true, 'message' => 'Huỷ bàn thành công']);
+    }
+
+    /**
+     * Đổi bàn
+     */
+    public function changeTable(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:order,id',
+            'new_table_id' => 'required|exists:tables,id',
+        ]);
+
+        $order = Order::findOrFail($request->order_id);
+        $newTable = Table::findOrFail($request->new_table_id);
+
+        // Kiểm tra xem order có món ăn không
+        $orderDetails = Orderdetail::where('order_id', $order->id)->count();
+        if ($orderDetails > 0) {
+            return response()->json(['success' => false, 'message' => 'Không thể đổi bàn vì đã có món ăn']);
+        }
+
+        // Kiểm tra xem bàn mới có trống không
+        $activeOrder = Order::where('table_id', $newTable->id)
+            ->whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->first();
+        
+        if ($activeOrder || !is_null($newTable->locked_order_id)) {
+            return response()->json(['success' => false, 'message' => 'Bàn này đã có người ngồi hoặc bị khóa']);
+        }
+
+        // Cập nhật order sang bàn mới
+        $order->table_id = $newTable->id;
+        $order->save();
+
+        return response()->json(['success' => true, 'message' => 'Đổi bàn thành công']);
     }
 }

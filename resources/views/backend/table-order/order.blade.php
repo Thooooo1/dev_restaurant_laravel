@@ -23,6 +23,10 @@
                     <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm mb-1" id="backBtn"><i class="fas fa-arrow-left"></i> Quay lại</a>
                     <button type="button" class="btn btn-primary btn-sm ml-2 mb-1" id="printKitchenBtn" onclick="printKitchen()" disabled><i class="fas fa-print"></i> In thực đơn</button>
                     <a href="{{ route('admin.table-order.payment', $table->id) }}" class="btn btn-success btn-sm ml-2 mb-1 {{ $hasAnyItems ? '' : 'disabled' }}" id="payBtn"><i class="fas fa-money-bill-wave"></i> Thanh toán</a>
+                    @if(!$hasAnyItems)
+                        <button type="button" class="btn btn-warning btn-sm ml-2 mb-1" onclick="showChangeTableModal()"><i class="fas fa-exchange-alt"></i> Đổi bàn</button>
+                        <button type="button" class="btn btn-danger btn-sm ml-2 mb-1" onclick="confirmCancelTable()"><i class="fas fa-times"></i> Huỷ bàn</button>
+                    @endif
                 </div>
                 <div class="w-100 w-md-auto d-flex justify-content-between justify-content-md-end align-items-center mt-2 mt-md-0">
                     <span class="font-weight-bold mr-2">Tổng tiền:</span>
@@ -117,6 +121,41 @@
         </div>
     </section>
 
+    <!-- Modal Đổi bàn -->
+    <div class="modal fade" id="changeTableModal" tabindex="-1" role="dialog" aria-labelledby="changeTableModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="changeTableModalLabel">Đổi bàn</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        @foreach($availableTables as $tbl)
+                            <div class="col-md-4 col-sm-6 col-6 mb-2">
+                                <div class="change-table-item text-center p-2 border rounded bg-light" onclick="selectTable({{ $tbl->id }})" data-table-id="{{ $tbl->id }}">
+                                    <i class="fas fa-chair fa-2x mb-1"></i>
+                                    <div>{{ $tbl->name }}</div>
+                                </div>
+                            </div>
+                        @endforeach
+                        @if(empty($availableTables))
+                            <div class="col-12 text-center text-muted">
+                                Không có bàn trống
+                            </div>
+                        @endif
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" id="confirmChangeTableBtn" onclick="confirmChangeTable()" disabled>Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <style>
         @media (max-width: 768px) {
             .order-menu-container {
@@ -193,6 +232,20 @@
         .product-category-container {
             border-bottom: 1px solid #eee;
         }
+        /* CSS cho bàn trong popup đổi bàn */
+        .change-table-item {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .change-table-item:hover {
+            background-color: #e9ecef;
+            border-color: #007bff;
+        }
+        .change-table-item.selected {
+            background-color: #007bff !important;
+            color: white !important;
+            border-color: #007bff !important;
+        }
     </style>
 
     <script>
@@ -205,6 +258,7 @@
         let allProducts = [];
         let isOrderSaved = true;
         let hasExistingItems = {{ $hasAnyItems ? 'true' : 'false' }};
+        let selectedNewTableId = null;
 
         $(document).ready(function() {
             // Initial render
@@ -543,6 +597,75 @@
                 <table><thead><tr><th style="width:30px; text-align:center;">STT</th><th>Món</th><th style="width:50px; text-align:right;">SL</th></tr></thead><tbody>${rows}</tbody></table>
                 <div class="footer">In từ hệ thống nhà hàng</div>
             </body></html>`;
+        }
+
+        // Chức năng Huỷ bàn
+        function confirmCancelTable() {
+            if (!confirm('Bạn có chắc muốn huỷ bàn này?')) return;
+            
+            $.ajax({
+                url: '{{ route("admin.table-order.cancelTable") }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    order_id: currentOrderId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success('Huỷ bàn thành công');
+                        window.location.href = '{{ route("admin.table-order.index") }}';
+                    } else {
+                        toastr.error(response.message || 'Huỷ bàn thất bại');
+                    }
+                },
+                error: function(xhr) {
+                    let msg = 'Có lỗi xảy ra';
+                    if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                    toastr.error(msg);
+                }
+            });
+        }
+
+        // Chức năng Đổi bàn
+        function showChangeTableModal() {
+            selectedNewTableId = null;
+            $('#confirmChangeTableBtn').prop('disabled', true);
+            $('#changeTableModal .change-table-item').removeClass('selected');
+            $('#changeTableModal').modal('show');
+        }
+
+        function selectTable(tableId) {
+            selectedNewTableId = tableId;
+            $('#changeTableModal .change-table-item').removeClass('selected');
+            $('#changeTableModal .change-table-item[data-table-id="' + tableId + '"]').addClass('selected');
+            $('#confirmChangeTableBtn').prop('disabled', false);
+        }
+
+        function confirmChangeTable() {
+            if (!selectedNewTableId) return;
+            
+            $.ajax({
+                url: '{{ route("admin.table-order.changeTable") }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    order_id: currentOrderId,
+                    new_table_id: selectedNewTableId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success('Đổi bàn thành công');
+                        window.location.href = '{{ route("admin.table-order.order", ":tableId") }}'.replace(':tableId', selectedNewTableId);
+                    } else {
+                        toastr.error(response.message || 'Đổi bàn thất bại');
+                    }
+                },
+                error: function(xhr) {
+                    let msg = 'Có lỗi xảy ra';
+                    if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                    toastr.error(msg);
+                }
+            });
         }
     </script>
 </x-layout-backend>
