@@ -211,10 +211,20 @@ class CartController extends Controller
             return redirect()->route('site.cart')->with('error', 'Giỏ hàng của bạn đang trống.');
         }
 
+        // Validate phương thức thanh toán nếu không phải tại bàn
+        if (!session('table_id')) {
+            $request->validate([
+                'payment_method' => 'required|in:Momo,COD',
+            ], [
+                'payment_method.required' => 'Vui lòng chọn phương thức thanh toán',
+                'payment_method.in' => 'Phương thức thanh toán không hợp lệ',
+            ]);
+        }
+
         $order = new Order();
         $order->user_id = $userId ?? 0;
         $order->name = $request->name;
-        $order->email = $request->email;
+        $order->email = Auth::user()->email ?? '';
         $order->phone = $request->phone;
         $order->note = $request->note;
         $order->payment_method = $request->payment_method;

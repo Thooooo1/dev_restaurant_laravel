@@ -14,27 +14,19 @@
 
             <div class="mb-4">
                 <label for="fullname" class="block text-gray-700 font-medium mb-2">Họ và tên:</label>
-                <input type="text" id="fullname" name="name" value="{{ Auth::user()->fullname ?? '' }}"
-                    class="w-full border border-gray-300 rounded-md p-2 bg-gray-100 cursor-not-allowed">
-            </div>
-
-            <div class="mb-4">
-                <label for="phone" class="block text-gray-700 font-medium mb-2">Số điện thoại:</label>
-                <input type="text" id="phone" name="phone" required
+                <input type="text" id="fullname" name="name" value="{{ Auth::user()->fullname ?? '' }}" required
                     class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-200">
             </div>
 
             <div class="mb-4">
-                
-                <label for="email" class="block text-gray-700 font-medium mb-2">Email:</label>
-                <input type="text" id="email" name="email" 
-                    value="{{ Auth::user()->email ?? '' }}" 
-                    class="w-full border border-gray-300 rounded-md p-2 bg-gray-100 cursor-not-allowed" readonly>
+                <label for="phone" class="block text-gray-700 font-medium mb-2">Số điện thoại:</label>
+                <input type="text" id="phone" name="phone" required value="{{ Auth::user()->phone ?? '' }}"
+                    class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-200">
             </div>
 
             <div class="mb-4">
                 <label for="address" class="block text-gray-700 font-medium mb-2">Địa chỉ:</label>
-                <input type="text" id="address" name="address" required
+                <input type="text" id="address" name="address" required value="{{ Auth::user()->address ?? '' }}"
                     class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-200">
             </div>
 
@@ -52,44 +44,25 @@
                 </div>
             @else
             <h3 class="text-xl font-bold mb-4">Phương thức thanh toán</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="payment-options">
                 <label
                     class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
-                    <input type="radio" name="payment_method" value="Momo" class="shrink-0">
+                    <input type="radio" name="payment_method" value="Momo" class="shrink-0 payment-radio">
                     <img src="{{asset('images/logo/momologo.png')}}" alt="Momo" class="w-10 h-10 shrink-0">
                     <span class="break-words">Momo</span>
                 </label>
                 <label
                     class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
-                    <input type="radio" name="payment_method" value="ATM" class="shrink-0">
-                    <img src="{{asset('images/logo/atmlogo.jpg')}}" alt="ATM" class="w-10 h-10 shrink-0">
-                    <span class="break-words">ATM</span>
-                </label>
-                <label
-                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
-                    <input type="radio" name="payment_method" value="COD" class="shrink-0">
+                    <input type="radio" name="payment_method" value="COD" class="shrink-0 payment-radio">
                     <img src="{{asset('images/logo/icon.png')}}" alt="COD" class="w-10 h-10 shrink-0">
                     <span class="break-words">Thanh toán khi nhận hàng</span>
                 </label>
-                <label
-                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
-                    <input type="radio" name="payment_method" value="ZaloPay" class="shrink-0">
-                    <img src="{{asset('images/logo/zalopaylogo.png')}}" alt="ZaloPay" class="w-10 h-10 shrink-0">
-                    <span class="break-words">ZaloPay</span>
-                </label>
-                <label
-                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
-                    <input type="radio" name="payment_method" value="ApplePay" class="shrink-0">
-                    <img src="{{asset('images/logo/applepay.png')}}" alt="ApplePay" class="w-10 h-10 shrink-0">
-                    <span class="break-words">ApplePay</span>
-                </label>
-                <label
-                    class="flex items-center gap-4 bg-gray-100 p-4 rounded-md shadow-md cursor-pointer hover:bg-gray-200 w-full">
-                    <input type="radio" name="payment_method" value="VNPAY" class="shrink-0">
-                    <img src="{{asset('images/logo/vnpay.jpg')}}" alt="VNPAY" class="w-10 h-10 shrink-0">
-                    <span class="break-words">VNPAY</span>
-                </label>
             </div>
+            <!-- Hiển thị lỗi validate từ Laravel -->
+            @error('payment_method')
+                <div class="text-red-500 mt-2">{{ $message }}</div>
+            @enderror
+            <div id="payment-error" class="text-red-500 mt-2 hidden">Vui lòng chọn phương thức thanh toán</div>
             @endif
            
             <div class="text-center mt-6">
@@ -100,22 +73,32 @@
             </div>
         </div>
     </form>
-    {{-- <script>
+    <script>
         const form = document.querySelector("form");
-form.addEventListener("submit", function(event) {
-    const street = document.getElementById("street").value.trim();
-    const district = document.getElementById("district").value.trim();
-    const city = document.getElementById("city").value.trim();
+        const paymentError = document.getElementById("payment-error");
+        const paymentRadios = document.querySelectorAll(".payment-radio");
+        const isTableOrder = {{ session('table_id') ? 'true' : 'false' }};
 
-    if (!street || !district || !city) {
-        alert("Vui lòng nhập đầy đủ địa chỉ!");
-        event.preventDefault();  // Ngừng gửi form
-        return;
-    }
+        form.addEventListener("submit", function(event) {
+            // Nếu không phải tại bàn, kiểm tra phương thức thanh toán
+            if (!isTableOrder) {
+                const selectedPayment = document.querySelector('input[name="payment_method"]:checked');
+                if (!selectedPayment) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    paymentError.classList.remove("hidden");
+                    // Scroll đến phần phương thức thanh toán
+                    document.getElementById("payment-options").scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return false;
+                }
+            }
+        });
 
-    const fullAddress = `${street}, ${district}, ${city}`;
-    document.getElementById("address").value = fullAddress;  // Gán giá trị đầy đủ vào trường address
-});
-
-    </script> --}}
+        // Ẩn lỗi khi người dùng chọn phương thức thanh toán
+        paymentRadios.forEach(radio => {
+            radio.addEventListener("change", function() {
+                paymentError.classList.add("hidden");
+            });
+        });
+    </script>
 </x-layout-frontend>

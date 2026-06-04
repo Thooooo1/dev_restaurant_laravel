@@ -131,38 +131,39 @@
                             </a>
                         </li>
 
-                        <!-- 7. Món ăn -->
-                        <li class="nav-item {{ request()->is('admin/product*') || request()->is('admin/category*') || request()->is('admin/brand*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->is('admin/product*') || request()->is('admin/category*') || request()->is('admin/brand*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-utensils ml-2"></i>
-                                <p class="ml-2">
-                                    Món ăn
-                                    <i class="right fas fa-angle-left"></i>
-                                </p>
+                        <!-- 7. Tất cả món ăn -->
+                        <li class="nav-item pl-1">
+                            <a href="{{ url('admin/product/') }}" class="nav-link {{ request()->is('admin/product*') ? 'active' : '' }}">
+                                <i class="fa-solid fa-utensils"></i>
+                                <p>Món ăn</p>
                             </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a href="{{ url('admin/product/') }}" class="nav-link {{ request()->is('admin/product*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Tất cả món ăn</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ url('admin/category/') }}" class="nav-link {{ request()->is('admin/category*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Danh mục</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ url('admin/brand/') }}" class="nav-link {{ request()->is('admin/brand*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Thương hiệu</p>
-                                    </a>
-                                </li>
-                            </ul>
+                        </li>
+                        
+                        <!-- 8. Danh mục món ăn -->
+                        <li class="nav-item pl-1">
+                            <a href="{{ url('admin/category/') }}" class="nav-link {{ request()->is('admin/category*') ? 'active' : '' }}">
+                                <i class="fa-solid fa-list"></i>
+                                <p>Danh mục</p>
+                            </a>
+                        </li>
+                        
+                        <!-- 9. Thương hiệu -->
+                        <li class="nav-item pl-1">
+                            <a href="{{ url('admin/brand/') }}" class="nav-link {{ request()->is('admin/brand*') ? 'active' : '' }}">
+                                <i class="fa-solid fa-tag"></i>
+                                <p>Thương hiệu</p>
+                            </a>
                         </li>
 
-                        <!-- 8. Bài viết -->
+                        <!-- 10. Banner -->
+                        <li class="nav-item pl-1">
+                            <a href="{{ url('admin/banner/') }}" class="nav-link {{ request()->is('admin/banner*') ? 'active' : '' }}">
+                                <i class="fa-solid fa-image"></i>
+                                <p>Banner</p>
+                            </a>
+                        </li>
+
+                        <!-- 11. Bài viết -->
                         <li class="nav-item {{ request()->is('admin/blog*') || request()->is('admin/topic*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->is('admin/blog*') || request()->is('admin/topic*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-copy"></i>
@@ -187,9 +188,9 @@
                             </ul>
                         </li>
 
-                        <!-- 9. Giao diện -->
-                        <li class="nav-item {{ request()->is('admin/menu*') || request()->is('admin/banner*') || request()->is('admin/image*') || request()->is('admin/keyword*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->is('admin/menu*') || request()->is('admin/banner*') || request()->is('admin/image*') || request()->is('admin/keyword*') ? 'active' : '' }}">
+                        <!-- 12. Giao diện -->
+                        <!-- <li class="nav-item {{ request()->is('admin/menu*') || request()->is('admin/image*') || request()->is('admin/keyword*') ? 'menu-open' : '' }}">
+                            <a href="#" class="nav-link {{ request()->is('admin/menu*') || request()->is('admin/image*') || request()->is('admin/keyword*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-edit"></i>
                                 <p>
                                     Giao diện
@@ -201,12 +202,6 @@
                                     <a href="{{ url('admin/menu/') }}" class="nav-link {{ request()->is('admin/menu*') ? 'active' : '' }}">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Menu</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ url('admin/banner/') }}" class="nav-link {{ request()->is('admin/banner*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Banner</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -222,9 +217,9 @@
                                     </a>
                                 </li>
                             </ul>
-                        </li>
+                        </li> -->
 
-                        <!-- 10. Người dùng -->
+                        <!-- 13. Người dùng -->
                         <li class="nav-item {{ request()->routeIs('admin.user.*') ? 'menu-open' : '' }}">
                             <a href="#" class="nav-link {{ request()->routeIs('admin.user.*') ? 'active' : '' }}">
                                 <i class="nav-icon fas fa-users"></i>
@@ -250,6 +245,7 @@
                         </li>
 
                         <!-- Others -->
+                        <!-- 14. Tư vấn -->
                         <li class="nav-item pl-1">
                             <a href="{{ url('admin/inquiries/') }}" class="nav-link {{ request()->is('admin/inquiries*') ? 'active' : '' }}">
                                 <i class="fa-solid fa-comment"></i>
@@ -257,6 +253,7 @@
                             </a>
                         </li>
 
+                        <!-- 15. Liên lạc -->
                         <li class="nav-item pl-1">
                             <a href="{{ url('admin/contact/') }}" class="nav-link {{ request()->is('admin/contact*') ? 'active' : '' }}">
                                 <i class="fas fa-id-card"></i>

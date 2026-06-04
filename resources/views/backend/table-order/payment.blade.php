@@ -122,8 +122,104 @@
 
     <script>
         let isEditMode = false;
+        let originalQuantities = {}; // Lưu giá trị số lượng ban đầu
+
+        // Lưu giá trị ban đầu khi trang load
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.qty-input');
+            inputs.forEach(input => {
+                const tr = input.closest('tr');
+                const id = tr.dataset.id;
+                originalQuantities[id] = parseInt(input.value);
+            });
+        });
+
+        function saveQuantities() {
+            const inputs = document.querySelectorAll('.qty-input');
+            const items = [];
+            let isValid = true;
+            let hasChanges = false; // Kiểm tra xem có thay đổi gì không
+
+            inputs.forEach(input => {
+                const qty = parseInt(input.value);
+                const tr = input.closest('tr');
+                const id = tr.dataset.id;
+                
+                if (qty < 1 || isNaN(qty)) {
+                    toastr.error('Số lượng món không hợp lệ');
+                    isValid = false;
+                    return;
+                }
+
+                // Kiểm tra xem có thay đổi so với giá trị ban đầu không
+                if (qty !== originalQuantities[id]) {
+                    hasChanges = true;
+                    items.push({
+                        id: id,
+                        qty: qty
+                    });
+                }
+            });
+
+            if (!isValid) return false;
+
+            // Nếu không có thay đổi gì, chỉ cần thoát chế độ sửa không cần gọi API
+            if (!hasChanges) {
+                toastr.info('Không có thay đổi nào để cập nhật');
+                return true;
+            }
+
+            const printBtn = document.querySelector('button[onclick="handlePrintInvoice()"]');
+            printBtn.disabled = true;
+            printBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            $.ajax({
+                url: '{{ route("admin.table-order.updateTableOrderQuantities") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    order_id: {{ $order->id }},
+                    items: items
+                },
+                success: function(res) {
+                    if (res.success) {
+                        toastr.success('Cập nhật số lượng thành công');
+                        // Cập nhật lại giá trị ban đầu sau khi lưu thành công
+                        items.forEach(item => {
+                            originalQuantities[item.id] = item.qty;
+                        });
+                        // Enable nút in sau khi lưu xong
+                        printBtn.disabled = false;
+                        printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        location.reload();
+                    } else {
+                        toastr.error(res.message);
+                        printBtn.disabled = false;
+                        printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                },
+                error: function(err) {
+                    toastr.error('Lỗi cập nhật đơn hàng');
+                    printBtn.disabled = false;
+                    printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            });
+
+            return true;
+        }
 
         function toggleEditMode() {
+            const printBtn = document.querySelector('button[onclick="handlePrintInvoice()"]');
+
+            if (isEditMode) {
+                // Đang ở chế độ sửa, bấm Xong -> lưu rồi thoát
+                saveQuantities();
+            } else {
+                // Vào chế độ sửa -> disable nút in
+                printBtn.disabled = true;
+                printBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+
             isEditMode = !isEditMode;
             const deleteBtns = document.querySelectorAll('.btn-delete-item');
             const qtyDisplays = document.querySelectorAll('.qty-display');
@@ -144,6 +240,9 @@
                 btn.innerHTML = '<i class="fas fa-edit"></i> Sửa';
                 btn.classList.remove('btn-info');
                 btn.classList.add('btn-warning');
+                // Enable nút in sau khi thoát chế độ sửa
+                printBtn.disabled = false;
+                printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
 
