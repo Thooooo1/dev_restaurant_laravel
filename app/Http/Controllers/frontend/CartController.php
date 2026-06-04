@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\Orderdetail;
 use Illuminate\Support\Facades\Auth;
+use App\Services\MomoService;
 
 class CartController extends Controller
 {
@@ -271,9 +272,72 @@ class CartController extends Controller
             }
         }
 
-        session()->forget("cart_$userId");
+        // Tính tổng tiền (đảm bảo là số nguyên, đơn vị VNĐ)
+        $totalAmount = 0;
+        foreach ($cart as $details) {
+            $price = $details['price'];
+            $quantity = $details['qty'];
+            $discount = $details['discount'] ?? 0;
+            $totalAmount += ($price - $discount) * $quantity;
+        }
+        // Đảm bảo tổng tiền là số nguyên không có phần thập phân
+        $totalAmount = (int) round($totalAmount);
 
+        // Nếu chọn thanh toán Momo
+        if ($request->payment_method == 'Momo') {
+            $momoService = new MomoService();
+            $orderInfo = 'Thanh toán đơn hàng #' . $order->id;
+            
+            $momoResponse = $momoService->createPayment($order->id, $totalAmount, $orderInfo);
+            
+            // Debug: nếu có lỗi, hiển thị chi tiết
+            if (isset($momoResponse['error']) || !isset($momoResponse['payUrl'])) {
+                $errorMsg = $momoResponse['message'] ?? $momoResponse['error'] ?? 'Có lỗi xảy ra khi tạo thanh toán Momo';
+                return redirect()->back()->with('error', $errorMsg);
+            }
+            
+            // Chỉ xóa cart khi có payUrl và chuyển hướng đi rồi
+            session()->forget("cart_$userId");
+            return redirect($momoResponse['payUrl']);
+        }
+
+        // Nếu thanh toán COD hoặc khác, xóa cart
+        session()->forget("cart_$userId");
         return redirect()->route('site.thanks')->with('success', 'Đặt hàng thành công!');
+    }
+
+    public function momoReturn(Request $request, MomoService $momoService)
+    {
+        $data = $request->all();
+        
+        if (isset($data['signature']) && $momoService->verifyPayment($data)) {
+            $order = Order::find($data['orderId']);
+            if ($order && $data['resultCode'] == 0) {
+                $order->status = 1; // Đã thanh toán
+                $order->payment_method = 'Momo';
+                $order->save();
+                return redirect()->route('site.thanks')->with('success', 'Thanh toán Momo thành công!');
+            }
+        }
+        
+        return redirect()->route('site.cart')->with('error', 'Thanh toán Momo thất bại!');
+    }
+
+    public function momoIpn(Request $request, MomoService $momoService)
+    {
+        $data = $request->all();
+        
+        if (isset($data['signature']) && $momoService->verifyPayment($data)) {
+            $order = Order::find($data['orderId']);
+            if ($order && $data['resultCode'] == 0 && $order->status != 1) {
+                $order->status = 1;
+                $order->payment_method = 'Momo';
+                $order->save();
+            }
+            return response()->json(['message' => 'Success']);
+        }
+        
+        return response()->json(['message' => 'Error'], 400);
     }
 
 

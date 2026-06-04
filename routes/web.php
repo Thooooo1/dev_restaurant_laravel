@@ -77,6 +77,9 @@ Route::get('/delcart/{id}', [GiohangController::class, 'delcart'])->name('site.d
 Route::get('/thanh-toan', [GiohangController::class, 'checkoutForm'])->name('site.checkoutForm');
 Route::post('/thanh-toan', [GiohangController::class, 'checkout'])->name('site.checkout');
 Route::get('/cam-on', [GiohangController::class, 'thanks'])->name('site.thanks');
+// Momo Callback
+Route::get('/checkout/return', [GiohangController::class, 'momoReturn'])->name('site.momo.return');
+Route::post('/checkout/ipn', [GiohangController::class, 'momoIpn'])->name('site.momo.ipn');
 
 // Orders
 Route::get('/don-hang', [DonHangController::class, 'index'])->name('site.orders');
