@@ -22,7 +22,7 @@ class StoreUserRequest extends FormRequest
             'phone' => 'required|string|digits_between:10,15|unique:user,phone',
             'gender' => 'required|in:0,1',
             'address' => 'nullable|string|max:255',
-            'roles' => 'required|in:customer,admin',
+            'roles' => 'required|in:customer,admin,employee',
             'status' => 'required|in:1,2',
         ];
 
@@ -31,12 +31,14 @@ class StoreUserRequest extends FormRequest
             $rules['email'] = 'nullable|email|unique:user,email';
             $rules['username'] = 'nullable|string|min:4|max:50|unique:user,username';
             $rules['password'] = 'nullable|string|min:6|max:50';
+            $rules['password_re'] = 'nullable|same:password';
             $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
         } else {
-            // Với admin: username, password là required
+            // Với admin/employee: username, password là required
             $rules['email'] = 'nullable|email|unique:user,email';
             $rules['username'] = 'required|string|min:4|max:50|unique:user,username';
             $rules['password'] = 'required|string|min:6|max:50';
+            $rules['password_re'] = 'required|same:password';
             $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
         }
 
@@ -61,7 +63,9 @@ class StoreUserRequest extends FormRequest
             'username.unique' => 'Tên người dùng đã tồn tại.',
             'password.required' => 'Mật khẩu không được để trống.',
             'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
-            'password.max' => 'Mật khẩu không được vượt quá 50 ký tự.',  
+            'password.max' => 'Mật khẩu không được vượt quá 50 ký tự.',
+            'password_re.required' => 'Xác nhận mật khẩu không được để trống.',
+            'password_re.same' => 'Mật khẩu xác nhận không khớp.',
             'gender.required' => 'Vui lòng chọn giới tính.',
             'gender.in' => 'Giới tính không hợp lệ.',
             'roles.required' => 'Vui lòng chọn quyền.',

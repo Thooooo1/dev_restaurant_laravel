@@ -17,14 +17,14 @@
         <form action="{{ route('site.send_otp') }}" method="POST">
             @csrf
             <div class="mb-4">
-                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
                 <input 
-                    type="email" 
-                    name="email" 
+                    type="text" 
+                    name="phone" 
                     class="w-full px-4 py-2 border border-gray-300 rounded-md" 
-                    placeholder="example@gmail.com" 
-                    value="{{ old('email') }}">
-                @error('email')
+                    placeholder="0901234567" 
+                    value="{{ old('phone') }}">
+                @error('phone')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
@@ -32,9 +32,8 @@
             <button 
                 id="send-otp-btn"
                 type="submit" 
-                class="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600"
-                onclick="handleSendOtp(this)">
-                Gửi OTP
+                class="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600">
+                Lấy mã OTP
             </button>
 
         </form>

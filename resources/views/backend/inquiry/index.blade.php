@@ -1,75 +1,84 @@
 <x-layout-backend>
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Quản lý yêu cầu</h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url('admin/') }}">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Yêu cầu</li>
-                    </ol>
-                </div>
+    <!-- Page header -->
+    <div class="mb-4">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div>
+                <h1 class="text-xl font-bold text-slate-800 flex items-center gap-3">
+                    <span class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
+                        <i class="fas fa-comment-dots text-sm"></i>
+                    </span>
+                    Quản lý yêu cầu
+                </h1>
+                <p class="text-slate-500 mt-1 text-sm">Danh sách và quản lý các yêu cầu từ khách hàng</p>
             </div>
         </div>
-    </section>
+    </div>
     
-    <section class="content">
-        <div class="card">
-            <div class="card-header">
-                <form method="GET" class="form-inline">
-                    <label for="status" class="mr-2">Lọc theo trạng thái:</label>
-                    <select name="status" id="status" class="form-control mr-2">
-                        <option value="0" {{ $statusFilter == 0 ? 'selected' : '' }}>Tất cả</option>
-                        <option value="1" {{ $statusFilter == 1 ? 'selected' : '' }}>Chờ xử lý</option>
-                        <option value="2" {{ $statusFilter == 2 ? 'selected' : '' }}>Đã liên hệ</option>
-                        <option value="3" {{ $statusFilter == 3 ? 'selected' : '' }}>Hoàn thành</option>
-                    </select>
-                    <button type="submit" class="btn btn-primary">Lọc</button>
-                </form>
-            </div>
+    <!-- Filter -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 mb-4">
+        <form method="GET" class="flex flex-wrap gap-3 items-end">
+            <label for="status" class="block text-sm font-medium text-slate-700">Lọc theo trạng thái:</label>
+            <select name="status" id="status" class="px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm">
+                <option value="0" {{ $statusFilter == 0 ? 'selected' : '' }}>Tất cả</option>
+                <option value="1" {{ $statusFilter == 1 ? 'selected' : '' }}>Chờ xử lý</option>
+                <option value="2" {{ $statusFilter == 2 ? 'selected' : '' }}>Đã liên hệ</option>
+                <option value="3" {{ $statusFilter == 3 ? 'selected' : '' }}>Hoàn thành</option>
+            </select>
+            <button type="submit" class="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700">
+                <i class="fas fa-filter mr-1"></i> Lọc
+            </button>
+        </form>
+    </div>
 
-            <div class="card-body">
-                <table class="table table-bordered table-striped">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Họ tên</th>
-                            <th>Điện thoại</th>
-                            <th>Nội dung</th>
-                            <th>Ngày gửi</th>
-                            <th>Trạng thái</th>
-                            <th>Chức năng</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($inquiries as $index => $inquiry)
-                        <tr>
-                            <td>{{ $inquiries->firstItem() + $index }}</td>
-                            <td>{{ $inquiry->name }}</td>
-                            <td>{{ $inquiry->phone }}</td>
-                            <td>{{ Str::limit($inquiry->message, 50) }}</td>
-                            <td>{{ date('H:i d/m/Y', strtotime($inquiry->created_at)) }}</td>
-                            <td>
-                                @switch($inquiry->status)
-                                    @case(1) Chờ xử lý @break
-                                    @case(2) Đã liên hệ @break
-                                    @case(3) Hoàn thành @break
-                                @endswitch
-                            </td>
-                            <td>
-                                <a href="{{ route('admin.inquiry.show', $inquiry->id) }}" class="btn btn-sm btn-info">Xem</a>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                
-                <div class="my-4">
-                    {{ $inquiries->appends(request()->query())->links() }}
-                </div>
-            </div>
+    <!-- Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Họ tên</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Điện thoại</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Nội dung</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Ngày gửi</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Trạng thái</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Chức năng</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @foreach ($inquiries as $index => $inquiry)
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $inquiries->firstItem() + $index }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-800 font-medium">{{ $inquiry->name }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $inquiry->phone }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600 max-w-[200px] truncate">{{ Str::limit($inquiry->message, 50) }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ date('H:i d/m/Y', strtotime($inquiry->created_at)) }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            @switch($inquiry->status)
+                                @case(1)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-medium">Chờ xử lý</span>
+                                    @break
+                                @case(2)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">Đã liên hệ</span>
+                                    @break
+                                @case(3)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-600 rounded-full text-xs font-medium">Hoàn thành</span>
+                                    @break
+                            @endswitch
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-center">
+                            <a href="{{ route('admin.inquiry.show', $inquiry->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100">
+                                <i class="far fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-    </section>
+                
+        <div class="px-4 py-3 border-t border-slate-200 flex justify-center">
+            {{ $inquiries->appends(request()->query())->links() }}
+        </div>
+    </div>
 </x-layout-backend>

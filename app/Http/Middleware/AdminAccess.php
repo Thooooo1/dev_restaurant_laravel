@@ -10,7 +10,7 @@ class AdminAccess
 {
     public function handle(Request $request, Closure $next)
     {
-        if (Auth::check() && Auth::user()->admin_lever == 1) {
+        if (Auth::check() && Auth::user()->roles == 'admin') {
             return $next($request);
         }
 

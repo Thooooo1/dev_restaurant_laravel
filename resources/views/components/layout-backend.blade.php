@@ -1,288 +1,302 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="vi">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CIVILIZE Admin</title>
+    <title>Quản lý Nhà hàng</title>
     <link rel="shortcut icon" type="image/x-icon" href="../images/logo/logo.png">
-    {{-- <link rel="stylesheet" href="{{ asset('plugins/fontawesome-free/css/all.min.css') }}"> --}}
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ asset('dist/css/adminlte.min.css') }}">
     <link rel="stylesheet" href="{{ asset('/DataTables/datatables.css') }}" />
     <script src="{{ asset('plugins/jquery/jquery.min.js') }}"></script>
+    <!-- Bootstrap 4 JS (for existing modals and collapse) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css">
-    <!-- Thêm Quill CSS -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <!-- Thêm Quill JS -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
-    {{-- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"> --}}
-
-    {{ $header ?? '' }}
+    
     <style>
-        /* Menu con (Sub-menu) khi active */
-        .nav-treeview > .nav-item > .nav-link.active {
-            background-color: #b2bdc4e6 !important;
-            color: #343a40 !important;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
         }
-
-        /* Menu cấp 1 (Parent & Single items) khi active */
-        .nav-sidebar > .nav-item > .nav-link.active {
-            background-color: #7297be !important;
-            color: #ffffff !important;
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        
+        /* Table styles */
+        table {
+            font-size: 1.1rem;
+        }
+        th, td {
+            color: #1e293b;
+            font-weight: 600;
+        }
+        td {
+            font-size: 1.15rem !important;
+            color: #000000 !important;
+        }
+        th {
+            font-weight: 900 !important;
+            font-size: 1.9rem !important;
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%) !important;
+            color: #000000 !important;
+            text-transform: none !important;
+            padding-top: 1.9rem !important;
+            padding-bottom: 1.9rem !important;
+        }
+        
+        /* Action buttons and icons */
+        .btn {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .btn i {
+            font-size: 1.2rem;
+            font-weight: 900;
+        }
+        table td .btn {
+            padding: 0.5rem 0.75rem;
+        }
+        
+        /* Small square action buttons */
+        table td a.inline-flex {
+            width: 40px !important;
+            height: 40px !important;
+        }
+        table td a.inline-flex i {
+            font-size: 1.3rem;
+            font-weight: 900;
         }
     </style>
 </head>
-
-<body class="hold-transition sidebar-mini">
+<body class="bg-slate-50 min-h-screen">
     @include('components.alert')
-    <div class="wrapper">
-        <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i
-                            class="fas fa-bars"></i></a>
-                </li>
-                <li class="nav-item d-none d-sm-inline-block">
-                    <a href="{{ url('admin/') }}" class="nav-link">Trang chủ</a>
-                </li>
-            </ul>
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="far fa-user"></i> {{ Auth::user()->fullname }}
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url('/') }}">
-                        <i class="fas fa-power-off"></i> Thoát
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        <aside class="main-sidebar sidebar-dark-primary elevation-4">
-            <a href="{{ route('admin.table-order.index') }}" class="brand-link">
-            <!-- <a href="{{ url('admin/') }}" class="brand-link"> -->
-                <img src=" {{ asset('images/logo/logo.png') }}" alt="AdminLTE Logo"
-                    class="brand-image img-circle elevation-3" style="opacity: .8">
-                <span class="brand-text font-weight-light">Trang quản trị</span>
-            </a>
-            <div class="sidebar">
-                <!-- <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-                    <div class="image">
-                        <img src="{{ asset('images/logo/logo.png') }}" class="img-circle elevation-2" alt="User Image">
+    
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed left-0 top-0 z-40 flex flex-col w-64 h-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-r border-slate-700/50 sidebar-transition">
+            <!-- Logo -->
+            <div class="px-6 py-4 border-b border-slate-700/50">
+                <a href="{{ route('admin.table-order.index') }}" class="flex items-center gap-3">
+                    <div class="w-11 h-11 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
+                        <i class="fas fa-utensils text-white text-lg"></i>
                     </div>
-                    <div class="info">
-                        <a href="{{ url('admin/') }}" class="d-block">Dev Restaurant</a>
+                    <div>
+                        <h1 class="text-white font-bold text-lg">Restaurant</h1>
+                        <p class="text-slate-400 text-xs">Quản lý chuyên nghiệp</p>
                     </div>
-                </div> -->
-                <nav class="mt-2">
-                    <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
-                        data-accordion="false">
-
-                        <!-- 1. Quản lý Order -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ route('admin.table-order.index') }}" class="nav-link {{ request()->routeIs('admin.table-order.*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-cash-register"></i>
-                                <p>Quản lý Order</p>
-                            </a>
-                        </li>
-
-                        <!-- 2. Lịch sử order -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ route('admin.order-history.index') }}" class="nav-link {{ request()->routeIs('admin.order-history.*') ? 'active' : '' }}">
-                                <i class="fas fa-history"></i>
-                                <p>Lịch sử order</p>
-                            </a>
-                        </li>
-
-                        <!-- 3. Đặt bàn -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/booking/') }}" class="nav-link {{ request()->is('admin/booking*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-clipboard"></i>
-                                <p>Đặt bàn</p>
-                            </a>
-                        </li>
-
-                        <!-- 4. Đơn hàng -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/order/') }}" class="nav-link {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? 'active' : '' }}">
-                                <i class="fas fa-shopping-bag"></i>
-                                <p>Đơn hàng</p>
-                            </a>
-                        </li>
-
-                        <!-- 5. Quản lý nhập hàng -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ route('admin.import-goods.index') }}" class="nav-link {{ request()->routeIs('admin.import-goods.*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-file-import"></i>
-                                <p>Quản lý nhập hàng</p>
-                            </a>
-                        </li>
-
-                        <!-- 6. Bàn ăn -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/table/') }}" class="nav-link {{ request()->routeIs('admin.table.*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-chair"></i>
-                                <p>Bàn ăn</p>
-                            </a>
-                        </li>
-
-                        <!-- 7. Tất cả món ăn -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/product/') }}" class="nav-link {{ request()->is('admin/product*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-utensils"></i>
-                                <p>Món ăn</p>
-                            </a>
-                        </li>
+                </a>
+            </div>
+            
+            <!-- Menu -->
+            <nav class="flex-1 p-4 overflow-y-auto">
+                <div class="space-y-1">
+                    <!-- Quản lý Order -->
+                    <a href="{{ route('admin.table-order.index') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->routeIs('admin.table-order.*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                        <i class="fas fa-cash-register w-5 text-center"></i>
+                        <span class="font-medium">Quản lý Order</span>
+                    </a>
+                    
+                    <!-- Lịch sử order -->
+                    <a href="{{ route('admin.order-history.index') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->routeIs('admin.order-history.*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                        <i class="fas fa-history w-5 text-center"></i>
+                        <span class="font-medium">Lịch sử Order</span>
+                    </a>
+                    
+                    <!-- Đặt bàn -->
+                    <a href="{{ url('admin/booking/') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->is('admin/booking*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                        <i class="fas fa-clipboard-list w-5 text-center"></i>
+                        <span class="font-medium">Đặt bàn</span>
+                    </a>
+                    
+                    <!-- Đơn hàng -->
+                    <a href="{{ url('admin/order/') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                        <i class="fas fa-shopping-bag w-5 text-center"></i>
+                        <span class="font-medium">Đơn hàng</span>
+                    </a>
+                    
+                    @if(Auth::user()->isAdmin())
+                        <!-- Quản lý nhập hàng -->
+                        <a href="{{ route('admin.import-goods.index') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->routeIs('admin.import-goods.*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                            <i class="fas fa-file-import w-5 text-center"></i>
+                            <span class="font-medium">Nhập hàng</span>
+                        </a>
                         
-                        <!-- 8. Danh mục món ăn -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/category/') }}" class="nav-link {{ request()->is('admin/category*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-list"></i>
-                                <p>Danh mục</p>
-                            </a>
-                        </li>
+                        <!-- Bàn ăn -->
+                        <a href="{{ url('admin/table/') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->routeIs('admin.table.*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                            <i class="fas fa-chair w-5 text-center"></i>
+                            <span class="font-medium">Bàn ăn</span>
+                        </a>
                         
-                        <!-- 9. Thương hiệu -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/brand/') }}" class="nav-link {{ request()->is('admin/brand*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-tag"></i>
-                                <p>Thương hiệu</p>
-                            </a>
-                        </li>
-
-                        <!-- 10. Banner -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/banner/') }}" class="nav-link {{ request()->is('admin/banner*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-image"></i>
-                                <p>Banner</p>
-                            </a>
-                        </li>
-
-                        <!-- 11. Bài viết -->
-                        <li class="nav-item {{ request()->is('admin/blog*') || request()->is('admin/topic*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->is('admin/blog*') || request()->is('admin/topic*') ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-copy"></i>
-                                <p>
-                                    Bài viết
-                                    <i class="fas fa-angle-left right"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a href="{{ url('admin/blog/') }}" class="nav-link {{ request()->is('admin/blog*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Tất cả bài viết</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ url('admin/topic/') }}" class="nav-link {{ request()->is('admin/topic*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Chủ đề</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <!-- 12. Giao diện -->
-                        <!-- <li class="nav-item {{ request()->is('admin/menu*') || request()->is('admin/image*') || request()->is('admin/keyword*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->is('admin/menu*') || request()->is('admin/image*') || request()->is('admin/keyword*') ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-edit"></i>
-                                <p>
-                                    Giao diện
-                                    <i class="fas fa-angle-left right"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a href="{{ url('admin/menu/') }}" class="nav-link {{ request()->is('admin/menu*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Menu</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ url('admin/image/') }}" class="nav-link {{ request()->is('admin/image*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Thư viện ảnh</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ url('admin/keyword/') }}" class="nav-link {{ request()->is('admin/keyword*') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Từ khóa</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li> -->
-
-                        <!-- 13. Người dùng -->
-                        <li class="nav-item {{ request()->routeIs('admin.user.*') ? 'menu-open' : '' }}">
-                            <a href="#" class="nav-link {{ request()->routeIs('admin.user.*') ? 'active' : '' }}">
-                                <i class="nav-icon fas fa-users"></i>
-                                <p>
-                                    Quản lý người dùng
-                                    <i class="fas fa-angle-left right"></i>
-                                </p>
-                            </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.user.customers') }}" class="nav-link {{ request()->routeIs('admin.user.customers') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Khách hàng</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.user.employees') }}" class="nav-link {{ request()->routeIs('admin.user.employees') ? 'active' : '' }}">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Nhân viên</p>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-
-                        <!-- Others -->
-                        <!-- 14. Tư vấn -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/inquiries/') }}" class="nav-link {{ request()->is('admin/inquiries*') ? 'active' : '' }}">
-                                <i class="fa-solid fa-comment"></i>
-                                <p>Tư vấn</p>
-                            </a>
-                        </li>
-
-                        <!-- 15. Liên lạc -->
-                        <li class="nav-item pl-1">
-                            <a href="{{ url('admin/contact/') }}" class="nav-link {{ request()->is('admin/contact*') ? 'active' : '' }}">
-                                <i class="fas fa-id-card"></i>
-                                <p>Liên lạc</p>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+                        <!-- Món ăn -->
+                        <a href="{{ url('admin/product/') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->is('admin/product*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                            <i class="fas fa-utensils w-5 text-center"></i>
+                            <span class="font-medium">Món ăn</span>
+                        </a>
+                        
+                        <!-- Danh mục -->
+                        <a href="{{ url('admin/category/') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->is('admin/category*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                            <i class="fas fa-list w-5 text-center"></i>
+                            <span class="font-medium">Danh mục</span>
+                        </a>
+                        
+                        <!-- Thương hiệu -->
+                        <a href="{{ url('admin/brand/') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->is('admin/brand*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                            <i class="fas fa-tag w-5 text-center"></i>
+                            <span class="font-medium">Thương hiệu</span>
+                        </a>
+                        
+                        <!-- Banner -->
+                        <a href="{{ url('admin/banner/') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->is('admin/banner*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                            <i class="fas fa-image w-5 text-center"></i>
+                            <span class="font-medium">Banner</span>
+                        </a>
+                        
+                        <!-- Người dùng -->
+                        <div class="menu-item-wrapper">
+                            <button onclick="toggleSubmenu('user-submenu')" class="w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl {{ request()->routeIs('admin.user.*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-users w-5 text-center"></i>
+                                    <span class="font-medium">Quản lý người dùng</span>
+                                </div>
+                                <i class="fas fa-chevron-down text-sm transition-transform" id="user-submenu-icon"></i>
+                            </button>
+                            <div id="user-submenu" class="ml-4 mt-1 space-y-1 {{ request()->routeIs('admin.user.*') ? 'block' : 'hidden' }}">
+                                <a href="{{ route('admin.user.customers') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm {{ request()->routeIs('admin.user.customers') ? 'bg-orange-500/20 text-orange-400 font-medium' : 'text-slate-400 hover:bg-slate-700/30 hover:text-slate-200' }} transition-all">
+                                    <i class="fas fa-circle text-[6px]"></i>
+                                    Khách hàng
+                                </a>
+                                <a href="{{ route('admin.user.employees') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm {{ request()->routeIs('admin.user.employees') ? 'bg-orange-500/20 text-orange-400 font-medium' : 'text-slate-400 hover:bg-slate-700/30 hover:text-slate-200' }} transition-all">
+                                    <i class="fas fa-circle text-[6px]"></i>
+                                    Nhân viên
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Liên lạc -->
+                        <a href="{{ url('admin/contact/') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->is('admin/contact*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                            <i class="fas fa-id-card w-5 text-center"></i>
+                            <span class="font-medium">Liên lạc</span>
+                        </a>
+                        
+                        <!-- Tư vấn -->
+                        <a href="{{ url('admin/inquiries/') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->is('admin/inquiries*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                            <i class="fas fa-comment-dots w-5 text-center"></i>
+                            <span class="font-medium">Tư vấn</span>
+                        </a>
+                    @endif
+                </div>
+            </nav>
+            
+            <!-- User info -->
+            <div class="p-4 border-t border-slate-700/50 bg-slate-800/30">
+                <div class="flex items-center gap-3 px-2">
+                    <div class="w-11 h-11 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center text-white font-semibold shadow-md">
+                        {{ mb_substr(Auth::user()->fullname, 0, 1) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-white font-medium truncate text-sm">{{ Auth::user()->fullname }}</p>
+                        <p class="text-slate-400 text-xs truncate">
+                            @if(Auth::user()->isAdmin())
+                                Quản trị viên
+                            @else
+                                Nhân viên
+                            @endif
+                        </p>
+                    </div>
+                    <a href="{{ route('admin.logout') }}" class="w-9 h-9 flex items-center justify-center rounded-full hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-colors" title="Đăng xuất">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
             </div>
         </aside>
-        <div class="content-wrapper">
-            {{ $slot }}
+        
+        <!-- Main content -->
+        <div class="flex-1 ml-64 min-h-screen flex flex-col">
+            <!-- Header -->
+            <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+                <div class="px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 transition-colors">
+                                <i class="fas fa-bars text-slate-600"></i>
+                            </button>
+                            <div>
+                                <p class="text-slate-500 text-sm">Xin chào,</p>
+                                <h2 class="text-slate-800 font-semibold text-lg">{{ Auth::user()->fullname }} 👋</h2>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <a href="{{ url('/') }}" class="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors text-sm font-medium">
+                                <i class="fas fa-home"></i>
+                                <span class="hidden sm:inline">Trang chủ</span>
+                            </a>
+                            <a href="{{ route('admin.logout') }}" class="flex items-center gap-2 px-4 py-2.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-xl transition-colors text-sm font-medium">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span class="hidden sm:inline">Đăng xuất</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Page content -->
+            <main class="flex-1 p-6">
+                {{ $slot }}
+            </main>
         </div>
-        <footer class="main-footer">
-            <div class="float-right d-none d-sm-block">
-                <b>Version</b> 3.2.0
-            </div>
-            <strong>Dev pro vip</strong> All rights reserved.
-        </footer>
-        <aside class="control-sidebar control-sidebar-dark">
-        </aside>
     </div>
-
-    <script src="{{ asset('plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('plugins/bootstrap/js/boot.js') }}"></script>
-    <script src="{{ asset('dist/js/adminlte.min.js') }}"></script>
-
-    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script> --}}
-
+    
+    <!-- Mobile sidebar overlay -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden lg:hidden" onclick="toggleSidebar()"></div>
+    
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+        
+        function toggleSubmenu(id) {
+            const submenu = document.getElementById(id);
+            const icon = document.getElementById(id + '-icon');
+            
+            submenu.classList.toggle('hidden');
+            icon.classList.toggle('rotate-180');
+        }
+        
+        // Responsive sidebar
+        function checkScreenSize() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (window.innerWidth < 1024) {
+                sidebar.classList.add('-translate-x-full');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+        
+        window.addEventListener('resize', checkScreenSize);
+        checkScreenSize();
+    </script>
 </body>
-
 </html>

@@ -64,7 +64,7 @@ class MomoService
         try {
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
-            ])->post(self::API_ENDPOINT, $data);
+            ])->withoutVerifying()->post(self::API_ENDPOINT, $data);
 
             Log::info('=== MOMO RESPONSE ===');
             Log::info($response->body());

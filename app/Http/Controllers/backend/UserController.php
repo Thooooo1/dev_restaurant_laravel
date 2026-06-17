@@ -102,9 +102,11 @@ class UserController extends Controller
         $user->email = $request->email ?? null;
         $user->phone = $request->phone;
         $user->roles = $request->roles;
-        // Set admin_lever khi tạo user với vai trò admin
+        // Set admin_lever khi tạo user với vai trò admin hoặc employee
         if ($request->roles == 'admin') {
             $user->admin_lever = 2;
+        } elseif ($request->roles == 'employee') {
+            $user->admin_lever = 2; // Để cho employee vào được admin panel
         }
         $user->address = $request->address ?? null;
         $user->created_by = Auth::id() ?? 1;
@@ -112,7 +114,7 @@ class UserController extends Controller
         $user->save();
         
         // Redirect về đúng trang dựa trên role
-        if ($request->roles == 'admin') {
+        if ($request->roles == 'admin' || $request->roles == 'employee') {
             return redirect()->route('admin.user.employees')->with('success','Thêm nhân viên thành công');
         } else {
             return redirect()->route('admin.user.customers')->with('success','Thêm khách hàng thành công');
@@ -182,14 +184,19 @@ class UserController extends Controller
         
         $user->phone = $request->phone;
         $user->roles = $request->roles;
-        $user->admin_lever = 2;
+        // Set admin_lever khi update user với vai trò admin hoặc employee
+        if ($request->roles == 'admin' || $request->roles == 'employee') {
+            $user->admin_lever = 2;
+        } else {
+            $user->admin_lever = null;
+        }
         $user->address = $request->address ?? null;
         $user->updated_by=Auth::id() ?? 1 ;
         $user->updated_at= date('Y-m-d H:i:s');
         $user->status = $request->status;
         if($user->save()){
             // Redirect về đúng trang dựa trên role
-            if ($request->roles == 'admin') {
+            if ($request->roles == 'admin' || $request->roles == 'employee') {
                 return redirect()->route('admin.user.employees')->with('success','Nhân viên đã được cập nhật');
             } else {
                 return redirect()->route('admin.user.customers')->with('success','Khách hàng đã được cập nhật');
@@ -298,7 +305,7 @@ class UserController extends Controller
 
     public function listEmployees()
     {
-           $users = User::where('roles', 'admin')
+           $users = User::whereIn('roles', ['admin', 'employee'])
                ->where('admin_lever', 2)
                ->orderBy('created_at', 'DESC')
                ->paginate(10);

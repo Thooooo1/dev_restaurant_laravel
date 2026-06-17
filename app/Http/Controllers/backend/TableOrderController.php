@@ -129,7 +129,19 @@ class TableOrderController extends Controller
         }
 
         if ($sourceTable->locked_order_id) {
-             return response()->json(['success' => false, 'message' => 'Bàn này đang được ghép với bàn khác']);
+             // Kiểm tra xem order của locked_order_id còn đang hoạt động không
+             $lockedOrder = Order::where('id', $sourceTable->locked_order_id)
+                 ->whereNull('deleted_at')
+                 ->whereIn('status', [0, 1])
+                 ->first();
+             
+             if ($lockedOrder) {
+                 return response()->json(['success' => false, 'message' => 'Bàn này đang được ghép với bàn khác']);
+             } else {
+                 // Order đã không còn hoạt động, reset lại locked_order_id
+                 $sourceTable->locked_order_id = null;
+                 $sourceTable->save();
+             }
         }
 
         // Validate target has active order
@@ -505,6 +517,8 @@ class TableOrderController extends Controller
                     'price' => $price,
                     'discount' => $discount,
                     'amount' => $amount,
+                    'order_turn' => $order->order_turn ?? 1,
+                    'status' => 'confirmed', // Nhân viên order thì confirmed luôn
                 ]);
             }
         }
@@ -521,10 +535,48 @@ class TableOrderController extends Controller
             'order_id' => 'required|exists:order,id',
         ]);
         $order = Order::findOrFail($request->order_id);
+        
+        // Xác nhận tất cả món pending trước khi in
+        Orderdetail::where('order_id', $order->id)
+            ->where('status', 'pending')
+            ->update(['status' => 'confirmed']);
+        
+        // Cập nhật trạng thái các món confirmed thành cooking khi in
+        Orderdetail::where('order_id', $order->id)
+            ->where('status', 'confirmed')
+            ->update(['status' => 'cooking']);
+        
         $order->order_turn = ($order->order_turn ?? 1) + 1;
         $order->note = null; // Reset note after print/turn increment
+        $order->has_new_items = false; // Clear new items flag when printing
         $order->save();
         return response()->json(['success' => true, 'order_turn' => $order->order_turn]);
+    }
+
+    public function clearNewItems(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|exists:order,id',
+        ]);
+        $order = Order::findOrFail($request->order_id);
+        $order->has_new_items = false;
+        $order->save();
+        return response()->json(['success' => true]);
+    }
+
+    public function checkNewOrders()
+    {
+        // Get all active orders with has_new_items = true
+        $newOrders = Order::whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->where('has_new_items', true)
+            ->with(['table', 'orderDetails.product'])
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'new_orders' => $newOrders
+        ]);
     }
 
     public function payment($id)
@@ -626,5 +678,18 @@ class TableOrderController extends Controller
         $order->save();
 
         return response()->json(['success' => true, 'message' => 'Đổi bàn thành công']);
+    }
+
+    public function markItemAsServed(Request $request)
+    {
+        $request->validate([
+            'order_detail_id' => 'required|exists:orderdetail,id',
+        ]);
+
+        $orderDetail = Orderdetail::findOrFail($request->order_detail_id);
+        $orderDetail->status = 'served';
+        $orderDetail->save();
+
+        return response()->json(['success' => true, 'message' => 'Đã đánh dấu món ăn là đã lên món']);
     }
 }

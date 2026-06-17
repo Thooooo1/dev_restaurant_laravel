@@ -28,7 +28,7 @@
             <h3 class="text-xl font-semibold text-gray-800">Địa Chỉ Văn Phòng</h3>
             <p class="text-gray-700">
               CIVILIZE Restaurant<br>
-              212 Tăng Nhơn Phú, Phước Long B, Quận 9, Thành phố Thủ Đức
+              4H45+988, Phúc Thọ, Hà Nội, Việt Nam
             </p>
           </div>
       

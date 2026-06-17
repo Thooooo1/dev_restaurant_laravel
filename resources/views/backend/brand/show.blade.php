@@ -21,14 +21,14 @@
                 <div class="row">
                     <div class="col-12 text-right">
                         <a href="{{ route('admin.brand.edit', $brand->id) }}" class="btn btn-sm btn-primary">
-                            <i class="far fa-edit"></i> Sửa
+                            <i class="far fa-edit"></i>
                         </a>
                         <a href="{{ route('admin.brand.destroy', $brand->id) }}" class="btn btn-sm btn-danger"
                            onclick="return confirm('Bạn có chắc muốn xóa?')">
-                            <i class="fas fa-trash"></i> Xóa
+                            <i class="fas fa-trash"></i>
                         </a>
                         <a href="{{ route('admin.brand.index') }}" class="btn btn-sm btn-info">
-                            <i class="fa fa-arrow-left"></i> Về danh sách
+                            <i class="fa fa-arrow-left"></i>
                         </a>
                     </div>
                 </div>

@@ -18,14 +18,7 @@ class CategoryController extends Controller
         return view('backend.category.index',compact('categories','categors'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $categories = Category::orderBy('sort_order','ASC') >get();
-        return view('backend.category.index',compact('categories'));
-    }
+
 
     /**
      * Store a newly created resource in storage.

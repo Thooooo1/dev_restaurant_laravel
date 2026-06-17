@@ -1,4 +1,17 @@
 <x-layout-backend>
+    <style>
+        #paymentTable thead th {
+            font-size: 19px !important;
+            font-weight: 300 !important;
+            background: #8bbef1ff !important;
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.75rem !important;
+        }
+        #paymentTable tbody td {
+            font-size: 16px !important;
+            font-weight: 300 !important;
+        }
+    </style>
     <section class="content-header">
         <div class="container-fluid">
             <div class="row align-items-center">
@@ -8,7 +21,7 @@
                 <div class="col-12 col-md-auto mt-3 mt-md-0">
                     <div class="d-flex flex-wrap justify-content-md-end">
                         <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm mb-2 mr-2"><i class="fas fa-arrow-left"></i> Quay lại</a>
-                        <button class="btn btn-warning btn-sm mb-2 mr-2" id="btnEditMode" onclick="toggleEditMode()"><i class="fas fa-edit"></i> Sửa</button>
+                        <button class="btn btn-warning btn-sm mb-2 mr-2" id="btnEditMode" onclick="toggleEditMode()"><i class="fas fa-edit"></i></button>
                         <button class="btn btn-success btn-sm mb-2 mr-2" data-toggle="modal" data-target="#modalAddProduct"><i class="fas fa-plus"></i> Thêm sản phẩm</button>
                         <button class="btn btn-primary btn-sm mb-2" onclick="handlePrintInvoice()"><i class="fas fa-print"></i> In hoá đơn</button>
                     </div>
@@ -230,14 +243,14 @@
                 deleteBtns.forEach(el => el.removeAttribute('disabled'));
                 qtyDisplays.forEach(el => el.classList.add('d-none'));
                 qtyInputs.forEach(el => el.classList.remove('d-none'));
-                btn.innerHTML = '<i class="fas fa-check"></i> Xong';
+                btn.innerHTML = '<i class="fas fa-check"></i>';
                 btn.classList.remove('btn-warning');
                 btn.classList.add('btn-info');
             } else {
                 deleteBtns.forEach(el => el.setAttribute('disabled', 'disabled'));
                 qtyDisplays.forEach(el => el.classList.remove('d-none'));
                 qtyInputs.forEach(el => el.classList.add('d-none'));
-                btn.innerHTML = '<i class="fas fa-edit"></i> Sửa';
+                btn.innerHTML = '<i class="fas fa-edit"></i>';
                 btn.classList.remove('btn-info');
                 btn.classList.add('btn-warning');
                 // Enable nút in sau khi thoát chế độ sửa

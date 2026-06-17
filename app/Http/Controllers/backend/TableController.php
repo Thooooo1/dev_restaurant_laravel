@@ -182,11 +182,11 @@ class TableController extends Controller
             return redirect()->back()->with('error', 'Bàn không tồn tại.');
         }
 
-        // Hướng người dùng đến trang login của client
-        $url = route('site.login');
+        // Hướng người dùng đến trang quét QR của bàn đó
+        $url = route('site.table.scan', $id);
         
         // Tạo QR Code
-        $qrcode = QrCode::size(300)->generate($url);
+        $qrcode = QrCode::size(400)->generate($url);
         
         return view('backend.table.qr', compact('table', 'qrcode', 'url'));
     }

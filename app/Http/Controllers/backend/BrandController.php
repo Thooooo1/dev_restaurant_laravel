@@ -18,14 +18,7 @@ class BrandController extends Controller
         return view('backend.brand.index',compact('brands'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $brands = Brand::orderBy('sort_order','ASC') >get();
-        return view('backend.brand.create',compact('brands'));
-    }
+
 
     /**
      * Store a newly created resource in storage.

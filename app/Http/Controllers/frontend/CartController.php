@@ -56,20 +56,27 @@ class CartController extends Controller
         $tableOrderDetails = collect();
         $kitchenItems = [];
 
-        if (session()->has('table_id')) {
+        if (session()->has('table_id') && session()->has('table_order_id')) {
             $tableId = session('table_id');
-            $user = Auth::user();
+            $tableOrderId = session('table_order_id');
 
-            $tableOrder = Order::where('table_id', $tableId)
+            // Lấy order chính xác từ table_order_id trong session
+            $tableOrder = Order::where('id', $tableOrderId)
+                ->where('table_id', $tableId)
                 ->whereNull('deleted_at')
-                ->whereIn('status', [0, 1])
-                ->where(function ($query) use ($user) {
-                    $query->where('user_id', $user->id)
-                        ->orWhere('phone', $user->phone);
-                })
                 ->with(['orderDetails.product', 'table.floor', 'user'])
-                ->orderByDesc('id')
                 ->first();
+
+            // Kiểm tra xem order đã được thanh toán hay chưa
+            if (!$tableOrder || !in_array($tableOrder->status, [0, 1])) {
+                // Order đã được thanh toán hoặc không tồn tại, kết thúc gọi món
+                session()->forget('table_id');
+                session()->forget('table_order_id');
+                session()->forget('table_name');
+                session()->forget('is_table_order');
+                
+                return redirect()->route('site.home')->with('error', 'Đơn hàng đã được thanh toán. Cảm ơn bạn đã dùng dịch vụ!');
+            }
 
             if ($tableOrder) {
                 $tableOrderDetails = $tableOrder->orderDetails;
@@ -102,32 +109,31 @@ class CartController extends Controller
 
         session()->put("cart_$userId", $cart);
 
-        if (session()->has('table_id')) {
+        if (session()->has('table_id') && session()->has('table_order_id')) {
             $tableId = session('table_id');
-            $user = Auth::user();
-
-            $order = Order::where('table_id', $tableId)
+            $tableOrderId = session('table_order_id');
+            
+            // Lấy order chính xác từ table_order_id trong session
+            $order = Order::where('id', $tableOrderId)
+                ->where('table_id', $tableId)
                 ->whereNull('deleted_at')
-                ->whereIn('status', [0, 1])
-                ->where(function ($query) use ($user) {
-                    $query->where('user_id', $user->id)
-                        ->orWhere('phone', $user->phone);
-                })
                 ->first();
 
             if (!$order) {
-                $order = new Order();
-                $order->user_id = $userId ?? 0;
-                $order->name = $user->fullname ?? $user->name ?? 'Khách lẻ';
-                $order->email = $user->email ?? '';
-                $order->phone = $user->phone ?? '';
-                $order->address = '';
-                $order->table_id = $tableId;
-                $order->orderStyle = 1;
-                $order->status = 0;
-                $order->created_by = $userId ?? 1;
-                $order->order_turn = $order->order_turn ?? 1;
-                $order->save();
+                session()->forget('table_id');
+                session()->forget('table_order_id');
+                session()->forget('table_name');
+                session()->forget('is_table_order');
+                return redirect()->route('site.home')->with('error', 'Đơn hàng không tồn tại. Vui lòng quét lại QR.');
+            }
+
+            // Kiểm tra xem order đã được thanh toán hay chưa
+            if (!in_array($order->status, [0, 1])) {
+                session()->forget('table_id');
+                session()->forget('table_order_id');
+                session()->forget('table_name');
+                session()->forget('is_table_order');
+                return redirect()->route('site.home')->with('error', 'Đơn hàng đã được thanh toán. Cảm ơn bạn đã dùng dịch vụ!');
             }
 
             $productIdsInCart = array_keys($cart);
@@ -147,6 +153,7 @@ class CartController extends Controller
                     $detail->price = $price;
                     $detail->discount = $discount;
                     $detail->amount = $amount;
+                    $detail->status = 'pending'; // Đặt lại trạng thái khi cập nhật
                     $detail->save();
                 } else {
                     Orderdetail::create([
@@ -157,16 +164,19 @@ class CartController extends Controller
                         'discount' => $discount,
                         'amount' => $amount,
                         'order_turn' => $order->order_turn ?? 1,
+                        'status' => 'pending',
                     ]);
                 }
             }
 
-            session()->flash('kitchen_print_order_id', $order->id);
+            // Đánh dấu có món mới cần nhân viên xử lý
+            $order->has_new_items = true;
+            $order->save();
 
             session()->forget("cart_$userId");
         }
 
-        return redirect()->back()->with('success', 'Xác nhận giỏ hàng thành công!');
+        return redirect()->back()->with('success', 'Đã gửi thực đơn cho nhân viên! Vui lòng đợi xác nhận.');
     }
 
     function delcart($id = null)
@@ -220,6 +230,14 @@ class CartController extends Controller
                 'payment_method.required' => 'Vui lòng chọn phương thức thanh toán',
                 'payment_method.in' => 'Phương thức thanh toán không hợp lệ',
             ]);
+
+            // Check delivery distance
+            $distanceService = new \App\Services\DistanceService();
+            $distanceCheck = $distanceService->isWithinDeliveryRange($request->address);
+            
+            if (!$distanceCheck['success']) {
+                return redirect()->back()->with('error', $distanceCheck['message']);
+            }
         }
 
         $order = new Order();
@@ -344,5 +362,11 @@ class CartController extends Controller
     public function thanks()
     {
         return view('frontend.thanks');
+    }
+
+    public function clearKitchenSession()
+    {
+        session()->forget('kitchen_print_order_id');
+        return response()->json(['success' => true]);
     }
 }

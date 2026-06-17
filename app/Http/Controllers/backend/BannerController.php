@@ -19,14 +19,7 @@ class BannerController extends Controller
         return view('backend.banner.index',compact('banners'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $banners = Banner::orderBy('sort_order','ASC') ->get();
-        return view('backend.banner.create',compact('banners'));
-    }
+
 
     /**
      * Store a newly created resource in storage.

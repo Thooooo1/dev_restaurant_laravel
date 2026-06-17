@@ -1,142 +1,134 @@
 <x-layout-backend>
-    <!-- CONTENT -->
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <strong class="fw-bold h4 text-danger">QUẢN LÝ THƯƠNG HIỆU</strong>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url('admin/') }}">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Thương hiệu</li>
-                    </ol>
-                </div>
+    <!-- Page header -->
+    <div class="mb-4">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div>
+                <h1 class="text-xl font-bold text-slate-800 flex items-center gap-3">
+                    <span class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
+                        <i class="fas fa-tag text-sm"></i>
+                    </span>
+                    Quản lý thương hiệu
+                </h1>
+                <p class="text-slate-500 mt-1 text-sm">Danh sách và quản lý các thương hiệu</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-red-500/25 hover:from-red-600 hover:to-red-700" href="{{ url('admin/brand/trash') }}">
+                    <i class="fas fa-trash"></i> Thùng rác
+                </a>
             </div>
         </div>
-    </section>
-    <section class="content">
-        <div class="card">
-            <div class="card-header">
-                <div class="row">
-                    <div class="col-12 text-right">
-                        <a class="btn btn-sm btn-danger" href="{{ url('admin/brand/trash') }}">
-                            <i class="fas fa-trash"></i> Thùng rác
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
-                        <form action="{{route('admin.brand.store')}}" method="post" enctype="multipart/form-data">
-                            @csrf
-                            <div class="mb-3">
-                                <label for="name">Tên thương hiệu</label>
-                                <input type="text" value="" name="name" id="name" class="form-control">
-                                @if($errors->has('name'))
-                                    <div class="text-danger">{{ $errors->first('name') ;}}</div>
-                                @endif
-                            </div>
-                            <div class="mb-3">
-                                <label for="slug">Slug</label>
-                                <textarea name="slug" id="slug" class="form-control"></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="description">Mô tả</label>
-                                <textarea name="description" id="description" class="form-control"></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="sort_order">Sắp xếp</label>
-                                <select name="sort_order" id="sort_order" class="form-control">
-                                    <option value="0">None</option>
+    </div>
 
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="image">Hình</label>
-                                <input type="file" name="image" id="image" class="form-control">
-                            </div>
-                            <div class="mb-3">
-                                <label for="status">Trạng thái</label>
-                                <select name="status" id="status" class="form-control">
-                                    <option value="2">Chưa xuất bản</option>
-                                    <option value="1">Xuất bản</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <button type="submit" name="create" class="btn btn-success">Thêm thương hiệu</button>
-                            </div>
-                        </form>
+    <!-- Main content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Form create -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+                <h3 class="text-base font-semibold text-slate-800 mb-4">Thêm thương hiệu mới</h3>
+                <form action="{{route('admin.brand.store')}}" method="post" enctype="multipart/form-data">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="name" class="block text-sm font-medium text-slate-700 mb-1">Tên thương hiệu</label>
+                        <input type="text" value="" name="name" id="name" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm">
+                        @if($errors->has('name'))
+                            <div class="text-red-500 text-xs mt-1">{{ $errors->first('name') ;}}</div>
+                        @endif
                     </div>
-                    <div class="col-md-9">
-                        <table class="table table-bordered table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th class="text-center" style="width:30px;">#</th>
-                                    <th class="text-center" style="width:90px;">Hình</th>
-                                    <th>Tên thương hiêu</th>
-                                    <th>Slug</th>
-                                    <th>Mô tả</th>
-                                    <th class="text-center" style="width:200px;">Chức năng</th>
-                                    <th class="text-center" style="width:30px;">ID</th>
+                    <div class="mb-3">
+                        <label for="slug" class="block text-sm font-medium text-slate-700 mb-1">Slug</label>
+                        <textarea name="slug" id="slug" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="block text-sm font-medium text-slate-700 mb-1">Mô tả</label>
+                        <textarea name="description" id="description" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sort_order" class="block text-sm font-medium text-slate-700 mb-1">Sắp xếp</label>
+                        <select name="sort_order" id="sort_order" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm">
+                            <option value="0">None</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="image" class="block text-sm font-medium text-slate-700 mb-1">Hình</label>
+                        <input type="file" name="image" id="image" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm">
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="block text-sm font-medium text-slate-700 mb-1">Trạng thái</label>
+                        <select name="status" id="status" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm">
+                            <option value="2">Chưa xuất bản</option>
+                            <option value="1">Xuất bản</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <button type="submit" name="create" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-green-700">
+                            <i class="fas fa-plus"></i> Thêm thương hiệu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">#</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:90px;">Hình</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tên thương hiệu</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Slug</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Mô tả</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:200px;">Chức năng</th>
+                                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">ID</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach ($brands as $brand)
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-4 py-3 text-center">
+                                        <input type="checkbox" id="checkId" value="1" name="checkId[]" class="rounded border-slate-300 text-orange-500 focus:ring-orange-500">
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <img src="{{ asset('/images/brand/' . $brand->image) }}" class="w-12 h-12 object-cover rounded-lg" alt="{{ $brand->image }}">
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-800 font-medium">{{ $brand->name }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $brand->slug }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600 max-w-[150px] truncate">{{ $brand->description }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-center">
+                                        @if ($brand->status == 1)
+                                            <a href="{{ route('admin.brand.status', ['brand' => $brand->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-green-50 text-green-600 rounded-lg text-sm transition-all hover:bg-green-100">
+                                                <i class="fas fa-toggle-on"></i>
+                                            </a>
+                                        @else
+                                            <a href="{{ route('admin.brand.status', ['brand' => $brand->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-600 rounded-lg text-sm transition-all hover:bg-slate-200">
+                                                <i class="fas fa-toggle-off"></i>
+                                            </a>
+                                        @endif
+                                        <a href="{{ route('admin.brand.show', ['brand' => $brand->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100 ml-1">
+                                            <i class="far fa-eye"></i>
+                                        </a>
+                                        <a href="{{ route('admin.brand.edit', ['brand' => $brand->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-orange-50 text-orange-600 rounded-lg text-sm transition-all hover:bg-orange-100 ml-1">
+                                            <i class="far fa-edit"></i>
+                                        </a>
+                                        <a href="{{ route('admin.brand.delete', ['brand' => $brand->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-lg text-sm transition-all hover:bg-red-100 ml-1">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-center text-sm text-slate-600">
+                                        {{ $brand->id }}
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($brands as $brand)
-                                    <tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
 
-                                        <td class="text-center">
-                                            <input type="checkbox" id="checkId" value="1" name="checkId[]">
-                                        </td>
-                                        <td class="text-center">
-                                            <img src="{{ asset('/images/brand/' . $brand->image) }}" class="img-fluid"
-                                                alt="{{ $brand->image }}">
-                                        </td>
-                                        <td>{{ $brand->name }}</td>
-                                        <td>{{ $brand->slug }}</td>
-                                        <td>{{ $brand->description }}</td>
-                                        <td class="text-center">
-                                            @if ($brand->status == 1)
-                                                <a href="{{ route('admin.brand.status', ['brand' => $brand->id]) }}"
-                                                    class="btn btn-sm btn-success">
-                                                    <i class="fas fa-toggle-on"></i>
-                                                </a>
-                                            @else
-                                                <a href="{{ route('admin.brand.status', ['brand' => $brand->id]) }}"
-                                                    class="btn btn-sm btn-secondary">
-                                                    <i class="fas fa-toggle-off"></i>
-                                                </a>
-                                            @endif
-
-                                            <a href="{{ route('admin.brand.show', ['brand' => $brand->id]) }}"
-                                                class="btn btn-sm btn-info">
-                                                <i class="far fa-eye"></i>
-                                            </a>
-                                            <a href="{{ route('admin.brand.edit', ['brand' => $brand->id]) }}"
-                                                class="btn btn-sm btn-primary">
-                                                <i class="far fa-edit"></i>
-                                            </a>
-                                            <a href="{{ route('admin.brand.delete', ['brand' => $brand->id]) }}"
-                                                class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </td>
-                                        <td class="text-center">
-                                            {{ $brand->id }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-
-
-                            </tbody>
-                        </table>
-                        {{ $brands->links() }}
-                    </div>
+                <div class="px-4 py-3 border-t border-slate-200 flex justify-center">
+                    {{ $brands->links() }}
                 </div>
             </div>
         </div>
-    </section>
-    <!-- /.CONTENT -->
-
+    </div>
 </x-layout-backend>

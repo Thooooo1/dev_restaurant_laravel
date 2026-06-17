@@ -7,7 +7,13 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <strong class="fw-bold h4 text-danger">{{ $role == 'admin' ? 'CẬP NHẬT NHÂN VIÊN' : 'CẬP NHẬT KHÁCH HÀNG' }}</strong>
+                        <strong class="fw-bold h4 text-danger">
+                            @if($role == 'admin' || $role == 'employee')
+                                CẬP NHẬT NHÂN VIÊN
+                            @else
+                                CẬP NHẬT KHÁCH HÀNG
+                            @endif
+                        </strong>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
@@ -26,7 +32,7 @@
                             <button type="submit" name="create" class="btn btn-sm btn-success">
                                 <i class="fa fa-save"></i> Lưu
                             </button>
-                            @if($role == 'admin')
+                            @if($role == 'admin' || $role == 'employee')
                                 <a class="btn btn-sm btn-info" href="{{ route('admin.user.employees') }}">
                                     <i class="fa fa-arrow-left"></i> Về danh sách
                                 </a>
@@ -86,20 +92,26 @@
                                 @enderror
                             </div>
                             <div class="mb-3">
-                                <label for="password">Mật khẩu</label>
-                                <input type="password" value="{{ old('password', $user->password) }}" name="password" id="password" class="form-control @error('password') is-invalid @enderror">
+                                <label for="password">Mật khẩu <small class="text-muted">(để trống nếu không thay đổi)</small></label>
+                                <input type="password" value="" name="password" id="password" class="form-control @error('password') is-invalid @enderror">
                                 @error('password')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="mb-3">
+                                <label for="password_re">Xác nhận mật khẩu</label>
+                                <input type="password" value="" name="password_re" id="password_re" class="form-control @error('password_re') is-invalid @enderror">
+                                @error('password_re')
+                                    <div class="text-danger">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
                                 <label for="roles">Quyền</label>
-                                <select name="roles" id="roles" class="form-control" disabled>
-                                    <option value="customer" {{ $role == "customer" ? 'selected' : '' }}>Khách hàng</option>
-                                    <option value="admin" {{ $role == "admin" ? 'selected' : '' }}>Nhân viên</option>
+                                <select name="roles" id="roles" class="form-control">
+                                    <option value="customer" {{ old('roles', $user->roles) == "customer" ? 'selected' : '' }}>Khách hàng</option>
+                                    <option value="employee" {{ old('roles', $user->roles) == "employee" ? 'selected' : '' }}>Nhân viên</option>
+                                    <option value="admin" {{ old('roles', $user->roles) == "admin" ? 'selected' : '' }}>Quản lý</option>
                                 </select>
-                                <input type="hidden" name="roles" value="{{ $role }}">
-                                <small class="form-text text-muted">Quyền không thể thay đổi</small>
                             </div>
                             <div class="mb-3">
                                 <label for="image">Hình</label>

@@ -7,10 +7,10 @@
             </div>
         </div>
         <div class="card-body text-center">
-            <div class="mb-4" id="qrcode-container">
+            <div class="mb-4 flex justify-center items-center" id="qrcode-container">
                 {!! $qrcode !!}
             </div>
-            <p><strong>URL:</strong> <a href="{{ $url }}" target="_blank">{{ $url }}</a></p>
+            <p class="text-lg font-semibold"><strong>URL:</strong> <a href="{{ $url }}" target="_blank">{{ $url }}</a></p>
             
             <button onclick="downloadQR()" class="btn btn-success mt-3">
                 <i class="fas fa-download"></i> Tải ảnh JPG

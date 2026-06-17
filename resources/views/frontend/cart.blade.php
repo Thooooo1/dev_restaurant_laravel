@@ -4,16 +4,32 @@
     @endphp
   <section class="bg-gray-200 py-2 px-4">
     <div class="breadcrumb flex items-center text-gray-600 text-sm container mx-auto">
-        <span class="mr-4">Bạn đang ở đây:</span>
-        <a href="{{url('/')}}" class="hover:text-orange-500"> Quay lại Trang chủ</a>
-        <span class="mx-2">></span>
-        <span class="font-semibold text-gray-800">Giỏ hàng</span>
+      <span class="mr-4">Bạn đang ở đây:</span>
+      <a href="{{url('/')}}" class="hover:text-orange-500"> Quay lại Trang chủ</a>
+      <span class="mx-2">></span>
+      <span class="font-semibold text-gray-800">
+        @if(session('is_table_order'))
+          Gọi món - {{ session('table_name') }}
+        @else
+          Giỏ hàng
+        @endif
+      </span>
+      
+      @if(session('is_table_order'))
+        <a href="{{ route('site.table.end') }}" class="ml-4 bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600">Kết thúc gọi món</a>
+      @endif
     </div>
   </section>
 
-  <section class="container mx-auto">
-    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
-        <h2 class="text-2xl font-bold mb-6">Giỏ Hàng</h2>
+  <section class="container mx-auto pb-0 px-2">
+    <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-t-lg p-6">
+        <h2 class="text-2xl font-bold mb-6">
+          @if(session('is_table_order'))
+            Gọi Món - {{ session('table_name') }}
+          @else
+            Giỏ Hàng
+          @endif
+        </h2>
 
         @if(Auth::check()) 
             @if(count($cart) == 0) 
@@ -61,8 +77,8 @@
                     </div>
                     @if (session('table_name'))
                         <div class="mt-6">
-                            <button type="submit" onclick="return confirm('Xác nhận thực đơn với đầu bếp!')" class="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none">
-                                Xác nhận
+                            <button type="submit" onclick="return confirm('Gửi thực đơn cho nhân viên để xác nhận?')" class="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none">
+                                Gửi thực đơn
                             </button>
                         </div>
                     @else
@@ -97,38 +113,84 @@
         @endif
     </div>
   </section>
+  {{-- Phần trạng thái món ăn --}}
   @if(isset($tableOrder) && $tableOrder && isset($tableOrderDetails) && $tableOrderDetails->count() > 0)
-    <section class="container mx-auto pb-8 px-2">
-        <div class="max-w-4xl mx-auto mt-4">
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <button type="button"
-                        id="history-toggle"
-                        class="w-full flex items-center justify-between px-4 py-3 bg-yellow-500 text-white focus:outline-none">
-                    <span class="font-semibold">Món ăn đã gọi</span>
-                    <span id="history-toggle-icon" class="text-xl leading-none transform transition-transform">⌄</span>
-                </button>
-                <div id="history-turn-all" class="history-collapse border-t border-gray-200 hidden">
-                    <div class="p-3 space-y-2">
-                        @foreach($tableOrderDetails as $detail)
-                            @php
-                                $price = $detail->price ?? ($detail->product->price_sale ?? 0);
-                                $amount = $price * ($detail->qty ?? 0);
-                            @endphp
-                            <div id="history-item-{{ $detail->id }}"
-                                 data-price="{{ $price }}"
-                                 class="flex justify-between items-center py-2 border-b last:border-b-0 bg-gray-50">
-                                <div>
-                                    <div class="font-semibold text-gray-800">{{ $detail->product->name ?? 'N/A' }}</div>
-                                    <div class="text-sm text-gray-500">{{ number_format($price, 0, ',', '.') }} ₫ x {{ $detail->qty }}</div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="font-semibold text-gray-900" id="history-amount-{{ $detail->id }}">
-                                        {{ number_format($amount, 0, ',', '.') }} ₫
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+    @php
+        $orderTotal = 0;
+        foreach($tableOrderDetails as $detail) {
+            $price = $detail->price ?? ($detail->product->price_sale ?? 0);
+            $orderTotal += $price * $detail->qty;
+        }
+    @endphp
+    <section class="container mx-auto pb-16 px-2">
+        <div class="max-w-5xl mx-auto">
+            <div class="bg-white shadow-md rounded-b-lg rounded-t-none overflow-hidden">
+                <div class="w-full flex items-center justify-between px-4 py-3 bg-yellow-500 text-white">
+                    <span class="font-semibold text-lg">Trạng Thái Món Ăn</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full whitespace-nowrap">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-gray-700 font-semibold">Món Ăn</th>
+                                <th class="px-4 py-3 text-center text-gray-700 font-semibold">Số Lượng</th>
+                                <th class="px-4 py-3 text-right text-gray-700 font-semibold">Đơn Giá</th>
+                                <th class="px-4 py-3 text-right text-gray-700 font-semibold">Thành Tiền</th>
+                                <th class="px-4 py-3 text-center text-gray-700 font-semibold">Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach($tableOrderDetails as $detail)
+                                @php
+                                    $price = $detail->price ?? ($detail->product->price_sale ?? 0);
+                                    $total = $price * $detail->qty;
+                                    $statusText = '';
+                                    $statusClass = '';
+                                    switch($detail->status) {
+                                        case 'pending':
+                                            $statusText = 'Chờ xác nhận';
+                                            $statusClass = 'bg-yellow-100 text-yellow-800';
+                                            break;
+                                        case 'confirmed':
+                                            $statusText = 'Đã được xác nhận';
+                                            $statusClass = 'bg-blue-100 text-blue-800';
+                                            break;
+                                        case 'cooking':
+                                            $statusText = 'Đầu bếp đang chế biến';
+                                            $statusClass = 'bg-orange-100 text-orange-800';
+                                            break;
+                                        case 'served':
+                                            $statusText = 'Đã lên món';
+                                            $statusClass = 'bg-green-100 text-green-800';
+                                            break;
+                                        default:
+                                            $statusText = 'Chờ xác nhận';
+                                            $statusClass = 'bg-yellow-100 text-yellow-800';
+                                    }
+                                @endphp
+                                <tr>
+                                    <td class="px-4 py-3">
+                                        <div class="font-semibold text-gray-800">{{ $detail->product->name ?? 'N/A' }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 text-center font-medium text-gray-800">{{ $detail->qty }}</td>
+                                    <td class="px-4 py-3 text-right font-medium text-gray-800">{{ number_format($price, 0, ',', '.') }} VND</td>
+                                    <td class="px-4 py-3 text-right font-medium text-gray-800">{{ number_format($total, 0, ',', '.') }} VND</td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="px-3 py-1 rounded-full text-sm font-semibold {{ $statusClass }}">
+                                            {{ $statusText }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-gray-50">
+                                <td colspan="3" class="px-4 py-3 text-right font-bold text-gray-800 text-lg">Tổng Cộng:</td>
+                                <td class="px-4 py-3 text-right font-bold text-gray-800 text-lg">{{ number_format($orderTotal, 0, ',', '.') }} VND</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>
@@ -137,7 +199,7 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var container = document.querySelector('.max-w-4xl');
+        var container = document.querySelector('.max-w-5xl');
         if (!container) {
             return;
         }
@@ -214,87 +276,16 @@
             }
         }
 
-        var historyToggle = document.getElementById('history-toggle');
-        var historyBody = document.getElementById('history-turn-all');
-        var historyIcon = document.getElementById('history-toggle-icon');
-        if (historyToggle && historyBody) {
-            historyToggle.addEventListener('click', function (e) {
-                e.preventDefault();
-                historyBody.classList.toggle('hidden');
-                if (historyIcon) {
-                    historyIcon.classList.toggle('rotate-180');
-                }
-            });
-        }
+
+
+        // Polling để kiểm tra trạng thái order (tự động kết thúc khi thanh toán xong)
+        @if(session('is_table_order'))
+        setInterval(function() {
+            // Gọi một request đơn giản để kiểm tra trạng thái (có thể dùng AJAX hoặc reload trang)
+            // Ở đây dùng cách đơn giản: reload trang mỗi 5 giây để CartController kiểm tra lại trạng thái
+            window.location.reload();
+        }, 5000); // Kiểm tra mỗi 5 giây
+        @endif
     });
-
-    @if(session('kitchen_print_order_id') && isset($tableOrder) && $tableOrder && isset($kitchenItems) && count($kitchenItems) > 0 && $tableOrder->id === session('kitchen_print_order_id'))
-        window.addEventListener('load', function () {
-            var data = {
-                floor: {!! json_encode(optional(optional($tableOrder->table)->floor)->name ?? '') !!},
-                table: {!! json_encode(optional($tableOrder->table)->name ?? '') !!},
-                customer_name: {!! json_encode(optional($tableOrder->user)->fullname ?? ($tableOrder->name ?? 'Khách lẻ')) !!},
-                customer_phone: {!! json_encode(optional($tableOrder->user)->phone ?? ($tableOrder->phone ?? '---')) !!},
-                order_turn: {{ $tableOrder->order_turn ?? 1 }},
-                note: {!! json_encode($tableOrder->note ?? '') !!},
-                items: {!! json_encode($kitchenItems) !!}
-            };
-
-            var html = generateKitchenTicketHTML(data);
-            var w = window.open('', 'PRINT', 'width=400,height=600');
-            if (w) {
-                w.document.write(html);
-                w.document.close();
-                w.focus();
-                w.print();
-                w.close();
-            }
-        });
-
-        function generateKitchenTicketHTML(data) {
-            var floor = data.floor;
-            var table = data.table;
-            var customer_name = data.customer_name;
-            var customer_phone = data.customer_phone;
-            var order_turn = data.order_turn;
-            var note = data.note;
-            var items = data.items || [];
-            var now = new Date();
-            var pad = function (n) {
-                return String(n).padStart(2, '0');
-            };
-            var dateStr = pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear() + ' ' + pad(now.getHours()) + ':' + pad(now.getMinutes());
-            var rows = '';
-
-            items.forEach(function (i) {
-                rows += '<tr><td style="text-align:center;width:30px;">' + i.stt + '</td><td>' + i.name + '</td><td style="text-align:right;width:50px;">' + i.qty + '</td></tr>';
-            });
-
-            var noteHtml = '';
-            if (note) {
-                noteHtml = '<div class="meta" style="border:1px dashed #000; padding:5px; margin:5px 0;">Ghi chú: <strong>' + note + '</strong></div>';
-            }
-
-            return '<!doctype html><html><head><meta charset="utf-8"><title>Phiếu gọi món</title><style>' +
-                '@media print { @page { size: 80mm auto; margin: 5mm; } }' +
-                'body { font-family: Arial, sans-serif; width: 80mm; }' +
-                '.title { text-align:center; font-size:16px; font-weight:bold; margin-bottom:6px; }' +
-                '.meta { font-size:12px; margin-bottom:4px; }' +
-                'table { width:100%; border-collapse: collapse; font-size:12px; }' +
-                'th, td { padding:4px 0; border-bottom:1px dashed #000; }' +
-                'th { text-align:left; border-top:1px dashed #000; }' +
-                '.footer { margin-top:8px; font-size:11px; text-align:center; }' +
-                '</style></head><body>' +
-                '<div class="title">PHIẾU GỌI MÓN</div>' +
-                '<div class="meta">Tầng: <strong>' + floor + '</strong> | Bàn: <strong>' + table + '</strong></div>' +
-                '<div class="meta">Lần order: <strong>' + order_turn + '</strong> | Thời gian: ' + dateStr + '</div>' +
-                '<div class="meta">Khách: <strong>' + customer_name + '</strong> | ĐT: ' + customer_phone + '</div>' +
-                '<div class="meta">Phương thức: <strong>Tự order</strong></div>' +
-                noteHtml +
-                '<table><thead><tr><th style="width:30px; text-align:center;">STT</th><th>Món</th><th style="width:50px; text-align:right;">SL</th></tr></thead><tbody>' + rows + '</tbody></table>' +
-                '<div class="footer">In từ hệ thống nhà hàng</div>' +
-                '</body></html>';
-        }
-    @endif
-  </script>
+</script>
 </x-layout-frontend>

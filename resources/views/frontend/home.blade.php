@@ -111,58 +111,58 @@
                  <img src="{{ asset('/images/banner/' . $item->image) }}" alt="{{$item->name }}"/>
             @endforeach           
         </section>
-        <section class="section_chinhsach py-4">
+        <section class="section_chinhsach py-8">
             <div class="container mx-auto px-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="item mx-auto">
-                        <div class="flex items-center gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="item mx-auto bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center gap-4">
                             <div class="icon">
-                                <div class="rounded-full p-4">
-                                    <img style="width: 50px;height: 50px;" src="../images/2.png" alt="cs1">
+                                <div class="rounded-full bg-green-500 p-5 shadow-lg">
+                                    <img style="width: 70px;height: 70px;" src="../images/2.png" alt="cs1">
                                 </div>
                             </div>
                             <div class="text">
-                                <h4 class="font-bold">Miễn phí vận chuyển</h4>
-                                <p>Cho đơn hàng từ 599.000₫</p>
+                                <h4 class="font-bold text-xl text-green-800">Miễn phí vận chuyển</h4>
+                                <p class="text-green-700">Cho đơn hàng từ 599.000₫</p>
                             </div>
                         </div>
                     </div>
-                    <div class="item mx-auto">
-                        <div class="flex items-center gap-3">
+                    <div class="item mx-auto bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center gap-4">
                             <div class="icon">
-                                <div class="rounded-full p-4">
-                                    <img style="width: 50px;height: 50px;" src="../images/1.png" alt="cs1">
+                                <div class="rounded-full bg-blue-500 p-5 shadow-lg">
+                                    <img style="width: 70px;height: 70px;" src="../images/1.png" alt="cs1">
                                 </div>
                             </div>
                             <div class="text">
-                                <h4 class="font-bold">Bảo hiểm món ăn</h4>
-                                <p>Đảm chất lượng tất cả món ăn</p>
+                                <h4 class="font-bold text-xl text-blue-800">Bảo hiểm món ăn</h4>
+                                <p class="text-blue-700">Đảm chất lượng tất cả món ăn</p>
                             </div>
                         </div>
                     </div>
-                    <div class="item mx-auto">
-                        <div class="flex items-center gap-3">
+                    <div class="item mx-auto bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center gap-4">
                             <div class="icon">
-                                <div class="rounded-full p-4">
-                                    <img style="width: 50px;height: 50px;" src="../images/cod.png" alt="cs1">
+                                <div class="rounded-full bg-orange-500 p-5 shadow-lg">
+                                    <img style="width: 70px;height: 70px;" src="../images/cod.png" alt="cs1">
                                 </div>
                             </div>
                             <div class="text">
-                                <h4 class="font-bold">Thanh toán COD</h4>
-                                <p>Hoặc thanh toán quét mã QR</p>
+                                <h4 class="font-bold text-xl text-orange-800">Thanh toán COD</h4>
+                                <p class="text-orange-700">Hoặc thanh toán quét mã QR</p>
                             </div>
                         </div>
                     </div>
-                    <div class="item mx-auto">
-                        <div class="flex items-center gap-3">
+                    <div class="item mx-auto bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center gap-4">
                             <div class="icon">
-                                <div class="rounded-full p-4">
-                                    <img style="width: 50px;height: 50px;" src="../images/3.png" alt="cs1">
+                                <div class="rounded-full bg-red-500 p-5 shadow-lg">
+                                    <img style="width: 70px;height: 70px;" src="../images/3.png" alt="cs1">
                                 </div>
                             </div>
                             <div class="text">
-                                <h4 class="font-bold">Bảo mật thông tin</h4>
-                                <p>Đảm bảo thông tin khách hàng</p>
+                                <h4 class="font-bold text-xl text-red-800">Bảo mật thông tin</h4>
+                                <p class="text-red-700">Đảm bảo thông tin khách hàng</p>
                             </div>
                         </div>
                     </div>

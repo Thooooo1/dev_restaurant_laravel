@@ -110,9 +110,8 @@
                             </a>
                         @else
                             @php
-                                if (!session()->has('table_id')) {
-                                    app(\App\Http\Controllers\frontend\AuthController::class)
-                                        ->syncTableSessionForUser(auth()->user());
+                                if (!session()->has('table_id') && !session()->has('is_table_order')) {
+                                    app(\App\Http\Controllers\frontend\AuthController::class)->syncTableSessionForUser(auth()->user());
                                 }
                             @endphp
                             <a style="margin-right: 10px;" href="{{ url('/gio-hang') }}"

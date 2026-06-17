@@ -207,28 +207,47 @@
                                 @endforeach
                             @endif
 
-                            <form method="POST" action="{{ route('reviews.store') }}" class="mt-6">
-                                @csrf
-                                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                <label for="rating" class="block text-gray-700">Đánh giá chất lượng sản
-                                    phẩm:</label>
-                                <div class="flex space-x-2 items-center py-2">
-                                    @foreach (range(1, 5) as $rating)
-                                        <label class="cursor-pointer text-gray-500 star-label" data-rating="{{ $rating }}">
-                                            <input type="radio" name="rating" value="{{ $rating }}" class="hidden">
-                                            <span class="star text-2xl">{{ str_repeat('★', $rating) }}</span>
-                                        </label>
-                                    @endforeach
+                            @php
+                                $hasReviewed = false;
+                                if (Auth::check()) {
+                                    $hasReviewed = \App\Models\Review::where('user_id', Auth::id())
+                                        ->where('product_id', $product->id)
+                                        ->exists();
+                                }
+                            @endphp
+
+                            @if (Auth::check() && !$hasReviewed)
+                                <form method="POST" action="{{ route('reviews.store') }}" class="mt-6">
+                                    @csrf
+                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                    <label for="rating" class="block text-gray-700">Đánh giá chất lượng sản
+                                        phẩm:</label>
+                                    <div class="flex space-x-2 items-center py-2">
+                                        @foreach (range(1, 5) as $rating)
+                                            <label class="cursor-pointer text-gray-500 star-label" data-rating="{{ $rating }}">
+                                                <input type="radio" name="rating" value="{{ $rating }}" class="hidden">
+                                                <span class="star text-2xl">{{ str_repeat('★', $rating) }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+
+
+                                    <label for="comment" class="block text-gray-700 py-2">Góp ý của bạn:</label>
+                                    <textarea id="comment" name="comment" rows="4"
+                                        class="border border-gray-300 rounded-lg w-full p-2 mb-4" required></textarea>
+                                    <button type="submit"
+                                        class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Gửi đánh
+                                        giá</button>
+                                </form>
+                            @elseif (Auth::check() && $hasReviewed)
+                                <div class="mt-6 p-4 bg-gray-100 rounded-lg">
+                                    <p class="text-gray-700">Bạn đã đánh giá món ăn này rồi!</p>
                                 </div>
-
-
-                                <label for="comment" class="block text-gray-700 py-2">Góp ý của bạn:</label>
-                                <textarea id="comment" name="comment" rows="4"
-                                    class="border border-gray-300 rounded-lg w-full p-2 mb-4" required></textarea>
-                                <button type="submit"
-                                    class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Gửi đánh
-                                    giá</button>
-                            </form>
+                            @else
+                                <div class="mt-6 p-4 bg-gray-100 rounded-lg">
+                                    <p class="text-gray-700">Vui lòng <a href="{{ route('site.login') }}" class="text-blue-500 hover:underline">đăng nhập</a> để đánh giá món ăn!</p>
+                                </div>
+                            @endif
                         </div>
 
                         <script>

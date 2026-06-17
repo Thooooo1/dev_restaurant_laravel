@@ -77,7 +77,9 @@
                                                 <th class="border p-3 text-right">Giá</th>
                                                 <th class="border p-3 text-center">Số lượng</th>
                                                 <th class="border p-3 text-right">Thành tiền</th>
-                                                <th class="border p-3 text-right">Đánh giá</th>
+                                                @if ($order->status == 2)
+                                                    <th class="border p-3 text-right">Đánh giá</th>
+                                                @endif
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -95,10 +97,24 @@
                                                     <td class="border p-3 text-center">{{ $detail->qty }}</td>
                                                     <td class="border p-3 text-right">
                                                         {{ number_format($detail->amount, 0, ',', '.') }} VNĐ</td>
-                                                    <td class="border p-3 text-right">
-                                                        <a href="{{ route('site.product.detail', ['slug' => $detail->product->slug])}}"
-                                                            class="btn mt-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600">Đánh giá</a>
-                                                    </td>
+                                                    @if ($order->status == 2)
+                                                        <td class="border p-3 text-right">
+                                                            @php
+                                                                $hasReviewed = false;
+                                                                if (Auth::check() && $detail->product) {
+                                                                    $hasReviewed = \App\Models\Review::where('user_id', Auth::id())
+                                                                        ->where('product_id', $detail->product_id)
+                                                                        ->exists();
+                                                                }
+                                                            @endphp
+                                                            @if (!$hasReviewed)
+                                                                <a href="{{ route('site.product.detail', ['slug' => $detail->product->slug])}}"
+                                                                    class="btn mt-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600">Đánh giá</a>
+                                                            @else
+                                                                <span class="text-gray-500 text-sm">Đã đánh giá</span>
+                                                            @endif
+                                                        </td>
+                                                    @endif
                                                 </tr>
                                                 
                                             @endforeach

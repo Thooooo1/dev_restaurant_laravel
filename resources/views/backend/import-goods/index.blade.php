@@ -1,71 +1,92 @@
 <x-layout-backend>
-    <div class="card">
-        <div class="card-header">
-            <strong class="fw-bold h4 text-danger">QUẢN LÝ NHẬP HÀNG</strong>
-            <div class="card-tools">
-                <a href="{{ route('admin.import-goods.create') }}" class="btn btn-primary btn-sm">
+    <!-- Page header -->
+    <div class="mb-4">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div>
+                <h1 class="text-xl font-bold text-slate-800 flex items-center gap-3">
+                    <span class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
+                        <i class="fas fa-file-import text-sm"></i>
+                    </span>
+                    Quản lý nhập hàng
+                </h1>
+                <p class="text-slate-500 mt-1 text-sm">Danh sách và quản lý các đơn nhập hàng</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('admin.import-goods.create') }}" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-green-700">
                     <i class="fas fa-plus"></i> Thêm mới
                 </a>
             </div>
         </div>
-        <div class="card-body">
-            <!-- Filter Form -->
-            <form action="{{ route('admin.import-goods.index') }}" method="GET" class="form-inline mb-3">
-                <div class="form-group mr-2">
-                    <input type="text" name="search" class="form-control" placeholder="Tìm tên hàng hoá..." value="{{ request('search') }}">
-                </div>
-                <div class="form-group mr-2">
-                    <select name="year" class="form-control">
-                        <option value="">-- Năm --</option>
-                        @for($y = date('Y'); $y >= 2020; $y--)
-                            <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
-                        @endfor
-                    </select>
-                </div>
-                <div class="form-group mr-2">
-                    <select name="month" class="form-control">
-                        <option value="">-- Tháng --</option>
-                        @for($m = 1; $m <= 12; $m++)
-                            <option value="{{ $m }}" {{ request('month') == $m ? 'selected' : '' }}>Tháng {{ $m }}</option>
-                        @endfor
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-default"><i class="fas fa-search"></i> Tìm kiếm</button>
-            </form>
+    </div>
 
-            <table class="table table-bordered table-striped">
-                <thead>
+    <!-- Filter Form -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 mb-4">
+        <form action="{{ route('admin.import-goods.index') }}" method="GET" class="flex flex-wrap gap-3 items-end">
+            <label for="search" class="block text-sm font-medium text-slate-700">Tìm kiếm:</label>
+            <div class="flex-1 min-w-[150px]">
+                <input type="text" name="search" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm" placeholder="Tìm tên hàng hoá..." value="{{ request('search') }}">
+            </div>
+            
+            <div class="min-w-[120px]">
+                <select name="year" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm">
+                    <option value="">-- Năm --</option>
+                    @for($y = date('Y'); $y >= 2020; $y--)
+                        <option value="{{ $y }}" {{ request('year') == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+            </div>
+            
+            <div class="min-w-[120px]">
+                <select name="month" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm">
+                    <option value="">-- Tháng --</option>
+                    @for($m = 1; $m <= 12; $m++)
+                        <option value="{{ $m }}" {{ request('month') == $m ? 'selected' : '' }}>Tháng {{ $m }}</option>
+                    @endfor
+                </select>
+            </div>
+            
+            <button type="submit" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700">
+                <i class="fas fa-search"></i> Tìm kiếm
+            </button>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-slate-50 border-b border-slate-200">
                     <tr>
-                        <th>ID</th>
-                        <th>Tên hàng hoá</th>
-                        <th>Loại hàng hoá</th>
-                        <th>Đơn vị tính</th>
-                        <th>Số lượng</th>
-                        <th>Đơn giá</th>
-                        <th>Thành tiền</th>
-                        <th>Ngày nhập</th>
-                        <th>Hành động</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">ID</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tên hàng hoá</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Loại hàng hoá</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Đơn vị tính</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Số lượng</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Đơn giá</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Thành tiền</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Ngày nhập</th>
+                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Hành động</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-slate-100">
                     @forelse($items as $item)
-                    <tr>
-                        <td>{{ $item->id }}</td>
-                        <td>{{ $item->name }}</td>
-                        <td>{{ $item->type }}</td>
-                        <td>{{ $item->unit }}</td>
-                        <td>{{ number_format($item->quantity) }}</td>
-                        <td>{{ number_format($item->price) }} VNĐ</td>
-                        <td>{{ number_format($item->total_amount) }} VNĐ</td>
-                        <td>{{ $item->created_at->format('d/m/Y') }}</td>
-                        <td>
-                            <a href="{{ route('admin.import-goods.edit', $item->id) }}" class="btn btn-warning btn-sm">
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $item->id }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-800 font-medium">{{ $item->name }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $item->type }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $item->unit }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ number_format($item->quantity) }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ number_format($item->price) }} VNĐ</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-orange-600 font-medium">{{ number_format($item->total_amount) }} VNĐ</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $item->created_at->format('d/m/Y') }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-center">
+                            <a href="{{ route('admin.import-goods.edit', $item->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-orange-50 text-orange-600 rounded-lg text-sm transition-all hover:bg-orange-100">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form action="{{ route('admin.import-goods.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa?');">
+                            <form action="{{ route('admin.import-goods.destroy', $item->id) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa?');">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">
+                                <button type="submit" class="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-lg text-sm transition-all hover:bg-red-100 ml-1">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
@@ -73,15 +94,17 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="9" class="text-center">Không có dữ liệu</td>
+                        <td colspan="9" class="px-4 py-8 text-center text-slate-500 text-sm">
+                            Không có dữ liệu
+                        </td>
                     </tr>
                     @endforelse
                 </tbody>
             </table>
+        </div>
             
-            <div class="mt-3">
-                {{ $items->withQueryString()->links() }}
-            </div>
+        <div class="px-4 py-3 border-t border-slate-200 flex justify-center">
+            {{ $items->withQueryString()->links() }}
         </div>
     </div>
 </x-layout-backend>

@@ -13,7 +13,6 @@ use App\Mail\OtpMail;
 
 use Carbon\Carbon;
 
-use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
@@ -80,7 +79,17 @@ class AuthController extends Controller
                  }
                  
                  session()->put('user_site', $user);
-                 $this->syncTableSessionForUser($user);
+                 
+                 // KHI ĐĂNG NHẬP BÌNH THƯỜNG: Chỉ xóa nếu có is_table_order, còn lại giữ nguyên cho chức năng ghép bàn
+                 if (session()->has('is_table_order')) {
+                     session()->forget('table_id');
+                     session()->forget('table_order_id');
+                     session()->forget('table_name');
+                     session()->forget('is_table_order');
+                 } else {
+                     // Sync lại session bàn cho chức năng ghép bàn
+                     $this->syncTableSessionForUser($user);
+                 }
                  
                  if ($redirectUrl) {
                      return redirect($redirectUrl)->with('success', 'Đăng nhập thành công!');
@@ -117,7 +126,17 @@ class AuthController extends Controller
             if ($user) {
                 Auth::login($user);
                 session()->put('user_site', $user);
-                $this->syncTableSessionForUser($user);
+                
+                // KHI ĐĂNG NHẬP BÌNH THƯỜNG: Chỉ xóa nếu có is_table_order, còn lại giữ nguyên cho chức năng ghép bàn
+                if (session()->has('is_table_order')) {
+                    session()->forget('table_id');
+                    session()->forget('table_order_id');
+                    session()->forget('table_name');
+                    session()->forget('is_table_order');
+                } else {
+                    // Sync lại session bàn cho chức năng ghép bàn
+                    $this->syncTableSessionForUser($user);
+                }
                 
                 return response()->json([
                     'status' => 'success',
@@ -211,57 +230,7 @@ class AuthController extends Controller
         return redirect()->route('site.login')->with('success', 'Đăng ký thành công!');
     }
 
-    public function redirectToGoogle()
-    {
-        return Socialite::driver('google')
-            ->scopes(['openid', 'profile', 'email'])
-            ->redirect();
-    }
-    public function handleGoogleCallback()
-    {
-        try {
-            $googleUser = Socialite::driver('google')->user();
 
-            $email = $googleUser->getEmail();
-            $fullname = $googleUser->getName();
-            $googleId = $googleUser->getId();
-            $picture = $googleUser->getAvatar();
-
-            $user = User::where('google_id', $googleId)->orWhere('email', $email)->first();
-
-            if ($user) {
-                if (!$user->google_id) {
-                    $user->google_id = $googleId;
-                }
-
-                $user->save();
-            } else {
-                $user = User::create([
-                    'username' => 'google_' . $googleId,
-                    'fullname' => $fullname,
-                    'email' => $email,
-                    'password' => Hash::make(Str::random(16)),
-                    'image' => $picture,
-                    'address' => 'Đang cập nhật',
-                    'roles' => 'customer',
-                    'google_id' => $googleId,
-                    'gender' => 'Đang cập nhật',
-                    'phone' => 'Đang cập nhật',
-                    'created_by' => Auth::id() ?? 1,
-                    'status' => 1,
-                ]);
-            }
-
-            Auth::login($user);
-            session()->put('user_site', $user);
-
-            $this->syncTableSessionForUser($user);
-
-            return redirect()->route('site.home')->with('success', 'Đăng nhập bằng Google thành công!');
-        } catch (\Exception $e) {
-            return redirect()->route('site.login')->with('error', 'Đăng nhập bằng Google thất bại! Vui lòng thử lại.');
-        }
-    }
     public function profile()
     {
         $user = Auth::user();
@@ -273,6 +242,11 @@ class AuthController extends Controller
 
     public function syncTableSessionForUser(User $user): void
     {
+        // Chỉ sync nếu không phải đang ở luồng quét QR (không có is_table_order)
+        if (session()->has('is_table_order')) {
+            return;
+        }
+
         $activeOrder = Order::whereNull('deleted_at')
             ->whereIn('status', [0, 1])
             ->whereNotNull('table_id')
@@ -287,7 +261,7 @@ class AuthController extends Controller
         if ($activeOrder && $activeOrder->table) {
             session([
                 'table_id' => $activeOrder->table_id,
-                'table_name' => $activeOrder->table->name,
+                'table_name' => $activeOrder->table->name
             ]);
         } else {
             session()->forget('table_id');
@@ -295,9 +269,22 @@ class AuthController extends Controller
         }
     }
 
+
+
     public function updateProfile(Request $request)
     {
         $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('site.login')->with('error', 'Bạn cần đăng nhập để cập nhật thông tin!');
+        }
+
+        $request->validate([
+            'fullname' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'gender' => 'nullable|in:0,1',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
         $user->fullname = $request->fullname;
         $user->address = $request->address;
@@ -358,22 +345,22 @@ class AuthController extends Controller
     public function sendOtp(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:user,email',
+            'phone' => 'required|string|exists:user,phone',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        /** @var \App\Models\User $user */
+        $user = User::where('phone', $request->phone)->first();
         $otpCode = rand(100000, 999999);
         $user->otp_code = $otpCode;
         $user->otp_expires_at = Carbon::now()->addMinutes(10);
         $user->save();
 
-        try {
-            Mail::to($user->email)->send(new OtpMail($otpCode));
-            return view('frontend.verify_otp', ['email' => $user->email])->with('success', 'OTP đã được gửi đến email của bạn.');
-        } catch (\Exception $e) {
-            \Log::error('Lỗi gửi email: ' . $e->getMessage());
-            return back()->with('error', 'Không thể gửi OTP. Vui lòng thử lại sau.');
-        }
+        // Tạm thời hiển thị OTP trực tiếp để test (sau này thay bằng gửi SMS)
+        return view('frontend.verify_otp', [
+            'phone' => $user->phone,
+            'otp_code' => $otpCode,
+            'otp_display' => $otpCode
+        ]);
     }
 
 
@@ -381,11 +368,12 @@ class AuthController extends Controller
     public function verifyOtp(Request $request)
     {
         $request->validate([
-            'email' => 'required|email|exists:user,email',
+            'phone' => 'required|string|exists:user,phone',
             'otp_code' => 'required|numeric',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        /** @var \App\Models\User $user */
+        $user = User::where('phone', $request->phone)->first();
 
         if ($user->otp_code !== $request->otp_code) {
             return back()->with('error', 'Mã OTP không đúng.');
@@ -395,7 +383,7 @@ class AuthController extends Controller
             return back()->with('error', 'Mã OTP đã hết hạn.');
         }
 
-        session()->put('reset_password_email', $user->email);
+        session()->put('reset_password_phone', $user->phone);
         return redirect()->route('site.show_reset_password')->with('success', 'OTP xác thực thành công. Vui lòng đặt lại mật khẩu.');
 
     }
@@ -410,19 +398,20 @@ class AuthController extends Controller
             'password' => 'required|confirmed|min:6',
         ]);
 
-        $email = session()->get('reset_password_email');
+        $phone = session()->get('reset_password_phone');
 
-        if (!$email) {
+        if (!$phone) {
             return redirect()->route('site.forgot_password')->with('error', 'Không có yêu cầu đặt lại mật khẩu nào.');
         }
 
-        $user = User::where('email', $email)->first();
+        /** @var \App\Models\User $user */
+        $user = User::where('phone', $phone)->first();
         $user->password = Hash::make($request->password);
         $user->otp_code = null;
         $user->otp_expires_at = null;
         $user->save();
 
-        session()->forget('reset_password_email');
+        session()->forget('reset_password_phone');
         return redirect()->route('site.login')->with('success', 'Mật khẩu đã được đặt lại thành công.');
     }
 

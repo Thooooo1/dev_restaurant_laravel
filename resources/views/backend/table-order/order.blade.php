@@ -18,10 +18,18 @@
 
     <section class="content">
         <div class="container-fluid">
+            @if($order->has_new_items)
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <i class="fas fa-bell"></i> <strong>Thông báo!</strong> Khách hàng đã gửi thực đơn mới. Vui lòng in để xác nhận!
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            @endif
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
                 <div class="mb-2 mb-md-0">
                     <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm mb-1" id="backBtn"><i class="fas fa-arrow-left"></i> Quay lại</a>
-                    <button type="button" class="btn btn-primary btn-sm ml-2 mb-1" id="printKitchenBtn" onclick="printKitchen()" disabled><i class="fas fa-print"></i> In thực đơn</button>
+                    <button type="button" class="btn btn-primary btn-sm ml-2 mb-1" id="printKitchenBtn" onclick="printKitchen()"><i class="fas fa-print"></i> In thực đơn</button>
                     <a href="{{ route('admin.table-order.payment', $table->id) }}" class="btn btn-success btn-sm ml-2 mb-1 {{ $hasAnyItems ? '' : 'disabled' }}" id="payBtn"><i class="fas fa-money-bill-wave"></i> Thanh toán</a>
                     @if(!$hasAnyItems)
                         <button type="button" class="btn btn-warning btn-sm ml-2 mb-1" onclick="showChangeTableModal()"><i class="fas fa-exchange-alt"></i> Đổi bàn</button>
@@ -46,43 +54,102 @@
                                 <label for="orderNote" class="sr-only">Ghi chú</label>
                                 <textarea id="orderNote" class="form-control" rows="2" placeholder="Ghi chú món ăn (VD: Không cay, ít đường...)" style="resize: none;">{{ $order->note }}</textarea>
                             </div>
-                            @if($orderDetails->count() > 0)
-                                <div class="" id="historyAccordion">
-                                    <div class="card">
-                                        <div class="card-header p-2 bg-warning ">
-                                            <button class="btn w-100 btn-link p-0 text-white" data-toggle="collapse" data-target="#history-turn-all">
-                                                    Món ăn đã gọi
-                                            </button>
-                                        </div>
-                                        <div id="history-turn-all" class="collapse">
-                                            <div class="card-body p-2">
-                                                @foreach($orderDetails as $it)
-                                                    @php
-                                                        $price = $it->price ?? ($it->product->price_sale ?? 0);
-                                                        $amount = $price * ($it->qty ?? 0);
-                                                    @endphp
-                                                    <div class="order-item bg-light" id="history-item-{{ $it->id }}" data-price="{{ $price }}">
-                                                        <div class="row align-items-center">
-                                                            <div class="col-6">
-                                                                <div class="font-weight-bold">{{ $it->product->name ?? 'N/A' }}</div>
-                                                                <div class="text-muted small">{{ number_format($price, 0, ',', '.') }} ₫ x {{ $it->qty }}</div>
+                            @php
+                                $pendingItems = $orderDetails->filter(function($item) { return $item->status == 'pending'; });
+                                $confirmedItems = $orderDetails->filter(function($item) { return $item->status != 'pending'; });
+                            @endphp
+                            @if($pendingItems->count() > 0)
+                                <div class="card mb-2">
+                                    <div class="card-header p-2 bg-gradient-to-r from-red-400 to-red-500">
+                                        <h5 class="m-0 font-bold text-white">Món ăn chờ xác nhận (Khách gọi thêm)</h5>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        @foreach($pendingItems as $it)
+                                            @php
+                                                $price = $it->price ?? ($it->product->price_sale ?? 0);
+                                                $amount = $price * ($it->qty ?? 0);
+                                            @endphp
+                                            <div class="order-item bg-yellow-50 border-l-4 border-yellow-500" id="pending-item-{{ $it->id }}" data-price="{{ $price }}">
+                                                <div class="row align-items-center">
+                                                    <div class="col-6">
+                                                        <div class="font-weight-bold">
+                                                            {{ $it->product->name ?? 'N/A' }}
+                                                            <span class="ml-2 px-2 py-0.5 bg-yellow-500 text-white text-xs rounded-full font-semibold">CHỜ XÁC NHẬN</span>
+                                                        </div>
+                                                        <div class="text-muted small">{{ number_format($price, 0, ',', '.') }} ₫ x {{ $it->qty }}</div>
+                                                    </div>
+                                                    <div class="col-6 text-right">
+                                                        <div class="font-weight-bold" id="pending-amount-{{ $it->id }}">{{ number_format($amount, 0, ',', '.') }} ₫</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                            @if($confirmedItems->count() > 0)
+                                <div class="card mb-2">
+                                    <div class="card-header p-2 bg-gradient-to-r from-yellow-400 to-yellow-500">
+                                        <h5 class="m-0 font-bold text-gray-800">Món ăn đã gọi</h5>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        @foreach($confirmedItems as $it)
+                                            @php
+                                                $price = $it->price ?? ($it->product->price_sale ?? 0);
+                                                $amount = $price * ($it->qty ?? 0);
+                                                $prevOrderTurn = ($order->order_turn ?? 1) - 1;
+                                                $isJustPrinted = (!$order->has_new_items && $it->order_turn == $prevOrderTurn && $it->status == 'cooking');
+                                                $statusText = '';
+                                                $statusClass = '';
+                                                switch($it->status) {
+                                                    case 'confirmed':
+                                                        $statusText = 'Đã xác nhận';
+                                                        $statusClass = 'bg-blue-100 text-blue-800';
+                                                        break;
+                                                    case 'cooking':
+                                                        $statusText = 'Đang chế biến';
+                                                        $statusClass = 'bg-orange-100 text-orange-800';
+                                                        break;
+                                                    case 'served':
+                                                        $statusText = 'Đã lên món';
+                                                        $statusClass = 'bg-green-100 text-green-800';
+                                                        break;
+                                                    default:
+                                                        $statusText = 'Đã xác nhận';
+                                                        $statusClass = 'bg-blue-100 text-blue-800';
+                                                }
+                                            @endphp
+                                            <div class="order-item {{ $isJustPrinted ? 'bg-green-50 border-l-4 border-green-500' : 'bg-light' }}" id="history-item-{{ $it->id }}" data-price="{{ $price }}">
+                                                <div class="row align-items-center">
+                                                    <div class="col-6">
+                                                        <div class="font-weight-bold">
+                                                            {{ $it->product->name ?? 'N/A' }}
+                                                            @if($isJustPrinted)
+                                                                <span class="ml-2 px-2 py-0.5 bg-orange-500 text-white text-xs rounded-full font-semibold">MỚI IN</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="text-muted small">{{ number_format($price, 0, ',', '.') }} ₫ x {{ $it->qty }}</div>
+                                                        <span class="px-2 py-0.5 rounded text-xs font-semibold {{ $statusClass }}">{{ $statusText }}</span>
+                                                    </div>
+                                                    <div class="col-6 text-right">
+                                                        <div class="font-weight-bold" id="history-amount-{{ $it->id }}">{{ number_format($amount, 0, ',', '.') }} ₫</div>
+                                                        <div class="d-flex justify-content-end align-items-end h-100">
+                                                            <div class="btn-group btn-group-sm">
+                                                                <button class="btn btn-secondary" onclick="decrementHistory({{ $it->id }})">-</button>
+                                                                <span class="btn btn-light border" id="history-qty-{{ $it->id }}" style="min-width: 30px;">{{ $it->qty }}</span>
+                                                                <button class="btn btn-secondary" disabled>+</button>
                                                             </div>
-                                                            <div class="col-6 text-right">
-                                                                <div class="font-weight-bold" id="history-amount-{{ $it->id }}">{{ number_format($amount, 0, ',', '.') }} ₫</div>
-                                                                <div class="d-flex justify-content-end align-items-end h-100">
-                                                                    <div class="btn-group btn-group-sm">
-                                                                        <button class="btn btn-secondary" onclick="decrementHistory({{ $it->id }})">-</button>
-                                                                        <span class="btn btn-light border" id="history-qty-{{ $it->id }}" style="min-width: 30px;">{{ $it->qty }}</span>
-                                                                        <button class="btn btn-secondary" disabled>+</button>
-                                                                    </div>
-                                                                    <button class="btn btn-link text-danger p-0 ml-2" onclick="deleteHistory({{ $it->id }})"><i class="fas fa-trash fa-lg"></i></button>
-                                                                </div>
-                                                            </div>
+                                                            @if($it->status != 'served')
+                                                                <button class="btn btn-success btn-sm ml-2" onclick="markItemAsServed({{ $it->id }})" title="Đã lên món">
+                                                                    <i class="fas fa-check"></i>
+                                                                </button>
+                                                            @endif
+                                                            <button class="btn btn-link text-danger p-0 ml-2" onclick="deleteHistory({{ $it->id }})"><i class="fas fa-trash fa-lg"></i></button>
                                                         </div>
                                                     </div>
-                                                @endforeach
+                                                </div>
                                             </div>
-                                        </div>
+                                        @endforeach
                                     </div>
                                 </div>
                             @endif
@@ -382,8 +449,9 @@
             $('#orderItemsContent').html(html);
             $('#totalAmountDisplay').text(formatMoney(total));
             
-            // Disable Print Kitchen if no NEW items
-            $('#printKitchenBtn').prop('disabled', !(currentOrderDetails && currentOrderDetails.length > 0));
+            // Enable Print Kitchen if there are existing items with has_new_items or new current items
+            const hasNewItems = {{ $order->has_new_items ? 'true' : 'false' }};
+            $('#printKitchenBtn').prop('disabled', !((currentOrderDetails && currentOrderDetails.length > 0) || (hasExistingItems && hasNewItems)));
 
             // Update Payment Button State: ENABLED only if hasExistingItems is true
             if (hasExistingItems) {
@@ -500,10 +568,60 @@
         }
 
         function printKitchen() {
-            if (!currentOrderId || !currentOrderDetails || currentOrderDetails.length === 0) return;
+            const hasNewItemsFlag = {{ $order->has_new_items ? 'true' : 'false' }};
+            if (!currentOrderId) return;
+            
+            // Collect all items to print: pending items first, then current order details
+            let items = [];
+            let stt = 1;
+            
+            // Add pending items from existingOrderDetails
+            existingOrderDetails.forEach(item => {
+                if (item.status === 'pending') {
+                    items.push({stt: stt++, name: item.product.name, qty: item.qty});
+                }
+            });
+            
+            // Add current order details (items staff added)
+            if (currentOrderDetails && currentOrderDetails.length > 0) {
+                currentOrderDetails.forEach(item => {
+                    items.push({stt: stt++, name: item.product_name, qty: item.qty});
+                });
+            }
+            
+            // If no items at all, check if hasNewItems is true and there are confirmed items?
+            if (items.length === 0 && !hasNewItemsFlag) {
+                // Maybe check if there are any items to print?
+                return;
+            }
+            
             const note = $('#orderNote').val();
-            saveOrder(function() {
-                const items = currentOrderDetails.map((item, idx) => ({stt: idx+1, name: item.product_name, qty: item.qty}));
+            
+            // If we have current order details, save them first
+            if (currentOrderDetails && currentOrderDetails.length > 0) {
+                saveOrder(function() {
+                    const html = generateKitchenTicketHTML({
+                        floor: '{{ $table->floor->name ?? '' }}',
+                        table: '{{ $table->name }}',
+                        customer_name: '{{ $order->user->fullname ?? $order->customer_name ?? 'Khách lẻ' }}',
+                        customer_phone: '{{ $order->user->phone ?? $order->customer_phone ?? '---' }}',
+                        order_turn: orderTurn,
+                        note: note,
+                        items
+                    });
+                    const w = window.open('', 'PRINT', 'width=400,height=600');
+                    w.document.write(html);
+                    w.document.close();
+                    w.focus();
+                    w.print();
+                    w.close();
+                    $.post('{{ route('admin.table-order.incrementOrderTurn') }}', { _token: '{{ csrf_token() }}', order_id: currentOrderId })
+                        .always(function() { 
+                            window.location.reload(); 
+                        });
+                });
+            } else {
+                // Just print existing pending items
                 const html = generateKitchenTicketHTML({
                     floor: '{{ $table->floor->name ?? '' }}',
                     table: '{{ $table->name }}',
@@ -521,10 +639,9 @@
                 w.close();
                 $.post('{{ route('admin.table-order.incrementOrderTurn') }}', { _token: '{{ csrf_token() }}', order_id: currentOrderId })
                     .always(function() { 
-                        // Reload to sync state
                         window.location.reload(); 
                     });
-            });
+            }
         }
 
         function saveOrder(callback) {
@@ -655,9 +772,34 @@
                 success: function(response) {
                     if (response.success) {
                         toastr.success('Đổi bàn thành công');
-                        window.location.href = '{{ route("admin.table-order.order", ":tableId") }}'.replace(':tableId', selectedNewTableId);
+                        window.location.href = '{{ route("admin.table-order.order", ':tableId') }}'.replace(':tableId', selectedNewTableId);
                     } else {
                         toastr.error(response.message || 'Đổi bàn thất bại');
+                    }
+                },
+                error: function(xhr) {
+                    let msg = 'Có lỗi xảy ra';
+                    if (xhr.responseJSON && xhr.responseJSON.message) msg = xhr.responseJSON.message;
+                    toastr.error(msg);
+                }
+            });
+        }
+
+        function markItemAsServed(orderDetailId) {
+            if (!confirm('Đánh dấu món ăn này là đã lên món?')) return;
+            $.ajax({
+                url: '{{ route("admin.table-order.markItemAsServed") }}',
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    order_detail_id: orderDetailId
+                },
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        window.location.reload();
+                    } else {
+                        toastr.error(response.message || 'Cập nhật thất bại');
                     }
                 },
                 error: function(xhr) {

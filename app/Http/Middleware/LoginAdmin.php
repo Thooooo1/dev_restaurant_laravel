@@ -20,7 +20,8 @@ class LoginAdmin
             return redirect()->route('admin.login')->with('error','Vui lòng đăng nhập!');
         }
         $user = Auth::user();
-        if($user->roles !== 'admin')
+        // Cho cả admin và employee vào backend
+        if($user->roles !== 'admin' && $user->roles !== 'employee')
         {
             return redirect()->route('site.home')->with('error','Bạn không có quyền truy cập!');
         }

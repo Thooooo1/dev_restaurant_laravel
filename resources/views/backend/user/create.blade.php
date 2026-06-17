@@ -6,7 +6,13 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <strong class="fw-bold h4 text-danger">{{ $role == 'admin' ? 'THÊM NHÂN VIÊN' : 'THÊM KHÁCH HÀNG' }}</strong>
+                        <strong class="fw-bold h4 text-danger">
+                            @if($role == 'admin' || $role == 'employee')
+                                THÊM NHÂN VIÊN
+                            @else
+                                THÊM KHÁCH HÀNG
+                            @endif
+                        </strong>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
@@ -25,7 +31,7 @@
                             <button type="submit" name="create" class="btn btn-sm btn-success">
                                 <i class="fa fa-save"></i> Lưu
                             </button>
-                            @if($role == 'admin')
+                            @if($role == 'admin' || $role == 'employee')
                                 <a class="btn btn-sm btn-info" href="{{ route('admin.user.employees') }}">
                                     <i class="fa fa-arrow-left"></i> Về danh sách
                                 </a>
@@ -48,8 +54,8 @@
                                 @enderror
                             </div>
                             <div class="mb-3">
-                                <label for="phone">Điện thoại</label>
-                                <input type="text" value="{{ old('phone', '') }}" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror">
+                                <label for="phone">Số điện thoại <span class="text-danger">*</span> <small class="text-muted">(dùng để đăng nhập)</small></label>
+                                <input type="text" value="{{ old('phone', '') }}" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" placeholder="0912345678">
                                 @error('phone')
                                     <div class="text-danger">{{ $message }}</div>
                                 @enderror
@@ -87,7 +93,7 @@
                                 <small class="form-text text-muted">Để trống nếu tạo khách hàng (customer)</small>
                             </div>
                             <div class="mb-3">
-                                <label for="password">Mật khẩu</label>
+                                <label for="password">Mật khẩu <span class="text-danger">*</span></label>
                                 <input type="password" value="" name="password" id="password" class="form-control @error('password') is-invalid @enderror" autocomplete="new-password">
                                 @error('password')
                                     <div class="text-danger">{{ $message }}</div>
@@ -95,18 +101,19 @@
                                 <small class="form-text text-muted">Để trống nếu tạo khách hàng (customer)</small>
                             </div>
                             <div class="mb-3">
-                                <label for="password_re">Xác nhận mật khẩu</label>
+                                <label for="password_re">Xác nhận mật khẩu <span class="text-danger">*</span></label>
                                 <input type="password" value="" name="password_re" id="password_re" class="form-control @error('password_re') is-invalid @enderror">
-                                
+                                @error('password_re')
+                                    <div class="text-danger">{{ $message }}</div>
+                                @enderror
                             </div>
                             <div class="mb-3">
                                 <label for="roles">Quyền</label>
-                                <select name="roles" id="roles" class="form-control" disabled>
+                                <select name="roles" id="roles" class="form-control">
                                     <option value="customer" {{ $role == 'customer' ? 'selected' : '' }}>Khách hàng</option>
-                                    <option value="admin" {{ $role == 'admin' ? 'selected' : '' }}>Nhân viên</option>
+                                    <option value="employee" {{ $role == 'employee' ? 'selected' : '' }}>Nhân viên</option>
+                                    <option value="admin" {{ $role == 'admin' ? 'selected' : '' }}>Quản lý</option>
                                 </select>
-                                <input type="hidden" name="roles" value="{{ $role }}">
-                                <small class="form-text text-muted">Quyền được xác định tự động dựa trên menu bạn chọn</small>
                             </div>
                             <div class="mb-3">
                                 <label for="image">Hình</label>

@@ -9,7 +9,7 @@ class Orderdetail extends Model
     protected $table = 'orderdetail';
     public $timestamps = false;
 
-    protected $fillable = ['order_id', 'product_id', 'qty', 'price', 'discount', 'amount', 'order_turn'];
+    protected $fillable = ['order_id', 'product_id', 'qty', 'price', 'discount', 'amount', 'order_turn', 'status'];
 
     public function product()
     {
