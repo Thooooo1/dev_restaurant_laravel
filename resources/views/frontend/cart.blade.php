@@ -75,7 +75,7 @@
                             {{ number_format(array_sum(array_map(fn($item) => $item['price'] * $item['qty'], $cart)), 0, ',', '.') }} VND
                         </div>
                     </div>
-                    @if (session('table_name'))
+                    @if (session('is_table_order') && session('table_name'))
                         <div class="mt-6">
                             <button type="submit" onclick="return confirm('Gửi thực đơn cho nhân viên để xác nhận?')" class="w-full bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none">
                                 Gửi thực đơn
@@ -275,7 +275,6 @@
                 totalElement.textContent = formatCurrency(total) + ' VND';
             }
         }
-
 
 
         // Polling để kiểm tra trạng thái order (tự động kết thúc khi thanh toán xong)

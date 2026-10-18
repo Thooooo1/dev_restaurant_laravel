@@ -1,4 +1,13 @@
 <x-layout-backend>
+    <style>
+        table thead th {
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            background: #78b4f1ff !important;
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.75rem !important;
+        }
+    </style>
     @php
         $isEmployee = false;
         if (isset($type) && $type == 'employees') {
@@ -15,7 +24,7 @@
             <div>
                 <h1 class="text-xl font-bold text-slate-800 flex items-center gap-3">
                     <span class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
-                        <i class="fas fa-users text-sm"></i>
+                        <i class="fa-solid fa-users text-sm"></i>
                     </span>
                     @if($isEmployee)
                         Quản lý nhân viên
@@ -34,14 +43,14 @@
             <div class="flex items-center gap-2">
                 @if($isEmployee)
                     <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-green-700" href="{{ route('admin.user.create', ['role' => 'admin']) }}">
-                        <i class="fas fa-plus"></i> Thêm nhân viên
+                        <i class="fa-solid fa-plus"></i> Thêm nhân viên
                     </a>
                 @else
                     <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-green-700" href="{{ route('admin.user.create', ['role' => 'customer']) }}">
-                        <i class="fas fa-plus"></i> Thêm khách hàng
+                        <i class="fa-solid fa-plus"></i> Thêm khách hàng
                     </a>
                     <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-red-500/25 hover:from-red-600 hover:to-red-700" href="{{ url('admin/user/trash') }}">
-                        <i class="fas fa-trash"></i> Thùng rác
+                        <i class="fa-solid fa-trash"></i> Thùng rác
                     </a>
                 @endif
             </div>
@@ -55,7 +64,7 @@
                 @php $qValue = request('q'); @endphp
                 <input type="text" name="q" value="{{ $qValue }}" class="flex-1 px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm" placeholder="Tìm tên hoặc số điện thoại">
                 <button type="submit" class="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-orange-500/25 hover:from-orange-600 hover:to-orange-700">
-                    <i class="fas fa-search mr-1"></i> Tìm
+                    <i class="fa-solid fa-search mr-1"></i> Tìm
                 </button>
             </form>
             
@@ -75,16 +84,16 @@
     <!-- Table -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <div class="table-responsive"><table class="w-full">
                 <thead class="bg-slate-50 border-b border-slate-200">
                     <tr>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">#</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:90px;">Hình</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Họ tên</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{{ $isEmployee ? 'Tên đăng nhập' : 'Điện thoại' }}</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:250px;">Chức năng</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">ID</th>
+                        <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">#</th>
+                        <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider" style="width:90px;">Hình</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Họ tên</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">{{ $isEmployee ? 'Tên đăng nhập' : 'Điện thoại' }}</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Email</th>
+                        <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider" style="width:250px;">Chức năng</th>
+                        <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">ID</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -113,13 +122,13 @@
                                 @endif
 
                                 <a href="{{ route('admin.user.show', ['user' => $user->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100 ml-1">
-                                    <i class="far fa-eye"></i>
+                                    <i class="fa-regular fa-eye"></i>
                                 </a>
                                 <a href="{{ route('admin.user.edit', ['user' => $user->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-orange-50 text-orange-600 rounded-lg text-sm transition-all hover:bg-orange-100 ml-1">
-                                    <i class="far fa-edit"></i>
+                                    <i class="fa-regular fa-pen-to-square"></i>
                                 </a>
                                 <a href="{{ route('admin.user.delete', ['user' => $user->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-lg text-sm transition-all hover:bg-red-100 ml-1">
-                                    <i class="fas fa-trash"></i>
+                                    <i class="fa-solid fa-trash"></i>
                                 </a>
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap text-center text-sm text-slate-600">

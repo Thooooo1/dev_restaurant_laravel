@@ -154,8 +154,8 @@ class ProductController extends Controller
             $product->image = $filename;
         }
         //end upload file
-        $product->content = $request->content;
-        $product->description = $request->description;
+        $product->content = $request->content ?? $product->content;
+        $product->description = $request->description ?? $product->description;
         $product->price_buy = $request->price_buy;
         $product->price_sale = $request->price_sale;
         $product->qty = $request->qty;

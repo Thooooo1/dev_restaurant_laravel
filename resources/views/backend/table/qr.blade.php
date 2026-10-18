@@ -13,7 +13,7 @@
             <p class="text-lg font-semibold"><strong>URL:</strong> <a href="{{ $url }}" target="_blank">{{ $url }}</a></p>
             
             <button onclick="downloadQR()" class="btn btn-success mt-3">
-                <i class="fas fa-download"></i> Tải ảnh JPG
+                <i class="fa-solid fa-download"></i> Tải ảnh JPG
             </button>
         </div>
     </div>

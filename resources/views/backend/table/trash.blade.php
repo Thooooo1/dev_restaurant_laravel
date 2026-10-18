@@ -22,7 +22,7 @@
                 <a href="{{ route('admin.table.index') }}" class="btn btn-secondary">Quay lại danh sách</a>
             </div>
             <div class="card-body">
-                <table class="table table-bordered table-striped">
+                <div class="table-responsive"><table class="table table-bordered table-striped">
                     <thead>
                         <tr>
                             <th>Tên bàn</th>
@@ -39,14 +39,14 @@
                                 <td>{{ $table->seats }}</td>
                                 <td class="text-center">
                                     <a href="{{ route('admin.table.restore', $table->id) }}" class="btn btn-sm btn-success">
-                                        <i class="fas fa-undo"></i> Khôi phục
+                                        <i class="fa-solid fa-undo"></i> Khôi phục
                                     </a>
 
                                     <form action="{{ route('admin.table.destroy', $table->id) }}" method="post" style="display:inline-block;">
                                         @csrf
                                         @method('DELETE')
                                         <button class="btn btn-sm btn-danger" onclick="return confirm('Xóa vĩnh viễn bàn này?')">
-                                            <i class="fas fa-times"></i> Xóa vĩnh viễn
+                                            <i class="fa-solid fa-times"></i> Xóa vĩnh viễn
                                         </button>
                                     </form>
                                 </td>

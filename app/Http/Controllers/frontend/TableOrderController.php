@@ -18,8 +18,11 @@ class TableOrderController extends Controller
             return redirect()->route('site.home')->with('error', 'Bàn không tồn tại.');
         }
 
-        // 2. Lưu table_id vào session (quan trọng, để biết đang ở bàn nào)
-        session(['table_id' => $id]);
+        // 2. Lưu table_id và is_table_order vào session (quan trọng, để biết đang ở bàn nào)
+        session([
+            'table_id' => $id,
+            'is_table_order' => true
+        ]);
 
         // 3. Hiển thị form nhập số điện thoại cho tất cả mọi người
         return view('frontend.table-scan', compact('table'));

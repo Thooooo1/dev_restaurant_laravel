@@ -4,11 +4,11 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Trang chủ</h1>
+                    <h1>Thống kê</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url('admin/')}}">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Thống kê</a></li>
                     </ol>
                 </div>
             </div>
@@ -25,7 +25,7 @@
                     <div class="card text-center p-3 border-2" style="border-radius: 8px;">
                         <div class="d-flex justify-content-center mb-2">
                             <div class="rounded-circle border border-dark d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fas fa-dollar-sign fa-lg"></i>
+                                <i class="fa-solid fa-dollar-sign fa-lg"></i>
                             </div>
                         </div>
                         <div class="font-weight-bold" style="font-size: 14px;">Doanh thu hôm nay</div>
@@ -39,7 +39,7 @@
                     <div class="card text-center p-3 border-2" style="border-radius: 8px;">
                         <div class="d-flex justify-content-center mb-2">
                             <div class="rounded-circle border border-dark d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fas fa-clipboard-list fa-lg"></i>
+                                <i class="fa-solid fa-clipboard-list fa-lg"></i>
                             </div>
                         </div>
                         <div class="font-weight-bold" style="font-size: 14px;">Số đơn hôm nay</div>
@@ -53,7 +53,7 @@
                     <div class="card text-center p-3 border-2" style="border-radius: 8px;">
                         <div class="d-flex justify-content-center mb-2">
                             <div class="rounded-circle border border-dark d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fas fa-users fa-lg"></i>
+                                <i class="fa-solid fa-users fa-lg"></i>
                             </div>
                         </div>
                         <div class="font-weight-bold" style="font-size: 14px;">Số khách hôm nay</div>
@@ -67,7 +67,7 @@
                     <div class="card text-center p-3 border-2" style="border-radius: 8px;">
                         <div class="d-flex justify-content-center mb-2">
                             <div class="rounded-circle border border-dark d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                                <i class="fas fa-shopping-cart fa-lg"></i>
+                                <i class="fa-solid fa-shopping-cart fa-lg"></i>
                             </div>
                         </div>
                         <div class="font-weight-bold" style="font-size: 14px;">Giá trị đơn trung bình</div>

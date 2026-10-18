@@ -1,4 +1,13 @@
 <x-layout-backend>
+    <style>
+        table thead th {
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            background: #78b4f1ff !important;
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.75rem !important;
+        }
+    </style>
     <!-- CONTENT -->
     <section class="content-header">
         <div class="container-fluid">
@@ -21,7 +30,7 @@
                 <div class="row">
                     <div class="col-12 text-right">
                         <a class="btn btn-sm btn-danger" href="{{ url('admin/menu/trash') }}">
-                            <i class="fas fa-trash"></i> Thùng rác
+                            <i class="fa-solid fa-trash"></i> Thùng rác
                         </a>
                     </div>
                 </div>
@@ -221,7 +230,7 @@
                         </form>
                     </div>
                     <div class="col-md-9">
-                        <table class="table table-bordered table-striped table-hover">
+                        <div class="table-responsive"><table class="table table-bordered table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th class="text-center" style="width:30px;">#</th>
@@ -254,26 +263,26 @@
                                             @if ($menu->status == 1)
                                                 <a href="{{ route('admin.menu.status', ['menu' => $menu->id]) }}"
                                                     class="btn btn-sm btn-success">
-                                                    <i class="fas fa-toggle-on"></i>
+                                                    <i class="fa-solid fa-toggle-on"></i>
                                                 </a>
                                             @else
                                                 <a href="{{ route('admin.menu.status', ['menu' => $menu->id]) }}"
                                                     class="btn btn-sm btn-secondary">
-                                                    <i class="fas fa-toggle-off"></i>
+                                                    <i class="fa-solid fa-toggle-off"></i>
                                                 </a>
                                             @endif
 
                                             <a href="{{ route('admin.menu.show', ['menu' => $menu->id]) }}"
                                                 class="btn btn-sm btn-info">
-                                                <i class="far fa-eye"></i>
+                                                <i class="fa-regular fa-eye"></i>
                                             </a>
                                             <a href="{{ route('admin.menu.edit', ['menu' => $menu->id]) }}"
                                                 class="btn btn-sm btn-primary">
-                                                <i class="far fa-edit"></i>
+                                                <i class="fa-regular fa-pen-to-square"></i>
                                             </a>
                                             <a href="{{ route('admin.menu.delete', ['menu' => $menu->id]) }}"
                                                 class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash"></i>
+                                                <i class="fa-solid fa-trash"></i>
                                             </a>
                                         </td>
                                         <td class="text-center">
@@ -284,7 +293,7 @@
 
 
                             </tbody>
-                        </table>
+                        </table></div>
                         <div class= "my-4">
                             {{ $menus->links() }}
                         </div>

@@ -53,7 +53,7 @@
         </div>
         <div class="card p-3">
             <h4 class="mb-3">Danh sách đánh giá</h4>
-            <table class="table table-bordered">
+            <div class="table-responsive"><table class="table table-bordered">
                 <thead>
                     <tr class="text-center">
                         <th>Người dùng</th>
@@ -87,7 +87,7 @@
                         </tr>
                     @endforelse
                 </tbody>
-            </table>
+            </table></div>
 
             <div class="mt-3">
                 {{ $reviews->appends(request()->query())->links() }}

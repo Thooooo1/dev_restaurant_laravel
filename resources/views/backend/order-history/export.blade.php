@@ -1,4 +1,4 @@
-<table>
+<div class="table-responsive"><table>
     <thead>
         <tr>
             <th colspan="8" style="text-align: center; font-size: 16px; font-weight: bold;">BÁO CÁO DOANH THU</th>
@@ -45,4 +45,4 @@
             <td style="font-weight: bold; border: 1px solid #000;">{{ $totalRevenue }}</td>
         </tr>
     </tbody>
-</table>
+</table></div>

@@ -1,11 +1,20 @@
 <x-layout-backend>
+    <style>
+        table thead th {
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            background: #78b4f1ff !important;
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.75rem !important;
+        }
+    </style>
     <!-- Page header -->
     <div class="mb-4">
         <div class="flex items-center justify-between flex-wrap gap-4">
             <div>
                 <h1 class="text-xl font-bold text-slate-800 flex items-center gap-3">
                     <span class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
-                        <i class="fas fa-image text-sm"></i>
+                        <i class="fa-solid fa-image text-sm"></i>
                     </span>
                     Quản lý banner
                 </h1>
@@ -13,7 +22,7 @@
             </div>
             <div class="flex items-center gap-2">
                 <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-red-500/25 hover:from-red-600 hover:to-red-700" href="{{ url('admin/banner/trash') }}">
-                    <i class="fas fa-trash"></i> Thùng rác
+                    <i class="fa-solid fa-trash"></i> Thùng rác
                 </a>
             </div>
         </div>
@@ -63,7 +72,7 @@
                     </div>
                     <div class="mb-3">
                         <button type="submit" name="create" class="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-green-700">
-                            <i class="fas fa-plus"></i> Thêm banner
+                            <i class="fa-solid fa-plus"></i> Thêm banner
                         </button>
                     </div>
                 </form>
@@ -74,16 +83,16 @@
         <div class="lg:col-span-2">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full">
+                    <div class="table-responsive"><table class="w-full">
                         <thead class="bg-slate-50 border-b border-slate-200">
                             <tr>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">#</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:90px;">Hình</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tên banner</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Liên kết</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vị trí</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:200px;">Chức năng</th>
-                                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">ID</th>
+                                <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">#</th>
+                                <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider" style="width:90px;">Hình</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Tên banner</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Liên kết</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Vị trí</th>
+                                <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider" style="width:200px;">Chức năng</th>
+                                <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">ID</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -101,21 +110,21 @@
                                     <td class="px-4 py-3 whitespace-nowrap text-center">
                                         @if ($banner->status == 1)
                                             <a href="{{ route('admin.banner.status', ['banner' => $banner->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-green-50 text-green-600 rounded-lg text-sm transition-all hover:bg-green-100">
-                                                <i class="fas fa-toggle-on"></i>
+                                                <i class="fa-solid fa-toggle-on"></i>
                                             </a>
                                         @else
                                             <a href="{{ route('admin.banner.status', ['banner' => $banner->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-600 rounded-lg text-sm transition-all hover:bg-slate-200">
-                                                <i class="fas fa-toggle-off"></i>
+                                                <i class="fa-solid fa-toggle-off"></i>
                                             </a>
                                         @endif
                                         <a href="{{ route('admin.banner.show', ['banner' => $banner->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100 ml-1">
-                                            <i class="far fa-eye"></i>
+                                            <i class="fa-regular fa-eye"></i>
                                         </a>
                                         <a href="{{ route('admin.banner.edit', ['banner' => $banner->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-orange-50 text-orange-600 rounded-lg text-sm transition-all hover:bg-orange-100 ml-1">
-                                            <i class="far fa-edit"></i>
+                                            <i class="fa-regular fa-pen-to-square"></i>
                                         </a>
                                         <a href="{{ route('admin.banner.delete', ['banner' => $banner->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-lg text-sm transition-all hover:bg-red-100 ml-1">
-                                            <i class="fas fa-trash"></i>
+                                            <i class="fa-solid fa-trash"></i>
                                         </a>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-center text-sm text-slate-600">

@@ -80,15 +80,12 @@ class AuthController extends Controller
                  
                  session()->put('user_site', $user);
                  
-                 // KHI ĐĂNG NHẬP BÌNH THƯỜNG: Chỉ xóa nếu có is_table_order, còn lại giữ nguyên cho chức năng ghép bàn
-                 if (session()->has('is_table_order')) {
+                 // LUÔN XÓA TẤT CẢ SESSION BÀN KHI ĐĂNG NHẬP BÌNH THƯỜNG, CHỈ GIỮ NẾU ĐÃ CÓ IS_TABLE_ORDER
+                 if (!session()->has('is_table_order')) {
                      session()->forget('table_id');
                      session()->forget('table_order_id');
                      session()->forget('table_name');
                      session()->forget('is_table_order');
-                 } else {
-                     // Sync lại session bàn cho chức năng ghép bàn
-                     $this->syncTableSessionForUser($user);
                  }
                  
                  if ($redirectUrl) {
@@ -127,15 +124,12 @@ class AuthController extends Controller
                 Auth::login($user);
                 session()->put('user_site', $user);
                 
-                // KHI ĐĂNG NHẬP BÌNH THƯỜNG: Chỉ xóa nếu có is_table_order, còn lại giữ nguyên cho chức năng ghép bàn
-                if (session()->has('is_table_order')) {
+                // LUÔN XÓA TẤT CẢ SESSION BÀN KHI ĐĂNG NHẬP BÌNH THƯỜNG, CHỈ GIỮ KHI QUA QR CODE
+                if (!session()->has('is_table_order')) {
                     session()->forget('table_id');
                     session()->forget('table_order_id');
                     session()->forget('table_name');
                     session()->forget('is_table_order');
-                } else {
-                    // Sync lại session bàn cho chức năng ghép bàn
-                    $this->syncTableSessionForUser($user);
                 }
                 
                 return response()->json([

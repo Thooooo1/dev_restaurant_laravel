@@ -13,7 +13,7 @@
     </div>
 </div>
 
-<table class="table table-bordered table-sm">
+<div class="table-responsive"><table class="table table-bordered table-sm">
     <thead>
         <tr>
             <th>STT</th>
@@ -34,4 +34,4 @@
         </tr>
         @endforeach
     </tbody>
-</table>
+</table></div>

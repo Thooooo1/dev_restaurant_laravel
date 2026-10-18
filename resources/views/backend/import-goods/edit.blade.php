@@ -58,7 +58,7 @@
                 </div>
 
                 <div class="form-group">
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Cập nhật</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Cập nhật</button>
                     <a href="{{ route('admin.import-goods.index') }}" class="btn btn-secondary">Quay lại</a>
                 </div>
             </form>

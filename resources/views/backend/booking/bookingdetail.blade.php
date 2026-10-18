@@ -19,7 +19,7 @@
     <section class="content">
         <div class="card">
             <div class="card-body">
-                <table class="table table-bordered">
+                <div class="table-responsive"><table class="table table-bordered">
                     <tr>
                         <th>Họ tên:</th>
                         <td>{{ $booking->name }}</td>
@@ -67,7 +67,7 @@
                             @endswitch
                         </td>
                     </tr>
-                </table>
+                </table></div>
                 <a href="{{ route('admin.booking.index') }}" class="btn btn-secondary mt-3">Quay lại</a>
             </div>
         </div>

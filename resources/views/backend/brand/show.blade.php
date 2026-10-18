@@ -21,11 +21,11 @@
                 <div class="row">
                     <div class="col-12 text-right">
                         <a href="{{ route('admin.brand.edit', $brand->id) }}" class="btn btn-sm btn-primary">
-                            <i class="far fa-edit"></i>
+                            <i class="fa-regular fa-pen-to-square"></i>
                         </a>
                         <a href="{{ route('admin.brand.destroy', $brand->id) }}" class="btn btn-sm btn-danger"
                            onclick="return confirm('Bạn có chắc muốn xóa?')">
-                            <i class="fas fa-trash"></i>
+                            <i class="fa-solid fa-trash"></i>
                         </a>
                         <a href="{{ route('admin.brand.index') }}" class="btn btn-sm btn-info">
                             <i class="fa fa-arrow-left"></i>
@@ -34,7 +34,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <table class="table table-bordered table-striped table-hover">
+                <div class="table-responsive"><table class="table table-bordered table-striped table-hover">
                     <thead>
                         <tr>
                             <th class="text-center" style="width:30%;">

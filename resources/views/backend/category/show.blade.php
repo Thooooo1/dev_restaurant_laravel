@@ -21,10 +21,10 @@
                 <div class="row">
                     <div class="col-12 text-right">
                         <a href="category_edit.html" class="btn btn-sm btn-primary">
-                            <i class="far fa-edit"></i>
+                            <i class="fa-regular fa-pen-to-square"></i>
                         </a>
                         <a href="#" class="btn btn-sm btn-danger">
-                            <i class="fas fa-trash"></i>
+                            <i class="fa-solid fa-trash"></i>
                         </a>
                         <a class="btn btn-sm btn-info" href="{{ url('admin/category')}}">
                             <i class="fa fa-arrow-left"></i>
@@ -33,7 +33,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <table class="table table-bordered table-striped table-hover">
+                <div class="table-responsive"><table class="table table-bordered table-striped table-hover">
                     <thead>
                         <tr>
                             <th class="text-center" style="width:30%;">

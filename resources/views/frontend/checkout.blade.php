@@ -36,7 +36,7 @@
                     class="w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-blue-200"></textarea>
             </div>
 
-            @if(session('table_id'))
+            @if(session('is_table_order') && session('table_id'))
                 <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded relative mb-4 text-center">
                     <strong class="font-bold">Đang gọi món tại: {{ session('table_name') }}</strong>
                     <span class="block sm:inline">Vui lòng xác nhận đơn hàng để nhà bếp chuẩn bị.</span>
@@ -68,7 +68,7 @@
             <div class="text-center mt-6">
                 <button type="submit" id="ok"
                     class="bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 focus:outline-none focus:ring focus:ring-orange-300">
-                    {{ session('table_id') ? 'Gửi gọi món' : 'Xác nhận' }}
+                    {{ (session('is_table_order') && session('table_id')) ? 'Gửi gọi món' : 'Xác nhận' }}
                 </button>
             </div>
         </div>
@@ -77,7 +77,7 @@
         const form = document.querySelector("form");
         const paymentError = document.getElementById("payment-error");
         const paymentRadios = document.querySelectorAll(".payment-radio");
-        const isTableOrder = {{ session('table_id') ? 'true' : 'false' }};
+        const isTableOrder = {{ (session('is_table_order') && session('table_id')) ? 'true' : 'false' }};
 
         form.addEventListener("submit", function(event) {
             // Nếu không phải tại bàn, kiểm tra phương thức thanh toán

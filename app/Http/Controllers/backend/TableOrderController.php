@@ -71,6 +71,9 @@ class TableOrderController extends Controller
         
         // Có bất kỳ món đã lưu chưa
         $hasAnyItems = $orderDetails->isNotEmpty();
+        
+        // Kiểm tra có món nào chưa lên món không
+        $hasUnservedItems = $orderDetails->where('status', '!=', 'served')->isNotEmpty();
 
         // Lấy danh mục sản phẩm
         $categories = Category::whereNull('deleted_at')->orderBy('name')->get();
@@ -97,7 +100,7 @@ class TableOrderController extends Controller
             }
         }
 
-        return view('backend.table-order.order', compact('table', 'order', 'orderDetails', 'categories', 'hasAnyItems', 'availableTables'));
+        return view('backend.table-order.order', compact('table', 'order', 'orderDetails', 'categories', 'hasAnyItems', 'hasUnservedItems', 'availableTables'));
     }
 
     /**

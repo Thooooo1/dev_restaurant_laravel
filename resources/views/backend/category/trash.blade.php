@@ -6,7 +6,7 @@
     <section class="content">
         <div class="card">
             <div class="card-body">
-                <table class="table table-bordered">
+                <div class="table-responsive"><table class="table table-bordered">
                     <thead>
                         <tr>
                             <th class="text-center" style="width:30px;">#</th>

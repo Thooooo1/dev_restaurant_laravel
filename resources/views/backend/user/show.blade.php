@@ -4,7 +4,7 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <strong class="fw-bold h4 text-danger">CHI TIẾT NGƯỜI DÙNG</strong>
+                    <h1>Chi tiết người dùng</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
@@ -21,11 +21,11 @@
                 <div class="row">
                     <div class="col-12 text-right">
                         <a href="{{ route('admin.user.edit', $user->id) }}" class="btn btn-sm btn-primary">
-                            <i class="far fa-edit"></i>
+                            <i class="fa-regular fa-pen-to-square"></i>
                         </a>
                         <a href="{{ route('admin.user.delete', $user->id) }}" class="btn btn-sm btn-danger"
                            onclick="return confirm('Bạn có chắc muốn xóa?')">
-                            <i class="fas fa-trash"></i>
+                            <i class="fa-solid fa-trash"></i>
                         </a>
                         <a href="{{ route('admin.user.index') }}" class="btn btn-sm btn-info">
                             <i class="fa fa-arrow-left"></i>
@@ -34,7 +34,7 @@
                 </div>
             </div>
             <div class="card-body">
-                <table class="table table-bordered table-striped table-hover">
+                <div class="table-responsive"><table class="table table-bordered table-striped table-hover">
                     <thead>
                         <tr>
                             <th class="text-center" style="width:30%;">

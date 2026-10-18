@@ -20,7 +20,7 @@
         <div class="container-fluid">
             @if($order->has_new_items)
                 <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                    <i class="fas fa-bell"></i> <strong>Thông báo!</strong> Khách hàng đã gửi thực đơn mới. Vui lòng in để xác nhận!
+                    <i class="fa-solid fa-bell"></i> <strong>Thông báo!</strong> Khách hàng đã gửi thực đơn mới. Vui lòng in để xác nhận!
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -28,12 +28,12 @@
             @endif
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
                 <div class="mb-2 mb-md-0">
-                    <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm mb-1" id="backBtn"><i class="fas fa-arrow-left"></i> Quay lại</a>
-                    <button type="button" class="btn btn-primary btn-sm ml-2 mb-1" id="printKitchenBtn" onclick="printKitchen()"><i class="fas fa-print"></i> In thực đơn</button>
-                    <a href="{{ route('admin.table-order.payment', $table->id) }}" class="btn btn-success btn-sm ml-2 mb-1 {{ $hasAnyItems ? '' : 'disabled' }}" id="payBtn"><i class="fas fa-money-bill-wave"></i> Thanh toán</a>
+                    <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm mb-1" id="backBtn"><i class="fa-solid fa-arrow-left"></i> Quay lại</a>
+                    <button type="button" class="btn btn-primary btn-sm ml-2 mb-1" id="printKitchenBtn" onclick="printKitchen()"><i class="fa-solid fa-print"></i> In thực đơn</button>
+                    <a href="{{ route('admin.table-order.payment', $table->id) }}" class="btn btn-success btn-sm ml-2 mb-1 {{ ($hasAnyItems && !$hasUnservedItems) ? '' : 'disabled' }}" id="payBtn"><i class="fa-solid fa-money-bill-wave"></i> Thanh toán</a>
                     @if(!$hasAnyItems)
-                        <button type="button" class="btn btn-warning btn-sm ml-2 mb-1" onclick="showChangeTableModal()"><i class="fas fa-exchange-alt"></i> Đổi bàn</button>
-                        <button type="button" class="btn btn-danger btn-sm ml-2 mb-1" onclick="confirmCancelTable()"><i class="fas fa-times"></i> Huỷ bàn</button>
+                        <button type="button" class="btn btn-warning btn-sm ml-2 mb-1" onclick="showChangeTableModal()"><i class="fa-solid fa-exchange-alt"></i> Đổi bàn</button>
+                        <button type="button" class="btn btn-danger btn-sm ml-2 mb-1" onclick="confirmCancelTable()"><i class="fa-solid fa-times"></i> Huỷ bàn</button>
                     @endif
                 </div>
                 <div class="w-100 w-md-auto d-flex justify-content-between justify-content-md-end align-items-center mt-2 mt-md-0">
@@ -141,10 +141,10 @@
                                                             </div>
                                                             @if($it->status != 'served')
                                                                 <button class="btn btn-success btn-sm ml-2" onclick="markItemAsServed({{ $it->id }})" title="Đã lên món">
-                                                                    <i class="fas fa-check"></i>
+                                                                    <i class="fa-solid fa-check"></i>
                                                                 </button>
                                                             @endif
-                                                            <button class="btn btn-link text-danger p-0 ml-2" onclick="deleteHistory({{ $it->id }})"><i class="fas fa-trash fa-lg"></i></button>
+                                                            <button class="btn btn-link text-danger p-0 ml-2" onclick="deleteHistory({{ $it->id }})"><i class="fa-solid fa-trash fa-lg"></i></button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -203,7 +203,7 @@
                         @foreach($availableTables as $tbl)
                             <div class="col-md-4 col-sm-6 col-6 mb-2">
                                 <div class="change-table-item text-center p-2 border rounded bg-light" onclick="selectTable({{ $tbl->id }})" data-table-id="{{ $tbl->id }}">
-                                    <i class="fas fa-chair fa-2x mb-1"></i>
+                                    <i class="fa-solid fa-chair fa-2x mb-1"></i>
                                     <div>{{ $tbl->name }}</div>
                                 </div>
                             </div>
@@ -437,7 +437,7 @@
                                             <span class="btn btn-light border" style="min-width: 30px;">${item.qty}</span>
                                             <button class="btn btn-secondary" onclick="updateQty(${item.product_id}, ${item.qty + 1})">+</button>
                                         </div>
-                                        <button class="btn btn-link text-danger p-0 ml-2" onclick="removeItem(${item.product_id})"><i class="fas fa-trash fa-lg"></i></button>
+                                        <button class="btn btn-link text-danger p-0 ml-2" onclick="removeItem(${item.product_id})"><i class="fa-solid fa-trash fa-lg"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -453,8 +453,11 @@
             const hasNewItems = {{ $order->has_new_items ? 'true' : 'false' }};
             $('#printKitchenBtn').prop('disabled', !((currentOrderDetails && currentOrderDetails.length > 0) || (hasExistingItems && hasNewItems)));
 
-            // Update Payment Button State: ENABLED only if hasExistingItems is true
-            if (hasExistingItems) {
+            // Check from PHP variable if there are any unserved items
+            const hasUnservedItems = {{ $hasUnservedItems ? 'true' : 'false' }};
+            
+            // Update Payment Button State: ENABLED only if hasExistingItems is true AND no unserved items
+            if (hasExistingItems && !hasUnservedItems) {
                 $('#payBtn').removeClass('disabled');
             } else {
                 $('#payBtn').addClass('disabled');
@@ -553,8 +556,7 @@
                 success: function(resp) {
                     if (resp.success) {
                         toastr.success('Đã xoá món');
-                        const itemEl = document.getElementById('history-item-' + detailId);
-                        if (itemEl) itemEl.remove();
+                        window.location.reload();
                     } else {
                         toastr.error(resp.message || 'Xoá thất bại');
                     }
@@ -711,7 +713,7 @@
                 <div class="meta">Lần order: <strong>${order_turn}</strong> | Thời gian: ${dateStr}</div>
                 <div class="meta">Khách: <strong>${customer_name}</strong> | ĐT: ${customer_phone}</div>
                 ${noteHtml}
-                <table><thead><tr><th style="width:30px; text-align:center;">STT</th><th>Món</th><th style="width:50px; text-align:right;">SL</th></tr></thead><tbody>${rows}</tbody></table>
+                <div class="table-responsive"><table><thead><tr><th style="width:30px; text-align:center;">STT</th><th>Món</th><th style="width:50px; text-align:right;">SL</th></tr></thead><tbody>${rows}</tbody></table></div>
                 <div class="footer">In từ hệ thống nhà hàng</div>
             </body></html>`;
         }

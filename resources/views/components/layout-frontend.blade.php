@@ -52,22 +52,21 @@
 
 <body class="flex flex-col min-h-screen">
     @include('components.alert')
-    <header class="bg-white border-b py-6 sticky top-0 left-0 w-full z-50" x-data="{ openMenu: false }">
+    <header class="bg-gradient-to-r from-orange-50 to-yellow-50 border-b-2 border-orange-200 py-4 sticky top-0 left-0 w-full z-50 shadow-lg" x-data="{ openMenu: false }">
 
         <div class="container mx-auto px-4">
             <div class="flex flex-wrap items-center justify-between">
                 <!-- Logo -->
                 <div class="w-2/12">
-                    <a href="{{ url('/') }}">
-                        <img src="{{ asset('images/logo/logo.png') }}" alt="All food" class="h-12">
-                        {{-- ../images/logo/logo.png --}}
+                    <a href="{{ url('/') }}" class="flex items-center gap-2">
+                        <img src="{{ asset('images/logo/logo.png') }}" alt="All food" class="h-20 drop-shadow-lg">
                     </a>
                 </div>
 
                 <!-- Mobile Actions & Hamburger -->
                 <div class="w-9/12 md:hidden flex justify-end items-center gap-3">
                     @if (session('table_name'))
-                        <span class="only-mobile items-center px-4 py-2 rounded-full bg-green-500 text-white font-semibold">
+                        <span class="only-mobile items-center px-4 py-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold shadow-lg">
                             {{ session('table_name') }}
                         </span>
                         <a href="{{ route('site.product.gridview') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center">
@@ -81,13 +80,12 @@
                         </a>
                     @endif 
                     
-                    <a href="{{ url('/gio-hang') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center">
+                    <a href="{{ url('/gio-hang') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center relative">
                         <i class="fa-solid fa-cart-shopping text-xl"></i>
                         <span class="text-[10px] font-medium leading-none mt-1">Giỏ hàng</span>
                     </a>
-                    <button @click="openMenu = !openMenu" class="text-gray-800 focus:outline-none ml-2 flex flex-col items-center">
+                    <button @click="openMenu = !openMenu" class="text-orange-600 focus:outline-none ml-2 flex flex-col items-center p-2 rounded-lg hover:bg-orange-100 transition-all">
                         <i class="fas fa-bars text-2xl"></i>
-                        {{-- <span class="text-[10px] font-medium leading-none mt-1">Menu</span> --}}
                     </button>
                 </div>
 
@@ -99,14 +97,13 @@
                 <div :class="openMenu ? 'block' : 'hidden'" class="w-full md:!block md:w-4/12 lg:basis-4/12 mt-4 md:mt-0 order-4 md:order-3">
                     <div class="flex flex-col md:flex-row justify-end gap-4 items-center">
                         <a style="margin-right: 10px;" href="{{ route('site.booking') }}"
-                            class="text-gray-800 hover:text-blue-500">
-                            <i class="fa-solid fa-calendar-check" style="margin-right: 5px;"></i>Đặt bàn
+                            class="text-gray-700 hover:text-orange-600 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-orange-100 transition-all">
+                            <i class="fa-solid fa-calendar-check"></i>Đặt bàn
                         </a>
 
                         @if (!auth()->check())
-                            <a href="{{ route('site.login') }}" class="text-gray-800 hover:text-blue-500"
-                                style="margin-right: 10px;">
-                                <i class="fa-solid fa-user" style="margin-right: 5px;"></i> Đăng nhập
+                            <a href="{{ route('site.login') }}" class="text-gray-700 hover:text-orange-600 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-orange-100 transition-all">
+                                <i class="fa-solid fa-user"></i> Đăng nhập
                             </a>
                         @else
                             @php
@@ -115,37 +112,37 @@
                                 }
                             @endphp
                             <a style="margin-right: 10px;" href="{{ url('/gio-hang') }}"
-                                class="text-gray-800 hover:text-blue-500">
-                                <i class="fa-solid fa-cart-shopping" style="margin-right: 5px;"></i>Giỏ hàng
+                                class="text-gray-700 hover:text-orange-600 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-orange-100 transition-all relative">
+                                <i class="fa-solid fa-cart-shopping"></i>Giỏ hàng
                             </a>
 
                             <div x-data="{ open: false }" class="relative inline-block text-left">
-                                <a @click="open = !open" class="cursor-pointer text-gray-800 hover:text-blue-500"
-                                    style="margin-right: 10px;">
-                                    <i class="fa-solid fa-user" style="margin-right: 5px;"></i> Tài khoản
+                                <a @click="open = !open" class="cursor-pointer text-gray-700 hover:text-orange-600 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-orange-100 transition-all">
+                                    <i class="fa-solid fa-user"></i> Tài khoản
                                 </a>
                                 <!-- Dropdown menu -->
                                 <div x-show="open" @click.away="open = false" x-transition
-                                    class="absolute mt-2 bg-white border rounded shadow-md z-50 w-52 right-0 md:left-0" style="left: auto;">
+                                    class="absolute mt-2 bg-white border-2 border-orange-200 rounded-xl shadow-2xl z-50 w-52 right-0 md:left-0 overflow-hidden" style="left: auto;">
                                     <a href="{{ route('site.profile') }}"
-                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                        <i class="fa-solid fa-user-circle mr-[5px]"></i> Hồ sơ
+                                        class="block px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-orange-600 transition-all font-medium">
+                                        <i class="fa-solid fa-user-circle mr-2"></i> Hồ sơ
                                     </a>
                                     <a href="{{ route('site.booking') }}"
-                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                        <i class="fa-solid fa-calendar-check mr-[5px]"></i> Đặt bàn
+                                        class="block px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-orange-600 transition-all font-medium">
+                                        <i class="fa-solid fa-calendar-check mr-2"></i> Đặt bàn
                                     </a>
                                     <a href="{{ route('site.orders') }}"
-                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                        <i class="fa-solid fa-clipboard-list mr-[5px]"></i> Đơn hàng
+                                        class="block px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-orange-600 transition-all font-medium">
+                                        <i class="fa-solid fa-clipboard-list mr-2"></i> Đơn hàng
                                     </a>
                                     <a href="{{ route('site.favorites') }}"
-                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                        <i class="fa-solid fa-heart mr-[5px]"></i> Yêu thích
+                                        class="block px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-orange-600 transition-all font-medium">
+                                        <i class="fa-solid fa-heart mr-2"></i> Yêu thích
                                     </a>
+                                    <div class="border-t border-orange-100"></div>
                                     <a href="{{ route('site.logout') }}"
-                                        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                        <i class="fa-solid fa-right-from-bracket mr-[5px]"></i> Đăng xuất
+                                        class="block px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-all font-medium">
+                                        <i class="fa-solid fa-right-from-bracket mr-2"></i> Đăng xuất
                                     </a>
                                 </div>
                             </div>
@@ -406,8 +403,8 @@
                     <h3 class="title-footer py-2">Về chúng tôi</h3>
                     <p>CIVILIZE Restaurant luôn bảo đảm về chất lượng cũng như an toàn thực phẩm.</p>
                     <ul class="list-icon">
-                        <li> <i class="icon fa fa-map-marker" style="margin-right: 10px;"> </i>Hẻm 30, An Khánh, Ninh
-                            Kiều, Cần Thơ</li>
+                        <li> <i class="icon fa fa-map-marker" style="margin-right: 10px;"> </i>Số 120 ,Phúc Hòa , Phúc Thọ, Hà Nội
+    </li>
                         <li> <i class="icon fa fa-envelope" style="margin-right: 10px;"> </i> devrestaurant@gmail.com
                         </li>
                         <li> <i class="icon fa fa-phone" style="margin-right: 10px;"> </i> (84) 012-345-6789</li>

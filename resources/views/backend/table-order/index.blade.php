@@ -5,7 +5,7 @@
             <div>
                 <h1 class="text-xl font-bold text-slate-800 flex items-center gap-3">
                     <span class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
-                        <i class="fas fa-cash-register text-sm"></i>
+                        <i class="fa-solid fa-cash-register text-sm"></i>
                     </span>
                     Quản lý Order
                 </h1>
@@ -39,7 +39,7 @@
                 <!-- Floor header -->
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600">
-                        <i class="fas fa-layer-group text-sm"></i>
+                        <i class="fa-solid fa-layer-group text-sm"></i>
                     </div>
                     <div>
                         <h2 class="text-base font-semibold text-slate-800">{{ $floor->name }}</h2>
@@ -88,12 +88,12 @@
                                     <div class="font-bold text-base">{{ $table->name }}</div>
                                     @if($isLocked)
                                         <button onclick="event.stopPropagation(); confirmUnmerge({{ $table->id }})" class="absolute top-2 right-2 w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors" title="Hủy ghép bàn">
-                                            <i class="fas fa-unlock text-xs"></i>
+                                            <i class="fa-solid fa-unlock text-xs"></i>
                                         </button>
                                     @endif
                                     @if(!$isOccupied && !$isLocked)
                                         <button onclick="event.stopPropagation(); showMergeModal({{ $table->id }}, '{{ $table->name }}', '{{ $floor->name }}')" class="absolute top-2 right-2 w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors" title="Ghép bàn">
-                                            <i class="fas fa-link text-xs"></i>
+                                            <i class="fa-solid fa-link text-xs"></i>
                                         </button>
                                     @endif
                                 </div>
@@ -105,24 +105,24 @@
                                            $totalSeats = $table->seats + ($lockedSeats[$order->id] ?? 0);
                                         @endphp
                                         <div class="flex items-center gap-2 text-slate-600 mb-2">
-                                            <i class="fas fa-users w-3.5 text-center text-xs"></i>
+                                            <i class="fa-solid fa-users w-3.5 text-center text-xs"></i>
                                             <span class="font-medium text-sm">{{ $order->number_of_guests }}/{{ $totalSeats }} khách</span>
                                         </div>
                                         @if(isset($order) && $order->created_at)
                                             <div class="flex items-center gap-2 text-slate-500 text-xs">
-                                                <i class="fas fa-clock w-3.5 text-center text-xs"></i>
+                                                <i class="fa-solid fa-clock w-3.5 text-center text-xs"></i>
                                                 <span>{{ $order->created_at->timezone('Asia/Ho_Chi_Minh')->format('H:i d/m/y') }}</span>
                                             </div>
                                         @endif
                                         <div class="mt-2 pt-2 border-t border-slate-100">
                                             @if($hasNewItems)
                                                 <span class="inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-600 rounded-full text-xs font-medium">
-                                                    <i class="fas fa-bell text-xs"></i>
+                                                    <i class="fa-solid fa-bell text-xs"></i>
                                                     Có món mới
                                                 </span>
                                             @else
                                                 <span class="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-medium">
-                                                    <i class="fas fa-utensils text-xs"></i>
+                                                    <i class="fa-solid fa-utensils text-xs"></i>
                                                     Đang phục vụ
                                                 </span>
                                             @endif
@@ -133,7 +133,7 @@
                                         </div>
                                         <div class="mt-2 pt-2 border-t border-slate-100">
                                             <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-600 rounded-full text-xs font-medium">
-                                                <i class="fas fa-link text-xs"></i>
+                                                <i class="fa-solid fa-link text-xs"></i>
                                                 Đã ghép
                                             </span>
                                         </div>
@@ -143,7 +143,7 @@
                                         </div>
                                         <div class="mt-2 pt-2 border-t border-slate-100">
                                             <span class="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">
-                                                <i class="fas fa-check text-xs"></i>
+                                                <i class="fa-solid fa-check text-xs"></i>
                                                 Sẵn sàng
                                             </span>
                                         </div>
@@ -163,7 +163,7 @@
             <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
                 <h3 class="text-base font-semibold text-slate-800" id="modalTableName">Đăng ký bàn</h3>
                 <button onclick="closeModal('registerTableModal')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">
-                    <i class="fas fa-times text-slate-400 text-sm"></i>
+                    <i class="fa-solid fa-times text-slate-400 text-sm"></i>
                 </button>
             </div>
             
@@ -232,7 +232,7 @@
             <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
                 <h3 class="text-base font-semibold text-slate-800" id="mergeSourceTableName">Ghép bàn</h3>
                 <button onclick="closeModal('mergeTableModal')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">
-                    <i class="fas fa-times text-slate-400 text-sm"></i>
+                    <i class="fa-solid fa-times text-slate-400 text-sm"></i>
                 </button>
             </div>
             
@@ -266,7 +266,7 @@
             <div class="p-4">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-bell text-white"></i>
+                        <i class="fa-solid fa-bell text-white"></i>
                     </div>
                     <div class="flex-1">
                         <h3 class="text-base font-bold text-slate-800">Đơn Mới!</h3>

@@ -90,7 +90,7 @@ class DistanceService
         if (!$coordinates) {
             return [
                 'success' => false,
-                'message' => 'Không thể tìm thấy địa chỉ bạn nhập. Vui lòng kiểm tra lại.',
+                'message' => 'Không tìm thấy địa chỉ',
             ];
         }
 
@@ -115,7 +115,7 @@ class DistanceService
         if ($distance > $maxDistance) {
             return [
                 'success' => false,
-                'message' => "Địa chỉ của bạn cách nhà hàng " . round($distance, 2) . " km, vượt quá phạm vi giao hàng (tối đa {$maxDistance} km).",
+                'message' => 'Vượt quá phạm vi giao hàng',
                 'distance' => $distance,
             ];
         }

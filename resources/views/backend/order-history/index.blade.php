@@ -1,11 +1,20 @@
 <x-layout-backend>
+    <style>
+        table thead th {
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            background: #78b4f1ff !important;
+            padding-top: 0.75rem !important;
+            padding-bottom: 0.75rem !important;
+        }
+    </style>
     <!-- Page header -->
     <div class="mb-4">
         <div class="flex items-center justify-between flex-wrap gap-4">
             <div>
                 <h1 class="text-xl font-bold text-slate-800 flex items-center gap-3">
                     <span class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
-                        <i class="fas fa-history text-sm"></i>
+                        <i class="fa-solid fa-history text-sm"></i>
                     </span>
                     Lịch sử Order
                 </h1>
@@ -18,7 +27,7 @@
     <div class="bg-gradient-to-r from-orange-400 to-orange-600 rounded-xl p-3 text-white mb-4 shadow-lg">
         <div class="flex items-center gap-3">
             <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
-                <i class="fas fa-coins text-base"></i>
+                <i class="fa-solid fa-coins text-base"></i>
             </div>
             <div>
                 <p class="text-orange-100 text-xs font-medium">Tổng doanh thu (theo bộ lọc)</p>
@@ -65,7 +74,7 @@
     <!-- Orders table -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <div class="table-responsive"><table class="w-full">
                 <thead class="bg-slate-50 border-b border-slate-200">
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Mã HĐ</th>
@@ -98,24 +107,24 @@
                         <td class="px-4 py-3 whitespace-nowrap">
                             @if($order->payment_method == 1)
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">
-                                    <i class="fas fa-money-bill-wave"></i>
+                                    <i class="fa-solid fa-money-bill-wave"></i>
                                     Tiền mặt
                                 </span>
                             @elseif($order->payment_method == 2)
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">
-                                    <i class="fas fa-university"></i>
+                                    <i class="fa-solid fa-university"></i>
                                     Chuyển khoản
                                 </span>
                             @else
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-medium">
-                                    <i class="fas fa-question-circle"></i>
+                                    <i class="fa-solid fa-question-circle"></i>
                                     Khác
                                 </span>
                             @endif
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap text-center">
                             <button class="btn-view-detail inline-flex items-center justify-center w-10 h-10 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors" data-id="{{ $order->id }}" onclick="openOrderDetail({{ $order->id }})">
-                                <i class="fas fa-eye"></i>
+                                <i class="fa-solid fa-eye"></i>
                             </button>
                         </td>
                     </tr>
@@ -127,7 +136,7 @@
         @if($orders->count() == 0)
         <div class="text-center py-8">
             <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <i class="fas fa-inbox text-slate-400 text-xl"></i>
+                <i class="fa-solid fa-inbox text-slate-400 text-xl"></i>
             </div>
             <p class="text-slate-500 font-medium text-sm">Không có đơn hàng nào</p>
         </div>
@@ -144,13 +153,13 @@
             <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
                 <h3 class="text-base font-semibold text-slate-800">Chi tiết đơn hàng</h3>
                 <button onclick="closeModal('orderDetailModal')" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors">
-                    <i class="fas fa-times text-slate-400 text-sm"></i>
+                    <i class="fa-solid fa-times text-slate-400 text-sm"></i>
                 </button>
             </div>
             
             <div class="p-4" id="modalContent">
                 <div class="text-center py-6">
-                    <i class="fas fa-spinner fa-spin text-slate-400 text-xl mb-2"></i>
+                    <i class="fa-solid fa-spinner fa-spin text-slate-400 text-xl mb-2"></i>
                     <p class="text-slate-500 text-sm">Đang tải...</p>
                 </div>
             </div>
@@ -179,7 +188,7 @@
         function openOrderDetail(orderId) {
             $('#modalContent').html(`
                 <div class="text-center py-6">
-                    <i class="fas fa-spinner fa-spin text-slate-400 text-xl mb-2"></i>
+                    <i class="fa-solid fa-spinner fa-spin text-slate-400 text-xl mb-2"></i>
                     <p class="text-slate-500 text-sm">Đang tải...</p>
                 </div>
             `);
@@ -194,7 +203,7 @@
                 error: function() {
                     $('#modalContent').html(`
                         <div class="text-center py-6">
-                            <i class="fas fa-exclamation-circle text-red-400 text-xl mb-2"></i>
+                            <i class="fa-solid fa-exclamation-circle text-red-400 text-xl mb-2"></i>
                             <p class="text-red-500 text-sm">Không thể tải thông tin đơn hàng.</p>
                         </div>
                     `);

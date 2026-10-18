@@ -21,7 +21,7 @@
                     <div class="card-header">
                         <h3>Thông tin đơn hàng</h3>
                         <a href="{{ route('admin.order.printorder', $order->id) }}" class="btn btn-sm btn-success" target="_blank">
-                            <i class="fas fa-print"></i> In đơn hàng
+                            <i class="fa-solid fa-print"></i> In đơn hàng
                         </a>
                         
                     </div>
@@ -40,7 +40,7 @@
                         <h3>Chi tiết sản phẩm</h3>
                     </div>
                     <div class="card-body">
-                        <table class="table table-bordered">
+                        <div class="table-responsive"><table class="table table-bordered">
                             <thead>
                                 <tr>
                                     <th>#</th>

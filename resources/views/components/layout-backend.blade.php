@@ -106,6 +106,13 @@
             <!-- Menu -->
             <nav class="flex-1 p-4 overflow-y-auto">
                 <div class="space-y-1">
+                      @if(Auth::user()->isAdmin())
+                        <!-- Dashboard -->
+                        <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->routeIs('admin.dashboard') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                            <i class="fas fa-chart-line w-5 text-center"></i>
+                            <span class="font-medium">Dashboard</span>
+                        </a>
+                    @endif
                     <!-- Quản lý Order -->
                     <a href="{{ route('admin.table-order.index') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->routeIs('admin.table-order.*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
                         <i class="fas fa-cash-register w-5 text-center"></i>
@@ -167,26 +174,11 @@
                             <span class="font-medium">Banner</span>
                         </a>
                         
-                        <!-- Người dùng -->
-                        <div class="menu-item-wrapper">
-                            <button onclick="toggleSubmenu('user-submenu')" class="w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl {{ request()->routeIs('admin.user.*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
-                                <div class="flex items-center gap-3">
-                                    <i class="fas fa-users w-5 text-center"></i>
-                                    <span class="font-medium">Quản lý người dùng</span>
-                                </div>
-                                <i class="fas fa-chevron-down text-sm transition-transform" id="user-submenu-icon"></i>
-                            </button>
-                            <div id="user-submenu" class="ml-4 mt-1 space-y-1 {{ request()->routeIs('admin.user.*') ? 'block' : 'hidden' }}">
-                                <a href="{{ route('admin.user.customers') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm {{ request()->routeIs('admin.user.customers') ? 'bg-orange-500/20 text-orange-400 font-medium' : 'text-slate-400 hover:bg-slate-700/30 hover:text-slate-200' }} transition-all">
-                                    <i class="fas fa-circle text-[6px]"></i>
-                                    Khách hàng
-                                </a>
-                                <a href="{{ route('admin.user.employees') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm {{ request()->routeIs('admin.user.employees') ? 'bg-orange-500/20 text-orange-400 font-medium' : 'text-slate-400 hover:bg-slate-700/30 hover:text-slate-200' }} transition-all">
-                                    <i class="fas fa-circle text-[6px]"></i>
-                                    Nhân viên
-                                </a>
-                            </div>
-                        </div>
+                          <!-- Nhân viên -->
+                        <a href="{{ route('admin.user.employees') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->routeIs('admin.user.employees') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
+                            <i class="fas fa-user-tie w-5 text-center"></i>
+                            <span class="font-medium">Tài Khoản</span>
+                        </a>
                         
                         <!-- Liên lạc -->
                         <a href="{{ url('admin/contact/') }}" class="flex items-center gap-3 px-4 py-3.5 rounded-xl {{ request()->is('admin/contact*') ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg shadow-orange-500/25' : 'text-slate-400 hover:bg-slate-700/50 hover:text-white' }} transition-all duration-200">
