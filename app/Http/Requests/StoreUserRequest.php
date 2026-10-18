@@ -19,7 +19,7 @@ class StoreUserRequest extends FormRequest
         
         $rules = [
             'fullname' => 'required|string|max:255',
-            'phone' => 'required|string|digits_between:10,15|unique:user,phone',
+            'phone' => 'required|string|regex:/^0[0-9]{9}$/|unique:user,phone',
             'gender' => 'required|in:0,1',
             'address' => 'nullable|string|max:255',
             'roles' => 'required|in:customer,admin,employee',
@@ -53,9 +53,9 @@ class StoreUserRequest extends FormRequest
         return [
             'fullname.required' => 'Họ tên không được để trống.',
             'phone.required' => 'Số điện thoại không được để trống.',
-            'phone.digits_between' => 'Số điện thoại phải có từ 10 đến 15 chữ số.',
+            'phone.regex' => 'Số điện thoại không đúng định dạng! Phải bắt đầu bằng số 0 và có đủ 10 chữ số, chỉ cho phép nhập số.',
             'phone.unique' => 'Số điện thoại này đã tồn tại.',
-            'email.email' => 'Email không đúng định dạng.',
+            'email.email' => 'Email không đúng định dạng! Phải theo dạng a@gmail.com.',
             'email.unique' => 'Email này đã tồn tại.',
             'username.required' => 'Tên người dùng không được để trống.',
             'username.min' => 'Tên người dùng phải có ít nhất 4 ký tự.',
