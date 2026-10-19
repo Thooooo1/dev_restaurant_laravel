@@ -63,11 +63,22 @@ class TableOrderController extends Controller
             return redirect()->route('admin.table-order.index')->with('error', 'Bàn chưa được đăng ký khách');
         }
 
+        // Reset has_new_items về false khi nhân viên xem đơn hàng
+        if ($order->has_new_items) {
+            $order->has_new_items = false;
+            $order->save();
+        }
+
         // Lấy toàn bộ chi tiết món đã lưu
         $orderDetails = Orderdetail::where('order_id', $order->id)
             ->with('product')
             ->orderBy('id', 'ASC')
             ->get();
+        
+        // Lọc món chờ xác nhận
+        $pendingItems = $orderDetails->filter(function($item) {
+            return $item->status === 'pending';
+        });
         
         // Có bất kỳ món đã lưu chưa
         $hasAnyItems = $orderDetails->isNotEmpty();
@@ -100,7 +111,7 @@ class TableOrderController extends Controller
             }
         }
 
-        return view('backend.table-order.order', compact('table', 'order', 'orderDetails', 'categories', 'hasAnyItems', 'hasUnservedItems', 'availableTables'));
+        return view('backend.table-order.order', compact('table', 'order', 'orderDetails', 'categories', 'hasAnyItems', 'hasUnservedItems', 'availableTables', 'pendingItems'));
     }
 
     /**

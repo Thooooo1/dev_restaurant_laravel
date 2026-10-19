@@ -449,9 +449,14 @@
             $('#orderItemsContent').html(html);
             $('#totalAmountDisplay').text(formatMoney(total));
             
-            // Enable Print Kitchen if there are existing items with has_new_items or new current items
+            // Enable Print Kitchen if:
+            // 1. Có món mới chọn (currentOrderDetails) HOẶC
+            // 2. Có món chờ xác nhận (pending items) HOẶC
+            // 3. Có món mới (has_new_items)
             const hasNewItems = {{ $order->has_new_items ? 'true' : 'false' }};
-            $('#printKitchenBtn').prop('disabled', !((currentOrderDetails && currentOrderDetails.length > 0) || (hasExistingItems && hasNewItems)));
+            const hasPendingItems = {{ $pendingItems->count() > 0 ? 'true' : 'false' }};
+            const canPrint = (currentOrderDetails && currentOrderDetails.length > 0) || hasPendingItems || hasNewItems;
+            $('#printKitchenBtn').prop('disabled', !canPrint);
 
             // Check from PHP variable if there are any unserved items
             const hasUnservedItems = {{ $hasUnservedItems ? 'true' : 'false' }};
