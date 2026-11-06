@@ -72,17 +72,35 @@
                             <div class="absolute inset-0 bg-gradient-to-r from-stone-950/80 via-transparent to-transparent w-full md:w-2/3"></div>
                         </div>
 
-                        <!-- Slide Content: Chữ to hơn và dịch xuống dưới theo đúng yêu cầu -->
+                        <!-- Slide Content: Căn chỉnh ngắt dòng hợp lý, chuẩn ý nghĩa, không bị rớt từ cụt ngủn -->
                         <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 pt-28 sm:pt-36 pb-16 sm:pb-20 lg:pb-24">
-                            <div class="max-w-3xl text-left text-white">
+                            <div class="max-w-4xl text-left text-white">
 
-                                <!-- Headline Chữ To Hơn, Cực Kỳ Bề Thế & Rõ Nét -->
-                                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-[64px] xl:text-[72px] font-black text-white mb-5 leading-[1.15] tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
-                                    {{ $titleText }}
+                                @php
+                                    // Tách dòng có nghĩa tự nhiên theo '&' để 2 vế câu cân xứng, tránh rớt từ đơn lẻ
+                                    $hasAmp = str_contains($titleText, ' & ');
+                                    if ($hasAmp) {
+                                        $parts = explode(' & ', $titleText, 2);
+                                        $titleLine1 = trim($parts[0]);
+                                        $titleLine2 = '& ' . trim($parts[1]);
+                                    } else {
+                                        $titleLine1 = $titleText;
+                                        $titleLine2 = null;
+                                    }
+                                @endphp
+
+                                <!-- Headline Đẹp mắt, ngắt dòng chuẩn ý nghĩa, không bị rớt chữ -->
+                                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] xl:text-[62px] font-black text-white mb-5 leading-[1.18] tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] max-w-4xl" style="text-wrap: balance;">
+                                    @if ($titleLine2)
+                                        <span class="block">{{ $titleLine1 }}</span>
+                                        <span class="block text-white/95">{{ $titleLine2 }}</span>
+                                    @else
+                                        {{ $titleText }}
+                                    @endif
                                 </h1>
 
                                 <!-- Subtitle Chữ To Hơn & Dễ Đọc -->
-                                <p class="text-base sm:text-lg md:text-xl lg:text-[21px] text-white/95 font-medium leading-relaxed max-w-2xl mb-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                                <p class="text-base sm:text-lg md:text-xl lg:text-[20px] text-white/90 font-medium leading-relaxed max-w-2xl mb-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" style="text-wrap: pretty;">
                                     {{ $descText }}
                                 </p>
 
