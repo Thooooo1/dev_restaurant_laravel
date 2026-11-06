@@ -4,24 +4,19 @@
     <div class="bg-white border border-[#F0F0F0] rounded p-4 mb-4 shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <!-- Left: Table & Floor Context -->
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded bg-[#FFF2E8] text-[#F47716] flex items-center justify-center font-bold text-base border border-[#FFBB96]">
-                    <i class="fa-solid fa-chair text-sm"></i>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">{{ $table->name }}</h1>
+                    <span class="polaris-badge polaris-badge-default">{{ $table->floor->name ?? 'Tầng 1' }}</span>
+                    @if($order->has_new_items)
+                        <span class="polaris-badge polaris-badge-error animate-pulse">Có món mới</span>
+                    @else
+                        <span class="polaris-badge polaris-badge-processing">Đang phục vụ</span>
+                    @endif
                 </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">{{ $table->name }}</h1>
-                        <span class="polaris-badge polaris-badge-default">{{ $table->floor->name ?? 'Tầng 1' }}</span>
-                        @if($order->has_new_items)
-                            <span class="polaris-badge polaris-badge-error animate-pulse">Có món mới</span>
-                        @else
-                            <span class="polaris-badge polaris-badge-processing">Đang phục vụ</span>
-                        @endif
-                    </div>
-                    <p class="text-xs text-[rgba(0,0,0,0.45)] mt-0.5">
-                        Mã đơn: <span class="font-mono font-medium text-[rgba(0,0,0,0.65)]">#{{ $order->id }}</span> • Giờ vào: {{ $order->created_at ? $order->created_at->format('H:i') : '--:--' }}
-                    </p>
-                </div>
+                <p class="text-xs text-[rgba(0,0,0,0.45)] mt-0.5">
+                    Mã đơn: <span class="font-mono font-medium text-[rgba(0,0,0,0.65)]">#{{ $order->id }}</span> • Giờ vào: {{ $order->created_at ? $order->created_at->format('H:i') : '--:--' }}
+                </p>
             </div>
 
             <!-- Right: Real-time Total & Action Buttons -->
@@ -37,7 +32,6 @@
                         <span>Bàn khác</span>
                     </a>
                     <button type="button" class="ant-btn ant-btn-sm" id="printKitchenBtn" onclick="printKitchen()">
-                        <i class="fa-solid fa-utensils text-xs"></i>
                         <span>Báo bếp</span>
                     </button>
                     <button type="button" class="ant-btn ant-btn-sm {{ $hasAnyItems ? '' : 'opacity-50 pointer-events-none' }}" id="printBillBtn" onclick="printTableBill()">
