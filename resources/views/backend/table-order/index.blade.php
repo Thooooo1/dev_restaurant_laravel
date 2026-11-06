@@ -4,9 +4,6 @@
         <div>
             <div class="flex items-center gap-2">
                 <h1 class="text-xl font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Quản Lý Bán Hàng (POS)</h1>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> Trực tiếp
-                </span>
             </div>
         </div>
 

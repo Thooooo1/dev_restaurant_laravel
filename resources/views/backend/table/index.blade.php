@@ -5,9 +5,6 @@
         <div>
             <div class="flex items-center gap-2">
                 <h1 class="text-xl font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Quản lý Bàn & Phòng</h1>
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span> Live Realtime
-                </span>
             </div>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
@@ -26,74 +23,53 @@
     <!-- Stat Overview Cards (Shopify Polaris / Ant Design Metric Cards) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
         <!-- Tổng số bàn -->
-        <div class="ant-card p-4 shadow-sm border border-gray-100 bg-white rounded-xl hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tổng số bàn</span>
-                    <div class="text-2xl font-black text-gray-900 mt-1">{{ $stats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></div>
-                </div>
-                <div class="px-2.5 py-1 rounded bg-blue-50 text-blue-700 text-xs font-bold uppercase">
-                    Tất cả
-                </div>
+        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div>
+                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tổng số bàn</span>
+                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <div class="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-                <span>Phân bố theo {{ count($floors) }} tầng/khu vực</span>
-                <span class="text-blue-600 font-semibold">Toàn nhà hàng</span>
-            </div>
+            <span class="text-xs font-medium px-2.5 py-1 rounded-md bg-gray-100 text-gray-600">
+                {{ count($floors) }} tầng
+            </span>
         </div>
 
         <!-- Bàn đang có khách -->
-        <div class="ant-card p-4 shadow-sm border border-emerald-100 bg-emerald-50/30 rounded-xl hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-semibold text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                        Đang có khách
-                    </span>
-                    <div class="text-2xl font-black text-emerald-800 mt-1">{{ $stats['serving'] ?? 0 }} <span class="text-xs font-normal text-emerald-600">bàn</span></div>
-                </div>
-                <div class="px-2.5 py-1 rounded bg-emerald-500 text-white text-xs font-bold uppercase shadow-2xs">
-                    Phục vụ
-                </div>
+        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div>
+                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#F47716]"></span>
+                    Đang có khách
+                </span>
+                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['serving'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <div class="mt-3 pt-2.5 border-t border-emerald-100/80 flex items-center justify-between text-xs text-emerald-700">
-                <span>Tỷ lệ lấp đầy</span>
-                <span class="font-bold">{{ $stats['total'] > 0 ? round(($stats['serving'] / $stats['total']) * 100) : 0 }}% công suất</span>
-            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-orange-50 text-[#F47716] border border-orange-100">
+                {{ $stats['total'] > 0 ? round(($stats['serving'] / $stats['total']) * 100) : 0 }}%
+            </span>
         </div>
 
         <!-- Bàn còn trống -->
-        <div class="ant-card p-4 shadow-sm border border-gray-100 bg-white rounded-xl hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Bàn còn trống</span>
-                    <div class="text-2xl font-black text-gray-800 mt-1">{{ $stats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></div>
-                </div>
-                <div class="px-2.5 py-1 rounded bg-gray-100 text-gray-600 text-xs font-bold uppercase">
-                    Sẵn sàng
-                </div>
+        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div>
+                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Bàn sẵn sàng
+                </span>
+                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <div class="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-                <span>Sẵn sàng đón khách mới</span>
-                <span class="text-emerald-600 font-semibold">{{ $stats['empty'] }} bàn sẵn có</span>
-            </div>
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
+                Sẵn có
+            </span>
         </div>
 
         <!-- Doanh thu tạm tính trên bàn -->
-        <div class="ant-card p-4 shadow-sm border border-orange-100 bg-orange-50/30 rounded-xl hover:shadow-md transition-shadow">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-semibold text-orange-700 uppercase tracking-wider">Tạm tính trên bàn</span>
-                    <div class="text-xl font-black text-[#F47716] mt-1">{{ number_format($stats['serving_revenue'] ?? 0) }}₫</div>
-                </div>
-                <div class="px-2.5 py-1 rounded bg-[#F47716] text-white text-xs font-bold uppercase shadow-2xs">
-                    Tạm tính
-                </div>
+        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div>
+                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tạm tính trên bàn</span>
+                <span class="text-2xl font-black text-[#F47716] mt-0.5 block tracking-tight">{{ number_format($stats['serving_revenue'] ?? 0) }}₫</span>
             </div>
-            <div class="mt-3 pt-2.5 border-t border-orange-100/80 flex items-center justify-between text-xs text-orange-700">
-                <span>Đang chờ gọi món & kết ca</span>
-                <span class="font-bold">{{ $stats['serving'] }} đơn đang phục vụ</span>
-            </div>
+            <span class="text-xs font-medium px-2.5 py-1 rounded-md bg-gray-100 text-gray-600">
+                {{ $stats['serving'] }} đơn
+            </span>
         </div>
     </div>
 
@@ -174,7 +150,7 @@
                             $subtotalPrice = $orderDishes->sum('amount');
                             $finalTableTotal = $hasActive && $activeOrder->total_price > 0 ? $activeOrder->total_price : $subtotalPrice;
                         @endphp
-                        <tr class="hover:bg-amber-50/30 transition-colors {{ $hasActive ? 'bg-emerald-50/15' : '' }}">
+                        <tr class="hover:bg-orange-50/20 transition-colors {{ $hasActive ? 'bg-orange-50/10' : '' }}">
                             <!-- ID -->
                             <td class="py-3.5 px-3 text-center font-mono text-gray-400 font-semibold">
                                 #{{ $table->id }}
@@ -183,7 +159,7 @@
                             <!-- Tên bàn & Khu vực -->
                             <td class="py-3.5 px-3">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-9 h-9 rounded-lg {{ $hasActive ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600' }} flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                                    <div class="w-9 h-9 rounded-lg {{ $hasActive ? 'bg-orange-100 text-[#F47716]' : 'bg-gray-100 text-gray-600' }} flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                                         {{ $table->name }}
                                     </div>
                                     <div>
@@ -204,16 +180,16 @@
                             <td class="py-3.5 px-3">
                                 @if ($hasActive)
                                     <div>
-                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                                            ĐANG CÓ KHÁCH
+                                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-orange-50 text-[#F47716] border border-orange-100">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#F47716]"></span>
+                                            Đang có khách
                                         </div>
                                         <div class="mt-1.5 flex items-center gap-2 text-[11px] text-gray-500">
                                             <span class="font-mono font-semibold text-gray-700">Đơn #{{ $activeOrder->id }}</span>
                                             <span>•</span>
                                             <span class="text-gray-400">{{ $activeOrder->created_at ? $activeOrder->created_at->locale('vi')->diffForHumans() : '' }}</span>
                                         </div>
-                                        <div class="mt-1 font-bold text-emerald-700 text-xs">
+                                        <div class="mt-1 font-bold text-[#F47716] text-xs">
                                             Tạm tính: {{ number_format($finalTableTotal) }}₫
                                         </div>
                                     </div>

@@ -9,8 +9,8 @@
                     </h1>
 
                     @if ($activeOrder)
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-orange-50 text-[#F47716] border border-orange-100">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#F47716]"></span>
                             Đang có khách
                         </span>
                     @else
