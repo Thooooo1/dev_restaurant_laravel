@@ -56,9 +56,15 @@
         <!-- Footer -->
         <div class="p-2.5 bg-stone-50 border-t border-stone-100 text-center text-xs text-stone-500 flex items-center justify-between px-4">
             <span class="text-[11px] text-stone-400">Cập nhật tự động thời gian thực</span>
-            <a href="{{ route('site.booking') }}" class="font-semibold text-[#C25E00] hover:underline text-xs">
-                Xem lịch đặt bàn »
-            </a>
+            @if(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()))
+                <a href="{{ route('admin.dashboard') }}" class="font-semibold text-[#C25E00] hover:underline text-xs">
+                    Vào trang quản trị »
+                </a>
+            @else
+                <a href="{{ route('site.orders') }}" class="font-semibold text-[#C25E00] hover:underline text-xs">
+                    Xem đơn hàng của tôi »
+                </a>
+            @endif
         </div>
     </div>
 </div>
@@ -94,6 +100,8 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'service_call':
                 return 'bg-amber-100 text-amber-800';
             case 'order':
+                return 'bg-orange-100 text-[#C25E00]';
+            case 'payment':
                 return 'bg-emerald-100 text-emerald-800';
             default:
                 return 'bg-stone-100 text-stone-700';
@@ -107,7 +115,9 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'service_call':
                 return 'Phục vụ';
             case 'order':
-                return 'Gọi món';
+                return 'Đơn hàng';
+            case 'payment':
+                return 'Thanh toán';
             default:
                 return 'Hệ thống';
         }

@@ -53,7 +53,7 @@ class Notification extends Model
     public function scopeForUser($query, $user = null)
     {
         if (!$user) {
-            // Khách chưa đăng nhập: Chỉ thấy thông báo chung
+            // Khách chưa đăng nhập: Chỉ thấy thông báo chung toàn hệ thống
             return $query->where('role', 'all')->whereNull('user_id');
         }
 
@@ -61,19 +61,38 @@ class Notification extends Model
         $userRole = $user->roles;
 
         return $query->where(function ($q) use ($userId, $userRole) {
-            // Thông báo đích danh cho người này
-            $q->where('user_id', $userId);
-
-            // Hoặc thông báo theo vai trò
-            if ($userRole === 'admin') {
-                // Admin thấy thông báo của Admin, Employee và All
-                $q->orWhereIn('role', ['admin', 'employee', 'all']);
-            } elseif ($userRole === 'employee') {
-                // Nhân viên thấy thông báo của Employee và All
-                $q->orWhereIn('role', ['employee', 'all']);
-            } else {
-                // Khách hàng / thành viên thấy thông báo khách hàng và All
-                $q->orWhereIn('role', ['customer', 'all']);
+            // 1. Khách hàng:
+            // Chỉ thấy thông báo đích danh của chính mình (user_id = $userId),
+            // hoặc thông báo chung toàn hệ thống gửi cho tất cả khách hàng (user_id IS NULL AND role IN ('customer', 'all')).
+            // Tuyệt đối không thấy thông báo của tài khoản khách khác hoặc thông báo nghiệp vụ của nhân viên / admin.
+            if ($userRole === 'customer') {
+                $q->where('user_id', $userId)
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('user_id')
+                          ->whereIn('role', ['customer', 'all']);
+                  });
+            }
+            // 2. Nhân viên:
+            // Thấy thông báo đích danh của mình (user_id = $userId),
+            // hoặc thông báo nghiệp vụ dành cho nhân viên (user_id IS NULL AND role IN ('employee', 'all')).
+            // Không nhận các tin cảm ơn cá nhân của khách hàng khác.
+            elseif ($userRole === 'employee') {
+                $q->where('user_id', $userId)
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('user_id')
+                          ->whereIn('role', ['employee', 'all']);
+                  });
+            }
+            // 3. Quản trị viên (Admin):
+            // Thấy thông báo đích danh của mình (user_id = $userId),
+            // hoặc thông báo quản trị / vận hành hệ thống (user_id IS NULL AND role IN ('admin', 'employee', 'all')).
+            // Không nhận các tin cảm ơn cá nhân của khách hàng khác.
+            else {
+                $q->where('user_id', $userId)
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('user_id')
+                          ->whereIn('role', ['admin', 'employee', 'all']);
+                  });
             }
         });
     }

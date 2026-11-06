@@ -59,9 +59,13 @@ class NotificationController extends Controller
 
         // Biến đổi serviceCalls sang format hiển thị
         $formattedCalls = $serviceCalls->map(function ($call) {
-            $tableName = $call->table ? $call->table->name : 'Khách vãng lai';
+            $tableName = $call->table ? $call->table->name : ($call->order_id ? "Đơn online #{$call->order_id}" : ($call->customer_name ?: 'Khách vãng lai'));
             $floorName = ($call->table && $call->table->floor) ? $call->table->floor->name : null;
             $typeInfo = $call->type_info;
+
+            $posUrl = $call->table_id 
+                ? route('admin.table-order.order', $call->table_id) 
+                : ($call->order_id ? route('admin.order.orderdetail', $call->order_id) : route('admin.table-order.index'));
 
             return [
                 'id' => $call->id,
@@ -70,14 +74,14 @@ class NotificationController extends Controller
                 'floor_name' => $floorName,
                 'full_table_name' => $floorName ? "{$tableName} ({$floorName})" : $tableName,
                 'type' => $call->call_type,
-                'type_label' => $typeInfo['label'],
+                'type_label' => $call->call_type_label ?: $typeInfo['label'],
                 'icon' => $typeInfo['icon'],
                 'color' => $typeInfo['color'],
                 'note' => $call->note,
                 'customer_name' => $call->customer_name,
                 'created_at' => $call->created_at->toIso8601String(),
                 'time_ago' => $call->created_at->locale('vi')->diffForHumans(),
-                'pos_url' => $call->table_id ? route('admin.table-order.order', $call->table_id) : route('admin.table-order.index'),
+                'pos_url' => $posUrl,
             ];
         });
 

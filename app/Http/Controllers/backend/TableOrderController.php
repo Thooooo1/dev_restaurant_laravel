@@ -898,6 +898,22 @@ class TableOrderController extends Controller
             // Clear table lock cho các bàn liên kết
             Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
 
+            // 1. Thông báo nghiệp vụ cho Nhân viên & Quản trị viên
+            try {
+                $tableName = $order->table ? $order->table->name : "Bàn #{$order->table_id}";
+                $actualTotalFormatted = number_format($actualTotal, 0, ',', '.') . '₫';
+                \App\Services\NotificationService::send([
+                    'role'    => 'employee',
+                    'type'    => 'payment',
+                    'title'   => "{$tableName} đã thanh toán ({$actualTotalFormatted})",
+                    'message' => "Hóa đơn {$tableName} (#{$order->id}) đã được thanh toán qua {$request->payment_method}.",
+                    'url'     => route('admin.table-order.payment', $order->table_id),
+                    'icon'    => 'fa-receipt',
+                    'color'   => '#10B981',
+                ]);
+            } catch (\Exception $e) {}
+
+            // 2. Thông báo riêng cho khách hàng sở hữu đơn hàng (chỉ gửi đích danh cho tài khoản của khách này)
             if ($order->user_id) {
                 try {
                     \App\Services\NotificationService::send([

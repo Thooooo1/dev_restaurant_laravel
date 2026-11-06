@@ -238,6 +238,40 @@
                 })
                 .catch(err => console.log('Checking table payment status:', err));
             }, 3000);
+
+            // Tự động nhận tiền sau 3 giây cho demo (không cần thao tác thủ công)
+            setTimeout(function() {
+                if (isPaidCompleted) return;
+
+                fetch('{{ route("api.payment.simulate-webhook") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        amount: {{ (int)$finalAmount }}
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        isPaidCompleted = true;
+                        clearInterval(checkInterval);
+
+                        const overlay = document.getElementById('tablePaymentSuccessOverlay');
+                        const statusBadge = document.getElementById('qrLoadingStatusBadge');
+                        if (overlay) overlay.classList.remove('hidden');
+                        if (statusBadge) statusBadge.classList.add('hidden');
+
+                        setTimeout(function() {
+                            window.location.href = billUrl;
+                        }, 1800);
+                    }
+                })
+                .catch(err => console.log('Auto table payment error:', err));
+            }, 3000);
         });
     </script>
 </x-layout-frontend>

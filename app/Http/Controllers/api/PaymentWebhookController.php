@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Table;
 use App\Models\ServiceCall;
 use App\Services\VietQRService;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
@@ -146,8 +147,9 @@ class PaymentWebhookController extends Controller
             // Giải phóng bàn đã thanh toán
             Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
 
-            // Đánh dấu hoàn tất các yêu cầu gọi tính tiền của bàn này
+            // Đánh dấu hoàn tất các yêu cầu gọi tính tiền trước đó của bàn này
             ServiceCall::where('table_id', $order->table_id)
+                ->where('call_type', 'bill')
                 ->where('status', ServiceCall::STATUS_PENDING)
                 ->update([
                     'status' => ServiceCall::STATUS_COMPLETED,
@@ -158,31 +160,48 @@ class PaymentWebhookController extends Controller
             $order->status = 1; // 1: Confirmed (Đã xác nhận & Đã thanh toán chuyển khoản)
             $order->payment_method = 'VietQR';
             $order->total_price = $order->total_price > 0 ? $order->total_price : $amount;
+            $order->has_new_items = true;
             $order->save();
         }
 
-        // Tạo thông báo chuông hệ thống để thu ngân & nhân viên biết tiền đã vào
+        // Tạo thông báo chuông hệ thống thời gian thực (ServiceCall) để thu ngân & nhân viên nhận toast và chuông reo
         $tableName = $order->table ? $order->table->name : "Đơn online #{$order->id}";
         ServiceCall::create([
             'table_id' => $order->table_id,
             'order_id' => $order->id,
-            'customer_name' => $order->name ?: 'Khách VietQR',
+            'customer_name' => $order->name ?: ($order->table ? $order->table->name : 'Khách VietQR'),
             'phone' => $order->phone,
             'call_type' => 'bill',
             'call_type_label' => 'Đã nhận chuyển khoản VietQR',
             'note' => "Hệ thống tự động nhận " . number_format($amount, 0, ',', '.') . "đ qua VietQR (Mã GD: {$referenceCode})",
-            'status' => ServiceCall::STATUS_COMPLETED,
-            'handled_at' => Carbon::now(),
+            'status' => ServiceCall::STATUS_PENDING,
+            'handled_at' => null,
         ]);
 
-        Log::info("Thanh toán thành công đơn #{$order->id} ({$tableName}) với số tiền {$amount}đ qua VietQR.");
+        // Gửi thông báo hệ thống chính thức cho cả 3 vai trò: Admin, Employee, Customer
+        NotificationService::notifyPaymentSuccess($order, $amount, $referenceCode);
+
+        // Lưu thông báo thanh toán vào session flash
+        session()->flash('payment_success_notification', [
+            'order_id' => $order->id,
+            'amount' => $amount,
+            'reference_code' => $referenceCode,
+            'message' => "Hệ thống đã tự động nhận tiền thành công và gửi thông báo tới Quản trị viên, Nhân viên và Khách hàng."
+        ]);
+
+        Log::info("Thanh toán thành công đơn #{$order->id} ({$tableName}) với số tiền {$amount}đ qua VietQR. Đã gửi thông báo cho 3 vai trò (Admin, Nhân viên, Khách hàng).");
 
         return response()->json([
             'success' => true,
             'message' => "Thanh toán VietQR thành công cho {$tableName}",
             'order_id' => $order->id,
             'amount' => $amount,
-            'reference_code' => $referenceCode
+            'reference_code' => $referenceCode,
+            'notifications_sent' => [
+                'admin' => true,
+                'employee' => true,
+                'customer' => true,
+            ]
         ]);
     }
 

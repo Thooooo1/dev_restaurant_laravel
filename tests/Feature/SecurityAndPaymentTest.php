@@ -218,4 +218,79 @@ class SecurityAndPaymentTest extends TestCase
         $response = $this->get('/admin/user/1/add-admin');
         $this->assertEquals(405, $response->getStatusCode());
     }
+
+    /**
+     * 9. Test Thanh toán VietQR tự động bắn thông báo cho cả 3 vai trò: Admin, Employee, Customer
+     */
+    public function test_vietqr_payment_creates_notifications_for_all_three_roles(): void
+    {
+        Config::set('payment.mode', 'demo');
+
+        $customer = User::where('roles', 'customer')->first();
+        $customerId = $customer ? $customer->id : 9;
+
+        $order = Order::create([
+            'user_id' => $customerId,
+            'name' => 'Khách Test VietQR 3 Roles',
+            'email' => 'customer3roles@civilize.vn',
+            'phone' => '0988776655',
+            'address' => 'Hà Nội',
+            'total_price' => 500000,
+            'payment_method' => 'VietQR',
+            'status' => 0,
+            'created_by' => 1,
+        ]);
+
+        $response = $this->postJson(route('api.payment.simulate-webhook'), [
+            'order_id' => $order->id,
+            'amount' => 500000,
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson([
+            'success' => true,
+            'order_id' => $order->id,
+            'notifications_sent' => [
+                'admin' => true,
+                'employee' => true,
+                'customer' => true,
+            ]
+        ]);
+
+        // Kiểm tra đơn hàng cập nhật thành công
+        $order->refresh();
+        $this->assertEquals(1, $order->status);
+
+        // Kiểm tra thông báo được lưu cho cả 3 vai trò
+        $adminNoti = \App\Models\Notification::where('role', 'admin')
+            ->where('type', 'payment')
+            ->whereJsonContains('data->order_id', $order->id)
+            ->first();
+        $this->assertNotNull($adminNoti, 'Chưa có thông báo cho Quản trị viên (Admin)');
+
+        $empNoti = \App\Models\Notification::where('role', 'employee')
+            ->where('type', 'payment')
+            ->whereJsonContains('data->order_id', $order->id)
+            ->first();
+        $this->assertNotNull($empNoti, 'Chưa có thông báo cho Nhân viên (Employee)');
+
+        $custNoti = \App\Models\Notification::where('role', 'customer')
+            ->where('type', 'payment')
+            ->whereJsonContains('data->order_id', $order->id)
+            ->first();
+        $this->assertNotNull($custNoti, 'Chưa có thông báo cho Khách hàng (Customer)');
+
+        // Kiểm tra ServiceCall được tạo để chuông thu ngân / POS reo
+        $serviceCall = \App\Models\ServiceCall::where('order_id', $order->id)
+            ->where('status', \App\Models\ServiceCall::STATUS_PENDING)
+            ->first();
+        $this->assertNotNull($serviceCall, 'Chưa có chuông gọi ServiceCall cho thu ngân/phục vụ');
+
+        // Dọn dẹp
+        if ($adminNoti) $adminNoti->delete();
+        if ($empNoti) $empNoti->delete();
+        if ($custNoti) $custNoti->delete();
+        if ($serviceCall) $serviceCall->delete();
+        $order->delete();
+    }
 }

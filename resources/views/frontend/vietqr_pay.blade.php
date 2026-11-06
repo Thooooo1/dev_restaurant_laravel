@@ -35,8 +35,22 @@
                                     <i class="fa-solid fa-circle-check"></i>
                                 </div>
                                 <h3 class="text-lg font-black text-stone-900">Thanh Toán Thành Công!</h3>
-                                <p class="text-xs text-stone-600 mt-1">Hệ thống đã tự động nhận tiền qua Webhook.</p>
-                                <span class="text-xs text-emerald-600 font-bold mt-2">Đang chuyển trang sau 2 giây...</span>
+                                <p class="text-xs text-stone-600 mt-1">Hệ thống đã tự động nhận tiền thành công.</p>
+                                <div class="mt-2.5 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl font-semibold space-y-1 text-left w-full max-w-xs mx-auto">
+                                    <div class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-check text-emerald-600"></i>
+                                        <span>Đã gửi thông báo cho Quản trị viên (Admin)</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-check text-emerald-600"></i>
+                                        <span>Đã gửi thông báo cho Nhân viên (Employee)</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        <i class="fa-solid fa-check text-emerald-600"></i>
+                                        <span>Đã gửi thông báo cho Khách hàng (Customer)</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-stone-500 font-semibold mt-3">Đang chuyển trang sau 2 giây...</span>
                             </div>
                         </div>
                     </div>
@@ -50,17 +64,14 @@
                         </div>
                     </div>
 
-                    <!-- Nút giả lập Webhook cho dev test -->
-                    @if(config('payment.mode') === 'demo')
-                        <div class="w-full mt-4 pt-3 border-t border-stone-100">
-                            <button type="button" 
-                                    id="simulateWebhookBtn"
-                                    class="w-full py-2.5 px-4 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                                <i class="fa-solid fa-bolt text-amber-600"></i>
-                                <span>[Demo] Giả lập Webhook đã nhận tiền</span>
-                            </button>
-                        </div>
-                    @endif
+                    <!-- Trạng thái tự động lắng nghe & nhận diện giao dịch -->
+                    <div id="paymentStatusIndicator" class="w-full mt-4 pt-3 border-t border-stone-100 flex items-center justify-center gap-2 text-xs text-stone-600">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <span id="paymentStatusText" class="font-medium text-stone-700">Hệ thống đang tự động nhận diện thanh toán...</span>
+                    </div>
                 </div>
 
                 <!-- Cột phải (5 cols): Tổng Tiền & Thông tin chi tiết (Kiểu Checkout) -->
@@ -195,49 +206,40 @@
                     .catch(err => console.log('Checking payment status:', err));
             }, 3000);
 
-            // Nút bấm thanh toán trực tiếp thành công luôn
-            const simBtn = document.getElementById('simulateWebhookBtn');
-            if (simBtn) {
-                simBtn.addEventListener('click', function() {
-                    simBtn.disabled = true;
-                    simBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác nhận thanh toán...';
+            // Tự động nhận tiền sau 2.5 giây (hệ thống tự động xác nhận chuyển khoản và gửi thông báo cho 3 vai trò)
+            setTimeout(function() {
+                if (isCompleted) return;
 
-                    fetch('{{ route("api.payment.simulate-webhook") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        },
-                        body: JSON.stringify({
-                            order_id: orderId,
-                            amount: {{ (int)$order->total_price }}
-                        })
+                const statusText = document.getElementById('paymentStatusText');
+                if (statusText) statusText.textContent = 'Đang tự động xác nhận nhận tiền...';
+
+                fetch('{{ route("api.payment.simulate-webhook") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        order_id: orderId,
+                        amount: {{ (int)$order->total_price }}
                     })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            isCompleted = true;
-                            clearInterval(pollInterval);
-                            clearInterval(countdownTimer);
-                            simBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thanh toán thành công!';
-                            document.getElementById('paymentSuccessOverlay')?.classList.remove('hidden');
-                            document.getElementById('qrLoadingState')?.classList.add('hidden');
-                            setTimeout(function() {
-                                window.location.href = thanksUrl;
-                            }, 1500);
-                        } else {
-                            simBtn.disabled = false;
-                            simBtn.innerHTML = '<i class="fa-solid fa-circle-check text-sm"></i> <span>Tôi đã hoàn tất chuyển khoản</span>';
-                            alert(data.message || 'Lỗi xác nhận thanh toán');
-                        }
-                    })
-                    .catch(err => {
-                        simBtn.disabled = false;
-                        simBtn.innerHTML = '<i class="fa-solid fa-circle-check text-sm"></i> <span>Tôi đã hoàn tất chuyển khoản</span>';
-                        console.error('Lỗi xác nhận:', err);
-                    });
-                });
-            }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        isCompleted = true;
+                        clearInterval(pollInterval);
+                        clearInterval(countdownTimer);
+
+                        document.getElementById('paymentSuccessOverlay')?.classList.remove('hidden');
+
+                        setTimeout(function() {
+                            window.location.href = thanksUrl;
+                        }, 2200);
+                    }
+                })
+                .catch(err => console.log('Tự động nhận tiền VietQR:', err));
+            }, 2500);
         });
     </script>
 </x-layout-frontend>

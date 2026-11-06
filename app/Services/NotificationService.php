@@ -205,4 +205,91 @@ class NotificationService
             }
         }
     }
+
+    /**
+     * Bắn thông báo khi nhận được thanh toán VietQR thành công cho cả 3 vai trò:
+     * 1. Quản trị viên (Admin)
+     * 2. Nhân viên phục vụ / Thu ngân (Employee)
+     * 3. Khách hàng đặt đơn / thanh toán bàn (Customer)
+     */
+    public static function notifyPaymentSuccess(Order $order, float $amount, string $referenceCode)
+    {
+        $amountFormatted = number_format($amount, 0, ',', '.') . '₫';
+        $isTable = !empty($order->table_id);
+        $orderContext = $isTable 
+            ? ($order->table ? $order->table->name : "Bàn #{$order->table_id}") 
+            : "Đơn hàng #{$order->id}";
+
+        // 1. Vai trò Quản trị viên (Admin)
+        self::send([
+            'role'    => 'admin',
+            'type'    => 'payment',
+            'title'   => "Đã nhận tiền VietQR: {$amountFormatted} ({$orderContext})",
+            'message' => "Hệ thống đã nhận {$amountFormatted} qua VietQR cho {$orderContext} (Mã GD: {$referenceCode}).",
+            'url'     => $isTable ? route('admin.table-order.order', $order->table_id) : route('admin.order.orderdetail', $order->id),
+            'icon'    => 'fa-circle-check',
+            'color'   => '#10B981',
+            'data'    => [
+                'order_id'       => $order->id,
+                'table_id'       => $order->table_id,
+                'amount'         => $amount,
+                'reference_code' => $referenceCode,
+                'target_role'    => 'admin'
+            ],
+        ]);
+
+        // 2. Vai trò Nhân viên (Employee / Phục vụ / Thu ngân)
+        self::send([
+            'role'    => 'employee',
+            'type'    => 'payment',
+            'title'   => "{$orderContext} đã thanh toán VietQR ({$amountFormatted})",
+            'message' => "Khách hàng tại {$orderContext} đã thanh toán thành công {$amountFormatted} qua VietQR.",
+            'url'     => $isTable ? route('admin.table-order.order', $order->table_id) : route('admin.order.orderdetail', $order->id),
+            'icon'    => 'fa-receipt',
+            'color'   => '#3B82F6',
+            'data'    => [
+                'order_id'       => $order->id,
+                'table_id'       => $order->table_id,
+                'amount'         => $amount,
+                'reference_code' => $referenceCode,
+                'target_role'    => 'employee'
+            ],
+        ]);
+
+        // 3. Vai trò Khách hàng (Customer)
+        $customer = null;
+        if (!empty($order->user_id)) {
+            $customer = User::find($order->user_id);
+        }
+        if (!$customer && Auth::check()) {
+            $customer = Auth::user();
+        }
+        if (!$customer && !empty($order->phone)) {
+            $customer = User::where('phone', $order->phone)->first();
+        }
+        if (!$customer && !empty($order->email)) {
+            $customer = User::where('email', $order->email)->first();
+        }
+
+        // Chỉ gửi thông báo cho khách hàng nếu đơn hàng này gắn liền với tài khoản khách hàng cụ thể
+        if ($customer) {
+            self::send([
+                'user_id' => $customer->id,
+                'role'    => 'customer',
+                'type'    => 'payment',
+                'title'   => "Thanh toán thành công: {$amountFormatted}!",
+                'message' => "Nhà hàng CIVILIZE đã nhận được {$amountFormatted} cho {$orderContext} qua VietQR. Cảm ơn bạn đã lựa chọn dùng bữa tại CIVILIZE!",
+                'url'     => $isTable ? route('site.table.bill', $order->table_id) : route('site.orders'),
+                'icon'    => 'fa-circle-check',
+                'color'   => '#10B981',
+                'data'    => [
+                    'order_id'       => $order->id,
+                    'table_id'       => $order->table_id,
+                    'amount'         => $amount,
+                    'reference_code' => $referenceCode,
+                    'target_role'    => 'customer'
+                ],
+            ]);
+        }
+    }
 }
