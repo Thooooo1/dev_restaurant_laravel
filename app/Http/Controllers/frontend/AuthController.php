@@ -70,8 +70,13 @@ class AuthController extends Controller
         }
 
         // Đăng nhập thành công
+        $oldSessionId = session()->getId();
         Auth::loginUsingId($user->id);
         session()->put('user_site', $user);
+
+        // Đồng bộ giỏ hàng khách vãng lai (guest) vào tài khoản người dùng
+        \App\Http\Controllers\frontend\CartController::mergeGuestCartToUser($user->id, $oldSessionId);
+        $request->session()->regenerate();
         
         // Luôn xóa session bàn nếu đăng nhập bình thường
         if (!session()->has('is_table_order')) {
@@ -209,8 +214,13 @@ class AuthController extends Controller
         $user->save();
 
         // Tự động đăng nhập cho khách hàng ngay sau khi đăng ký
+        $oldSessionId = session()->getId();
         Auth::loginUsingId($user->id);
         session()->put('user_site', $user);
+
+        // Đồng bộ giỏ hàng khách vãng lai (guest) vào tài khoản vừa tạo
+        \App\Http\Controllers\frontend\CartController::mergeGuestCartToUser($user->id, $oldSessionId);
+        $request->session()->regenerate();
 
         return redirect()->route('site.home')->with('success', 'Đăng ký thành viên thành công! Chào mừng ' . $user->fullname . ' đến với CIVILIZE.');
     }

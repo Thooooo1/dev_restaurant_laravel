@@ -26,6 +26,76 @@ class CartController extends Controller
     }
 
     /**
+     * Gộp giỏ hàng khách vãng lai (guest) vào giỏ hàng tài khoản sau khi đăng nhập/đăng ký
+     */
+    public static function mergeGuestCartToUser($userId, $guestSessionId = null)
+    {
+        if (empty($userId)) {
+            return;
+        }
+
+        $sessionId = $guestSessionId ?: session()->getId();
+        $guestKey = 'cart_guest_' . $sessionId;
+        $userKey = 'cart_' . $userId;
+
+        $guestCart = session()->get($guestKey, []);
+        if (empty($guestCart) || !is_array($guestCart)) {
+            return;
+        }
+
+        $userCart = session()->get($userKey, []);
+        if (!is_array($userCart)) {
+            $userCart = [];
+        }
+
+        $productIds = array_keys($guestCart);
+        $validProducts = Product::whereIn('id', $productIds)
+            ->whereNull('deleted_at')
+            ->where('status', 1)
+            ->get()
+            ->keyBy('id');
+
+        $hasMerged = false;
+
+        foreach ($guestCart as $productId => $item) {
+            if (!isset($validProducts[$productId])) {
+                continue;
+            }
+
+            $qty = isset($item['qty']) ? (int)$item['qty'] : 0;
+            if ($qty <= 0) {
+                continue;
+            }
+
+            $product = $validProducts[$productId];
+            $currentPrice = $product->price_sale > 0 ? $product->price_sale : $product->price_buy;
+
+            if (isset($userCart[$productId])) {
+                $userCart[$productId]['qty'] = (int)$userCart[$productId]['qty'] + $qty;
+                $userCart[$productId]['price'] = $currentPrice;
+            } else {
+                $userCart[$productId] = [
+                    'name' => $product->name,
+                    'slug' => $product->slug,
+                    'id' => $product->id,
+                    'price' => $currentPrice,
+                    'qty' => $qty,
+                    'image' => $product->image,
+                    'discount' => 0,
+                ];
+            }
+            $hasMerged = true;
+        }
+
+        if ($hasMerged) {
+            session()->put($userKey, $userCart);
+        }
+
+        session()->forget($guestKey);
+        session()->save();
+    }
+
+    /**
      * Dọn dẹp triệt để tất cả các session giỏ hàng (cả guest, auth user và legacy key)
      */
     public static function clearCartSession()
