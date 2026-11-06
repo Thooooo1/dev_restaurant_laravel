@@ -200,12 +200,12 @@
                     .catch(err => console.log('Checking payment status:', err));
             }, 3000);
 
-            // Nút giả lập Webhook
+            // Nút bấm thanh toán trực tiếp thành công luôn
             const simBtn = document.getElementById('simulateWebhookBtn');
             if (simBtn) {
                 simBtn.addEventListener('click', function() {
                     simBtn.disabled = true;
-                    simBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang giả lập chuyển tiền...';
+                    simBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác nhận thanh toán...';
 
                     fetch('{{ route("api.payment.simulate-webhook") }}', {
                         method: 'POST',
@@ -221,17 +221,25 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            simBtn.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> Đã gửi Webhook thành công!';
+                            isCompleted = true;
+                            clearInterval(pollInterval);
+                            clearInterval(countdownTimer);
+                            simBtn.innerHTML = '<i class="fa-solid fa-check"></i> Đã thanh toán thành công!';
+                            document.getElementById('paymentSuccessOverlay')?.classList.remove('hidden');
+                            document.getElementById('qrLoadingState')?.classList.add('hidden');
+                            setTimeout(function() {
+                                window.location.href = thanksUrl;
+                            }, 1500);
                         } else {
                             simBtn.disabled = false;
-                            simBtn.innerHTML = 'Thử lại';
-                            alert(data.message || 'Lỗi giả lập Webhook');
+                            simBtn.innerHTML = '<i class="fa-solid fa-circle-check text-sm"></i> <span>Tôi đã hoàn tất chuyển khoản</span>';
+                            alert(data.message || 'Lỗi xác nhận thanh toán');
                         }
                     })
                     .catch(err => {
                         simBtn.disabled = false;
-                        simBtn.innerHTML = 'Thử lại';
-                        console.error('Lỗi giả lập:', err);
+                        simBtn.innerHTML = '<i class="fa-solid fa-circle-check text-sm"></i> <span>Tôi đã hoàn tất chuyển khoản</span>';
+                        console.error('Lỗi xác nhận:', err);
                     });
                 });
             }

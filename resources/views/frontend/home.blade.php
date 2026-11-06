@@ -130,7 +130,7 @@
                     <!-- Dịch vụ 1: Tiệc Gia Đình -->
                     <div class="group bg-white rounded-none sm:rounded-sm overflow-hidden border border-stone-200 hover:border-stone-400 shadow-2xs hover:shadow-xs transition-all duration-300">
                         <div class="relative aspect-[16/10] overflow-hidden bg-stone-100">
-                            <img src="{{ asset('images/gallery/space_family.jpg') }}" 
+                            <img src="{{ asset('images/gallery/space_family.jpg') }}?v={{ time() }}" 
                                  alt="Không gian tiệc gia đình ấm cúng" 
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
                             <div class="absolute bottom-2.5 right-2.5 bg-stone-950/75 text-white font-medium text-[11px] px-2.5 py-0.5 rounded-none sm:rounded-xs shadow-xs">

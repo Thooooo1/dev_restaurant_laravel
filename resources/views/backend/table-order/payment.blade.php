@@ -266,24 +266,15 @@
                             </div>
                         </div>
 
-                        <!-- Nút Thao Tác (Giả lập Webhook & Xác nhận) -->
-                        <div class="space-y-2 pt-2">
+                        <!-- Nút Thao Tác: Bấm thanh toán là thành công luôn không cần giả lập Webhook -->
+                        <div class="pt-2">
                             <button type="button" 
-                                    onclick="handleConfirmPayment()" 
-                                    class="w-full py-2.5 px-3 bg-[#52C41A] hover:bg-[#389E0D] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:shadow active:scale-[0.99]">
-                                <i class="fa-solid fa-check"></i>
-                                <span>Xác nhận đã nhận tiền</span>
+                                    id="posConfirmPayBtn"
+                                    onclick="confirmVietQrPaymentNow()" 
+                                    class="w-full py-3 px-4 bg-[#52C41A] hover:bg-[#389E0D] text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.99]">
+                                <i class="fa-solid fa-circle-check text-base"></i>
+                                <span>Xác nhận thanh toán thành công</span>
                             </button>
-
-                            @if(config('payment.mode') === 'demo')
-                                <button type="button" 
-                                        id="posSimulateBtn"
-                                        onclick="simulatePosWebhook()" 
-                                        class="w-full py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                                    <i class="fa-solid fa-bolt text-amber-600"></i>
-                                    <span>[Demo] Giả lập Webhook nhận tiền</span>
-                                </button>
-                            @endif
                         </div>
                     </div>
                 </div>
@@ -407,6 +398,95 @@
                     })
                     .catch(err => console.log('Checking POS payment status:', err));
             }, 3000);
+        }
+
+        // Bấm xác nhận thanh toán trực tiếp trong modal VietQR thành công luôn
+        function confirmVietQrPaymentNow() {
+            const btn = document.getElementById('posConfirmPayBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang hoàn tất thanh toán...';
+            }
+
+            stopPosCountdown();
+            if (posPollInterval) {
+                clearInterval(posPollInterval);
+                posPollInterval = null;
+            }
+
+            // Tính tổng tiền hiện tại
+            let currentTotal = 0;
+            const rows = document.querySelectorAll('#paymentTable tbody tr');
+            const items = [];
+            rows.forEach(tr => {
+                const id = tr.dataset.id;
+                const price = parseFloat(tr.dataset.price) || 0;
+                const qtyInput = tr.querySelector('.qty-input');
+                const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+                items.push({ id, qty });
+                currentTotal += price * qty;
+            });
+
+            if (currentTotal <= 0) {
+                currentTotal = {{ (int)$totalAmount }};
+            }
+
+            // Lưu số lượng trước, sau đó xác nhận thanh toán trực tiếp
+            $.ajax({
+                url: '{{ route("admin.table-order.updateTableOrderQuantities") }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    order_id: {{ $order->id }},
+                    items: items
+                },
+                success: function() {
+                    $.ajax({
+                        url: '{{ route("admin.table-order.processPayment") }}',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            order_id: {{ $order->id }},
+                            payment_method: 2, // VietQR
+                            total_price: currentTotal
+                        },
+                        success: function(payRes) {
+                            if (payRes.success) {
+                                // Hiển thị overlay thành công ngay lập tức!
+                                document.getElementById('posPaymentSuccessOverlay')?.classList.remove('hidden');
+                                document.getElementById('posQrStatus')?.classList.add('hidden');
+
+                                toastr.success('Thanh toán Chuyển khoản VietQR thành công!');
+                                printProvisionalBill(true);
+
+                                setTimeout(() => {
+                                    window.location.href = '{{ route("admin.table-order.index") }}';
+                                }, 1800);
+                            } else {
+                                if (btn) {
+                                    btn.disabled = false;
+                                    btn.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> <span>Xác nhận thanh toán thành công</span>';
+                                }
+                                toastr.error(payRes.message || 'Thanh toán thất bại');
+                            }
+                        },
+                        error: function() {
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> <span>Xác nhận thanh toán thành công</span>';
+                            }
+                            toastr.error('Lỗi khi gửi yêu cầu thanh toán');
+                        }
+                    });
+                },
+                error: function() {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> <span>Xác nhận thanh toán thành công</span>';
+                    }
+                    toastr.error('Lỗi cập nhật đơn hàng trước khi thanh toán');
+                }
+            });
         }
 
         function simulatePosWebhook() {
