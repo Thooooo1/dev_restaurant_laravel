@@ -19,23 +19,24 @@ class StoreUserRequest extends FormRequest
         
         $rules = [
             'fullname' => 'required|string|max:255',
-            'phone' => 'required|string|regex:/^0[0-9]{9}$/|unique:user,phone',
-            'gender' => 'required|in:0,1',
+            'phone' => 'required|string|regex:/^0[0-9]{9,10}$/|unique:user,phone',
+            'gender' => 'required|in:0,1,Nam,Nữ',
             'address' => 'nullable|string|max:255',
-            'roles' => 'required|in:customer,admin,employee',
-            'status' => 'required|in:1,2',
+            'email' => 'nullable|email|unique:user,email',
         ];
 
-        // Với customer: email, username, password, image là optional
+        // Với customer: chỉ lưu trữ thông tin cơ bản
         if ($role === 'customer') {
-            $rules['email'] = 'nullable|email|unique:user,email';
-            $rules['username'] = 'nullable|string|min:4|max:50|unique:user,username';
-            $rules['password'] = 'nullable|string|min:6|max:50';
-            $rules['password_re'] = 'nullable|same:password';
-            $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
+            $rules['roles'] = 'nullable|in:customer,admin,employee';
+            $rules['status'] = 'nullable|in:1,2';
+            $rules['username'] = 'nullable|string|max:50|unique:user,username';
+            $rules['password'] = 'nullable|string|max:50';
+            $rules['password_re'] = 'nullable';
+            $rules['image'] = 'nullable';
         } else {
             // Với admin/employee: username, password là required
-            $rules['email'] = 'nullable|email|unique:user,email';
+            $rules['roles'] = 'required|in:customer,admin,employee';
+            $rules['status'] = 'required|in:1,2';
             $rules['username'] = 'required|string|min:4|max:50|unique:user,username';
             $rules['password'] = 'required|string|min:6|max:50';
             $rules['password_re'] = 'required|same:password';

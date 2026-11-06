@@ -5,132 +5,327 @@ namespace App\Http\Controllers\backend;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Order;
-use App\Models\Orderdetail;
+use App\Models\Booking;
+use App\Models\Table;
+use App\Models\Product;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Lấy loại thống kê
-        $type = $request->get('type', 'day');
-        
-        // Tạo khoảng thời gian mặc định (không dùng request start_date/end_date để tránh lỗi)
-        if ($type === 'day') {
-            $endDate = Carbon::today();
-            $startDate = $endDate->copy()->subDays(29);
-        } elseif ($type === 'month') {
-            $endDate = Carbon::today()->endOfMonth();
-            $startDate = $endDate->copy()->subMonths(11)->startOfMonth();
-        } elseif ($type === 'year') {
-            $endDate = Carbon::today()->endOfYear();
-            $startDate = $endDate->copy()->subYears(4)->startOfYear();
+        // Nhân viên vận hành không xem bảng doanh thu tổng quan, điều hướng trực tiếp sang POS bán hàng
+        if (\Illuminate\Support\Facades\Auth::user() && \Illuminate\Support\Facades\Auth::user()->roles === 'employee') {
+            return redirect()->route('admin.table-order.index');
         }
 
-        // === Thống kê hôm nay ===
-        $todayOrderCount = Order::whereNull('deleted_at')
-            ->whereDate('created_at', Carbon::today())
-            ->where('status', 2)
+        // Bộ lọc thời gian: 'today', '7day', '30day', '12month' (mặc định 'today')
+        $type = $request->get('type', 'today');
+        if (!in_array($type, ['today', '7day', '30day', '12month'])) {
+            $type = 'today';
+        }
+
+        $today = Carbon::today();
+
+        // 1. Xác định phạm vi thời gian hiện tại và kỳ đối chiếu
+        if ($type === 'today') {
+            $periodLabel = 'Hôm nay';
+            $periodMetricSuffix = 'HÔM NAY';
+            $prevPeriodLabel = 'hôm qua';
+            
+            $currentStart = $today->copy()->startOfDay();
+            $currentEnd = $today->copy()->endOfDay();
+            
+            $prevStart = $today->copy()->subDay()->startOfDay();
+            $prevEnd = $today->copy()->subDay()->endOfDay();
+        } elseif ($type === '7day') {
+            $periodLabel = '7 ngày qua';
+            $periodMetricSuffix = '7 NGÀY QUA';
+            $prevPeriodLabel = '7 ngày trước';
+            
+            $currentStart = $today->copy()->subDays(6)->startOfDay();
+            $currentEnd = $today->copy()->endOfDay();
+            
+            $prevStart = $today->copy()->subDays(13)->startOfDay();
+            $prevEnd = $today->copy()->subDays(7)->endOfDay();
+        } elseif ($type === '30day') {
+            $periodLabel = '30 ngày qua';
+            $periodMetricSuffix = '30 NGÀY QUA';
+            $prevPeriodLabel = '30 ngày trước';
+            
+            $currentStart = $today->copy()->subDays(29)->startOfDay();
+            $currentEnd = $today->copy()->endOfDay();
+            
+            $prevStart = $today->copy()->subDays(59)->startOfDay();
+            $prevEnd = $today->copy()->subDays(30)->endOfDay();
+        } else { // 12month
+            $periodLabel = '12 tháng qua';
+            $periodMetricSuffix = '12 THÁNG QUA';
+            $prevPeriodLabel = 'năm trước';
+            
+            $currentStart = $today->copy()->subMonths(11)->startOfMonth();
+            $currentEnd = $today->copy()->endOfMonth();
+            
+            $prevStart = $today->copy()->subMonths(23)->startOfMonth();
+            $prevEnd = $today->copy()->subMonths(12)->endOfMonth();
+        }
+
+        // === 2. TÍNH TOÁN 4 CHỈ SỐ KPI CHUẨN DOANH NGHIỆP ===
+        // KPI 1: DOANH THU
+        $revenue = (int) Order::whereNull('deleted_at')
+            ->whereIn('status', [1, 2])
+            ->whereBetween('created_at', [$currentStart, $currentEnd])
+            ->sum('total_price');
+
+        $prevRevenue = (int) Order::whereNull('deleted_at')
+            ->whereIn('status', [1, 2])
+            ->whereBetween('created_at', [$prevStart, $prevEnd])
+            ->sum('total_price');
+
+        $revenueGrowth = $prevRevenue > 0 
+            ? round((($revenue - $prevRevenue) / $prevRevenue) * 100, 1) 
+            : ($revenue > 0 ? 100.0 : 0.0);
+
+        $cashRevenue = (int) Order::whereNull('deleted_at')
+            ->whereIn('status', [1, 2])
+            ->whereBetween('created_at', [$currentStart, $currentEnd])
+            ->where('payment_method', 1)
+            ->sum('total_price');
+
+        $transferRevenue = (int) Order::whereNull('deleted_at')
+            ->whereIn('status', [1, 2])
+            ->whereBetween('created_at', [$currentStart, $currentEnd])
+            ->where('payment_method', 2)
+            ->sum('total_price');
+
+        // KPI 2: ĐƠN HÀNG
+        $orderCount = Order::whereNull('deleted_at')
+            ->whereIn('status', [1, 2])
+            ->whereBetween('created_at', [$currentStart, $currentEnd])
             ->count();
 
-        $todayRevenue = Orderdetail::whereIn('order_id', function ($query) {
-            $query->select('id')
-                ->from('order')
-                ->whereNull('deleted_at')
-                ->whereDate('created_at', Carbon::today())
-                ->where('status', 2);
-        })->sum('amount');
+        $prevOrderCount = Order::whereNull('deleted_at')
+            ->whereIn('status', [1, 2])
+            ->whereBetween('created_at', [$prevStart, $prevEnd])
+            ->count();
 
-        $todayCustomerCount = Order::whereNull('deleted_at')
-            ->whereDate('created_at', Carbon::today())
-            ->where('status', 2)
+        $orderGrowth = $prevOrderCount > 0 
+            ? round((($orderCount - $prevOrderCount) / $prevOrderCount) * 100, 1) 
+            : ($orderCount > 0 ? 100.0 : 0.0);
+
+        $dineInCount = Order::whereNull('deleted_at')
+            ->whereIn('status', [1, 2])
+            ->whereBetween('created_at', [$currentStart, $currentEnd])
+            ->where('orderStyle', 1)
+            ->count();
+
+        $takeawayCount = Order::whereNull('deleted_at')
+            ->whereIn('status', [1, 2])
+            ->whereBetween('created_at', [$currentStart, $currentEnd])
+            ->where('orderStyle', 2)
+            ->count();
+
+        // KPI 3: GIÁ TRỊ ĐƠN TRUNG BÌNH (AOV)
+        $avgOrderValue = $orderCount > 0 ? round($revenue / $orderCount) : 0;
+        $prevAvgOrderValue = $prevOrderCount > 0 ? round($prevRevenue / $prevOrderCount) : 0;
+        $aovGrowth = $prevAvgOrderValue > 0 
+            ? round((($avgOrderValue - $prevAvgOrderValue) / $prevAvgOrderValue) * 100, 1) 
+            : 0.0;
+
+        $customersCount = Order::whereNull('deleted_at')
+            ->whereIn('status', [1, 2])
+            ->whereBetween('created_at', [$currentStart, $currentEnd])
             ->distinct('phone')
             ->count('phone');
 
-        $todayAvgOrderValue = $todayOrderCount > 0 ? $todayRevenue / $todayOrderCount : 0;
+        // KPI 4: LƯỢT ĐẶT BÀN
+        $bookingsCount = Booking::whereBetween('booking_date', [$currentStart->toDateString(), $currentEnd->toDateString()])
+            ->where('status', '!=', 0)
+            ->count();
 
+        $confirmedBookings = Booking::whereBetween('booking_date', [$currentStart->toDateString(), $currentEnd->toDateString()])
+            ->where('status', 2)
+            ->count();
+
+        $pendingBookings = Booking::whereBetween('booking_date', [$currentStart->toDateString(), $currentEnd->toDateString()])
+            ->where('status', 1)
+            ->count();
+
+        $prevBookingsCount = Booking::whereBetween('booking_date', [$prevStart->toDateString(), $prevEnd->toDateString()])
+            ->where('status', '!=', 0)
+            ->count();
+
+        $bookingGrowth = $prevBookingsCount > 0 
+            ? round((($bookingsCount - $prevBookingsCount) / $prevBookingsCount) * 100, 1) 
+            : ($bookingsCount > 0 ? 100.0 : 0.0);
+
+        // === 3. THÔNG SỐ VẬN HÀNH THỰC TẾ NHÀ HÀNG ===
+        $totalTables = Table::count();
+        $activeTableIds = Order::whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->whereNotNull('table_id')
+            ->pluck('table_id')
+            ->toArray();
+        $lockedTableIds = Table::whereNotNull('locked_order_id')->pluck('id')->toArray();
+        $occupiedTables = count(array_unique(array_merge($activeTableIds, $lockedTableIds)));
+        $totalActiveDishes = Product::where('status', 1)->count();
+        $totalAllTimeRevenue = Order::whereNull('deleted_at')->whereIn('status', [1, 2])->sum('total_price');
+
+        // === 4. THỐNG KÊ TRẠNG THÁI ĐƠN HÀNG (BYTEBITE POS STYLE PILLS) ===
+        $totalOrdersCount = Order::whereNull('deleted_at')->count();
+        $pendingOrdersCount = Order::whereNull('deleted_at')->where('status', 0)->count();
+        $paidOrdersCount = Order::whereNull('deleted_at')->where('status', 1)->count();
+        $completedOrdersCount = Order::whereNull('deleted_at')->where('status', 2)->count();
+        $cancelledOrdersCount = Order::whereNull('deleted_at')->where('status', 3)->count();
+
+        // Thống kê trạng thái Đặt bàn
+        $totalBookingsCount = Booking::count();
+        $totalPendingBookings = Booking::where('status', 1)->count();
+        $totalConfirmedBookings = Booking::where('status', 2)->count();
+        $totalCancelledBookings = Booking::where('status', 0)->count();
+
+        // === 5. DANH SÁCH HOẠT ĐỘNG GẦN ĐÂY ===
+        $recentOrders = Order::whereNull('deleted_at')
+            ->orderBy('id', 'desc')
+            ->limit(8)
+            ->get();
+
+        $recentBookings = Booking::orderBy('id', 'desc')
+            ->limit(8)
+            ->get();
+
+        // === 6. TÍNH TOÁN DỮ LIỆU BIỂU ĐỒ ===
         $chartLabels = [];
         $chartRevenueData = [];
 
-        if ($type === 'day') {
-            $current = $startDate->copy();
-            while ($current->lte($endDate)) {
+        if ($type === 'today') {
+            $hours = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'];
+            foreach ($hours as $h) {
+                $chartLabels[] = $h;
+                $hourInt = (int)explode(':', $h)[0];
+                $hStart = $today->copy()->setHour($hourInt)->setMinute(0)->setSecond(0);
+                $hEnd = $hStart->copy()->addHours(2)->subSecond();
+                $rev = (int) Order::whereNull('deleted_at')
+                    ->whereIn('status', [1, 2])
+                    ->whereBetween('created_at', [$hStart, $hEnd])
+                    ->sum('total_price');
+                $chartRevenueData[] = $rev;
+            }
+        } elseif ($type === '7day') {
+            $current = $today->copy()->subDays(6);
+            while ($current->lte($today)) {
                 $chartLabels[] = $current->format('d/m');
                 $dateStr = $current->toDateString();
-                
-                $rev = Orderdetail::whereIn('order_id', function ($q) use ($dateStr) {
-                    $q->select('id')->from('order')->whereNull('deleted_at')->whereDate('created_at', $dateStr)->where('status', 2);
-                })->sum('amount');
-                
+                $rev = (int) Order::whereNull('deleted_at')
+                    ->whereDate('created_at', $dateStr)
+                    ->whereIn('status', [1, 2])
+                    ->sum('total_price');
                 $chartRevenueData[] = $rev;
                 $current->addDay();
             }
-        } elseif ($type === 'month') {
-            $chartLabels = [];
-            $chartRevenueData = [];
-            
-            // Tạo 12 tháng thủ công, chắc chắn 100% không thiếu
-            $startYear = $startDate->year;
-            $startMonth = $startDate->month;
-            $endYear = $endDate->year;
-            $endMonth = $endDate->month;
-            
-            $currentYear = $startYear;
-            $currentMonth = $startMonth;
-            
+        } elseif ($type === '30day') {
+            $current = $today->copy()->subDays(29);
+            while ($current->lte($today)) {
+                $chartLabels[] = $current->format('d/m');
+                $dateStr = $current->toDateString();
+                $rev = (int) Order::whereNull('deleted_at')
+                    ->whereDate('created_at', $dateStr)
+                    ->whereIn('status', [1, 2])
+                    ->sum('total_price');
+                $chartRevenueData[] = $rev;
+                $current->addDay();
+            }
+        } else { // 12month
+            $currentYear = $currentStart->year;
+            $currentMonth = $currentStart->month;
+            $endYear = $currentEnd->year;
+            $endMonth = $currentEnd->month;
+
             while (true) {
-                // Tạo ngày đầu và cuối tháng hiện tại
                 $tempDate = Carbon::create($currentYear, $currentMonth, 1);
                 $monthStart = $tempDate->startOfMonth()->toDateString();
                 $monthEnd = $tempDate->endOfMonth()->toDateString();
                 $chartLabels[] = $tempDate->format('m/Y');
-                
-                // Tính doanh thu
-                $rev = Orderdetail::whereIn('order_id', function ($q) use ($monthStart, $monthEnd) {
-                    $q->select('id')->from('order')->whereNull('deleted_at')->whereBetween('created_at', [$monthStart.' 00:00:00', $monthEnd.' 23:59:59'])->where('status', 2);
-                })->sum('amount');
-                
+
+                $rev = (int) Order::whereNull('deleted_at')
+                    ->whereBetween('created_at', [$monthStart . ' 00:00:00', $monthEnd . ' 23:59:59'])
+                    ->whereIn('status', [1, 2])
+                    ->sum('total_price');
+
                 $chartRevenueData[] = $rev;
-                
-                // Kiểm tra nếu đã đến tháng cuối thì break
+
                 if ($currentYear == $endYear && $currentMonth == $endMonth) {
                     break;
                 }
-                
-                // Tăng tháng
                 $currentMonth++;
                 if ($currentMonth > 12) {
                     $currentMonth = 1;
                     $currentYear++;
                 }
             }
-        } elseif ($type === 'year') {
-            $current = $startDate->copy()->startOfYear();
-            $endLoop = $endDate->copy()->endOfYear();
-            
-            while ($current->lte($endLoop)) {
-                $chartLabels[] = $current->format('Y');
-                $yearStart = $current->startOfYear()->toDateString();
-                $yearEnd = $current->endOfYear()->toDateString();
-                
-                $rev = Orderdetail::whereIn('order_id', function ($q) use ($yearStart, $yearEnd) {
-                    $q->select('id')->from('order')->whereNull('deleted_at')->whereBetween('created_at', [$yearStart.' 00:00:00', $yearEnd.' 23:59:59'])->where('status', 2);
-                })->sum('amount');
-                
-                $chartRevenueData[] = $rev;
-                $current->addYear();
-            }
         }
 
-      
+        $hasChartData = array_sum($chartRevenueData) > 0;
+
         return view('backend.dashboard.index', [
-            'todayRevenue' => $todayRevenue,
-            'todayOrderCount' => $todayOrderCount,
-            'todayCustomerCount' => $todayCustomerCount,
-            'todayAvgOrderValue' => $todayAvgOrderValue,
             'type' => $type,
+            'periodLabel' => $periodLabel,
+            'periodMetricSuffix' => $periodMetricSuffix,
+            'prevPeriodLabel' => $prevPeriodLabel,
+
+            // KPI 1: Doanh thu
+            'revenue' => $revenue,
+            'prevRevenue' => $prevRevenue,
+            'revenueGrowth' => $revenueGrowth,
+            'cashRevenue' => $cashRevenue,
+            'transferRevenue' => $transferRevenue,
+
+            // KPI 2: Đơn hàng
+            'orderCount' => $orderCount,
+            'prevOrderCount' => $prevOrderCount,
+            'orderGrowth' => $orderGrowth,
+            'dineInCount' => $dineInCount,
+            'takeawayCount' => $takeawayCount,
+
+            // KPI 3: AOV
+            'avgOrderValue' => $avgOrderValue,
+            'prevAvgOrderValue' => $prevAvgOrderValue,
+            'aovGrowth' => $aovGrowth,
+            'customersCount' => $customersCount,
+
+            // KPI 4: Đặt bàn
+            'bookingsCount' => $bookingsCount,
+            'confirmedBookings' => $confirmedBookings,
+            'pendingBookings' => $pendingBookings,
+            'bookingGrowth' => $bookingGrowth,
+
+            // Vận hành chung
+            'totalTables' => $totalTables,
+            'occupiedTables' => $occupiedTables,
+            'totalActiveDishes' => $totalActiveDishes,
+            'totalAllTimeRevenue' => $totalAllTimeRevenue,
+
+            // Thống kê phân loại đơn
+            'totalOrdersCount' => $totalOrdersCount,
+            'pendingOrdersCount' => $pendingOrdersCount,
+            'paidOrdersCount' => $paidOrdersCount,
+            'completedOrdersCount' => $completedOrdersCount,
+            'cancelledOrdersCount' => $cancelledOrdersCount,
+
+            // Thống kê đặt bàn
+            'totalBookingsCount' => $totalBookingsCount,
+            'totalPendingBookings' => $totalPendingBookings,
+            'totalConfirmedBookings' => $totalConfirmedBookings,
+            'totalCancelledBookings' => $totalCancelledBookings,
+
+            // Danh sách
+            'recentOrders' => $recentOrders,
+            'recentBookings' => $recentBookings,
+
+            // Biểu đồ
             'chartLabels' => $chartLabels,
-            'chartRevenueData' => $chartRevenueData
+            'chartRevenueData' => $chartRevenueData,
+            'hasChartData' => $hasChartData,
         ]);
     }
 }

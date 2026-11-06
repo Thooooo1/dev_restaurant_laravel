@@ -1,24 +1,9 @@
 <x-layout-backend>
-    <style>
-        table thead th {
-            font-size: 14px !important;
-            font-weight: 600 !important;
-            background: #78b4f1ff !important;
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
-        }
-    </style>
     <!-- Page header -->
     <div class="mb-4">
         <div class="flex items-center justify-between flex-wrap gap-4">
             <div>
-                <h1 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-                    <span class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
-                        <i class="fa-solid fa-comment-dots text-sm"></i>
-                    </span>
-                    Quản lý yêu cầu
-                </h1>
-                <p class="text-slate-500 mt-1 text-sm">Danh sách và quản lý các yêu cầu từ khách hàng</p>
+                <h1 class="text-xl font-bold text-slate-800">Quản lý yêu cầu</h1>
             </div>
         </div>
     </div>

@@ -10,12 +10,9 @@ use App\Models\Post;
 
 class ListPost extends Component
 {
-    /**
-     * Create a new component instance.
-     */
-    
-     public $topic_item;
-    public function __construct($topicitem)
+    public $topic_item;
+
+    public function __construct($topicitem = null)
     {
         $this->topic_item = $topicitem;
     }
@@ -25,26 +22,19 @@ class ListPost extends Component
      */
     public function render(): View|Closure|string
     {
-        $list_topicid = [];
+        $query = Post::where('status', 1)->with('topic');
+
         if ($this->topic_item && $this->topic_item !== 'all') {
-            $topic = Topic::find($this->topic_item);
-            array_push($list_topicid, $topic->id);
+            $query->where('topic_id', $this->topic_item);
         }
-        
-        $search = request()->get('search', ''); 
 
-        $query = Post::whereIn('status', [1, 2]);
-
-
+        $search = request()->get('search', '');
         if (!empty($search)) {
             $query->where('title', 'like', '%' . $search . '%');
         }
 
-        if (!empty($list_topicid)) {
-            $query->whereIn('topic_id', $list_topicid);
-        }
-        
-        $posts = $query->paginate(3); 
+        $posts = $query->orderBy('created_at', 'desc')->paginate(4);
+        $posts->appends(request()->all());
 
         return view('components.list-post', compact('posts'));
     }

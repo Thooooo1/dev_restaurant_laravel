@@ -1,57 +1,48 @@
 <x-layout-backend>
-    <style>
-        table thead th {
-            font-size: 14px !important;
-            font-weight: 600 !important;
-            background: #78b4f1ff !important;
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
-        }
-    </style>
-    <!-- Page header -->
-    <div class="mb-4">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-            <div>
-                <h1 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-                    <span class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
-                        <i class="fa-solid fa-history text-sm"></i>
-                    </span>
-                    Lịch sử Order
-                </h1>
-                <p class="text-slate-500 mt-1 text-sm">Xem và quản lý lịch sử đơn hàng</p>
-            </div>
+
+    <!-- Page Header (Ant Design Pro Style) -->
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Lịch sử Gọi món & Doanh thu</h1>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('admin.dashboard') }}" class="ant-btn ant-btn-sm">
+                <i class="fa-solid fa-chart-pie text-xs"></i>
+                <span>Xem báo cáo tổng quan</span>
+            </a>
         </div>
     </div>
 
-    <!-- Stats card -->
-    <div class="bg-gradient-to-r from-orange-400 to-orange-600 rounded-xl p-3 text-white mb-4 shadow-lg">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-white/20 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-coins text-base"></i>
-            </div>
-            <div>
-                <p class="text-orange-100 text-xs font-medium">Tổng doanh thu (theo bộ lọc)</p>
-                <p class="text-2xl font-bold">{{ number_format($totalRevenue, 0, ',', '.') }} VNĐ</p>
-            </div>
+    <!-- Stats Card (Ant Design Pro / IBM Carbon Style - Phẳng, thanh lịch, không gradient) -->
+    <div class="ant-card p-4 mb-4 shadow-sm flex items-center justify-between">
+        <div>
+            <p class="text-xs text-[rgba(0,0,0,0.45)] font-semibold uppercase tracking-wider">Tổng doanh thu thực tế (theo bộ lọc)</p>
+            <p class="text-2xl font-bold font-mono text-[rgba(0,0,0,0.85)] mt-1">
+                {{ number_format($totalRevenue, 0, ',', '.') }}
+                <span class="text-sm font-normal text-[rgba(0,0,0,0.45)]">₫</span>
+            </p>
+        </div>
+        <div class="w-10 h-10 rounded bg-[#FFF2E8] text-[#F47716] flex items-center justify-center border border-[#FFBB96]">
+            <i class="fa-solid fa-sack-dollar text-sm"></i>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 mb-4">
-        <form action="{{ route('admin.order-history.index') }}" method="GET" class="flex flex-wrap gap-3 items-end">
-            <div class="flex-1 min-w-[160px]">
-                <label class="block text-sm font-medium text-slate-700 mb-1">Năm</label>
-                <select name="year" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm" onchange="this.form.submit()">
+    <!-- Filters (Shopify Polaris IndexFilters Style) -->
+    <div class="ant-card p-3.5 mb-4 shadow-sm">
+        <form action="{{ route('admin.order-history.index') }}" method="GET" class="flex flex-wrap gap-3 items-center">
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-semibold text-[rgba(0,0,0,0.65)] uppercase">Năm:</label>
+                <select name="year" class="polaris-select text-xs min-w-[120px]" onchange="this.form.submit()">
                     @for($y = 2024; $y <= 2030; $y++)
-                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                        <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>Năm {{ $y }}</option>
                     @endfor
                 </select>
             </div>
 
-            <div class="flex-1 min-w-[160px]">
-                <label class="block text-sm font-medium text-slate-700 mb-1">Quý</label>
-                <select name="quarter" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm" onchange="this.form.submit()">
-                    <option value="">-- Tất cả --</option>
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-semibold text-[rgba(0,0,0,0.65)] uppercase">Quý:</label>
+                <select name="quarter" class="polaris-select text-xs min-w-[120px]" onchange="this.form.submit()">
+                    <option value="">-- Tất cả quý --</option>
                     <option value="1" {{ $quarter == 1 ? 'selected' : '' }}>Quý 1</option>
                     <option value="2" {{ $quarter == 2 ? 'selected' : '' }}>Quý 2</option>
                     <option value="3" {{ $quarter == 3 ? 'selected' : '' }}>Quý 3</option>
@@ -59,90 +50,82 @@
                 </select>
             </div>
 
-            <div class="flex-1 min-w-[160px]">
-                <label class="block text-sm font-medium text-slate-700 mb-1">Tháng</label>
-                <select name="month" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm" onchange="this.form.submit()">
-                    <option value="">-- Tất cả --</option>
+            <div class="flex items-center gap-2">
+                <label class="text-xs font-semibold text-[rgba(0,0,0,0.65)] uppercase">Tháng:</label>
+                <select name="month" class="polaris-select text-xs min-w-[130px]" onchange="this.form.submit()">
+                    <option value="">-- Tất cả tháng --</option>
                     @for($m = 1; $m <= 12; $m++)
                         <option value="{{ $m }}" {{ $month == $m ? 'selected' : '' }}>Tháng {{ $m }}</option>
                     @endfor
                 </select>
             </div>
+
+            @if($quarter || $month)
+                <a href="{{ route('admin.order-history.index', ['year' => $year]) }}" class="ant-btn ant-btn-sm">
+                    <span>Xóa lọc</span>
+                </a>
+            @endif
         </form>
     </div>
 
-    <!-- Orders table -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <!-- Orders Table (Shopify Polaris Table Style) -->
+    <div class="ant-card shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <div class="table-responsive"><table class="w-full">
-                <thead class="bg-slate-50 border-b border-slate-200">
+            <table class="w-full">
+                <thead>
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Mã HĐ</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Ngày tạo</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Khách hàng</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">SĐT</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Tổng tiền</th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">PT Thanh toán</th>
-                        <th class="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Hành động</th>
+                        <th class="w-16 text-center">MÃ HĐ</th>
+                        <th>Thời gian</th>
+                        <th>Khách hàng</th>
+                        <th>Điện thoại</th>
+                        <th class="text-right">Tổng tiền</th>
+                        <th class="text-center">Phương thức</th>
+                        <th class="text-center w-24">Chi tiết</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
-                    @foreach($orders as $order)
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            <span class="text-slate-800 font-semibold text-sm">#{{ $order->id }}</span>
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-slate-600 text-sm">
-                            {{ $order->created_at->format('d/m/Y H:i') }}
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-slate-800 font-medium text-sm">
-                            {{ $order->user->fullname ?? $order->name ?? 'Khách lẻ' }}
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-slate-600 text-sm">
-                            {{ $order->user->phone ?? $order->phone }}
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-slate-800 font-semibold text-sm">
-                            {{ number_format($order->total_price, 0, ',', '.') }} VNĐ
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            @if($order->payment_method == 1)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium">
-                                    <i class="fa-solid fa-money-bill-wave"></i>
-                                    Tiền mặt
-                                </span>
-                            @elseif($order->payment_method == 2)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">
-                                    <i class="fa-solid fa-university"></i>
-                                    Chuyển khoản
-                                </span>
-                            @else
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-medium">
-                                    <i class="fa-solid fa-question-circle"></i>
-                                    Khác
-                                </span>
-                            @endif
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-center">
-                            <button class="btn-view-detail inline-flex items-center justify-center w-10 h-10 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors" data-id="{{ $order->id }}" onclick="openOrderDetail({{ $order->id }})">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    @endforeach
+                <tbody>
+                    @forelse($orders as $order)
+                        <tr>
+                            <td class="text-center font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)]">
+                                #{{ $order->id }}
+                            </td>
+                            <td class="font-mono text-xs text-[rgba(0,0,0,0.65)]">
+                                {{ $order->created_at->format('H:i d/m/Y') }}
+                            </td>
+                            <td>
+                                <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $order->user->fullname ?? $order->name ?? 'Khách lẻ' }}</div>
+                            </td>
+                            <td class="font-mono text-xs text-[rgba(0,0,0,0.65)]">
+                                {{ $order->user->phone ?? $order->phone ?? '---' }}
+                            </td>
+                            <td class="text-right font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)]">
+                                {{ number_format($order->total_price, 0, ',', '.') }} ₫
+                            </td>
+                            <td class="text-center">
+                                @if($order->payment_method == 1)
+                                    <span class="polaris-badge polaris-badge-default text-[11px]">Tiền mặt</span>
+                                @elseif($order->payment_method == 2)
+                                    <span class="polaris-badge polaris-badge-processing text-[11px]">Chuyển khoản</span>
+                                @else
+                                    <span class="polaris-badge polaris-badge-default text-[11px]">Khác</span>
+                                @endif
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="text-gray-400 hover:text-blue-600 transition-colors p-1" onclick="openOrderDetail({{ $order->id }})" title="Xem hóa đơn">
+                                    <i class="fa-regular fa-eye text-xs"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-xs text-[rgba(0,0,0,0.45)]">Không có đơn hàng nào trong khoảng thời gian này</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
-        
-        @if($orders->count() == 0)
-        <div class="text-center py-8">
-            <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <i class="fa-solid fa-inbox text-slate-400 text-xl"></i>
-            </div>
-            <p class="text-slate-500 font-medium text-sm">Không có đơn hàng nào</p>
-        </div>
-        @endif
-        
-        <div class="px-4 py-3 border-t border-slate-200 flex justify-center">
+
+        <div class="px-5 py-3 border-t border-[#F0F0F0] bg-[#FAFAFA] flex justify-center">
             {{ $orders->links() }}
         </div>
     </div>

@@ -1,78 +1,27 @@
-
-<section class="product_new px-2">
-    <section class="gallery-area">
-        <div class="gallery-top bg-cover bg-center py-20"
-            style="background-image: url('assets/img/gallery/section_bg01.png');">
-            <div class="container mx-auto text-center">
-                <div class="mb-10">
-                    <p class="text-orange-500 font-semibold text-lg mb-4">Thực đơn</p>
-                    <h2 class="text-3xl font-bold">Món ăn mới</h2>
-                </div>
+<section class="py-16 md:py-24 bg-white relative">
+    <div class="container mx-auto px-4 max-w-7xl">
+        <!-- Section Header -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 pb-4 border-b border-stone-100">
+            <div>
+                <span class="inline-block text-orange-600 font-extrabold uppercase text-xs tracking-widest mb-2">
+                    Món Mới Đặc Sắc
+                </span>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-black text-stone-900 tracking-tight">
+                    Sáng Tạo Mới Từ Bếp Trưởng
+                </h2>
             </div>
-            <div class="product-new-slider lg:w-[800px] lg:mx-auto flex">
-                @foreach ($products as $item)
-                <div class="gallery-box relative bg-white rounded-lg shadow-md overflow-hidden group mx-2">
-                    <div class="relative">
-                         <img src="{{ asset('/images/product/' . $item->image) }}" alt="{{$item->name }}"
-                            class="w-full h-64 object-cover transition-all duration-300 group-hover:opacity-60">
-                            <div class="absolute inset-0 flex justify-center items-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                <div class="flex space-x-4">
-                                    <a href="{{ route('site.product.detail', ['slug'=>$item->slug])}}" 
-                                       class="flex justify-center items-center w-12 h-12 bg-white bg-opacity-20 text-white rounded-full hover:bg-opacity-40 transition transform hover:scale-110">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                            
-                                    <form action="{{ route('site.addcart', ['id' => $item->id]) }}" method="POST" data-save-scroll="true">
-                                        @csrf
-                                        <button type="submit" 
-                                                class="flex justify-center items-center w-12 h-12 bg-white bg-opacity-20 text-white rounded-full hover:bg-opacity-40 transition transform hover:scale-110">
-                                            <i class="fas fa-cart-plus"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>       
-                    </div>
-                    <div class="p-4">
-                        <span class="text-red-500 font-semibold">-3%</span>
-                        <span class="text-orange-500 font-semibold text-lg">{{ $item->price_sale ? number_format($item->price_sale, 0, ',', '.') . ' VND' : 'Liên hệ' }}</span>
-                        <span class="line-through text-gray-400 ml-2">{{ number_format($item->price_buy, 0, ',', '.') . ' VND' }}</span>
-                        <h4 class="font-bold text-lg mt-2 mb-3">{{$item->name}}</h4>
-                        <a href="{{ route('site.product.detail', ['slug'=>$item->slug])}}"
-                            class="btn mt-2 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600">Xem
-                            chi tiết</a>
-                    </div>
-                </div>
-                @endforeach
-              
-
-            </div>
+            <a href="{{ route('site.product.gridview') }}" 
+               class="text-orange-600 hover:text-orange-700 font-bold text-xs sm:text-sm inline-flex items-center gap-1.5 mt-3 md:mt-0 transition-colors group">
+                <span>Khám phá thêm</span>
+                <i class="fas fa-arrow-right text-xs transform group-hover:translate-x-1 transition-transform"></i>
+            </a>
         </div>
-    </section>
-</section>
 
-<script>
-    $(document).ready(function () {
-        $('.product-new-slider').slick({
-            infinite: true,
-            slidesToShow: 3,
-            slidesToScroll: 1,
-            vertical: false,
-            arrows: false,
-            dots: true,
-            responsive: [
-                {
-                    breakpoint: 1024,
-                    settings: {
-                        slidesToShow: 2,
-                    }
-                },
-                {
-                    breakpoint: 600,
-                    settings: {
-                        slidesToShow: 1,
-                    }
-                }
-            ]
-        });
-    });
-</script>
+        <!-- Dishes Grid (8 món mới) -->
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            @foreach ($products as $item)
+                <x-product-card :productitem="$item" />
+            @endforeach
+        </div>
+    </div>
+</section>

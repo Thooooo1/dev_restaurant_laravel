@@ -5,13 +5,7 @@
                 <div class="col-sm-6">
                     <strong class="fw-bold h4 text-danger">XOÁ BÀN ĂN</strong>
                 </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url('admin/') }}">Trang chủ</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.table.index') }}">Bàn ăn</a></li>
-                        <li class="breadcrumb-item active">Thùng rác</li>
-                    </ol>
-                </div>
+                
             </div>
         </div>
     </section>
@@ -19,7 +13,7 @@
     <section class="content">
         <div class="card">
             <div class="card-header">
-                <a href="{{ route('admin.table.index') }}" class="btn btn-secondary">Quay lại danh sách</a>
+                <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary">Quay lại sơ đồ bàn (POS)</a>
             </div>
             <div class="card-body">
                 <div class="table-responsive"><table class="table table-bordered table-striped">

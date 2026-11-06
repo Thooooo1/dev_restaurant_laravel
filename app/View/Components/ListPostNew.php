@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 use App\Models\Post;
+use Illuminate\Support\Facades\Schema;
 
 class ListPostNew extends Component
 {
@@ -22,13 +23,16 @@ class ListPostNew extends Component
      */
     public function render(): View|Closure|string
     {
-        $args =[
-            ['status','=',1],
-            ['new','=',1],
-        ];
-        $posts = Post::where($args)
-        ->limit(5)
-        ->get();
-        return view('components.list-post-new',compact('posts'));
+        $query = Post::where('status', 1);
+
+        if (Schema::hasColumn('post', 'view')) {
+            $query->orderBy('view', 'desc');
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $posts = $query->limit(4)->get();
+
+        return view('components.list-post-new', compact('posts'));
     }
 }

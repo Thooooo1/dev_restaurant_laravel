@@ -27,9 +27,9 @@ class TableOrderController extends Controller
 
         // Lấy danh sách order đang active (chưa thanh toán) để hiển thị trạng thái bàn
         $orders = Order::whereNull('deleted_at')
-            ->whereIn('status', [0, 1]) // Đang chờ xử lý hoặc đang vận chuyển
+            ->whereIn('status', [0, 1]) // Đang chờ xử lý hoặc đang phục vụ
             ->whereNotNull('table_id')
-            ->with('table')
+            ->with(['table', 'orderDetails.product', 'user'])
             ->get();
 
         $activeOrders = $orders->keyBy('table_id');
@@ -41,7 +41,29 @@ class TableOrderController extends Controller
              ->groupBy('locked_order_id')
              ->pluck('total_locked_seats', 'locked_order_id');
 
-        return view('backend.table-order.index', compact('floors', 'activeOrders', 'ordersById', 'lockedSeats'));
+        // Lấy các yêu cầu gọi phục vụ đang chờ xử lý theo bàn
+        $activeServiceCalls = \App\Models\ServiceCall::where('status', \App\Models\ServiceCall::STATUS_PENDING)
+             ->get()
+             ->keyBy('table_id');
+
+        $totalTables = Table::count();
+        $occupiedCount = $orders->count();
+        $emptyCount = max(0, $totalTables - $occupiedCount);
+        $totalServingAmount = 0;
+        foreach ($orders as $ord) {
+            $sum = $ord->orderDetails->sum('amount');
+            $totalServingAmount += ($ord->total_price > 0 ? $ord->total_price : $sum);
+        }
+
+        $posStats = [
+            'total' => $totalTables,
+            'occupied' => $occupiedCount,
+            'empty' => $emptyCount,
+            'serving_revenue' => $totalServingAmount,
+            'service_calls' => $activeServiceCalls->count(),
+        ];
+
+        return view('backend.table-order.index', compact('floors', 'activeOrders', 'ordersById', 'lockedSeats', 'activeServiceCalls', 'posStats'));
     }
 
     /**
@@ -587,9 +609,14 @@ class TableOrderController extends Controller
             ->with(['table', 'orderDetails.product'])
             ->get();
 
+        $serviceCalls = \App\Models\ServiceCall::with(['table.floor'])
+            ->where('status', \App\Models\ServiceCall::STATUS_PENDING)
+            ->get();
+
         return response()->json([
             'success' => true,
-            'new_orders' => $newOrders
+            'new_orders' => $newOrders,
+            'service_calls' => $serviceCalls
         ]);
     }
 
@@ -617,7 +644,7 @@ class TableOrderController extends Controller
     {
         $request->validate([
             'order_id' => 'required|exists:order,id',
-            'payment_method' => 'required|in:1,2',
+            'payment_method' => 'required|in:1,2,3',
             'total_price' => 'required|numeric|min:0',
         ]);
 
@@ -628,6 +655,21 @@ class TableOrderController extends Controller
         $order->payment_method = $request->payment_method;
         $order->total_price = $request->total_price;
         $order->save();
+
+        if ($order->user_id) {
+            try {
+                \App\Services\NotificationService::send([
+                    'user_id' => $order->user_id,
+                    'role'    => 'customer',
+                    'type'    => 'payment',
+                    'title'   => 'Thanh toán hoàn tất! Cảm ơn quý khách',
+                    'message' => 'Hóa đơn đơn hàng #' . $order->id . ' đã được thanh toán thành công. Cảm ơn bạn đã lựa chọn dùng bữa tại CIVILIZE!',
+                    'url'     => route('site.orders'),
+                    'icon'    => 'fa-receipt',
+                    'color'   => '#10B981',
+                ]);
+            } catch (\Exception $e) {}
+        }
 
         // Clear table lock for all tables linked to this order
         Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);

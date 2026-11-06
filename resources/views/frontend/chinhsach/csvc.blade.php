@@ -1,112 +1,60 @@
 <x-layout-frontend>
-    <section class="bg-gray-200 ml-5">
-        <div class="breadcrumb flex items-center text-gray-600 text-sm  ">
-            <span class="mr-4">Bạn đang ở đây:</span>
-            <a href="{{url('/')}}" class="hover:text-orange-500"> Quay lại Trang chủ</a>
-            <span class="mx-2">></span>
-            <span class="font-semibold text-gray-800">Chính sách</span>
+    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+        <x-page-hero 
+            title="Chính Sách Vận Chuyển & Giao Món" 
+            subtitle="Quy trình giao nhận món ăn nóng hổi, bảo quản kỹ lưỡng đến tận tay thực khách." 
+            :breadcrumbs="[
+                ['name' => 'Chính sách', 'url' => ''],
+                ['name' => 'Vận chuyển & giao hàng', 'url' => '']
+            ]" 
+        />
+
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl pt-8 sm:pt-12">
+            <div class="bg-white shadow-2xs border border-stone-200/90 rounded-none sm:rounded-sm p-8 sm:p-12">
+                <h2 class="text-xl sm:text-2xl font-black font-serif text-stone-900 mb-4">Các Phương Thức Giao Món</h2>
+                <p class="text-stone-700 leading-relaxed mb-6">
+                    Chúng tôi áp dụng các tiêu chuẩn vận chuyển ẩm thực khắt khe để đảm bảo món ăn giữ trọn hương vị tươi nóng khi đến tay quý khách:
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="p-5 bg-stone-50 border border-stone-200 rounded-none sm:rounded-sm">
+                        <i class="fa-solid fa-clock text-[#C25E00] text-lg mb-2 block"></i>
+                        <h4 class="font-bold text-stone-900 text-sm mb-1">Giao hỏa tốc</h4>
+                        <p class="text-xs text-stone-600 leading-relaxed">Giao trong vòng 30 - 45 phút cho khu vực nội thành Phúc Thọ.</p>
+                    </div>
+                    <div class="p-5 bg-stone-50 border border-stone-200 rounded-none sm:rounded-sm">
+                        <i class="fa-solid fa-box text-[#C25E00] text-lg mb-2 block"></i>
+                        <h4 class="font-bold text-stone-900 text-sm mb-1">Đóng gói chuyên dụng</h4>
+                        <p class="text-xs text-stone-600 leading-relaxed">Hộp giữ nhiệt cao cấp, seal niêm phong an toàn vệ sinh 100%.</p>
+                    </div>
+                    <div class="p-5 bg-stone-50 border border-stone-200 rounded-none sm:rounded-sm">
+                        <i class="fa-solid fa-shield-halved text-[#C25E00] text-lg mb-2 block"></i>
+                        <h4 class="font-bold text-stone-900 text-sm mb-1">Cam kết chất lượng</h4>
+                        <p class="text-xs text-stone-600 leading-relaxed">Đổi món mới hoặc hoàn tiền ngay nếu món ăn bị nguội hoặc hư hại.</p>
+                    </div>
+                </div>
+            
+                <h3 class="text-lg sm:text-xl font-bold font-serif text-stone-900 mb-4 pb-2 border-b border-stone-200">Thời Gian & Khu Vực Phục Vụ</h3>
+                <ul class="list-disc pl-6 text-stone-700 leading-relaxed mb-8 space-y-2">
+                    <li>Khu vực huyện Phúc Thọ: Giao hàng nhanh từ 30 - 45 phút kể từ lúc hoàn tất chế biến.</li>
+                    <li>Khu vực lân cận (Sơn Tây, Đan Phượng): Giao hàng từ 45 - 60 phút trong bán kính 15km.</li>
+                    <li>Thời gian nhận đơn trực tuyến: Từ 09:00 đến 21:30 hàng ngày.</li>
+                </ul>
+            
+                <h3 class="text-lg sm:text-xl font-bold font-serif text-stone-900 mb-4 pb-2 border-b border-stone-200">Biểu Phí Giao Nhận</h3>
+                <p class="text-stone-700 leading-relaxed mb-4">
+                    Biểu phí được tính toán minh bạch dựa trên khoảng cách di chuyển từ cơ sở nhà hàng:
+                </p>
+                <ul class="list-disc pl-6 text-stone-700 leading-relaxed mb-8 space-y-2">
+                    <li>Miễn phí giao hàng cho hóa đơn từ 500.000đ trong bán kính 5km.</li>
+                    <li>Dưới 5km: Phí giao hàng tiêu chuẩn 20.000đ/đơn.</li>
+                    <li>Từ 5km - 15km: Phí giao hàng 35.000đ - 50.000đ tùy khoảng cách.</li>
+                </ul>
+            
+                <div class="p-6 bg-stone-50 border-l-4 border-l-[#C25E00] text-stone-700 leading-relaxed">
+                    <p class="font-medium">Mọi thắc mắc về đơn hàng đang giao, quý khách vui lòng liên hệ trực tiếp hotline <span class="font-bold text-[#C25E00]">0981 487 674</span> để được điều phối viên hỗ trợ ngay lập tức.</p>
+                </div>
+            </div>
         </div>
-    </section>
-    <div class="container mx-auto py-8 px-4">
-        <!-- Tiêu đề -->
-        <div class="text-center mb-12">
-          <h1 class="text-3xl font-semibold text-gray-800">Chính Sách Vận Chuyển</h1>
-          <p class="text-gray-600 mt-2">Thông tin về phương thức và thời gian vận chuyển</p>
-        </div>
-      
-        <!-- Nội dung chính sách vận chuyển -->
-        <div class="bg-white shadow-md rounded-lg p-6">
-      
-          <!-- Phương thức vận chuyển -->
-          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Các Phương Thức Vận Chuyển</h2>
-          <p class="text-gray-700 mb-6">
-            Chúng tôi cung cấp các phương thức vận chuyển sau đây để đảm bảo hàng hóa được giao đúng hẹn và an toàn.
-          </p>
-          
-          <!-- Danh sách phương thức vận chuyển -->
-          <div class="space-y-6">
-            <div>
-              <h3 class="text-xl font-semibold text-gray-800">Vận Chuyển Tiết Kiệm</h3>
-              <p class="text-gray-700">
-                Phương thức vận chuyển tiết kiệm giúp bạn tiết kiệm chi phí vận chuyển. Thời gian giao hàng thường từ 5-7 ngày làm việc.
-              </p>
-            </div>
-      
-            <div>
-              <h3 class="text-xl font-semibold text-gray-800">Vận Chuyển Nhanh</h3>
-              <p class="text-gray-700">
-                Phương thức này giúp giao hàng nhanh chóng, trong vòng 2-3 ngày làm việc. Phù hợp với các đơn hàng cần gấp.
-              </p>
-            </div>
-      
-            <div>
-              <h3 class="text-xl font-semibold text-gray-800">Vận Chuyển Hỏa Tốc</h3>
-              <p class="text-gray-700">
-                Giao hàng trong ngày hoặc 1 ngày làm việc, dành cho những đơn hàng cần giao gấp hoặc các sản phẩm đặc biệt.
-              </p>
-            </div>
-          </div>
-      
-          <!-- Thời gian giao hàng -->
-          <h2 class="text-2xl font-semibold text-gray-800 mt-12 mb-4">Thời Gian Giao Hàng</h2>
-          <p class="text-gray-700 mb-6">
-            Chúng tôi cam kết giao hàng đúng hẹn với thời gian cụ thể như sau:
-          </p>
-      
-          <!-- Danh sách thời gian giao hàng -->
-          <div class="space-y-4">
-            <div>
-              <h3 class="text-xl font-semibold text-gray-800">Khu Vực Thành Phố</h3>
-              <p class="text-gray-700">Đối với các đơn hàng trong khu vực thành phố, thời gian giao hàng là từ 1-3 ngày làm việc.</p>
-            </div>
-      
-            <div>
-              <h3 class="text-xl font-semibold text-gray-800">Khu Vực Ngoài Thành Phố</h3>
-              <p class="text-gray-700">Đối với các đơn hàng ngoài thành phố, thời gian giao hàng có thể kéo dài từ 3-7 ngày làm việc.</p>
-            </div>
-      
-            <div>
-              <h3 class="text-xl font-semibold text-gray-800">Miền Núi, Vùng Xa</h3>
-              <p class="text-gray-700">Đối với các vùng núi và khu vực xa xôi, thời gian giao hàng có thể mất đến 10 ngày làm việc.</p>
-            </div>
-          </div>
-      
-          <!-- Chi phí vận chuyển -->
-          <h2 class="text-2xl font-semibold text-gray-800 mt-12 mb-4">Chi Phí Vận Chuyển</h2>
-          <p class="text-gray-700 mb-6">
-            Chi phí vận chuyển sẽ phụ thuộc vào trọng lượng của sản phẩm và phương thức vận chuyển mà bạn lựa chọn.
-          </p>
-          
-          <!-- Chi phí các phương thức -->
-          <div class="space-y-6">
-            <div>
-              <h3 class="text-xl font-semibold text-gray-800">Phương Thức Tiết Kiệm</h3>
-              <p class="text-gray-700">
-                Chi phí vận chuyển tiết kiệm là 30.000đ cho các đơn hàng dưới 5kg. Các đơn hàng trên 5kg sẽ có phụ phí tùy theo trọng lượng.
-              </p>
-            </div>
-      
-            <div>
-              <h3 class="text-xl font-semibold text-gray-800">Phương Thức Nhanh</h3>
-              <p class="text-gray-700">
-                Chi phí vận chuyển nhanh là 50.000đ cho đơn hàng dưới 5kg. Các đơn hàng trên 5kg sẽ có phụ phí thêm 10.000đ cho mỗi kg.
-              </p>
-            </div>
-      
-            <div>
-              <h3 class="text-xl font-semibold text-gray-800">Phương Thức Hỏa Tốc</h3>
-              <p class="text-gray-700">
-                Chi phí vận chuyển hỏa tốc sẽ là 100.000đ cho đơn hàng dưới 5kg và tăng thêm 20.000đ cho mỗi kg vượt quá.
-              </p>
-            </div>
-          </div>
-      
-          <!-- Chính sách hoàn trả -->
-          <h2 class="text-2xl font-semibold text-gray-800 mt-12 mb-4">Chính Sách Hoàn Trả</h2>
-          <p class="text-gray-700 mb-6">
-            Nếu bạn nhận được sản phẩm bị hư hỏng hoặc sai sót, vui lòng liên hệ với chúng tôi trong vòng 7 ngày kể từ ngày nhận hàng để yêu cầu hoàn trả hoặc đổi hàng.
-          </p>
-        </div>
-      </div>
-      
+    </main>
 </x-layout-frontend>

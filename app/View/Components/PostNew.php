@@ -27,8 +27,15 @@ class PostNew extends Component
             ['new','=',1],
         ];
         $posts = Post::where($args)
-        ->limit(6)
-        ->get();
+            ->orderBy('created_at', 'desc')
+            ->limit(3)
+            ->get();
+        if ($posts->isEmpty()) {
+            $posts = Post::where('status', 1)
+                ->orderBy('created_at', 'desc')
+                ->limit(3)
+                ->get();
+        }
         return view('components.post-new',compact('posts'));
     }
 }

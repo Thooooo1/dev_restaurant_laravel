@@ -22,12 +22,7 @@ class ContactH extends Component
      */
     public function render(): View|Closure|string
     {
-        $args =[
-            ['status','=',1]
-        ];
-        $contacts = Contact::where($args)
-        ->limit(6)
-        ->get();
-        return view('components.contact-h',compact('contacts'));
+        $contact = Contact::where('status', 1)->first() ?? Contact::first();
+        return view('components.contact-h', compact('contact'));
     }
 }

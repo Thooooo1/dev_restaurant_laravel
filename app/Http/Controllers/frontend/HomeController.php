@@ -21,8 +21,10 @@ class HomeController extends Controller
             ['status','=',1],
             ['position','=','Slideshow']
         ];
-        $banners = Banner::where($args)
-            ->paginate(1);     
+        $banners = Banner::where($args)->orderBy('sort_order', 'asc')->get();
+        if ($banners->isEmpty()) {
+            $banners = Banner::where('status', 1)->get();
+        }     
         return view('frontend.home', compact('banners'));
     }
 }

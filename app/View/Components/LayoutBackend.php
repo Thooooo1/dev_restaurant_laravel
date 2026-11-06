@@ -8,12 +8,16 @@ use Illuminate\View\Component;
 
 class LayoutBackend extends Component
 {
+    public $breadcrumb;
+    public $noPadding;
+
     /**
      * Create a new component instance.
      */
-    public function __construct()
+    public function __construct($breadcrumb = null, $noPadding = false)
     {
-        //
+        $this->breadcrumb = $breadcrumb;
+        $this->noPadding = (bool)$noPadding;
     }
 
     /**

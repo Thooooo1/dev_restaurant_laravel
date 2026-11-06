@@ -5,13 +5,7 @@
                 <div class="col-sm-6">
                     <strong class="fw-bold h4 text-danger">THÊM BÀN ĂN</strong>
                 </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url('admin/') }}">Trang chủ</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.table.index') }}">Bàn ăn</a></li>
-                        <li class="breadcrumb-item active">Thêm mới</li>
-                    </ol>
-                </div>
+                
             </div>
         </div>
     </section>
@@ -79,7 +73,7 @@
                 </div>
                 <div class="card-footer">
                     <button class="btn btn-success" type="submit">Lưu</button>
-                    <a href="{{ route('admin.table.index') }}" class="btn btn-secondary">Hủy</a>
+                    <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary">Hủy</a>
                 </div>
             </div>
         </form>

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class DistanceService
 {
@@ -13,8 +14,8 @@ class DistanceService
     public function __construct()
     {
         $this->googleMapsApiKey = config('services.google_maps.api_key');
-        $this->restaurantLat = config('services.google_maps.restaurant_lat');
-        $this->restaurantLng = config('services.google_maps.restaurant_lng');
+        $this->restaurantLat = config('services.google_maps.restaurant_lat') ?: 21.107140786131264;
+        $this->restaurantLng = config('services.google_maps.restaurant_lng') ?: 105.55805747568722;
     }
 
     /**
@@ -22,40 +23,40 @@ class DistanceService
      */
     public function geocodeAddress($address)
     {
-        // Tạo danh sách các địa chỉ thử theo thứ tự ưu tiên (từ chi tiết đến đơn giản)
-        $addressesToTry = [$address];
-        
-        // Tách địa chỉ bằng dấu phẩy và thử bớt dần phần đầu
-        $parts = explode(',', $address);
-        for ($i = 1; $i < count($parts); $i++) {
-            $addressesToTry[] = trim(implode(',', array_slice($parts, $i)));
-        }
-
-        foreach ($addressesToTry as $tryAddress) {
-            if (empty($tryAddress)) continue;
-
-            $response = Http::withoutVerifying()
-                ->withHeaders(['User-Agent' => 'DevRestaurant/1.0'])
-                ->get('https://nominatim.openstreetmap.org/search', [
-                    'q' => $tryAddress,
-                    'format' => 'json',
-                    'limit' => 1,
-                    'countrycodes' => 'vn',
-                    'accept-language' => 'vi-VN'
-                ]);
-
-            \Log::info('Nominatim response for:', [
-                'try_address' => $tryAddress,
-                'response' => $response->json()
-            ]);
-
-            if (!$response->failed() && !empty($response->json())) {
-                $result = $response->json()[0];
-                return [
-                    'lat' => (float)$result['lat'],
-                    'lng' => (float)$result['lon']
-                ];
+        try {
+            // Tạo danh sách các địa chỉ thử theo thứ tự ưu tiên (từ chi tiết đến đơn giản)
+            $addressesToTry = [$address];
+            
+            // Tách địa chỉ bằng dấu phẩy và thử bớt dần phần đầu
+            $parts = explode(',', $address);
+            for ($i = 1; $i < count($parts); $i++) {
+                $addressesToTry[] = trim(implode(',', array_slice($parts, $i)));
             }
+
+            foreach ($addressesToTry as $tryAddress) {
+                if (empty($tryAddress)) continue;
+
+                $response = Http::withoutVerifying()
+                    ->timeout(3) // Timeout 3s tối đa tránh treo trang web
+                    ->withHeaders(['User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'])
+                    ->get('https://nominatim.openstreetmap.org/search', [
+                        'q' => $tryAddress,
+                        'format' => 'json',
+                        'limit' => 1,
+                        'countrycodes' => 'vn',
+                        'accept-language' => 'vi-VN'
+                    ]);
+
+                if (!$response->failed() && !empty($response->json())) {
+                    $result = $response->json()[0];
+                    return [
+                        'lat' => (float)$result['lat'],
+                        'lng' => (float)$result['lon']
+                    ];
+                }
+            }
+        } catch (\Exception $e) {
+            Log::warning('Geocode Nominatim exception: ' . $e->getMessage());
         }
 
         return null;
@@ -85,46 +86,53 @@ class DistanceService
      */
     public function isWithinDeliveryRange($address, $maxDistance = 5)
     {
-        $coordinates = $this->geocodeAddress($address);
+        try {
+            $coordinates = $this->geocodeAddress($address);
 
-        if (!$coordinates) {
-            return [
-                'success' => false,
-                'message' => 'Không tìm thấy địa chỉ',
-            ];
-        }
+            // Nếu không xác định được tọa độ chính xác (ví dụ địa chỉ thôn xóm, ngõ ngách),
+            // vẫn chấp nhận đơn hàng để nhân viên liên hệ xác nhận trực tiếp, không chặn khách đặt món.
+            if (!$coordinates) {
+                return [
+                    'success' => true,
+                    'message' => 'Địa chỉ giao hàng đã được ghi nhận. Nhà hàng sẽ liên hệ xác nhận lộ trình giao nhanh.',
+                    'distance' => null,
+                ];
+            }
 
-        // Tính khoảng cách đường đi thực tế dùng OSRM
-        $distance = $this->getDrivingDistance(
-            $this->restaurantLat,
-            $this->restaurantLng,
-            $coordinates['lat'],
-            $coordinates['lng']
-        );
-
-        // Nếu OSRM không hoạt động, fallback về khoảng cách đường chim bay
-        if ($distance === null) {
-            $distance = $this->calculateDistance(
+            // Tính khoảng cách đường đi thực tế dùng OSRM
+            $distance = $this->getDrivingDistance(
                 $this->restaurantLat,
                 $this->restaurantLng,
                 $coordinates['lat'],
                 $coordinates['lng']
             );
-        }
 
-        if ($distance > $maxDistance) {
+            // Nếu OSRM không hoạt động, fallback về khoảng cách đường chim bay
+            if ($distance === null) {
+                $distance = $this->calculateDistance(
+                    $this->restaurantLat,
+                    $this->restaurantLng,
+                    $coordinates['lat'],
+                    $coordinates['lng']
+                );
+            }
+
+            // Cho phép đặt hàng và thông báo trạng thái khoảng cách
             return [
-                'success' => false,
-                'message' => 'Vượt quá phạm vi giao hàng',
-                'distance' => $distance,
+                'success' => true,
+                'message' => ($distance <= $maxDistance) 
+                    ? 'Địa chỉ trong phạm vi giao hàng tiêu chuẩn.' 
+                    : 'Địa chỉ xa hơn 5km, nhà hàng sẽ liên hệ thông báo phí ship ưu đãi.',
+                'distance' => round($distance, 1),
+            ];
+        } catch (\Exception $e) {
+            Log::warning('isWithinDeliveryRange exception: ' . $e->getMessage());
+            return [
+                'success' => true,
+                'message' => 'Địa chỉ đã được ghi nhận thành công.',
+                'distance' => null,
             ];
         }
-
-        return [
-            'success' => true,
-            'message' => 'Địa chỉ hợp lệ.',
-            'distance' => $distance,
-        ];
     }
 
     /**
@@ -135,14 +143,14 @@ class DistanceService
         $url = "http://router.project-osrm.org/route/v1/driving/{$lng1},{$lat1};{$lng2},{$lat2}?overview=false";
 
         try {
-            $response = Http::withoutVerifying()->get($url);
+            $response = Http::withoutVerifying()->timeout(3)->get($url);
 
             if ($response->successful() && isset($response->json()['routes'][0]['distance'])) {
                 // Khoảng cách trả về bằng mét, đổi sang km
                 return $response->json()['routes'][0]['distance'] / 1000;
             }
         } catch (\Exception $e) {
-            \Log::error('OSRM error: ' . $e->getMessage());
+            Log::warning('OSRM error: ' . $e->getMessage());
         }
 
         return null;

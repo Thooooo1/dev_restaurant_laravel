@@ -5,6 +5,7 @@ namespace App\Http\Controllers\backend;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Booking;
+use App\Services\NotificationService;
 
 class BookingController extends Controller
 {
@@ -41,11 +42,18 @@ class BookingController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|integer|min:1|max:3',
+            'status' => 'required|integer|min:1|max:4',
         ]);
 
         $booking->status = $request->status;
         $booking->save();
+
+        // Bắn thông báo cập nhật kết quả đặt bàn cho khách hàng
+        try {
+            NotificationService::notifyBookingStatusUpdated($booking);
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi notification cập nhật đặt bàn: ' . $e->getMessage());
+        }
 
         return redirect()->route('admin.booking.index')->with('success', 'Cập nhật trạng thái thành công');
     }

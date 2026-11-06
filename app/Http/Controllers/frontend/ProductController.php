@@ -14,7 +14,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        return view("frontend.product");
+        return view("frontend.product_gridview");
     }
     public function product_gridview()
     {

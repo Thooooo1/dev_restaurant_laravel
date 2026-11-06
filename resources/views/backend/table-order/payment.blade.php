@@ -1,98 +1,124 @@
 <x-layout-backend>
-    <style>
-        #paymentTable thead th {
-            font-size: 14px !important;
-            font-weight: 600 !important;
-            background: #78b4f1ff !important;
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
-        }
-        #paymentTable tbody td {
-            font-size: 13px !important;
-            font-weight: 400 !important;
-        }
-    </style>
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row align-items-center">
-                <div class="col-12 col-md">
-                    <strong class="fw-bold h4 text-danger">{{ $table->floor->name ?? '' }} - {{ $table->name }} | THANH TOÁN</strong>
-                </div>
-                <div class="col-12 col-md-auto mt-3 mt-md-0">
-                    <div class="d-flex flex-wrap justify-content-md-end">
-                        <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary btn-sm mb-2 mr-2"><i class="fa-solid fa-arrow-left"></i> Quay lại</a>
-                        <button class="btn btn-warning btn-sm mb-2 mr-2" id="btnEditMode" onclick="toggleEditMode()"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button class="btn btn-success btn-sm mb-2 mr-2" data-toggle="modal" data-target="#modalAddProduct"><i class="fa-solid fa-plus"></i> Thêm sản phẩm</button>
-                        <button class="btn btn-primary btn-sm mb-2" onclick="handlePrintInvoice()"><i class="fa-solid fa-print"></i> In hoá đơn</button>
+
+    <!-- Top Action Bar (Shopify POS / Toast POS / Ant Design Pro Style) -->
+    <div class="bg-white border border-[#F0F0F0] rounded p-4 mb-4 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <!-- Left: Table & Context (Thuần typography) -->
+            <div class="flex items-center gap-3">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Thanh toán: {{ $table->name }}</h1>
+                        <span class="polaris-badge polaris-badge-default">{{ $table->floor->name ?? 'Tầng 1' }}</span>
+                        <span class="polaris-badge polaris-badge-warning">Chờ thanh toán</span>
                     </div>
+                    <p class="text-xs text-[rgba(0,0,0,0.45)] mt-0.5">
+                        Mã đơn: <span class="font-mono font-medium text-[rgba(0,0,0,0.65)]">#{{ $order->id }}</span> • Khách: <strong>{{ $order->user->fullname ?? $order->name ?? 'Khách lẻ' }}</strong> ({{ $order->user->phone ?? $order->phone ?? 'Tại bàn' }})
+                    </p>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <section class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header p-2 p-md-3">
-                            <strong>Khách:</strong> {{ $order->user->fullname ?? $order->name ?? 'Khách lẻ' }}
-                            <span class="ml-2 ml-md-3"><strong>ĐT:</strong> {{ $order->user->phone ?? $order->phone ?? '---' }}</span>
-                        </div>
-                        <div class="card-body p-2 p-md-3">
-                            <!-- Payment Info Row -->
-                            <div class="row mb-4 align-items-center">
-                                <div class="col-12 col-md-6 d-flex justify-content-between justify-content-md-start align-items-center">
-                                    <label class="mb-0 mr-2">Phương thức:</label>
-                                    <select class="form-control form-control-sm w-auto" name="payment_method" id="paymentMethodSelect">
-                                        <option value="1" selected>Tiền mặt</option>
-                                        <option value="2">Chuyển khoản NH</option>
-                                    </select>
-                                </div>
-                                <div class="col-12 col-md-6 d-flex justify-content-between justify-content-md-end align-items-center text-left text-md-right mt-2 mt-md-0">
-                                    <label class="mb-0 mr-2">Tổng tiền:</label>
-                                    <span class="h5 text-danger font-weight-bold mb-0" id="total-amount-header">{{ number_format($totalAmount, 0, ',', '.') }} ₫</span>
-                                </div>
-                            </div>
-
-                            <div class="table-responsive"><table class="table table-sm" id="paymentTable">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Tên món</th>
-                                        <th class="text-right">SL</th>
-                                        <th class="text-right">Đơn giá</th>
-                                        <th class="text-right">Thành tiền</th>
-                                        <th class="text-center action-col"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($orderDetails as $i => $item)
-                                        <tr data-id="{{ $item->id }}" data-price="{{ $item->price }}" data-name="{{ $item->product->name ?? 'N/A' }}">
-                                            <td>{{ $i + 1 }}</td>
-                                            <td>{{ $item->product->name ?? 'N/A' }}</td>
-                                            <td class="text-right">
-                                                <span class="qty-display">{{ $item->qty }}</span>
-                                                <input type="number" class="form-control form-control-sm qty-input d-none" style="width: 70px; display: inline-block; text-align: right;" value="{{ $item->qty }}" min="1" oninput="updateRowTotal(this)">
-                                            </td>
-                                            <td class="text-right">{{ number_format($item->price, 0, ',', '.') }} ₫</td>
-                                            <td class="text-right amount-display">{{ number_format($item->amount, 0, ',', '.') }} ₫</td>
-                                            <td class="text-center action-col">
-                                                <button class="btn btn-danger btn-sm btn-delete-item" disabled onclick="confirmDeleteItem({{ $item->id }})"><i class="fa-solid fa-trash"></i></button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="card-footer text-right">
-                            <a href="{{ route('admin.table-order.index') }}" class="btn btn-secondary">Quay lại</a>
-                        </div>
-                    </div>
-                </div>
+            <!-- Right: Action Buttons -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-sm">
+                    <i class="fa-solid fa-arrow-left text-xs"></i>
+                    <span>Quay lại</span>
+                </a>
+                <button type="button" class="ant-btn ant-btn-sm" id="btnEditMode" onclick="toggleEditMode()">
+                    <i class="fa-solid fa-pen-to-square text-xs"></i>
+                    <span id="btnEditModeText">Sửa SL</span>
+                </button>
+                <button type="button" class="ant-btn ant-btn-sm" onclick="printProvisionalBill()">
+                    <i class="fa-solid fa-print text-xs"></i>
+                    <span>In hoá đơn</span>
+                </button>
+                <button type="button" class="ant-btn ant-btn-primary ant-btn-sm" onclick="handleConfirmPayment()">
+                    <i class="fa-solid fa-money-bill-wave text-xs"></i>
+                    <span>Xác nhận thanh toán</span>
+                </button>
             </div>
         </div>
-    </section>
+    </div>
+
+    <!-- Main Payment Canvas -->
+    <div class="ant-card p-5 shadow-sm">
+        <!-- Payment Options & Total Header -->
+        <div class="p-4 bg-[#FAFAFA] border border-[#F0F0F0] rounded mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-3">
+                <label for="paymentMethodSelect" class="text-xs font-semibold text-[rgba(0,0,0,0.65)] uppercase">Phương thức thanh toán:</label>
+                <select class="polaris-select text-xs font-medium" name="payment_method" id="paymentMethodSelect">
+                    <option value="1" {{ ($order->payment_method == 1 || !$order->payment_method) ? 'selected' : '' }}>Tiền mặt</option>
+                    <option value="2" {{ $order->payment_method == 2 ? 'selected' : '' }}>Chuyển khoản VietQR</option>
+                    <option value="3" {{ $order->payment_method == 3 ? 'selected' : '' }}>Quẹt thẻ POS (ATM / Visa / Master)</option>
+                </select>
+                <button type="button" 
+                        id="openVietQrModalBtn" 
+                        onclick="openVietQrModal()" 
+                        class="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer transition-all">
+                    <i class="fa-solid fa-qrcode text-sm"></i>
+                    <span>Mở mã QR cho khách quét</span>
+                </button>
+            </div>
+            <div class="flex items-center gap-2 sm:justify-end">
+                <span class="text-xs font-semibold text-[rgba(0,0,0,0.45)] uppercase">Tổng tiền thanh toán:</span>
+                <span class="text-2xl font-bold font-mono text-[#F47716]" id="total-amount-header">{{ number_format($totalAmount, 0, ',', '.') }} ₫</span>
+            </div>
+        </div>
+
+        <!-- Table of Items (Polaris Table Style) -->
+        <div class="overflow-x-auto border border-[#F0F0F0] rounded">
+            <table class="w-full" id="paymentTable">
+                <thead>
+                    <tr>
+                        <th class="w-12 text-center">#</th>
+                        <th>Tên món ăn</th>
+                        <th class="text-right">Số lượng</th>
+                        <th class="text-right">Đơn giá</th>
+                        <th class="text-right">Thành tiền</th>
+                        <th class="text-center action-col w-12"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($orderDetails as $i => $item)
+                        <tr data-id="{{ $item->id }}" data-price="{{ $item->price }}" data-name="{{ $item->product->name ?? 'N/A' }}">
+                            <td class="text-center font-mono text-xs text-[rgba(0,0,0,0.45)]">{{ $i + 1 }}</td>
+                            <td>
+                                <div class="font-medium text-xs text-[rgba(0,0,0,0.85)]">{{ $item->product->name ?? 'N/A' }}</div>
+                            </td>
+                            <td class="text-right">
+                                <span class="qty-display font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $item->qty }}</span>
+                                <input type="number" class="polaris-input qty-input d-none text-right font-mono text-xs" style="width: 70px; display: inline-block;" value="{{ $item->qty }}" min="1" oninput="updateRowTotal(this)">
+                            </td>
+                            <td class="text-right font-mono text-xs text-[rgba(0,0,0,0.65)]">{{ number_format($item->price, 0, ',', '.') }} ₫</td>
+                            <td class="text-right font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)] amount-display">{{ number_format($item->amount, 0, ',', '.') }} ₫</td>
+                            <td class="text-center action-col">
+                                <button class="text-gray-400 hover:text-red-500 transition-colors btn-delete-item disabled" disabled onclick="confirmDeleteItem({{ $item->id }})">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bottom Action Toolbar -->
+        <div class="mt-5 pt-4 border-t border-[#F0F0F0] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <a href="{{ route('admin.table-order.index') }}" class="ant-btn">
+                <i class="fa-solid fa-arrow-left text-xs"></i>
+                <span>Quay lại sơ đồ bàn</span>
+            </a>
+            <div class="flex items-center gap-2">
+                <button type="button" class="ant-btn" onclick="printProvisionalBill()">
+                    <i class="fa-solid fa-print text-xs"></i>
+                    <span>In hoá đơn</span>
+                </button>
+                <button type="button" class="ant-btn ant-btn-primary px-5" onclick="handleConfirmPayment()">
+                    <i class="fa-solid fa-check text-xs"></i>
+                    <span>Xác nhận thu tiền</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Add Product -->
     <div class="modal fade" id="modalAddProduct" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
@@ -133,9 +159,201 @@
         </div>
     </div>
 
+    <!-- Modal VietQR Cho Khách Quét Trực Tiếp -->
+    <div id="modalVietQr" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-100 overflow-hidden transform transition-all duration-300">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-base">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wider">Thanh Toán Chuyển Khoản VietQR</h3>
+                        <p class="text-[11px] text-blue-100">{{ $table->name }} ({{ $table->floor->name ?? 'Khu vực chính' }})</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeVietQrModal()" class="text-white/80 hover:text-white text-lg w-7 h-7 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 text-center space-y-4">
+                <!-- Status Badge -->
+                <div id="posQrStatus" class="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-800 text-xs font-semibold rounded-full border border-amber-200 animate-pulse">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span>Đang chờ khách quét mã & chuyển khoản...</span>
+                </div>
+
+                <!-- QR Image with Success Overlay -->
+                <div class="relative inline-block p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border-2 border-indigo-200 shadow-inner">
+                    <img src="" id="posVietQrImage" alt="VietQR Bàn" class="w-64 h-64 object-contain rounded-xl mx-auto shadow-xs">
+                    
+                    <div id="posPaymentSuccessOverlay" class="hidden absolute inset-0 bg-white/95 rounded-2xl flex flex-col items-center justify-center p-4 text-center">
+                        <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mb-2 animate-bounce">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <h4 class="text-base font-black text-gray-900">ĐÃ NHẬN TIỀN THÀNH CÔNG!</h4>
+                        <p class="text-xs text-gray-500 mt-0.5">Webhook ngân hàng đã tự động xác nhận.</p>
+                        <span class="text-xs text-emerald-600 font-bold mt-2">Đang hoàn tất hóa đơn...</span>
+                    </div>
+                </div>
+
+                <!-- Transfer Info -->
+                <div class="bg-gray-50 p-4 rounded-xl text-left text-xs space-y-2 border border-gray-100">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-500">Số tiền:</span>
+                        <span class="text-base font-black text-[#F47716]" id="posQrAmount">0 ₫</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-500">Nội dung chuyển khoản:</span>
+                        <span class="font-mono font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200" id="posQrMemo">BAN{{ $table->id }}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] pt-1 border-t border-gray-200">
+                        <span class="text-gray-500">Ngân hàng:</span>
+                        <span class="font-bold text-gray-800">{{ config('vietqr.bank_name') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="text-gray-500">Số tài khoản:</span>
+                        <span class="font-mono font-bold text-gray-800">{{ config('vietqr.account_no') }} ({{ config('vietqr.account_name') }})</span>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="flex items-center gap-2 pt-2">
+                    <button type="button" 
+                            id="posSimulateBtn"
+                            onclick="simulatePosWebhook()" 
+                            class="flex-1 py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-bolt text-amber-600"></i>
+                        <span>Giả lập Webhook nhận tiền</span>
+                    </button>
+                    <button type="button" 
+                            onclick="handleConfirmPayment()" 
+                            class="flex-1 py-2 px-3 bg-[#52C41A] hover:bg-[#389E0D] text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs">
+                        <i class="fa-solid fa-check"></i>
+                        <span>Xác nhận đã nhận tiền</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let isEditMode = false;
         let originalQuantities = {}; // Lưu giá trị số lượng ban đầu
+        let posPollInterval = null;
+
+        function openVietQrModal() {
+            // Tính tổng tiền hiện tại
+            let currentTotal = 0;
+            document.querySelectorAll('#paymentTable tbody tr').forEach(tr => {
+                const price = parseFloat(tr.dataset.price) || 0;
+                const qtyInput = tr.querySelector('.qty-input');
+                const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+                currentTotal += price * qty;
+            });
+
+            if (currentTotal <= 0) {
+                currentTotal = {{ (int)$totalAmount }};
+            }
+
+            const bankId = '{{ config("vietqr.bank_id") }}';
+            const accountNo = '{{ config("vietqr.account_no") }}';
+            const accountName = encodeURIComponent('{{ config("vietqr.account_name") }}');
+            const memo = 'BAN{{ $table->id }}';
+
+            const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${currentTotal}&addInfo=${memo}&accountName=${accountName}`;
+
+            document.getElementById('posVietQrImage').src = qrUrl;
+            document.getElementById('posQrAmount').textContent = currentTotal.toLocaleString('vi-VN') + ' ₫';
+            document.getElementById('posQrMemo').textContent = memo;
+
+            // Đặt phương thức thanh toán là Chuyển khoản VietQR
+            document.getElementById('paymentMethodSelect').value = '2';
+
+            document.getElementById('modalVietQr').classList.remove('hidden');
+
+            // Bắt đầu polling kiểm tra trạng thái Webhook
+            startPosPaymentPolling();
+        }
+
+        function closeVietQrModal() {
+            document.getElementById('modalVietQr').classList.add('hidden');
+            if (posPollInterval) {
+                clearInterval(posPollInterval);
+                posPollInterval = null;
+            }
+        }
+
+        function startPosPaymentPolling() {
+            if (posPollInterval) clearInterval(posPollInterval);
+
+            posPollInterval = setInterval(function() {
+                fetch('{{ route("api.payment.check-status", $order->id) }}')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success && data.is_paid) {
+                            clearInterval(posPollInterval);
+                            posPollInterval = null;
+
+                            // Hiển thị overlay thành công
+                            document.getElementById('posPaymentSuccessOverlay')?.classList.remove('hidden');
+                            document.getElementById('posQrStatus')?.classList.add('hidden');
+
+                            toastr.success('Hệ thống Webhook đã xác nhận thanh toán thành công!');
+                            printProvisionalBill(true);
+
+                            setTimeout(() => {
+                                window.location.href = '{{ route("admin.table-order.index") }}';
+                            }, 2000);
+                        }
+                    })
+                    .catch(err => console.log('Checking POS payment status:', err));
+            }, 3000);
+        }
+
+        function simulatePosWebhook() {
+            const btn = document.getElementById('posSimulateBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang giả lập Webhook...';
+
+            let currentTotal = 0;
+            document.querySelectorAll('#paymentTable tbody tr').forEach(tr => {
+                const price = parseFloat(tr.dataset.price) || 0;
+                const qtyInput = tr.querySelector('.qty-input');
+                const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+                currentTotal += price * qty;
+            });
+
+            fetch('{{ route("api.payment.simulate-webhook") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    order_id: {{ $order->id }},
+                    amount: currentTotal > 0 ? currentTotal : {{ (int)$totalAmount }}
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> Đã gửi Webhook thành công!';
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Thử lại';
+                    toastr.error(data.message || 'Lỗi giả lập');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = 'Thử lại';
+                toastr.error('Lỗi kết nối Webhook');
+            });
+        }
 
         // Lưu giá trị ban đầu khi trang load
         document.addEventListener('DOMContentLoaded', function() {
@@ -145,6 +363,16 @@
                 const id = tr.dataset.id;
                 originalQuantities[id] = parseInt(input.value);
             });
+
+            // Tự động mở modal khi chọn VietQR
+            const paymentSelect = document.getElementById('paymentMethodSelect');
+            if (paymentSelect) {
+                paymentSelect.addEventListener('change', function() {
+                    if (this.value === '2') {
+                        openVietQrModal();
+                    }
+                });
+            }
         });
 
         function saveQuantities() {
@@ -221,16 +449,37 @@
             return true;
         }
 
-        function toggleEditMode() {
-            const printBtn = document.querySelector('button[onclick="handlePrintInvoice()"]');
+        // In trực tiếp thông qua iframe ẩn để không bị trình duyệt chặn popup
+        function directPrintHTML(html) {
+            let iframe = document.getElementById('payment_print_iframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'payment_print_iframe';
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                document.body.appendChild(iframe);
+            }
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(html);
+            doc.close();
+            iframe.contentWindow.focus();
+            setTimeout(() => {
+                try {
+                    iframe.contentWindow.print();
+                } catch(e) {
+                    console.error('Lỗi khi in:', e);
+                }
+            }, 300);
+        }
 
+        function toggleEditMode() {
             if (isEditMode) {
-                // Đang ở chế độ sửa, bấm Xong -> lưu rồi thoát
                 saveQuantities();
-            } else {
-                // Vào chế độ sửa -> disable nút in
-                printBtn.disabled = true;
-                printBtn.classList.add('opacity-50', 'cursor-not-allowed');
             }
 
             isEditMode = !isEditMode;
@@ -243,64 +492,95 @@
                 deleteBtns.forEach(el => el.removeAttribute('disabled'));
                 qtyDisplays.forEach(el => el.classList.add('d-none'));
                 qtyInputs.forEach(el => el.classList.remove('d-none'));
-                btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> <span id="btnEditModeText">Xong</span>';
                 btn.classList.remove('btn-warning');
                 btn.classList.add('btn-info');
             } else {
                 deleteBtns.forEach(el => el.setAttribute('disabled', 'disabled'));
                 qtyDisplays.forEach(el => el.classList.remove('d-none'));
                 qtyInputs.forEach(el => el.classList.add('d-none'));
-                btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
+                btn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i> <span id="btnEditModeText">Sửa SL</span>';
                 btn.classList.remove('btn-info');
                 btn.classList.add('btn-warning');
-                // Enable nút in sau khi thoát chế độ sửa
-                printBtn.disabled = false;
-                printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             }
         }
 
-        function handlePrintInvoice() {
-            // Collect all items
-            const inputs = document.querySelectorAll('.qty-input');
+        // In hoá đơn tạm tính hoặc hoá đơn thanh toán
+        function printProvisionalBill(isFinal = false) {
+            const paymentMethodValue = document.getElementById('paymentMethodSelect').value;
+            const paymentMethodText = paymentMethodValue === '2' ? 'Chuyển khoản VietQR' : (paymentMethodValue === '3' ? 'Quẹt thẻ POS' : 'Tiền mặt');
+
             const items = [];
-            let isValid = true;
-            let currentTotal = 0;
+            let total = 0;
 
-            inputs.forEach(input => {
-                const qty = parseInt(input.value);
-                const tr = input.closest('tr');
-                const id = tr.dataset.id;
-                const price = parseInt(tr.dataset.price);
-                
-                if (qty < 1 || isNaN(qty)) {
-                    toastr.error('Số lượng món không hợp lệ');
-                    isValid = false;
-                    return;
-                }
-
-                items.push({
-                    id: id,
-                    qty: qty
-                });
-                
-                currentTotal += qty * price;
+            document.querySelectorAll('#paymentTable tbody tr').forEach((tr, idx) => {
+                const name = tr.dataset.name || 'Món ăn';
+                const price = parseFloat(tr.dataset.price) || 0;
+                const qtyInput = tr.querySelector('.qty-input');
+                const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+                if (isNaN(price) || isNaN(qty) || qty < 1) return;
+                const amount = price * qty;
+                total += amount;
+                items.push({ stt: idx + 1, name, price, qty, amount });
             });
 
-            if (!isValid) return;
-
-            const paymentMethod = document.getElementById('paymentMethodSelect').value;
-
-            if(!confirm('Xác nhận thanh toán và in hoá đơn?')) return;
-
-            // Open print window immediately to prevent popup blocker
-            const printWindow = window.open('', 'PRINT', 'width=400,height=650');
-            if (!printWindow) {
-                toastr.error('Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup.');
+            if (items.length === 0) {
+                toastr.warning('Chưa có món nào để in hoá đơn');
                 return;
             }
-            printWindow.document.write('Đang xử lý hoá đơn...');
 
-            // Save order first
+            const customerName = @json($order->user->fullname ?? $order->name ?? 'Khách lẻ');
+            const customerPhone = @json($order->user->phone ?? $order->phone ?? '---');
+            const floorName = @json($table->floor->name ?? '');
+            const tableName = @json($table->name ?? '');
+            const orderId = @json($order->id);
+            const createdAt = @json(optional($order->created_at)->format('H:i d/m/Y') ?? now()->format('H:i d/m/Y'));
+
+            const html = generateInvoiceHTML({
+                floorName,
+                tableName,
+                orderId,
+                createdAt,
+                customerName,
+                customerPhone,
+                paymentMethodText,
+                items,
+                total,
+                isFinal
+            });
+
+            directPrintHTML(html);
+            toastr.success(isFinal ? 'Đang in hoá đơn thanh toán' : 'Đang in phiếu tạm tính');
+        }
+
+        // Xác nhận thanh toán & xuất hoá đơn
+        function handleConfirmPayment() {
+            const rows = document.querySelectorAll('#paymentTable tbody tr');
+            if (rows.length === 0) {
+                toastr.error('Bàn này chưa có món ăn để thanh toán!');
+                return;
+            }
+
+            const paymentMethod = document.getElementById('paymentMethodSelect').value;
+            const paymentMethodText = paymentMethod === '2' ? 'Chuyển khoản VietQR' : (paymentMethod === '3' ? 'Quẹt thẻ POS' : 'Tiền mặt');
+
+            if (!confirm(`Xác nhận thanh toán cho bàn ${@json($table->name ?? '')} bằng hình thức ${paymentMethodText}?`)) {
+                return;
+            }
+
+            // Tính tổng tiền hiện tại
+            let currentTotal = 0;
+            const items = [];
+            rows.forEach(tr => {
+                const id = tr.dataset.id;
+                const price = parseFloat(tr.dataset.price) || 0;
+                const qtyInput = tr.querySelector('.qty-input');
+                const qty = qtyInput ? parseInt(qtyInput.value) : 1;
+                items.push({ id, qty });
+                currentTotal += price * qty;
+            });
+
+            // Lưu số lượng trước, sau đó thanh toán
             $.ajax({
                 url: '{{ route("admin.table-order.updateTableOrderQuantities") }}',
                 type: 'POST',
@@ -310,110 +590,36 @@
                     items: items
                 },
                 success: function(res) {
-                    if (res.success) {
-                        // After update success, process payment
-                        processPaymentAndPrint(paymentMethod, currentTotal, printWindow);
-                    } else {
-                        toastr.error(res.message);
-                        printWindow.close();
-                    }
+                    // Tiến hành thanh toán
+                    $.ajax({
+                        url: '{{ route("admin.table-order.processPayment") }}',
+                        type: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            order_id: {{ $order->id }},
+                            payment_method: paymentMethod,
+                            total_price: currentTotal
+                        },
+                        success: function(payRes) {
+                            if (payRes.success) {
+                                toastr.success('Thanh toán thành công!');
+                                printProvisionalBill(true);
+                                setTimeout(() => {
+                                    window.location.href = '{{ route("admin.table-order.index") }}';
+                                }, 1800);
+                            } else {
+                                toastr.error(payRes.message || 'Thanh toán thất bại');
+                            }
+                        },
+                        error: function(err) {
+                            toastr.error('Lỗi khi gửi yêu cầu thanh toán');
+                        }
+                    });
                 },
                 error: function(err) {
-                    toastr.error('Lỗi cập nhật đơn hàng');
-                    printWindow.close();
+                    toastr.error('Lỗi cập nhật đơn hàng trước khi thanh toán');
                 }
             });
-        }
-
-        function processPaymentAndPrint(paymentMethod, total, printWindow) {
-             $.ajax({
-                url: '{{ route("admin.table-order.processPayment") }}',
-                type: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    order_id: {{ $order->id }},
-                    payment_method: paymentMethod,
-                    total_price: total
-                },
-                success: function(res) {
-                    if (res.success) {
-                        toastr.success('Thanh toán thành công');
-                        printInvoice(printWindow);
-                        // Redirect to index after printing
-                        setTimeout(() => {
-                             window.location.href = '{{ route("admin.table-order.index") }}';
-                        }, 2000);
-                    } else {
-                        toastr.error(res.message);
-                        if(printWindow) printWindow.close();
-                    }
-                },
-                error: function(err) {
-                     toastr.error('Lỗi thanh toán');
-                     if(printWindow) printWindow.close();
-                }
-            });
-        }
-
-        function handlePayment() {
-            // Deprecated function, logic moved to handlePrintInvoice
-        }
-
-        function printInvoice(w) {
-             const paymentMethodValue = document.getElementById('paymentMethodSelect').value;
-             const paymentMethodText = paymentMethodValue === '2' ? 'Chuyển khoản NH' : 'Tiền mặt';
-
-             const items = [];
-             let total = 0;
-
-             document.querySelectorAll('#paymentTable tbody tr').forEach((tr, idx) => {
-                 const name = tr.dataset.name || 'N/A';
-                 const price = parseInt(tr.dataset.price);
-                 const qtyInput = tr.querySelector('.qty-input');
-                 const qty = qtyInput ? parseInt(qtyInput.value) : 0;
-                 if (isNaN(price) || isNaN(qty) || qty < 1) return;
-                 const amount = price * qty;
-                 total += amount;
-                 items.push({ stt: idx + 1, name, price, qty, amount });
-             });
-
-             const customerName = @json($order->user->fullname ?? $order->name ?? 'Khách lẻ');
-             const customerPhone = @json($order->user->phone ?? $order->phone ?? '---');
-             const floorName = @json($table->floor->name ?? '');
-             const tableName = @json($table->name ?? '');
-             const orderId = @json($order->id);
-             const createdAt = @json(optional($order->created_at)->format('H:i d/m/Y'));
-
-             const html = generateInvoiceHTML({
-                 floorName,
-                 tableName,
-                 orderId,
-                 createdAt,
-                 customerName,
-                 customerPhone,
-                 paymentMethodText,
-                 items,
-                 total
-             });
-
-             // If w is provided (opened early), use it. Otherwise try opening new (may be blocked)
-             if (!w) {
-                 w = window.open('', 'PRINT', 'width=400,height=650');
-             }
-             
-             if (!w) {
-                 toastr.error('Trình duyệt đang chặn cửa sổ in');
-                 return;
-             }
-             
-             w.document.open(); // Reset document if it has content
-             w.document.write(html);
-             w.document.close();
-             w.focus();
-             setTimeout(() => {
-                 w.print();
-                 setTimeout(() => w.close(), 200);
-             }, 250);
         }
 
         function generateInvoiceHTML(data) {
@@ -426,7 +632,8 @@
                 customerPhone,
                 paymentMethodText,
                 items,
-                total
+                total,
+                isFinal
             } = data;
 
             const nf = new Intl.NumberFormat('vi-VN');
@@ -443,12 +650,24 @@
             }).join('');
 
             const totalText = `${nf.format(total)} đ`;
-            const title = 'HÓA ĐƠN';
+            const title = isFinal ? 'HÓA ĐƠN THANH TOÁN' : 'PHIẾU TẠM TÍNH';
             const metaFloorTable = `${floorName ? `Tầng: <strong>${escapeHtml(floorName)}</strong> | ` : ''}Bàn: <strong>${escapeHtml(tableName)}</strong>`;
             const metaInvoiceId = `Mã HĐ: <strong>#${escapeHtml(String(orderId))}</strong>`;
             const metaCustomer = `Khách: <strong>${escapeHtml(customerName)}</strong> | SĐT: <strong>${escapeHtml(customerPhone)}</strong>`;
             const metaPayment = `Phương thức thanh toán: <strong>${escapeHtml(paymentMethodText)}</strong>`;
             const metaTime = `Thời gian: <strong>${escapeHtml(createdAt || '')}</strong>`;
+
+            const bankId = '{{ config("vietqr.bank_id") }}';
+            const accountNo = '{{ config("vietqr.account_no") }}';
+            const accountName = encodeURIComponent('{{ config("vietqr.account_name") }}');
+            const qrImageHtml = (!isFinal || paymentMethodText.includes('Chuyển khoản')) ? `
+                <div style="text-align: center; margin-top: 10px; border-top: 1px dashed #000; padding-top: 8px;">
+                    <div style="font-weight: bold; font-size: 11px; margin-bottom: 4px;">QUÉT MÃ VIETQR ĐỂ THANH TOÁN</div>
+                    <img src="https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${total}&addInfo=BAN{{ $table->id }}&accountName=${accountName}" style="width: 48mm; height: 48mm; margin: 0 auto; display: block;" />
+                    <div style="font-size: 10px; margin-top: 4px;">STK: ${accountNo} (${bankId})</div>
+                    <div style="font-size: 10px; font-weight: bold;">Nội dung: BAN{{ $table->id }}</div>
+                </div>
+            ` : '';
 
             return `<!doctype html>
 <html lang="vi">
@@ -506,7 +725,8 @@
         </tr>
       </tfoot>
     </table></div>
-    <div class="footer">Cảm ơn quý khách!</div>
+    ${qrImageHtml}
+    <div class="footer" style="margin-top: 8px;">Cảm ơn quý khách & Hẹn gặp lại!</div>
   </div>
 </body>
 </html>`;

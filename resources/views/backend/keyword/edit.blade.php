@@ -6,12 +6,7 @@
                 <div class="col-sm-6">
                     <h1>Cập nhật từ khóa</h1>
                 </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url('admin/')}}">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Keyword</li>
-                    </ol>
-                </div>
+                
             </div>
         </div>
     </section>

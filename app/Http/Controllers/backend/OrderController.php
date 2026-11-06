@@ -40,10 +40,13 @@ class OrderController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|integer|min:1|max:4',
+            'status' => 'required|integer|min:0|max:4',
         ]);
 
         $order->status = $request->status;
+        if ($request->has('payment_method')) {
+            $order->payment_method = $request->payment_method;
+        }
         $order->save();
 
         // Release merged tables if order is completed or cancelled
@@ -51,12 +54,12 @@ class OrderController extends Controller
              \App\Models\Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
         }
 
-        return redirect()->route('admin.order.index')->with('success', 'Cập nhật trạng thái thành công');
+        return redirect()->back()->with('success', 'Cập nhật thông tin đơn hàng thành công');
     }
 
     public function detail($id)
     {
-        $order = Order::with('orderDetails.product')->findOrFail($id);
+        $order = Order::with(['orderDetails.product.category', 'table.floor', 'user'])->findOrFail($id);
 
         return view('backend.order.orderdetail', compact('order'));
     }
@@ -64,12 +67,8 @@ class OrderController extends Controller
     public function print($id)
     {
         $order = Order::with(['orderDetails.product', 'table.floor'])->findOrFail($id);
-        $paymentMethodText = 'Khác';
-        if ((int) $order->payment_method === 1) {
-            $paymentMethodText = 'Tiền mặt';
-        } elseif ((int) $order->payment_method === 2) {
-            $paymentMethodText = 'Chuyển khoản NH';
-        }
+        $paymentInfo = $order->payment_method_info;
+        $paymentMethodText = $paymentInfo['name'];
 
         $createdAt = $order->created_at ? $order->created_at->format('H:i d/m/Y') : '';
         $customerName = $order->name ?? 'Khách lẻ';

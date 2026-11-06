@@ -6,12 +6,7 @@
                 <div class="col-sm-6">
                     <strong class="fw-bold h4 text-danger">CHI TIẾT LIÊN HỆ</strong>
                 </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url('admin/') }}">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Liên hệ</li>
-                    </ol>
-                </div>
+                
             </div>
         </div>
     </section>

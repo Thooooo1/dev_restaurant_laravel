@@ -5,13 +5,7 @@
                 <div class="col-sm-6">
                     <strong class="fw-bold h4 text-danger">CHI TIẾT ĐẶT BÀN</strong>
                 </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url('admin/') }}">Trang chủ</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.booking.index') }}">Đặt bàn</a></li>
-                        <li class="breadcrumb-item active">Chi tiết</li>
-                    </ol>
-                </div>
+                
             </div>
         </div>
     </section>

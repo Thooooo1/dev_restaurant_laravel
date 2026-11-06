@@ -14,13 +14,24 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->appendToGroup('login-admin',[
+        $middleware->validateCsrfTokens(except: [
+            'chatbot/*',
+            'api/webhook/*',
+            'api/webhook',
+            'webhook/*',
+            'webhook',
+            'api/payment/*',
+            'payment/*',
+            'checkout/ipn',
+        ]);
+        $middleware->alias([
+            'login-admin' => LoginAdmin::class,
+            'admin-access' => AdminAccess::class,
+        ]);
+        $middleware->appendToGroup('login-admin', [
             LoginAdmin::class,
         ]);
-
-    })
-    ->withMiddleware(function (Middleware $middleware) {
-        $middleware->appendToGroup('admin-access',[
+        $middleware->appendToGroup('admin-access', [
             AdminAccess::class,
         ]);
     })

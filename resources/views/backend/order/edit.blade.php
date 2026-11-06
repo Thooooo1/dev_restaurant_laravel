@@ -5,13 +5,7 @@
                 <div class="col-sm-6">
                     <h1>Cập nhật trạng thái đơn hàng</h1>
                 </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url('admin/') }}">Trang chủ</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('admin.order.index') }}">Danh sách đơn hàng</a></li>
-                        <li class="breadcrumb-item active">Cập nhật trạng thái</li>
-                    </ol>
-                </div>
+                
             </div>
         </div>
     </section>

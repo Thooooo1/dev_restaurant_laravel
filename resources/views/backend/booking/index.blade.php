@@ -1,108 +1,115 @@
 <x-layout-backend>
-    <style>
-        table thead th {
-            font-size: 14px !important;
-            font-weight: 600 !important;
-            background: #78b4f1ff !important;
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
-        }
-    </style>
-    <!-- Page header -->
-    <div class="mb-4">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-            <div>
-                <h1 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-                    <span class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
-                        <i class="fa-solid fa-calendar-check text-sm"></i>
-                    </span>
-                    Quản lý đặt bàn
-                </h1>
-                <p class="text-slate-500 mt-1 text-sm">Danh sách các yêu cầu đặt bàn</p>
-            </div>
+
+    <!-- Page Header (Ant Design Pro Style) -->
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Quản lý Đặt bàn</h1>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary ant-btn-sm">
+                <i class="fa-solid fa-chair text-xs"></i>
+                <span>Xem sơ đồ bàn</span>
+            </a>
         </div>
     </div>
 
-    <!-- Filter -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 mb-4">
-        <form method="GET" class="flex flex-wrap gap-3 items-end">
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-medium text-slate-700 mb-1">Lọc theo:</label>
-                <select name="status" id="status" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-all outline-none bg-white text-sm" onchange="this.form.submit()">
-                    <option value="5" {{ $statusFilter == 5 ? 'selected' : '' }}>Tất cả</option>
+    <!-- Filter Bar (Shopify Polaris IndexFilters Style) -->
+    <div class="ant-card p-3.5 mb-4 shadow-sm">
+        <form method="GET" class="flex flex-wrap gap-3 items-center">
+            <div class="flex items-center gap-2">
+                <label for="status" class="text-xs font-semibold text-[rgba(0,0,0,0.65)] uppercase">Trạng thái đặt chỗ:</label>
+                <select name="status" id="status" class="polaris-select text-xs min-w-[200px]" onchange="this.form.submit()">
+                    <option value="5" {{ $statusFilter == 5 ? 'selected' : '' }}>Tất cả trạng thái</option>
                     <option value="1" {{ $statusFilter == 1 ? 'selected' : '' }}>Đang chờ xử lý</option>
                     <option value="2" {{ $statusFilter == 2 ? 'selected' : '' }}>Đã xác nhận</option>
                     <option value="3" {{ $statusFilter == 3 ? 'selected' : '' }}>Đã hoàn thành</option>
                     <option value="4" {{ $statusFilter == 4 ? 'selected' : '' }}>Đã hủy</option>
                 </select>
             </div>
+            @if($statusFilter != 5)
+                <a href="{{ url('admin/booking') }}" class="ant-btn ant-btn-sm">
+                    <span>Xóa lọc</span>
+                </a>
+            @endif
         </form>
     </div>
 
-    <!-- Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <!-- Data Table (Shopify Polaris / IBM Carbon / Ant Design Pro Style) -->
+    <div class="ant-card shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <div class="table-responsive"><table class="w-full">
-                <thead class="bg-slate-50 border-b border-slate-200">
+            <table class="w-full">
+                <thead>
                     <tr>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">#</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Họ tên</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Điện thoại</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Email</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Ngày đặt</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Thời gian</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Trạng thái</th>
-                        <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider">Chức năng</th>
+                        <th class="w-12 text-center">ID</th>
+                        <th>Khách hàng</th>
+                        <th>Điện thoại</th>
+                        <th>Email</th>
+                        <th class="text-center">Số khách</th>
+                        <th>Ngày hẹn</th>
+                        <th>Giờ hẹn</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th class="text-center w-28">Thao tác</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
-                    @foreach ($bookings as $index => $booking)
-                    <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $bookings->firstItem() + $index }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-800 font-medium">{{ $booking->name }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $booking->phone }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $booking->email }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ date('d/m/Y', strtotime($booking->booking_date)) }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ date('H:i', strtotime($booking->booking_time)) }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
-                            @switch($booking->status)
-                                @case(1)
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-medium">
-                                        Đang chờ xử lý
-                                    </span>
-                                    @break
-                                @case(2)
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">
-                                        Đã xác nhận
-                                    </span>
-                                    @break
-                                @case(3)
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-600 rounded-full text-xs font-medium">
-                                        Đã hoàn thành
-                                    </span>
-                                    @break
-                                @case(4)
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-600 rounded-full text-xs font-medium">
-                                        Đã hủy
-                                    </span>
-                                    @break
-                            @endswitch
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-center">
-                            <a href="{{ route('admin.booking.detail', $booking->id) }}" class="inline-flex items-center justify-center w-10 h-10 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors ml-1">
-                                <i class="fa-regular fa-eye"></i>
-                            </a>
-                            <a href="{{ route('admin.booking.edit', $booking->id) }}" class="inline-flex items-center justify-center w-10 h-10 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-lg transition-colors ml-1">
-                                <i class="fa-regular fa-pen-to-square"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    @endforeach
+                <tbody>
+                    @forelse ($bookings as $index => $booking)
+                        <tr>
+                            <td class="text-center font-mono text-xs text-[rgba(0,0,0,0.45)]">
+                                #{{ $booking->id }}
+                            </td>
+                            <td>
+                                <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $booking->name }}</div>
+                            </td>
+                            <td class="font-mono text-xs text-[rgba(0,0,0,0.65)]">{{ $booking->phone }}</td>
+                            <td class="text-xs text-[rgba(0,0,0,0.45)]">{{ $booking->email ?? '---' }}</td>
+                            <td class="text-center font-mono text-xs font-semibold text-[rgba(0,0,0,0.85)]">
+                                {{ $booking->number_of_people ?? 2 }} khách
+                            </td>
+                            <td class="font-mono text-xs text-[rgba(0,0,0,0.65)]">
+                                {{ date('d/m/Y', strtotime($booking->booking_date)) }}
+                            </td>
+                            <td class="font-mono text-xs font-semibold text-[rgba(0,0,0,0.85)]">
+                                {{ date('H:i', strtotime($booking->booking_time)) }}
+                            </td>
+                            <td class="text-center">
+                                @switch($booking->status)
+                                    @case(1)
+                                        <span class="polaris-badge polaris-badge-warning text-[11px]">Chờ xử lý</span>
+                                        @break
+                                    @case(2)
+                                        <span class="polaris-badge polaris-badge-processing text-[11px]">Đã xác nhận</span>
+                                        @break
+                                    @case(3)
+                                        <span class="polaris-badge polaris-badge-success text-[11px]">Hoàn tất</span>
+                                        @break
+                                    @case(4)
+                                        <span class="polaris-badge polaris-badge-error text-[11px]">Đã hủy</span>
+                                        @break
+                                    @default
+                                        <span class="polaris-badge polaris-badge-default text-[11px]">Mới</span>
+                                @endswitch
+                            </td>
+                            <td class="text-center">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <a href="{{ route('admin.booking.detail', $booking->id) }}" class="text-gray-400 hover:text-blue-600 transition-colors p-1" title="Xem chi tiết">
+                                        <i class="fa-regular fa-eye text-xs"></i>
+                                    </a>
+                                    <a href="{{ route('admin.booking.edit', $booking->id) }}" class="text-gray-400 hover:text-[#F47716] transition-colors p-1" title="Cập nhật trạng thái">
+                                        <i class="fa-regular fa-pen-to-square text-xs"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="9" class="py-8 text-center text-xs text-[rgba(0,0,0,0.45)]">Không có yêu cầu đặt bàn nào phù hợp</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="px-4 py-3 border-t border-slate-200 flex justify-center">
+        <div class="px-5 py-3 border-t border-[#F0F0F0] bg-[#FAFAFA] flex justify-center">
             {{ $bookings->appends(request()->query())->links() }}
         </div>
     </div>

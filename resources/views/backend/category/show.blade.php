@@ -6,12 +6,7 @@
                 <div class="col-sm-6">
                     <h1>Chi tiết danh mục</h1>
                 </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="#{{ url('admin/')}}">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Danh mục</li>
-                    </ol>
-                </div>
+                
             </div>
         </div>
     </section>

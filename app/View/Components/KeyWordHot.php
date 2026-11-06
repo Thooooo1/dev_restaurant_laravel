@@ -27,7 +27,7 @@ class KeyWordHot extends Component
             ['type','=','search']
         ];
         $keywords = Keyword::where($args)
-        ->limit(7)
+        ->limit(6)
         ->get();
         return view('components.key-word-hot',compact('keywords'));
     }

@@ -1,13 +1,4 @@
 <x-layout-backend>
-    <style>
-        table thead th {
-            font-size: 14px !important;
-            font-weight: 600 !important;
-            background: #78b4f1ff !important;
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
-        }
-    </style>
     <!-- CONTENT -->
     <section class="content-header">
         <div class="container-fluid">
@@ -15,12 +6,7 @@
                 <div class="col-sm-6">
                     <h1>Quản lý Thư viện </h1>
                 </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="{{ url('admin/') }}">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Hình ảnh</li>
-                    </ol>
-                </div>
+                
             </div>
         </div>
     </section>

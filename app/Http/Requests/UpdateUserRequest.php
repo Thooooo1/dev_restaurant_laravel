@@ -14,6 +14,15 @@ class UpdateUserRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation()
+    {
+        if ($this->has('phone') && !empty($this->phone)) {
+            $this->merge([
+                'phone' => preg_replace('/[^0-9]/', '', (string)$this->phone)
+            ]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -21,7 +30,6 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $role = $this->input('roles', 'customer');
         $userId = $this->route('user');
         
         // Nếu route parameter là object, lấy ID
@@ -29,32 +37,19 @@ class UpdateUserRequest extends FormRequest
             $userId = $userId->id;
         }
         
-        $rules = [
-            'fullname' => 'required|string|max:255',
-            'phone' => 'required|string|digits_between:10,15|unique:user,phone,' . $userId,
-            'gender' => 'required|in:0,1',
+        return [
+            'fullname' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|digits_between:10,15|unique:user,phone,' . $userId,
+            'email' => 'nullable|email|unique:user,email,' . $userId,
+            'username' => 'nullable|string|min:3|max:50|unique:user,username,' . $userId,
+            'gender' => 'nullable|in:0,1,Nam,Nữ',
             'address' => 'nullable|string|max:255',
-            'roles' => 'required|in:customer,admin,employee',
-            'status' => 'required|in:1,2',
+            'roles' => 'nullable|in:customer,admin,employee',
+            'status' => 'nullable|in:1,2',
+            'password' => 'nullable|string|min:6',
+            'password_re' => 'nullable|same:password',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
-
-        // Với customer: email, username, password, image là optional
-        if ($role === 'customer') {
-            $rules['email'] = 'nullable|email|unique:user,email,' . $userId;
-            $rules['username'] = 'nullable|string|min:4|max:50|unique:user,username,' . $userId;
-            $rules['password'] = 'nullable|string|min:6';
-            $rules['password_re'] = 'nullable|same:password';
-            $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
-        } else {
-            // Với admin/employee: username là required, password là optional (nếu có thì cần xác nhận)
-            $rules['email'] = 'nullable|email|unique:user,email,' . $userId;
-            $rules['username'] = 'required|string|min:4|max:50|unique:user,username,' . $userId;
-            $rules['password'] = 'nullable|string|min:6';
-            $rules['password_re'] = 'nullable|same:password';
-            $rules['image'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
-        }
-
-        return $rules;
     }
 
     /**

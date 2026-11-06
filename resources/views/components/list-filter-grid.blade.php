@@ -1,191 +1,164 @@
-<div class="container mx-auto px-4 flex flex-col md:flex-row gap-4">
-    <div class="w-full md:w-1/4 bg-white rounded-lg shadow p-4">
-        <h2 class="text-lg font-bold mb-4">Danh mục</h2>
-        <form method="GET" action="{{ url()->current() }}">
-            <ul class="space-y-2 category-list">
-                <li class="only-pc">
-                    <label class="flex items-center">
-                        <input type="radio" name="category" value="all"
-                            {{ $categoryitem === 'all' ? 'checked' : '' }}>
-                        <span class="ml-2 text-gray-700">Tất cả</span>
-                    </label>
-                </li>
-                @foreach ($categories as $category)
-                    <li>
-                        <label class="flex items-center">
-                            <input type="radio" name="category" value="{{ $category->id }}"
-                                {{ $categoryitem == $category->id ? 'checked' : '' }}>
-                            <span class="ml-2 text-gray-700">{{ $category->name }}</span>
-                        </label>
-                    </li>
-                @endforeach
-            </ul>
+<div class="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
+    
+    <!-- ======================================================== -->
+    <!-- 1. TOP HEADER: Tiêu đề sạch sẽ & Thanh Tìm Kiếm + Sắp Xếp  -->
+    <!-- ======================================================== -->
+    <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-stone-200">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
+                Thực đơn món ăn
+            </h1>
+            <p class="text-xs sm:text-sm text-stone-500 mt-0.5 font-medium">
+                Đặc sản lẩu nướng & mâm cơm thuần Việt chế biến tươi nóng tại Phúc Thọ
+            </p>
+        </div>
 
-            <h2 class="text-lg font-bold mt-6 mb-4 only-pc">Thương hiệu</h2>
-            <ul class="space-y-2 only-pc">
-                <li>
-                    <label class="flex items-center">
-                        <input type="radio" name="brand" value="all" {{ $branditem === 'all' ? 'checked' : '' }}>
-                        <span class="ml-2 text-gray-700">Tất cả</span>
-                    </label>
-                </li>
-                @foreach ($brands as $brand)
-                    <li>
-                        <label class="flex items-center">
-                            <input type="radio" name="brand" value="{{ $brand->id }}"
-                                {{ $branditem == $brand->id ? 'checked' : '' }}>
-                            <span class="ml-2 text-gray-700">{{ $brand->name }}</span>
-                        </label>
-                    </li>
-                @endforeach
-            </ul>
-
-            <h2 class="text-lg font-bold mt-6 mb-4 only-pc">Lọc theo giá</h2>
-            <div class="flex items-center gap-2 only-pc">
-                <input type="text" name="price_min" value="{{ request()->get('price_min') }}" placeholder="Từ"
-                    class="border rounded p-2 w-24">
-                <span>-</span>
-                <input type="text" name="price_max" value="{{ request()->get('price_max') }}" placeholder="Đến"
-                    class="border rounded p-2 w-24">
+        <!-- Search Bar & Sort Filter -->
+        <div class="flex items-center gap-2.5 w-full md:w-auto">
+            <div class="relative flex-1 md:w-80">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
+                <input type="text" 
+                       id="menuSearchInput" 
+                       value="{{ request('search') }}" 
+                       placeholder="Tìm món: Lẩu, nướng, bắp bò, nầm, đồ uống..." 
+                       class="w-full pl-9 pr-8 py-2 text-xs sm:text-sm bg-white border border-stone-200 rounded-none sm:rounded-sm focus:outline-none focus:border-[#F47716] focus:ring-1 focus:ring-orange-200 shadow-2xs transition-all">
+                @if (request('search'))
+                    <a href="{{ request()->fullUrlWithQuery(['search' => null, 'page' => null]) }}" 
+                       class="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 text-xs font-bold" 
+                       title="Xóa tìm kiếm">
+                        ✕
+                    </a>
+                @endif
             </div>
 
-
-            <button type="submit" class="mt-4 w-full bg-orange-600 text-white py-2 rounded hover:bg-orange-500">
-                Áp dụng
-            </button>
-        </form>
-    </div>
-
-    <div class="w-full md:w-3/4">
-        <div class="only-pc">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-                <span class="text-gray-700">{{ $productCount }} Món ăn</span>
-                <div class="flex items-center w-full md:w-auto">
-                    <input type="text" id="searchInput" placeholder="Tìm món ăn"
-                        class="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
-
-                    <button id="searchButton"
-                        class="px-4 py-2 bg-orange-500 text-white border border-orange-500 rounded-r-lg hover:bg-orange-600 focus:ring-2 focus:ring-orange-500">
-                        <i class="fa fa-search mr-2"></i> Tìm
-                    </button>
-                </div>
-                
-                <div class="flex items-center space-x-2 w-full md:w-auto justify-between md:justify-end ">
-                    <div>
-                        <select id="sortFilter" class="block w-full md:w-48 p-2 border border-gray-300 rounded-lg">
-                            <option value="default" {{ request()->get('sort') == 'default' ? 'selected' : '' }}>Mặc định
-                            </option>
-                            <option value="priceAsc" {{ request()->get('sort') == 'priceAsc' ? 'selected' : '' }}>Giá tăng
-                                dần</option>
-                            <option value="priceDesc" {{ request()->get('sort') == 'priceDesc' ? 'selected' : '' }}>Giá
-                                giảm dần
-                            </option>
-                            <option value="alphabet" {{ request()->get('sort') == 'alphabet' ? 'selected' : '' }}>Theo chữ
-                                cái</option>
-                            <option value="newest" {{ request()->get('sort') == 'newest' ? 'selected' : '' }}>Mới nhất
-                            </option>
-                            <option value="oldest" {{ request()->get('sort') == 'oldest' ? 'selected' : '' }}>Cũ nhất
-                            </option>
-                        </select>
-                    </div>
-                    <!-- Nút List -->
-                    <a href="{{ url('/thuc-don') }}"
-                        class="flex items-center px-2 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16" />
-                        </svg>
-                        <span class="ml-2"></span>
-                    </a>
-                    <!-- Nút Grid -->
-                    <a href="{{ url('/danh-sach') }}"
-                        class="flex items-center px-2 py-2 bg-gray-200 text-gray-600 rounded hover:bg-gray-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h7M4 12h7M4 18h7M14 6h6M14 12h6M14 18h6" />
-                        </svg>
-                        <span class="ml-2"></span>
-                    </a>
-                    <!-- Select -->
-
-                </div>
+            <!-- Sort Select Filter -->
+            <div class="shrink-0">
+                <select id="menuSortSelect" 
+                        class="text-xs sm:text-sm bg-white border border-stone-200 text-stone-700 py-2 px-3 rounded-none sm:rounded-sm focus:outline-none focus:border-[#F47716] shadow-2xs transition font-semibold cursor-pointer">
+                    <option value="default" {{ request('sort') == 'default' ? 'selected' : '' }}>Mặc định</option>
+                    <option value="priceAsc" {{ request('sort') == 'priceAsc' ? 'selected' : '' }}>Giá: Thấp → Cao</option>
+                    <option value="priceDesc" {{ request('sort') == 'priceDesc' ? 'selected' : '' }}>Giá: Cao → Thấp</option>
+                    <option value="alphabet" {{ request('sort') == 'alphabet' ? 'selected' : '' }}>Tên: A → Z</option>
+                    <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Món mới nhất</option>
+                </select>
             </div>
         </div>
-        
-        <x-list-product-grid :categoryitem="$categoryitem" :branditem="$branditem" />
     </div>
-    <style>
-        .only-pc {
-            display: none;
-        }
 
-        @media (min-width: 768px) {
-            .only-pc {
-                display: block;
-            }
-        }
+    <!-- ======================================================== -->
+    <!-- 2. SECTION TITLE: Khám phá món & Tổng số món             -->
+    <!-- ======================================================== -->
+    <div class="flex items-center justify-between mb-3">
+        <h2 class="text-base sm:text-lg font-bold text-stone-900 tracking-tight">
+            Khám phá theo danh mục
+        </h2>
+        <a href="{{ route('site.product.gridview') }}" class="text-xs sm:text-sm font-bold text-[#F47716] hover:underline">
+            Xem tất cả ({{ $totalAllProducts }})
+        </a>
+    </div>
 
-        /* SP: danh mục 2 cột, PC giữ dạng danh sách dọc */
-        @media (max-width: 767.98px) {
-            .category-list {
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                column-gap: 0.5rem;
-                row-gap: 0.5rem;
-            }
-        }
+    <!-- ======================================================== -->
+    <!-- 3. HORIZONTAL CATEGORY TABS (Chuẩn phẳng, không bo viên thuốc)-->
+    <!-- ======================================================== -->
+    <div class="relative mb-6">
+        <div class="overflow-x-auto scroll-smooth py-1 -mx-2 px-2" style="-webkit-overflow-scrolling: touch; scrollbar-width: thin;">
+            <div class="flex items-center gap-2 min-w-max pb-1">
+                <a href="{{ request()->fullUrlWithQuery(['category' => 'all', 'page' => null]) }}" 
+                   class="px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 {{ $categoryitem === 'all' ? 'bg-[#F47716] text-white border border-[#F47716] shadow-2xs' : 'bg-white text-stone-700 hover:text-[#F47716] hover:bg-stone-50 border border-stone-200' }}">
+                    <span>Tất cả</span>
+                </a>
 
-        @media (min-width: 768px) {
-            .category-list {
-                display: block;
-            }
-        }
-    </style>
+                @foreach ($categories as $cat)
+                    @if ($cat->products_count > 0)
+                        <a href="{{ request()->fullUrlWithQuery(['category' => $cat->id, 'page' => null]) }}" 
+                           class="px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 {{ $categoryitem == $cat->id ? 'bg-[#F47716] text-white border border-[#F47716] shadow-2xs' : 'bg-white text-stone-700 hover:text-[#F47716] hover:bg-stone-50 border border-stone-200' }}">
+                            <span>{{ $cat->name }}</span>
+                        </a>
+                    @endif
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Filter Tags (Hiện khi đang tìm kiếm hoặc lọc) -->
+    @if ($categoryitem !== 'all' || request('search') || request('price_min') || request('price_max'))
+        <div class="flex flex-wrap items-center gap-2 mb-5 text-xs">
+            <span class="text-stone-400 text-xs font-medium">Đang lọc:</span>
+
+            @if ($categoryitem !== 'all')
+                @php
+                    $curCat = $categories->firstWhere('id', $categoryitem);
+                @endphp
+                @if ($curCat)
+                    <a href="{{ request()->fullUrlWithQuery(['category' => 'all', 'page' => null]) }}" 
+                       class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-orange-50 border border-orange-200 text-[#F47716] font-semibold hover:bg-orange-100 transition">
+                        <span>{{ $curCat->name }}</span>
+                        <span class="text-[10px]">✕</span>
+                    </a>
+                @endif
+            @endif
+
+            @if (request('search'))
+                <a href="{{ request()->fullUrlWithQuery(['search' => null, 'page' => null]) }}" 
+                   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-orange-50 border border-orange-200 text-[#F47716] font-semibold hover:bg-orange-100 transition">
+                    <span>"{{ request('search') }}"</span>
+                    <span class="text-[10px]">✕</span>
+                </a>
+            @endif
+
+            <a href="{{ route('site.product.gridview') }}" 
+               class="text-stone-400 hover:text-[#F47716] ml-1 text-xs underline font-medium">
+                Xóa tất cả bộ lọc
+            </a>
+        </div>
+    @endif
+
+    <!-- ======================================================== -->
+    <!-- 4. MAIN ORDER GRID: Left Food Grid + Right My Order      -->
+    <!-- ======================================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" id="menuMainGridLayout">
+        
+        <!-- CỘT TRÁI: DANH SÁCH MÓN ĂN (8 CỘT) -->
+        <div class="lg:col-span-8 xl:col-span-8">
+            <x-list-product-grid :categoryitem="$categoryitem" :branditem="$branditem" />
+        </div>
+
+        <!-- CỘT PHẢI: MY ORDER / GIỎ HÀNG THỜI GIAN THỰC (4 CỘT) -->
+        <div class="lg:col-span-4 xl:col-span-4 sticky top-24 z-20" id="menuLiveCartSlot">
+            <x-menu-live-cart />
+        </div>
+    </div>
 </div>
+
 <script>
-    document.getElementById('searchButton').addEventListener('click', function() {
-        let searchValue = document.getElementById('searchInput').value;
-        let category = document.querySelector('input[name="category"]:checked')?.value || 'all';
-        let brand = document.querySelector('input[name="brand"]:checked')?.value || 'all';
-        let sort = document.getElementById('sortFilter').value;
-        let priceMin = document.querySelector('input[name="price_min"]').value;
-        let priceMax = document.querySelector('input[name="price_max"]').value;
+    document.addEventListener('DOMContentLoaded', function () {
+        var searchInput = document.getElementById('menuSearchInput');
+        var sortSelect = document.getElementById('menuSortSelect');
 
-        let url =
-            `?search=${searchValue}&category=${category}&brand=${brand}&sort=${sort}&price_min=${priceMin}&price_max=${priceMax}`;
-        window.location.href = url;
-    });
-
-    document.getElementById('searchInput').addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
-            document.getElementById('searchButton').click();
-        }
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-        if (!window.matchMedia('(max-width: 767.98px)').matches) {
-            return;
+        function updateQuery(param, value) {
+            var url = new URL(window.location.href);
+            if (value && value !== 'default' && value !== 'all') {
+                url.searchParams.set(param, value);
+            } else {
+                url.searchParams.delete(param);
+            }
+            url.searchParams.delete('page');
+            window.location.href = url.toString();
         }
 
-        let params = new URLSearchParams(window.location.search);
-        let currentCategory = params.get('category') || 'all';
-        if (currentCategory !== 'all') {
-            return;
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    updateQuery('search', searchInput.value.trim());
+                }
+            });
         }
 
-        let categoryInputs = document.querySelectorAll('.category-list input[name="category"]');
-        let firstCategoryInput = Array.from(categoryInputs).find(function(input) {
-            return input.value !== 'all';
-        });
-
-        if (!firstCategoryInput) {
-            return;
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function () {
+                updateQuery('sort', this.value);
+            });
         }
-
-        firstCategoryInput.checked = true;
-        params.set('category', firstCategoryInput.value);
-        window.location.search = params.toString();
     });
 </script>

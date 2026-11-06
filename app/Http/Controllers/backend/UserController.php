@@ -20,24 +20,10 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $role = $request->query('role');
-        $status = $request->query('status'); 
-
-        $users = User::query();
-
-        if ($role) {
-            $users->where('roles', $role);
+        if ($role === 'customer') {
+            return $this->customers($request);
         }
-
-        if ($status !== null) {
-            $users->where('status', $status);
-        }
-
-        $users = $users->orderBy('created_at', 'DESC')->paginate(6)->appends([
-            'role' => $role,
-            'status' => $status
-        ]);
-
-        return view('backend.user.index', compact('users'));
+        return $this->listEmployees($request);
     }
 
 
@@ -51,13 +37,21 @@ class UserController extends Controller
 
         $users = User::where('roles', 'customer');
 
+        if ($request->filled('q')) {
+            $q = trim($request->q);
+            $users->where(function($sub) use ($q) {
+                $sub->where('fullname', 'like', "%{$q}%")
+                    ->orWhere('phone', 'like', "%{$q}%")
+                    ->orWhere('username', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
         if ($status !== null) {
             $users->where('status', $status);
         }
 
-        $users = $users->orderBy('created_at', 'DESC')->paginate(6)->appends([
-            'status' => $status
-        ]);
+        $users = $users->orderBy('created_at', 'DESC')->paginate(10)->withQueryString();
         
         $type = 'customers';
         return view('backend.user.index', compact('users', 'type'));
@@ -79,42 +73,48 @@ class UserController extends Controller
     public function store(StoreUserRequest $request)
     {
         $user = new User();
-        
-        // Xử lý image (optional)
-        if($request->hasFile('image')){
-            $file = $request->file('image');
-            $extension = $file->extension();
-            $filename = date('YmdHis') . "." . $extension;
-            $file->move(public_path('images/user'),$filename);
-            $user->image = $filename;
-        } else {
-            // Nếu không có ảnh upload, sử dụng ảnh mặc định
-            $user->image = 'non_image.png';
-        }
-       
-        $user->username = $request->username ?? null;
-        // Chỉ hash password nếu có password
-        if ($request->password) {
-            $user->password = Hash::make($request->password);
-        }
-        $user->fullname = $request->fullname;
+        $role = $request->roles ?? 'customer';
+        $user->roles = $role;
+        $user->fullname = trim($request->fullname);
+        $user->phone = preg_replace('/[^0-9]/', '', (string)$request->phone);
+        $user->email = $request->filled('email') ? trim($request->email) : null;
         $user->gender = $request->gender;
-        $user->email = $request->email ?? null;
-        $user->phone = $request->phone;
-        $user->roles = $request->roles;
-        // Set admin_lever khi tạo user với vai trò admin hoặc employee
-        if ($request->roles == 'admin') {
-            $user->admin_lever = 2;
-        } elseif ($request->roles == 'employee') {
-            $user->admin_lever = 2; // Để cho employee vào được admin panel
-        }
-        $user->address = $request->address ?? null;
+        $user->address = $request->filled('address') ? trim($request->address) : null;
+        $user->status = $request->status ?? 1;
         $user->created_by = Auth::id() ?? 1;
-        $user->status = $request->status;
+
+        if ($role === 'customer') {
+            // Khách hàng: chỉ lưu trữ thông tin cơ bản, tự động gán username theo sđt và mật khẩu mặc định
+            $user->username = $request->filled('username') ? trim($request->username) : $user->phone;
+            $user->password = $request->filled('password') ? Hash::make($request->password) : Hash::make('123456');
+            $user->image = 'non_image.png';
+            $user->admin_lever = null;
+        } else {
+            // Nhân viên / Admin
+            if($request->hasFile('image')){
+                $file = $request->file('image');
+                $extension = $file->extension();
+                $filename = date('YmdHis') . "." . $extension;
+                $file->move(public_path('images/user'),$filename);
+                $user->image = $filename;
+            } else {
+                $user->image = 'non_image.png';
+            }
+            $user->username = $request->username ?? $user->phone;
+            if ($request->password) {
+                $user->password = Hash::make($request->password);
+            }
+            if ($request->roles == 'admin') {
+                $user->admin_lever = 2;
+            } elseif ($request->roles == 'employee') {
+                $user->admin_lever = 2;
+            }
+        }
+
         $user->save();
         
         // Redirect về đúng trang dựa trên role
-        if ($request->roles == 'admin' || $request->roles == 'employee') {
+        if ($role == 'admin' || $role == 'employee') {
             return redirect()->route('admin.user.employees')->with('success','Thêm nhân viên thành công');
         } else {
             return redirect()->route('admin.user.customers')->with('success','Thêm khách hàng thành công');
@@ -149,60 +149,89 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, string $id)
     {
-        $user = User::where('id',$id)->first();
-        
-        // Chỉ cập nhật username nếu có giá trị
-        if ($request->has('username')) {
-            $user->username = $request->username ?? null;
+        $user = User::where('id', $id)->first();
+        if (!$user) {
+            return redirect()->back()->with('error', 'Không tìm thấy người dùng.');
         }
         
-        // Chỉ cập nhật password nếu có password mới
-        if ($request->password) {
+        // 1. Họ và tên: nếu có nhập thì cập nhật, nếu để trống thì giữ nguyên họ tên cũ
+        if ($request->filled('fullname')) {
+            $user->fullname = trim($request->fullname);
+        }
+        
+        // 2. Tên đăng nhập: nếu có nhập thì cập nhật, nếu để trống thì giữ nguyên
+        if ($request->filled('username')) {
+            $user->username = trim($request->username);
+        }
+        
+        // 3. Số điện thoại: nếu có nhập thì cập nhật, nếu để trống thì giữ nguyên
+        if ($request->filled('phone')) {
+            $user->phone = preg_replace('/[^0-9]/', '', (string)$request->phone);
+            if ($user->roles == 'customer' && empty($user->username)) {
+                $user->username = $user->phone;
+            }
+        }
+        
+        // 4. Mật khẩu: CHỈ cập nhật khi có nhập mật khẩu mới
+        if ($request->filled('password')) {
             $user->password = Hash::make($request->password);
         }
         
-        // upload file 
-        if($request->hasFile('image')){
-            //xoa hinh
-            if($user->image && File::exists(public_path("images/user/" . $user->image))){
+        // 5. Ảnh đại diện: CHỈ thay thế khi người dùng chọn file ảnh mới
+        if ($request->hasFile('image')) {
+            if ($user->image && File::exists(public_path("images/user/" . $user->image))) {
                 File::delete(public_path("images/user/" . $user->image));
             }
             $file = $request->file('image');
-            $extension=$file->extension();
-            $filename = date('YmdHis') . "." . $extension;
-            $file->move(public_path("images/user"),$filename);
+            $extension = $file->extension();
+            $filename = date('YmdHis') . "_" . uniqid() . "." . $extension;
+            $file->move(public_path("images/user"), $filename);
             $user->image = $filename;
         }
-        //end upload file
-        $user->fullname = $request->fullname;
-        $user->gender = $request->gender;
         
-        // Chỉ cập nhật email nếu có giá trị
+        // 6. Giới tính: nếu có chọn thì cập nhật, không thì giữ nguyên
+        if ($request->has('gender') && $request->gender !== null && $request->gender !== '') {
+            $user->gender = $request->gender;
+        }
+        
+        // 7. Email: cập nhật nếu có gửi trường email
         if ($request->has('email')) {
-            $user->email = $request->email ?? null;
+            $user->email = $request->email ? trim($request->email) : null;
         }
         
-        $user->phone = $request->phone;
-        $user->roles = $request->roles;
-        // Set admin_lever khi update user với vai trò admin hoặc employee
-        if ($request->roles == 'admin' || $request->roles == 'employee') {
-            $user->admin_lever = 2;
-        } else {
-            $user->admin_lever = null;
+        // 8. Địa chỉ: cập nhật nếu có gửi trường address
+        if ($request->has('address')) {
+            $user->address = $request->address ? trim($request->address) : null;
         }
-        $user->address = $request->address ?? null;
-        $user->updated_by=Auth::id() ?? 1 ;
-        $user->updated_at= date('Y-m-d H:i:s');
-        $user->status = $request->status;
-        if($user->save()){
-            // Redirect về đúng trang dựa trên role
+        
+        // 9. Quyền / Vai trò: cập nhật nếu có chọn
+        if ($request->filled('roles')) {
+            $user->roles = $request->roles;
             if ($request->roles == 'admin' || $request->roles == 'employee') {
-                return redirect()->route('admin.user.employees')->with('success','Nhân viên đã được cập nhật');
+                $user->admin_lever = $user->admin_lever ?: 2;
             } else {
-                return redirect()->route('admin.user.customers')->with('success','Khách hàng đã được cập nhật');
+                $user->admin_lever = null;
             }
         }
-        return redirect()->back()->with('error','Lỗi cập nhật');
+        
+        // 10. Trạng thái hoạt động: cập nhật nếu có chọn
+        if ($request->has('status') && $request->status !== null && $request->status !== '') {
+            $user->status = $request->status;
+        }
+        
+        $user->updated_by = Auth::id() ?? 1;
+        $user->updated_at = date('Y-m-d H:i:s');
+        
+        if ($user->save()) {
+            $targetRole = $user->roles;
+            if ($targetRole == 'admin' || $targetRole == 'employee') {
+                return redirect()->route('admin.user.employees')->with('success', 'Thông tin nhân viên ' . $user->fullname . ' đã được cập nhật thành công!');
+            } else {
+                return redirect()->route('admin.user.customers')->with('success', 'Thông tin khách hàng ' . $user->fullname . ' đã được cập nhật thành công!');
+            }
+        }
+        
+        return redirect()->back()->with('error', 'Lỗi không thể lưu thông tin người dùng.');
     }
 
     /**
@@ -242,10 +271,14 @@ class UserController extends Controller
     {
         $user = User::find($id);
         if($user != null){
+            $role = $user->roles;
             $user->delete();
-            return redirect()->route("admin.user.index")->with('success','Xóa vào thùng rác thành công');
+            if ($role == 'customer') {
+                return redirect()->route("admin.user.customers")->with('success','Đã xóa khách hàng thành công');
+            }
+            return redirect()->route("admin.user.employees")->with('success','Xóa vào thùng rác thành công');
         }
-        return redirect()->route("admin.user.index")->with('error','Mẫu tin không tồn tại');
+        return redirect()->back()->with('error','Mẫu tin không tồn tại');
     }
     public function restore(string $id)
     {
@@ -303,15 +336,24 @@ class UserController extends Controller
     }
 
 
-    public function listEmployees()
+    public function listEmployees(Request $request)
     {
-           $users = User::whereIn('roles', ['admin', 'employee'])
-               ->where('admin_lever', 2)
-               ->orderBy('created_at', 'DESC')
-               ->paginate(10);
+        $query = User::whereIn('roles', ['admin', 'employee']);
+
+        if ($request->filled('q')) {
+            $q = trim($request->q);
+            $query->where(function($sub) use ($q) {
+                $sub->where('fullname', 'like', "%{$q}%")
+                    ->orWhere('phone', 'like', "%{$q}%")
+                    ->orWhere('username', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
+        $users = $query->orderBy('id', 'ASC')->paginate(10)->withQueryString();
             
-           $type = 'employees';
-           return view('backend.user.index', compact('users', 'type'));
+        $type = 'employees';
+        return view('backend.user.index', compact('users', 'type'));
     }
 
 

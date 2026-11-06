@@ -26,8 +26,15 @@ class ProductNew extends Component
             ['new_p','=',1],
         ];
         $products = Product::where($args)
-        ->limit(6)
-        ->get();
+            ->orderBy('created_at', 'desc')
+            ->limit(8)
+            ->get();
+        if ($products->isEmpty()) {
+            $products = Product::where('status', 1)
+                ->orderBy('created_at', 'desc')
+                ->limit(8)
+                ->get();
+        }
         return view('components.product-new',compact('products'));
     }
 }

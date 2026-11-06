@@ -5,6 +5,9 @@ namespace App\Http\Controllers\backend;
 use App\Http\Controllers\Controller;
 use App\Models\Floor;
 use App\Models\Table;
+use App\Models\Order;
+use App\Models\Orderdetail;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -12,20 +15,130 @@ class TableController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Table::with('floor');
+        // Gộp tính năng Quản lý bàn & phòng vào Bán hàng (POS)
+        return redirect()->route('admin.table-order.index');
+    }
 
-        // Lọc theo tầng nếu có
-        if ($request->has('floor_id') && $request->floor_id != '') {
-            $query->where('floor_id', $request->floor_id);
+    /**
+     * API Lấy danh sách món ăn hiện tại của bàn (dành cho modal Xem Món & Thanh toán)
+     */
+    public function getTableDishes($id)
+    {
+        $table = Table::with('floor')->find($id);
+        if (!$table) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bàn không tồn tại trên hệ thống.'
+            ], 404);
         }
 
-        $tables = $query->orderBy('created_at', 'DESC')
-            ->paginate(10)
-            ->withQueryString(); // Giữ lại query string khi phân trang
+        $order = Order::where('table_id', $table->id)
+            ->whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->with(['orderDetails.product', 'user'])
+            ->orderBy('id', 'DESC')
+            ->first();
 
-        $floors = Floor::orderBy('id', 'ASC')->get();
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'is_empty' => true,
+                'message' => 'Bàn này hiện đang trống, chưa có món ăn nào được gọi.',
+                'table' => [
+                    'id' => $table->id,
+                    'name' => $table->name,
+                    'floor_name' => $table->floor->name ?? 'Khu vực chung',
+                    'seats' => $table->seats,
+                ],
+                'order_url' => route('admin.table-order.order', $table->id),
+            ]);
+        }
 
-        return view('backend.table.index', compact('tables', 'floors'));
+        // Chuẩn hóa danh sách món ăn
+        $dishes = [];
+        $subtotal = 0;
+        foreach ($order->orderDetails as $detail) {
+            $product = $detail->product;
+            $thumb = $product && $product->thumbnail 
+                ? asset('images/products/' . $product->thumbnail) 
+                : asset('images/default-dish.jpg');
+
+            $statusText = 'Chờ bếp';
+            $statusBadge = 'bg-amber-100 text-amber-700 border-amber-200';
+            if ($detail->status == 1) {
+                $statusText = 'Đang chế biến';
+                $statusBadge = 'bg-blue-100 text-blue-700 border-blue-200';
+            } elseif ($detail->status == 2) {
+                $statusText = 'Đã lên bàn';
+                $statusBadge = 'bg-emerald-100 text-emerald-700 border-emerald-200';
+            }
+
+            $amount = $detail->amount > 0 ? $detail->amount : ($detail->price * $detail->qty);
+            $subtotal += $amount;
+
+            $dishes[] = [
+                'id' => $detail->id,
+                'product_id' => $detail->product_id,
+                'name' => $product ? $product->name : ('Món #' . $detail->product_id),
+                'thumbnail' => $thumb,
+                'price' => (float)$detail->price,
+                'price_formatted' => number_format($detail->price) . '₫',
+                'qty' => (int)$detail->qty,
+                'discount' => (float)$detail->discount,
+                'amount' => (float)$amount,
+                'amount_formatted' => number_format($amount) . '₫',
+                'status_raw' => $detail->status,
+                'status_text' => $statusText,
+                'status_badge' => $statusBadge,
+                'order_turn' => $detail->order_turn ?? 1,
+            ];
+        }
+
+        // Tạm tính và tổng
+        $discountAmount = 0;
+        if ($order->total_price > 0 && $order->total_price < $subtotal) {
+            $discountAmount = $subtotal - $order->total_price;
+        }
+
+        $finalTotal = $order->total_price > 0 ? $order->total_price : $subtotal;
+
+        return response()->json([
+            'success' => true,
+            'is_empty' => false,
+            'table' => [
+                'id' => $table->id,
+                'name' => $table->name,
+                'floor_name' => $table->floor->name ?? 'Khu vực chung',
+                'seats' => $table->seats,
+            ],
+            'order' => [
+                'id' => $order->id,
+                'status' => $order->status,
+                'status_text' => $order->status == 1 ? 'Đã tạm tính / Đang phục vụ' : 'Chưa thanh toán',
+                'created_at' => $order->created_at ? $order->created_at->format('H:i d/m/Y') : 'Vừa xong',
+                'time_seated' => $order->created_at ? $order->created_at->locale('vi')->diffForHumans() : 'Vừa xong',
+                'customer_name' => $order->name ?: ($order->user->name ?? 'Khách tại bàn'),
+                'phone' => $order->phone ?: ($order->user->phone ?? '—'),
+                'note' => $order->note,
+            ],
+            'dishes' => $dishes,
+            'summary' => [
+                'dishes_count' => count($dishes),
+                'total_qty' => array_sum(array_column($dishes, 'qty')),
+                'subtotal' => $subtotal,
+                'subtotal_formatted' => number_format($subtotal) . '₫',
+                'discount' => $discountAmount,
+                'discount_formatted' => number_format($discountAmount) . '₫',
+                'final_total' => $finalTotal,
+                'final_total_formatted' => number_format($finalTotal) . '₫',
+            ],
+            'urls' => [
+                'order_url' => route('admin.table-order.order', $table->id),
+                'payment_url' => route('admin.table-order.payment', $table->id),
+                'bill_url' => route('site.table.bill', $table->id),
+                'qr_url' => route('admin.table.qr', $table->id),
+            ]
+        ]);
     }
 
     public function create()
@@ -65,7 +178,7 @@ class TableController extends Controller
             'status'     => $request->status,
         ]);
 
-        return redirect()->route('admin.table.index')
+        return redirect()->route('admin.table-order.index')
             ->with('success', 'Thêm bàn ăn thành công');
     }
 
@@ -73,7 +186,7 @@ class TableController extends Controller
     {
         $table = Table::find($id);
         if (! $table) {
-            return redirect()->route('admin.table.index')
+            return redirect()->route('admin.table-order.index')
                 ->with('error', 'Bàn ăn không tồn tại');
         }
 
@@ -86,7 +199,7 @@ class TableController extends Controller
     {
         $table = Table::find($id);
         if (! $table) {
-            return redirect()->route('admin.table.index')
+            return redirect()->route('admin.table-order.index')
                 ->with('error', 'Bàn ăn không tồn tại');
         }
 
@@ -118,7 +231,7 @@ class TableController extends Controller
 
         $table->save();
 
-        return redirect()->route('admin.table.index')
+        return redirect()->route('admin.table-order.index')
             ->with('success', 'Cập nhật bàn ăn thành công');
     }
 
@@ -129,11 +242,11 @@ class TableController extends Controller
             $table->status = $table->status == 1 ? 2 : 1;
             $table->save();
 
-            return redirect()->route('admin.table.index')
+            return redirect()->route('admin.table-order.index')
                 ->with('success', 'Đã đổi trạng thái bàn ăn');
         }
 
-        return redirect()->route('admin.table.index')
+        return redirect()->route('admin.table-order.index')
             ->with('error', 'Bàn ăn không tồn tại');
     }
 
@@ -143,11 +256,11 @@ class TableController extends Controller
         if ($table) {
             $table->delete();
 
-            return redirect()->route('admin.table.index')
+            return redirect()->route('admin.table-order.index')
                 ->with('success', 'Đã chuyển bàn ăn vào thùng rác');
         }
 
-        return redirect()->route('admin.table.index')
+        return redirect()->route('admin.table-order.index')
             ->with('error', 'Bàn ăn không tồn tại');
     }
 
@@ -177,18 +290,26 @@ class TableController extends Controller
 
     public function downloadQr($id)
     {
-        $table = Table::find($id);
+        $table = Table::with('floor')->find($id);
         if (!$table) {
             return redirect()->back()->with('error', 'Bàn không tồn tại.');
         }
 
+        // Lấy đơn hàng đang hoạt động của bàn (nếu có)
+        $activeOrder = Order::where('table_id', $id)
+            ->whereNull('deleted_at')
+            ->whereIn('status', [0, 1])
+            ->with(['orderDetails.product', 'user'])
+            ->latest('id')
+            ->first();
+
         // Hướng người dùng đến trang quét QR của bàn đó
         $url = route('site.table.scan', $id);
         
-        // Tạo QR Code
-        $qrcode = QrCode::size(400)->generate($url);
+        // Tạo QR Code kích thước vừa vặn cho Standee để bàn (220px sắc nét)
+        $qrcode = QrCode::size(220)->generate($url);
         
-        return view('backend.table.qr', compact('table', 'qrcode', 'url'));
+        return view('backend.table.qr', compact('table', 'qrcode', 'url', 'activeOrder'));
     }
 
     public function destroy(string $id)

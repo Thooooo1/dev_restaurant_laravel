@@ -29,6 +29,16 @@ class Table extends Model
     {
         return $this->hasMany(Order::class, 'table_id');
     }
+
+    public function serviceCalls()
+    {
+        return $this->hasMany(ServiceCall::class, 'table_id');
+    }
+
+    public function activeServiceCall()
+    {
+        return $this->hasOne(ServiceCall::class, 'table_id')->where('status', ServiceCall::STATUS_PENDING)->latestOfMany();
+    }
 }
 
 

@@ -1,11 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1c1917" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="format-detection" content="telephone=no">
     <title>CIVILIZE Restaurant</title>
-    <link rel="shortcut icon" type="image/x-icon" href="../images/logo/logo.png">
+    <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/logo/logo.png') }}">
     <!-- jQuery -->
     {{--
     <script src="/Scripts/js/jquery-2.0.0.min.js" type="text/javascript"></script> --}}
@@ -14,15 +19,12 @@
     <script src="/Scripts/js/bootstrap.bundle.min.js" type="text/javascript"></script>
     <link href="/Content/css/bootstrap.css" rel="stylesheet" type="text/css" />
 
-    <!-- Font awesome 5 -->
-    <link href="/fonts/fonts/fontawesome/css/all.min.css" type="text/css" rel="stylesheet">
+    <!-- Font Awesome 6.7.0 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.0/css/all.min.css"
         integrity="sha512-9xKTRVabjVeZmc+GUW8GgSmcREDunMM+Dt/GrzchfN8tkwHizc5RP4Ok/MXFFy5rIjJjzhndFScTceq5e6GvVQ=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <link rel="stylesheet" href="../output.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Slick CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
     <link rel="stylesheet" type="text/css"
@@ -46,169 +48,498 @@
     <!-- Nhúng Alpine.js nếu chưa có -->
     <script src="{{ asset('assets/alpinejs@3.x.x/dist/cdn.min.js') }}" defer></script>
 
+    <!-- Style chống FOUC cho Alpine.js và Hiệu ứng màu thương hiệu Social Media chuẩn xác -->
+    <style>
+        [x-cloak] { display: none !important; }
+
+        /* Social Icons: Chuyển đổi màu y hệt app khi chỉ đến (hover) */
+        .hover-social-fb:hover {
+            background-color: #1877F2 !important;
+            border-color: #1877F2 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(24, 119, 242, 0.35);
+        }
+        .hover-social-insta:hover {
+            background: radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%) !important;
+            border-color: transparent !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(214, 36, 159, 0.4);
+        }
+        .hover-social-tiktok:hover {
+            background-color: #000000 !important;
+            border-color: #25F4EE !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+        .hover-social-tiktok:hover i {
+            text-shadow: -1.5px -1.5px 0 #25F4EE, 1.5px 1.5px 0 #FE2C55;
+        }
+        .hover-social-yt:hover {
+            background-color: #FF0000 !important;
+            border-color: #FF0000 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+        }
+    </style>
+
+    <!-- Google Fonts: Inter (Cực kỳ sắc nét, rõ ràng, dễ nhìn nhất trên mọi màn hình máy tính & điện thoại) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+                        serif: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#FFF7ED',
+                            100: '#FFEDD5',
+                            200: '#FED7AA',
+                            500: '#F47716',
+                            600: '#EA580C',
+                            700: '#C25E00',
+                            800: '#9A3412',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* ========================================================
+           CROSS-PLATFORM DESIGN: WINDOWS, MAC, IOS & ANDROID
+           ======================================================== */
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+        }
+
+        html, body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            -webkit-tap-highlight-color: transparent;
+            background-color: #FAF8F5;
+            color: #0F172A;
+            font-weight: 500;
+        }
+
+        /* Tối ưu tốc độ chạm trên màn hình cảm ứng iPhone & Android, bỏ độ trễ 300ms */
+        button, a, input, select, textarea, [role="button"] {
+            touch-action: manipulation;
+        }
+
+        /* Chống lỗi phóng to tự động (Auto-Zoom) phiền toái trên iPhone / iPad khi gõ vào ô nhập */
+        @media screen and (max-width: 768px) {
+            input[type="text"],
+            input[type="search"],
+            input[type="number"],
+            input[type="tel"],
+            input[type="email"],
+            input[type="password"],
+            select,
+            textarea {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Thanh cuộn hiện đại, thanh mảnh, đồng bộ trên cả Windows (Chrome/Edge/Firefox) & Mac */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(120, 113, 108, 0.25);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(194, 94, 0, 0.6);
+        }
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(120, 113, 108, 0.25) transparent;
+        }
+
+        /* Lớp hỗ trợ vùng an toàn màn hình tai thỏ / Dynamic Island & thanh vuốt đáy iPhone */
+        .pb-safe {
+            padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px)) !important;
+        }
+        .pt-safe {
+            padding-top: calc(0.5rem + env(safe-area-inset-top, 0px)) !important;
+        }
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+        }
+
+        h1, h2, h3, h4, h5, h6, .font-serif, .font-serif-luxury {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+            font-weight: 800 !important;
+            color: #0F172A;
+            letter-spacing: -0.025em;
+        }
+        input, button, select, textarea {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
+        /* Bulletproof Font Awesome 6 rendering with exact weights */
+        .fa, .fas, .fa-solid {
+            font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+            font-weight: 900 !important;
+            font-style: normal !important;
+        }
+        .far, .fa-regular {
+            font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", FontAwesome !important;
+            font-weight: 400 !important;
+            font-style: normal !important;
+        }
+        .fab, .fa-brands {
+            font-family: "Font Awesome 6 Brands", "Font Awesome 5 Brands", FontAwesome !important;
+            font-weight: 400 !important;
+            font-style: normal !important;
+        }
+
+        /* Clean Slick Slider Controls (suppress default pseudo-arrows) */
+        .slick-prev:before, .slick-next:before {
+            display: none !important;
+            content: '' !important;
+        }
+        .home-hero-slider .slick-prev {
+            left: 16px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            z-index: 30 !important;
+            width: 46px !important;
+            height: 46px !important;
+        }
+        .home-hero-slider .slick-next {
+            right: 16px !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            z-index: 30 !important;
+            width: 46px !important;
+            height: 46px !important;
+        }
+        @media (min-width: 640px) {
+            .home-hero-slider .slick-prev {
+                left: 36px !important;
+                width: 52px !important;
+                height: 52px !important;
+            }
+            .home-hero-slider .slick-next {
+                right: 36px !important;
+                width: 52px !important;
+                height: 52px !important;
+            }
+        }
+        .slick-dots {
+            bottom: 24px !important;
+            z-index: 25 !important;
+        }
+        .slick-dots li {
+            margin: 0 4px !important;
+        }
+        .slick-dots li button:before {
+            font-size: 10px !important;
+            color: #ffffff !important;
+            opacity: 0.4 !important;
+            transition: all 0.3s ease;
+        }
+        .slick-dots li.slick-active button:before {
+            color: #f97316 !important;
+            opacity: 1 !important;
+            font-size: 13px !important;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Hero Slider: Chiếm trọn 100% màn hình đầu tiên (Full viewport height cả 1 trang) */
+        .hero-slider-section {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 80px);
+            height: calc(100dvh - 80px);
+            min-height: 500px;
+            background-color: #0c0a09;
+            overflow: hidden;
+        }
+        @media (min-width: 640px) {
+            .hero-slider-section {
+                height: calc(100vh - 96px);
+                height: calc(100dvh - 96px);
+                min-height: 580px;
+            }
+        }
+        .home-hero-slider,
+        .home-hero-slider .slick-list,
+        .home-hero-slider .slick-track,
+        .home-hero-slider .slick-slide,
+        .home-hero-slider .slick-slide > div {
+            height: 100% !important;
+        }
+        .hero-slide-item {
+            position: relative;
+            width: 100%;
+            height: 100% !important;
+            min-height: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            outline: none;
+        }
+    </style>
+
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     {{ $header ?? '' }}
 </head>
 
 <body class="flex flex-col min-h-screen">
     @include('components.alert')
-    <header class="bg-gradient-to-r from-orange-50 to-yellow-50 border-b-2 border-orange-200 py-4 sticky top-0 left-0 w-full z-50 shadow-lg" x-data="{ openMenu: false }">
+    <header class="bg-white border-b border-stone-200 sticky top-0 left-0 w-full z-50 shadow-2xs" x-data="{ openMenu: false }">
 
-        <div class="container mx-auto px-4">
-            <div class="flex flex-wrap items-center justify-between">
-                <!-- Logo -->
-                <div class="w-2/12">
-                    <a href="{{ url('/') }}" class="flex items-center gap-2">
-                        <img src="{{ asset('images/logo/logo.png') }}" alt="All food" class="h-20 drop-shadow-lg">
+        <div class="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
+            <div class="flex items-center justify-between h-20 sm:h-24 lg:h-[96px]">
+                <!-- Logo & Brand Identity (Chuẩn logo chính thức, tinh gọn, không lặp lại tên thương hiệu) -->
+                <div class="flex items-center shrink-0">
+                    <a href="{{ url('/') }}" class="flex items-center group py-1" title="CIVILIZE Restaurant - Phúc Thọ, Hà Nội">
+                        <img src="{{ asset('images/logo/logo.png') }}" alt="CIVILIZE Restaurant" class="h-16 sm:h-20 lg:h-[82px] w-auto object-contain transition-transform duration-200 group-hover:scale-105">
                     </a>
                 </div>
 
-                <!-- Mobile Actions & Hamburger -->
-                <div class="w-9/12 md:hidden flex justify-end items-center gap-3">
-                    @if (session('table_name'))
-                        <span class="only-mobile items-center px-4 py-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold shadow-lg">
-                            {{ session('table_name') }}
-                        </span>
-                        <a href="{{ route('site.product.gridview') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center">
-                            <i class="fa-solid fa-utensils text-xl"></i>
-                            <span class="text-[10px] font-medium leading-none mt-1">Thực đơn</span>
-                        </a>
-                    @else
-                        <a href="{{ route('site.booking') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center">
-                            <i class="fa-solid fa-calendar-check text-xl"></i>
-                            <span class="text-[10px] font-medium leading-none mt-1">Đặt bàn</span>
-                        </a>
-                    @endif 
-                    
-                    <a href="{{ url('/gio-hang') }}" class="text-gray-800 hover:text-orange-500 flex flex-col items-center relative">
-                        <i class="fa-solid fa-cart-shopping text-xl"></i>
-                        <span class="text-[10px] font-medium leading-none mt-1">Giỏ hàng</span>
-                    </a>
-                    <button @click="openMenu = !openMenu" class="text-orange-600 focus:outline-none ml-2 flex flex-col items-center p-2 rounded-lg hover:bg-orange-100 transition-all">
-                        <i class="fas fa-bars text-2xl"></i>
-                    </button>
-                </div>
-
-                <!-- Menu -->
-                <div :class="openMenu ? 'block' : 'hidden'" class="w-full md:!block md:w-auto lg:basis-6/12 mt-4 md:mt-0 order-3 md:order-2">
+                <!-- Desktop Navigation Menu (Thoáng đãng, không bao giờ bị rớt dòng chữ) -->
+                <div class="hidden lg:flex items-center justify-center px-4 xl:px-8 shrink-0">
                     <x-main-menu />
                 </div>
 
-                <div :class="openMenu ? 'block' : 'hidden'" class="w-full md:!block md:w-4/12 lg:basis-4/12 mt-4 md:mt-0 order-4 md:order-3">
-                    <div class="flex flex-col md:flex-row justify-end gap-4 items-center">
-                        <a style="margin-right: 10px;" href="{{ route('site.booking') }}"
-                            class="text-gray-700 hover:text-orange-600 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-orange-100 transition-all">
-                            <i class="fa-solid fa-calendar-check"></i>Đặt bàn
+                <!-- Right Actions: Đồng bộ chiều cao, thiết kế khoa học & đẹp mắt -->
+                <div class="hidden md:flex items-center gap-3 shrink-0">
+                    @php
+                        $userCartKey = Auth::check() ? 'cart_' . Auth::id() : 'cart_guest_' . session()->getId();
+                        $userCart = session()->get($userCartKey, []);
+                        $userCartCount = is_array($userCart) ? array_sum(array_column($userCart, 'qty')) : 0;
+                    @endphp
+
+                    @if (!auth()->check())
+                        <!-- KHÁCH CHƯA ĐĂNG NHẬP: Phong cách Luxury Editorial - Thuần typography, không icon thừa -->
+                        <div class="flex items-center gap-1.5">
+                            <a href="{{ url('/gio-hang') }}" 
+                               class="inline-flex items-center gap-1 text-stone-700 hover:text-[#C25E00] font-bold text-xs uppercase tracking-wider px-2 py-2 transition-colors whitespace-nowrap">
+                                <span>Giỏ hàng</span>
+                                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ $userCartCount > 0 ? 'bg-[#C25E00] text-white' : 'bg-stone-100 text-stone-500' }}">
+                                    {{ $userCartCount }}
+                                </span>
+                            </a>
+                            <span class="text-stone-300 text-xs select-none">|</span>
+                            <a href="{{ route('site.login') }}" 
+                               class="inline-flex items-center text-stone-800 hover:text-[#C25E00] font-bold text-xs uppercase tracking-[0.15em] px-2 py-2 transition-colors whitespace-nowrap">
+                                Đăng nhập
+                            </a>
+                            <span class="text-stone-300 text-xs select-none">/</span>
+                            <a href="{{ route('site.register') }}" 
+                               class="inline-flex items-center text-stone-600 hover:text-[#C25E00] font-medium text-xs uppercase tracking-[0.15em] px-2 py-2 transition-colors whitespace-nowrap">
+                                Đăng ký
+                            </a>
+                        </div>
+
+                        <div class="h-4 w-px bg-stone-300 hidden sm:block mx-1"></div>
+
+                        <!-- Primary Booking CTA: Nút góc vuông nhẹ tinh tế, không bo tròn dạng viên thuốc -->
+                        <a href="{{ route('site.booking') }}"
+                           class="inline-flex items-center justify-center px-6 py-2.5 rounded-sm bg-[#C25E00] hover:bg-[#A34E00] text-white font-bold text-xs uppercase tracking-[0.15em] shadow-xs hover:shadow-md transition-all cursor-pointer whitespace-nowrap">
+                            Đặt Bàn
+                        </a>
+                    @else
+                        <!-- THÀNH VIÊN ĐÃ ĐĂNG NHẬP: Giao diện thuần typography, sang trọng, không icon thừa -->
+                        <!-- 1. Giỏ hàng: Typography thanh lịch kèm số lượng -->
+                        <a href="{{ url('/gio-hang') }}" 
+                           class="group inline-flex items-center gap-1.5 px-3 py-2 text-stone-700 hover:text-[#C25E00] transition-colors"
+                           title="Giỏ hàng món ăn của bạn">
+                            <span class="text-xs sm:text-[13px] font-bold tracking-wide uppercase">Giỏ hàng</span>
+                            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ $userCartCount > 0 ? 'bg-[#C25E00] text-white' : 'bg-stone-100 text-stone-500' }}">
+                                {{ $userCartCount }}
+                            </span>
                         </a>
 
-                        @if (!auth()->check())
-                            <a href="{{ route('site.login') }}" class="text-gray-700 hover:text-orange-600 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-orange-100 transition-all">
-                                <i class="fa-solid fa-user"></i> Đăng nhập
-                            </a>
-                        @else
-                            @php
-                                if (!session()->has('table_id') && !session()->has('is_table_order')) {
-                                    app(\App\Http\Controllers\frontend\AuthController::class)->syncTableSessionForUser(auth()->user());
-                                }
-                            @endphp
-                            <a style="margin-right: 10px;" href="{{ url('/gio-hang') }}"
-                                class="text-gray-700 hover:text-orange-600 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-orange-100 transition-all relative">
-                                <i class="fa-solid fa-cart-shopping"></i>Giỏ hàng
-                            </a>
+                        <!-- 1.5 Chuông Thông Báo Facebook / Messenger Style -->
+                        <x-frontend-notification-bell />
 
-                            <div x-data="{ open: false }" class="relative inline-block text-left">
-                                <a @click="open = !open" class="cursor-pointer text-gray-700 hover:text-orange-600 font-medium flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-orange-100 transition-all">
-                                    <i class="fa-solid fa-user"></i> Tài khoản
-                                </a>
-                                <!-- Dropdown menu -->
-                                <div x-show="open" @click.away="open = false" x-transition
-                                    class="absolute mt-2 bg-white border-2 border-orange-200 rounded-xl shadow-2xl z-50 w-52 right-0 md:left-0 overflow-hidden" style="left: auto;">
-                                    <a href="{{ route('site.profile') }}"
-                                        class="block px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-orange-600 transition-all font-medium">
-                                        <i class="fa-solid fa-user-circle mr-2"></i> Hồ sơ
-                                    </a>
-                                    <a href="{{ route('site.booking') }}"
-                                        class="block px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-orange-600 transition-all font-medium">
-                                        <i class="fa-solid fa-calendar-check mr-2"></i> Đặt bàn
-                                    </a>
-                                    <a href="{{ route('site.orders') }}"
-                                        class="block px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-orange-600 transition-all font-medium">
-                                        <i class="fa-solid fa-clipboard-list mr-2"></i> Đơn hàng
-                                    </a>
-                                    <a href="{{ route('site.favorites') }}"
-                                        class="block px-4 py-3 text-sm text-gray-700 hover:bg-gradient-to-r hover:from-orange-50 hover:to-yellow-50 hover:text-orange-600 transition-all font-medium">
-                                        <i class="fa-solid fa-heart mr-2"></i> Yêu thích
-                                    </a>
-                                    <div class="border-t border-orange-100"></div>
-                                    <a href="{{ route('site.logout') }}"
-                                        class="block px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-all font-medium">
-                                        <i class="fa-solid fa-right-from-bracket mr-2"></i> Đăng xuất
-                                    </a>
+                        <!-- Vách ngăn dọc mờ phân tách nhóm mua sắm và tài khoản -->
+                        <div class="h-8 w-px bg-stone-200 hidden sm:block mx-1"></div>
+
+                        <!-- 2. Menu Tài Khoản (Động theo vai trò Admin, Nhân viên, Khách hàng) -->
+                        @php
+                            $userRole = Auth::user()->roles ?? 'customer';
+                            $roleLabel = 'Thành viên';
+                            $roleColor = 'text-stone-400';
+                            $dropdownTitle = 'Tài khoản thành viên';
+
+                            if ($userRole === 'admin') {
+                                $roleLabel = 'Quản trị viên';
+                                $roleColor = 'text-[#C25E00] font-semibold';
+                                $dropdownTitle = 'Tài khoản Quản trị viên';
+                            } elseif ($userRole === 'employee') {
+                                $roleLabel = 'Nhân viên';
+                                $roleColor = 'text-blue-600 font-semibold';
+                                $dropdownTitle = 'Tài khoản Nhân viên';
+                            }
+                        @endphp
+                        <div x-data="{ open: false }" class="relative inline-block text-left">
+                            <button @click="open = !open" 
+                                    type="button"
+                                    class="flex items-center gap-2 py-1 text-stone-800 hover:text-[#C25E00] transition-colors cursor-pointer group text-left">
+                                <span class="w-8 h-8 rounded-full bg-stone-100 text-stone-800 font-bold flex items-center justify-center text-xs border border-stone-200 group-hover:border-[#C25E00]/40 transition-colors shrink-0">
+                                    {{ mb_strtoupper(mb_substr(Auth::user()->fullname ?? Auth::user()->name ?? 'U', 0, 1)) }}
+                                </span>
+                                <span class="font-bold text-xs sm:text-sm text-stone-900 group-hover:text-[#C25E00] transition-colors whitespace-nowrap flex items-center gap-1">
+                                    {{ Auth::user()->fullname ?? Auth::user()->name }}
+                                    <i class="fas fa-chevron-down text-[9px] text-stone-400 group-hover:text-[#C25E00] transition-colors"></i>
+                                </span>
+                            </button>
+
+                            <!-- Dropdown Menu: Kích thước chữ rõ ràng, dễ nhìn, khoảng cách bấm thoải mái -->
+                            <div x-cloak x-show="open" @click.away="open = false" @keydown.escape.window="open = false" x-transition style="display: none;"
+                                 class="absolute right-0 mt-2 bg-white border border-stone-200 shadow-xl z-50 w-72 py-2 overflow-hidden rounded-sm">
+                                <div class="px-5 py-3.5 border-b border-stone-100 bg-stone-50/70">
+                                    <p class="text-xs {{ $userRole === 'admin' ? 'text-[#C25E00]' : ($userRole === 'employee' ? 'text-blue-600' : 'text-stone-500') }} font-bold uppercase tracking-wider">{{ $dropdownTitle }}</p>
+                                    <p class="text-base font-bold text-stone-900 truncate mt-0.5">{{ Auth::user()->fullname ?? Auth::user()->name }}</p>
                                 </div>
+
+                                @if($userRole === 'admin')
+                                    <a href="{{ route('admin.dashboard') }}"
+                                       class="flex items-center justify-between px-5 py-3 text-sm font-bold text-[#C25E00] hover:bg-orange-50/70 transition-colors">
+                                        <span>Trang Quản Trị (Admin)</span>
+                                        <span class="text-[10px] uppercase px-1.5 py-0.5 rounded bg-orange-100 text-[#C25E00]">Admin</span>
+                                    </a>
+                                @elseif($userRole === 'employee')
+                                    <a href="{{ route('admin.table-order.index') }}"
+                                       class="flex items-center justify-between px-5 py-3 text-sm font-bold text-[#C25E00] hover:bg-orange-50/70 transition-colors">
+                                        <span>Màn hình Bán hàng (POS)</span>
+                                        <span class="text-[10px] uppercase px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">POS</span>
+                                    </a>
+                                @endif
+
+                                <a href="{{ route('site.profile') }}"
+                                   class="flex items-center px-5 py-3 text-sm font-medium text-stone-700 hover:text-[#C25E00] hover:bg-stone-50 transition-colors">
+                                    <span>Hồ sơ cá nhân</span>
+                                </a>
+                                <a href="{{ url('/gio-hang') }}"
+                                   class="flex items-center justify-between px-5 py-3 text-sm font-medium text-stone-700 hover:text-[#C25E00] hover:bg-stone-50 transition-colors">
+                                    <span>Giỏ hàng món ăn</span>
+                                    @if ($userCartCount > 0)
+                                        <span class="bg-[#C25E00] text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $userCartCount }}</span>
+                                    @endif
+                                </a>
+                                <a href="{{ route('site.orders') }}"
+                                   class="flex items-center px-5 py-3 text-sm font-medium text-stone-700 hover:text-[#C25E00] hover:bg-stone-50 transition-colors">
+                                    <span>Đơn hàng đã đặt</span>
+                                </a>
+                                <a href="{{ route('site.favorites') }}"
+                                   class="flex items-center px-5 py-3 text-sm font-medium text-stone-700 hover:text-[#C25E00] hover:bg-stone-50 transition-colors">
+                                    <span>Món ăn yêu thích</span>
+                                </a>
+
+                                <div class="border-t border-stone-100 my-1.5"></div>
+                                <a href="{{ route('site.logout') }}"
+                                   class="flex items-center px-5 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors">
+                                    <span>Đăng xuất</span>
+                                </a>
                             </div>
-                        @endif
-                    </div>
+                        </div>
+
+                        <!-- 3. Primary Booking CTA: Nút ĐẶT BÀN nổi bật -->
+                        <a href="{{ route('site.booking') }}"
+                           class="inline-flex items-center justify-center px-6 py-2.5 rounded-sm bg-[#C25E00] hover:bg-[#A34E00] text-white font-bold text-xs uppercase tracking-[0.15em] shadow-xs hover:shadow-md transition-all cursor-pointer whitespace-nowrap ml-1">
+                            ĐẶT BÀN
+                        </a>
+                    @endif
                 </div>
 
+                <!-- Mobile Hamburger Button & Quick Actions -->
+                <div class="flex items-center gap-2 md:hidden">
+                    <a href="{{ url('/gio-hang') }}" class="relative px-2.5 py-1 text-xs font-bold text-stone-700 hover:text-[#C25E00] uppercase tracking-wider border border-stone-200 rounded">
+                        <span>Giỏ hàng</span>
+                        @if ($userCartCount > 0)
+                            <span class="ml-1 bg-[#C25E00] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                                {{ $userCartCount }}
+                            </span>
+                        @endif
+                    </a>
+                    <button @click="openMenu = !openMenu" 
+                            class="p-2 text-stone-700 hover:text-stone-900 rounded-none sm:rounded-sm focus:outline-none"
+                            aria-label="Toggle navigation">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
 
+            <!-- Mobile Drawer Menu -->
+            <div x-cloak x-show="openMenu" 
+                 x-transition
+                 style="display: none;"
+                 class="lg:hidden border-t border-stone-200 py-4 px-2 space-y-3 bg-white">
+                <x-main-menu />
+                <div class="pt-3 border-t border-stone-100 flex flex-col gap-2">
+                    <a href="{{ route('site.booking') }}" 
+                       class="w-full text-center py-2.5 rounded-none sm:rounded-sm bg-[#C25E00] text-white font-bold text-xs uppercase tracking-[0.15em] shadow-xs">
+                        Đặt Bàn Giữ Chỗ
+                    </a>
+                    @if (!auth()->check())
+                        <div class="pt-2 text-center text-xs text-stone-600">
+                            <span>Khách hàng thành viên? </span>
+                            <a href="{{ route('site.login') }}" class="font-bold text-[#C25E00] hover:underline">
+                                Đăng nhập tài khoản
+                            </a>
+                        </div>
+                    @else
+                        <a href="{{ route('site.profile') }}" class="text-xs text-stone-600 px-3 py-1.5">Tài khoản của tôi</a>
+                        <a href="{{ route('site.orders') }}" class="text-xs text-stone-600 px-3 py-1.5">Đơn hàng của tôi</a>
+                        <a href="{{ route('site.logout') }}" class="text-xs text-rose-600 px-3 py-1.5">Đăng xuất</a>
+                    @endif
+                </div>
             </div>
         </div>
 
-        <div class="fixed bottom-6 right-6 flex flex-col gap-4 z-50">
-            <button id="scrollToTop"
-                class="scroll-to-top bg-orange-100 hover:bg-orange-200 text-orange-600 rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
-                <i class="fas fa-arrow-up"></i>
-            </button>
-
-            <div id="slider"
-                class="slider-container bg-gray-50 rounded-full shadow-lg w-14 h-14 flex items-center justify-center overflow-hidden">
-                {{-- <a href="https://www.facebook.com" target="_blank"
-                    class="messenger-button bg-blue-500 hover:bg-blue-600 text-white rounded-full w-14 h-14 flex items-center justify-center">
-                    <i class="fab fa-facebook-messenger text-2xl"></i>
-                </a>
-                <a href="tel:0981487674"
-                    class="contact-button bg-green-100 hover:bg-green-200 text-green-600 rounded-full w-14 h-14 flex items-center justify-center">
-                    <i class="fas fa-phone text-xl"></i>
-                </a> --}}
-                <a href="https://zalo.me/0336216546" target="_blank"
-                    class="zalo-button bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-full w-14 h-14 flex items-center justify-center">
-                    <img src="{{ asset('images/logo/zaloicon.png') }}" alt="Zalo" class="w-8 h-8">
-                </a>
-            </div>
-        </div>
+        <!-- Subtle Scroll to Top Button (Đặt phía trên nút chuông gọi bàn, không đè lấn) -->
+        <button id="scrollToTop" 
+                class="fixed bottom-20 left-6 z-40 bg-stone-900/90 hover:bg-[#C25E00] text-white rounded-none sm:rounded-sm w-10 h-10 hidden items-center justify-center shadow-md transition-all duration-300 cursor-pointer"
+                title="Lên đầu trang">
+            <i class="fas fa-chevron-up text-xs"></i>
+        </button>
 
         <script>
             const scrollToTopButton = document.getElementById("scrollToTop");
-            window.addEventListener("scroll", () => {
-                if (window.scrollY > 200) {
-                    scrollToTopButton.style.display = "flex";
-                } else {
-                    scrollToTopButton.style.display = "none";
-                }
-            });
-
-            scrollToTopButton.addEventListener("click", () => {
-                window.scrollTo({
-                    top: 0,
-                    behavior: "smooth"
+            if (scrollToTopButton) {
+                window.addEventListener("scroll", () => {
+                    if (window.scrollY > 300) {
+                        scrollToTopButton.classList.remove("hidden");
+                        scrollToTopButton.classList.add("flex");
+                    } else {
+                        scrollToTopButton.classList.remove("flex");
+                        scrollToTopButton.classList.add("hidden");
+                    }
                 });
-            });
 
-            const slider = document.getElementById("slider");
-            const buttons = slider.querySelectorAll("a");
-            let currentIndex = 0;
-
-            function showNextButton() {
-                buttons.forEach(button => (button.style.display = "none"));
-
-                buttons[currentIndex].style.display = "flex";
-
-                currentIndex = (currentIndex + 1) % buttons.length;
+                scrollToTopButton.addEventListener("click", () => {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: "smooth"
+                    });
+                });
             }
-
-            setInterval(showNextButton, 3000);
-
-            showNextButton();
         </script>
 
         <style>
@@ -240,241 +571,176 @@
                 transition: all 0.3s ease-in-out;
             }
         </style>
-        <div class="fixed bottom-6 left-6 flex items-center gap-4 z-50">
-            <button id="chatButton"
-                class="bg-red-500 hover:bg-red-600 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg">
-                <i class="fas fa-comment-dots text-xl"></i>
-            </button>
-
-            <div id="notification"
-                class="notification bg-red-500 text-white rounded-lg px-4 py-2 shadow-lg flex items-center gap-2">
-                <span class="dot bg-white rounded-full w-3 h-3"></span>
-                <span>Liên hệ tư vấn!</span>
-            </div>
-        </div>
-
-        <div id="chatForm" class="hidden fixed bottom-20 left-6 bg-white rounded-lg shadow-lg p-4 w-72">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Chuyên Viên Tư Vấn</h3>
-                <button id="closeChatForm" class="text-gray-500 hover:text-red-500">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <p class="text-sm text-gray-600 mb-4">Hỏi chúng tôi bất cứ điều gì. Chúng tôi sẽ trả lời ngay lập tức.</p>
-            <x-list-admin />
-
-            {{-- <form action="../config/process_form.php" method="POST">
-                <div class="mb-3">
-                    <input type="text" name="name" placeholder="Tên" class="w-full border rounded px-3 py-2 text-sm"
-                        required>
-                </div>
-                <div class="mb-3">
-                    <input type="text" name="phone" placeholder="Số Điện Thoại"
-                        class="w-full border rounded px-3 py-2 text-sm" required>
-                </div>
-                <div class="mb-3">
-                    <textarea name="message" placeholder="Bạn cần tư vấn gì"
-                        class="w-full border rounded px-3 py-2 text-sm" required></textarea>
-                </div>
-                <button type="submit"
-                    class="bg-red-500 hover:bg-red-600 text-white rounded px-4 py-2 w-full">Gửi</button>
-            </form> --}}
-            <x-inquiry-form />
-
-        </div>
-
-
-        <style>
-            .user-message {
-                text-align: right;
-                background-color: #d1e7ff;
-                margin-bottom: 5px;
-                padding: 5px 10px;
-                border-radius: 10px;
-                display: inline-block;
-            }
-
-            .admin-message {
-                text-align: left;
-                background-color: #e2e2e2;
-                margin-bottom: 5px;
-                padding: 5px 10px;
-                border-radius: 10px;
-                display: inline-block;
-            }
-        </style>
-
-        <style>
-            .hidden {
-                display: none;
-            }
-
-            .fixed {
-                position: fixed;
-            }
-
-            .notification {
-                animation: fadeInOut 8s infinite;
-                opacity: 0;
-            }
-
-            @keyframes fadeInOut {
-
-                0%,
-                100% {
-                    opacity: 0;
-                }
-
-                10%,
-                90% {
-                    opacity: 1;
-                }
-            }
-
-            .fixed {
-                position: fixed;
-                z-index: 9999;
-            }
-
-            .notification {
-                animation: fadeInOut 8s infinite;
-                opacity: 0;
-                z-index: 9999;
-            }
-
-            #chatForm {
-                z-index: 9999;
-            }
-
-            #chatForm img {
-                border: 2px solid #ddd;
-                padding: 4px;
-                transition: transform 0.2s;
-            }
-
-            #chatForm img:hover {
-                transform: scale(1.1);
-                border-color: #ff0000;
-            }
-
-            .relative {
-                position: relative;
-            }
-
-            .status-indicator {
-                position: absolute;
-                top: 0;
-                right: 3;
-                width: 0.75rem;
-                height: 0.75rem;
-                border-radius: 50%;
-                border: 2px solid white;
-            }
-        </style>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const chatButton = document.getElementById('chatButton');
-                const chatForm = document.getElementById('chatForm');
-                const closeChatForm = document.getElementById('closeChatForm');
-
-                if (chatButton && chatForm) {
-                    chatButton.addEventListener('click', function () {
-                        chatForm.classList.remove('hidden');
-                    });
-                }
-
-                if (closeChatForm && chatForm) {
-                    closeChatForm.addEventListener('click', function () {
-                        chatForm.classList.add('hidden');
-                    });
-                }
-            });
-        </script>
-
-
     </header>
     <main class="flex-grow">
         {{ $slot }}
     </main>
-    <footer class="bg-cover bg-center py-4" style="background-image: url('../images/gallery/section_bg02.png');">
-        <div class="container mx-auto text-white px-4">
-            <div class="flex flex-col md:flex-row gap-6">
-                <div class="w-full md:w-3/12">
-                    <h3 class="title-footer py-2">Về chúng tôi</h3>
-                    <p>CIVILIZE Restaurant luôn bảo đảm về chất lượng cũng như an toàn thực phẩm.</p>
-                    <ul class="list-icon">
-                        <li> <i class="icon fa fa-map-marker" style="margin-right: 10px;"> </i>Số 120 ,Phúc Hòa , Phúc Thọ, Hà Nội
-    </li>
-                        <li> <i class="icon fa fa-envelope" style="margin-right: 10px;"> </i> devrestaurant@gmail.com
-                        </li>
-                        <li> <i class="icon fa fa-phone" style="margin-right: 10px;"> </i> (84) 012-345-6789</li>
-                        <li> <i class="icon fa fa-clock" style="margin-right: 10px;"> </i>Các ngày trong tuần 7:00am -
-                            22:00pm</li>
-                    </ul>
+    <!-- ======================================================== -->
+    <!-- FOOTER: CIVILIZE LUXURY RESTAURANT (PROMAX VIP DESIGN)    -->
+    <!-- ======================================================== -->
+    <footer class="relative bg-gradient-to-b from-stone-900 via-stone-950 to-black text-white overflow-hidden">
+        <!-- Top Signature Orange Border Accent (Viền màu cam nhận diện thương hiệu) -->
+        <div class="w-full h-1 bg-gradient-to-r from-orange-500 via-amber-400 to-orange-500 shadow-md shadow-orange-500/30"></div>
 
+        <!-- Subtle Ambient Background Glow -->
+        <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-60 bg-amber-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8 relative z-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10 pb-12 border-b border-stone-800/80">
+                
+                <!-- CỘT 1: THƯƠNG HIỆU & LOGO VỀ TRANG CHỦ (3 CỘT) -->
+                <div class="lg:col-span-3 flex flex-col justify-between">
+                    <div>
+                        <!-- Logo Clickable Back to Homepage (To & Cân đối) -->
+                        <a href="{{ url('/') }}" 
+                           class="inline-block group transition-transform duration-300 hover:scale-105 mb-4" 
+                           title="Trở về Trang chủ CIVILIZE Restaurant">
+                            <img src="{{ asset('images/logo/logo.png') }}" 
+                                 alt="CIVILIZE Restaurant" 
+                                 class="h-24 sm:h-28 w-auto max-w-[240px] drop-shadow-2xl object-contain brightness-105">
+                        </a>
+
+                        <p class="text-stone-400 text-xs sm:text-sm leading-relaxed mb-6 pr-2">
+                            <span class="font-bold text-stone-200">CIVILIZE Restaurant</span> — Nhà hàng ẩm thực tại Phúc Thọ, Hà Nội. Chuyên phục vụ mâm cơm gia đình truyền thống, lẩu nướng và hải sản tươi sạch trong không gian ấm cúng, thoáng đãng.
+                        </p>
+                    </div>
+
+                    <!-- Mạng xã hội / Social Links -->
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-amber-400/90 block mb-3">Kết nối cùng CIVILIZE</span>
+                        <div class="flex items-center gap-2.5">
+                            <a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" 
+                               class="hover-social-fb w-9 h-9 rounded-none sm:rounded-sm bg-stone-800/90 text-stone-300 flex items-center justify-center transition-all duration-300 shadow-xs border border-stone-700/60" 
+                               title="Facebook">
+                                <i class="fab fa-facebook-f text-sm"></i>
+                            </a>
+                            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" 
+                               class="hover-social-insta w-9 h-9 rounded-none sm:rounded-sm bg-stone-800/90 text-stone-300 flex items-center justify-center transition-all duration-300 shadow-xs border border-stone-700/60" 
+                               title="Instagram">
+                                <i class="fab fa-instagram text-sm"></i>
+                            </a>
+                            <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" 
+                               class="hover-social-tiktok w-9 h-9 rounded-none sm:rounded-sm bg-stone-800/90 text-stone-300 flex items-center justify-center transition-all duration-300 shadow-xs border border-stone-700/60" 
+                               title="TikTok">
+                                <i class="fab fa-tiktok text-sm"></i>
+                            </a>
+                            <a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer" 
+                               class="hover-social-yt w-9 h-9 rounded-none sm:rounded-sm bg-stone-800/90 text-stone-300 flex items-center justify-center transition-all duration-300 shadow-xs border border-stone-700/60" 
+                               title="YouTube">
+                                <i class="fab fa-youtube text-sm"></i>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="w-full md:w-3/12">
-                    <h3 class="title-footer ">Chính sách</h3>
-                    {{-- <ul class="*:text-white">
-                        <a href="{{url('/dieu-khoan-su-dung')}}">
-                            <li>- Điều khoản sử dụng</li>
-                        </a>
-                        <a href="{{url('/chinh-sach-bao-mat')}}">
-                            <li>- Chính sách bảo mật thông tin</li>
-                        </a>
-                        <a href="{{url('/chinh-sach-an-toan-thuc-pham')}}">
-                            <li>- Chính sách an toàn thực phẩm</li>
-                        </a>
-                        <a href="{{url('/co-so-vat-chat')}}">
-                            <li>- Cơ sở vật chất</li>
-                        </a>
-                        <a href="{{url('/chinh-sach-lien-he')}}">
-                            <li>- Chính sách liên hệ</li>
-                        </a>
 
-                    </ul> --}}
+                <!-- CỘT 2: THÔNG TIN LIÊN HỆ (4 CỘT - Rộng rãi, không bị rớt chữ xuống dòng) -->
+                <div class="lg:col-span-4">
+                    <h3 class="text-white font-bold text-sm sm:text-base uppercase tracking-wider mb-5">
+                        Thông Tin Liên Hệ
+                    </h3>
+
+                    <ul class="space-y-3.5 text-xs sm:text-sm text-stone-300">
+                        <li class="flex items-start gap-2.5">
+                            <i class="fas fa-location-dot text-amber-500 mt-1 shrink-0 text-sm"></i>
+                            <div class="leading-relaxed">
+                                <span class="text-stone-400 text-xs font-medium">Địa chỉ:</span>
+                                <a href="https://maps.google.com/?q=21.1097,105.5620" target="_blank" rel="noopener noreferrer" class="text-stone-300 hover:text-amber-400 transition-colors ml-1">
+                                    120 Phúc Hòa, Phúc Thọ, <span class="whitespace-nowrap">Hà Nội</span>
+                                </a>
+                            </div>
+                        </li>
+
+                        <li class="flex items-center gap-2.5">
+                            <i class="fas fa-phone text-amber-500 shrink-0 text-sm"></i>
+                            <div>
+                                <span class="text-stone-400 text-xs font-medium">Hotline:</span>
+                                <a href="tel:0338990538" class="text-white hover:text-amber-400 font-semibold ml-1 transition-colors">
+                                    0338 990 538
+                                </a>
+                            </div>
+                        </li>
+
+                        <li class="flex items-center gap-2.5">
+                            <i class="fas fa-envelope text-amber-500 shrink-0 text-sm"></i>
+                            <div>
+                                <span class="text-stone-400 text-xs font-medium">Email:</span>
+                                <a href="mailto:tnguyenanh189@gmail.com" class="text-stone-300 hover:text-amber-400 ml-1 transition-colors">
+                                    tnguyenanh189@gmail.com
+                                </a>
+                            </div>
+                        </li>
+
+                        <li class="flex items-center gap-2.5">
+                            <i class="fas fa-clock text-amber-500 shrink-0 text-sm"></i>
+                            <div>
+                                <span class="text-stone-400 text-xs font-medium">Giờ mở cửa:</span>
+                                <span class="text-stone-300 ml-1">07:00 – 22:30 hàng ngày</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- CỘT 3: CHÍNH SÁCH & ĐIỀU HƯỚNG (2 CỘT) -->
+                <div class="lg:col-span-2">
+                    <h3 class="text-white font-bold text-sm sm:text-base uppercase tracking-wider mb-5">
+                        Chính Sách
+                    </h3>
+
                     <x-footer-menu />
                 </div>
-                <div class="w-full md:w-3/12">
-                    <h3 class="title-footer py-2">Thư viện ảnh</h3>
+
+                <!-- CỘT 4: THƯ VIỆN ẢNH & KHOẢNH KHẮC (3 CỘT - Bỏ nút Đặt Bàn dư thừa) -->
+                <div class="lg:col-span-3">
+                    <h3 class="text-white font-bold text-sm sm:text-base uppercase tracking-wider mb-5">
+                        Khoảnh Khắc Ẩm Thực
+                    </h3>
+
+                    <!-- 6 Real Food & Space Thumbnail Grid -->
+                    @php
+                        $realFooterPhotos = [
+                            ['img' => 'images/product/20260106145148.jpg', 'title' => 'Lẩu thái hải sản', 'url' => route('site.product.gridview')],
+                            ['img' => 'images/product/20260106145629.jpg', 'title' => 'Lẩu bắp bò nhúng dấm', 'url' => route('site.product.gridview')],
+                            ['img' => 'images/product/20260112133550.jpg', 'title' => 'Bò xào ngồng tỏi', 'url' => route('site.product.gridview')],
+                            ['img' => 'images/product/20260112140331.webp', 'title' => 'Salad rau trộn', 'url' => route('site.product.gridview')],
+                            ['img' => 'images/product/20260112141146.jpg', 'title' => 'Khoai chiên lắc phô mai', 'url' => route('site.product.gridview')],
+                            ['img' => 'images/gallery/space_family.jpg', 'title' => 'Không gian tiệc gia đình', 'url' => route('site.image')],
+                        ];
+                    @endphp
                     <div class="grid grid-cols-3 gap-2">
-                        <img src="../images//gallery/instagram1.png" alt=""
-                            style="width: 70px;height: 70px;">
-                        <img src="../images//gallery/instagram2.png" alt=""
-                            style="width: 70px;height: 70px;">
-                        <img src="../images//gallery/instagram3.png" alt=""
-                            style="width: 70px;height: 70px;">
-                        <img src="../images//gallery/instagram4.png" alt=""
-                            style="width: 70px;height: 70px;">
-                        <img src="../images//gallery/instagram5.png" alt=""
-                            style="width: 70px;height: 70px;">
-                        <img src="../images//gallery/instagram6.png" alt=""
-                            style="width: 70px;height: 70px;">
+                        @foreach ($realFooterPhotos as $item)
+                            <a href="{{ $item['url'] }}" 
+                               class="group relative aspect-square rounded-none sm:rounded-sm overflow-hidden bg-stone-900 border border-stone-800 shadow-2xs block"
+                               title="{{ $item['title'] }}">
+                                <img src="{{ asset($item['img']) }}" 
+                                     alt="{{ $item['title'] }}" 
+                                     class="w-full h-full object-cover group-hover:scale-115 transition-transform duration-500">
+                                <div class="absolute inset-0 bg-orange-600/0 group-hover:bg-orange-600/40 transition-colors duration-300 flex items-center justify-center">
+                                    <i class="fas fa-utensils text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs"></i>
+                                </div>
+                            </a>
+                        @endforeach
                     </div>
-
-                </div>
-                <div class="w-full md:w-3/12">
-                    <img src="../images//logo/logo.png" alt="" class="py-2">
-                    Theo dõi nhà hàng qua
-                    <div class="footer-social f-right">
-                        <span>Follow Us __</span>
-                        <a href="#"><i class="fab fa-twitter" style="margin-right: 10px;"></i></a>
-                        <a href="https://www.facebook.com/"><i class="fab fa-facebook-f"
-                                style="margin-right: 10px;"></i></a>
-                        <a href="#"><i class="fas fa-globe" style="margin-right: 10px;"></i></a>
-                        <a href="#"><i class="fab fa-instagram" style="margin-right: 10px;"></i></a>
-                    </div>
+                    <p class="text-[11px] text-stone-400 mt-2.5 leading-relaxed">
+                        Khám phá trọn vẹn hương vị tinh tế và không gian đầm ấm tại CIVILIZE.
+                    </p>
                 </div>
 
             </div>
-            <div style="margin-top: 55px;text-align: center;" class="py-6 ">
-                <p>-- Copyright &copy;
-                    <script>
-                        document.write(new Date().getFullYear());
-                    </script> Website | Dev Coder --</a>
-                </p>
-            </div>
 
+            <!-- COPYRIGHT BOTTOM BAR -->
+            <div class="mt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-stone-500 gap-3">
+                <p>© {{ date('Y') }} <span class="font-bold text-stone-300">CIVILIZE Restaurant</span>. Tất cả các quyền được bảo lưu.</p>
+                
+                <div class="flex flex-wrap items-center justify-center gap-4 text-stone-400">
+                    <a href="{{ url('/') }}" class="hover:text-amber-400 transition-colors">Trang chủ</a>
+                    <span class="text-stone-700">•</span>
+                    <a href="{{ route('site.product.gridview') }}" class="hover:text-amber-400 transition-colors">Thực đơn</a>
+                    <span class="text-stone-700">•</span>
+                    <a href="{{ route('site.about') }}" class="hover:text-amber-400 transition-colors">Giới thiệu</a>
+                    <span class="text-stone-700">•</span>
+                    <a href="{{ route('site.contact') }}" class="hover:text-amber-400 transition-colors">Liên hệ</a>
+                </div>
+            </div>
         </div>
     </footer>
     {{ $footer ?? '' }}
@@ -494,6 +760,12 @@
             });
         });
     </script>
+
+    <!-- Service Call Widget (Gọi nhân viên phục vụ tại bàn) -->
+    <x-service-call-button />
+
+    <!-- Chatbot Widget -->
+    <x-chatbot />
 
     <script src="{{ asset('plugins/bootstrap/js/bootstrap.js') }}"></script>
     <script src="{{ asset('plugins/bootstrap/js/boot.js') }}"></script>

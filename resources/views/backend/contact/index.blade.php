@@ -1,24 +1,9 @@
 <x-layout-backend>
-    <style>
-        table thead th {
-            font-size: 14px !important;
-            font-weight: 600 !important;
-            background: #78b4f1ff !important;
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
-        }
-    </style>
     <!-- Page header -->
     <div class="mb-4">
         <div class="flex items-center justify-between flex-wrap gap-4">
             <div>
-                <h1 class="text-xl font-bold text-slate-800 flex items-center gap-3">
-                    <span class="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white">
-                        <i class="fa-solid fa-id-card text-sm"></i>
-                    </span>
-                    Quản lý liên hệ
-                </h1>
-                <p class="text-slate-500 mt-1 text-sm">Danh sách và quản lý các liên hệ</p>
+                <h1 class="text-xl font-bold text-slate-800">Quản lý liên hệ</h1>
             </div>
             <div class="flex items-center gap-2">
                 <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-red-500/25 hover:from-red-600 hover:to-red-700" href="{{ url('admin/contact/trash') }}">

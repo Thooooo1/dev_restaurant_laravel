@@ -1,87 +1,65 @@
 <x-layout-frontend>
-    <section class="bg-gray-200 ml-5">
-        <div class="breadcrumb flex items-center text-gray-600 text-sm  ">
-            <span class="mr-4">Bạn đang ở đây:</span>
-            <a href="{{url('/')}}" class="hover:text-orange-500"> Quay lại Trang chủ</a>
-            <span class="mx-2">></span>
-            <span class="font-semibold text-gray-800">Chính sách</span>
-        </div>
-    </section>
-    <div class="container mx-auto py-8 px-4">
-        <!-- Tiêu đề -->
-        <div class="text-center mb-12">
-          <h1 class="text-3xl font-semibold text-gray-800">Chính Sách Liên Hệ</h1>
-          <p class="text-gray-600 mt-2">Chúng tôi luôn sẵn sàng hỗ trợ bạn mọi lúc, mọi nơi</p>
-        </div>
-      
-        <!-- Nội dung chính sách liên hệ -->
-        <div class="bg-white shadow-md rounded-lg p-6">
-      
-          <!-- Địa chỉ liên hệ -->
-          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Thông Tin Liên Hệ</h2>
-          <p class="text-gray-700 mb-6">
-            Bạn có thể liên hệ với chúng tôi qua các phương thức dưới đây:
-          </p>
-          
-          <!-- Địa chỉ văn phòng -->
-          <div class="mb-6">
-            <h3 class="text-xl font-semibold text-gray-800">Địa Chỉ Văn Phòng</h3>
-            <p class="text-gray-700">
-              CIVILIZE Restaurant<br>
-              4H45+988, Phúc Thọ, Hà Nội, Việt Nam
-            </p>
-          </div>
-      
-          <!-- Số điện thoại -->
-          <div class="mb-6">
-            <h3 class="text-xl font-semibold text-gray-800">Số Điện Thoại</h3>
-            <p class="text-gray-700">
-              Hotline: <a href="tel:+840981487674" class="text-blue-500">+84 0981487674</a><br>
-              Hỗ trợ khách hàng: <a href="tel:+840981487674" class="text-blue-500">+84 0981487674</a>
-            </p>
-          </div>
-      
-          <!-- Email liên hệ -->
-          <div class="mb-6">
-            <h3 class="text-xl font-semibold text-gray-800">Email</h3>
-            <p class="text-gray-700">
-              Email hỗ trợ khách hàng: <a href="mailto:civilizerestaurant@gmail.com" class="text-blue-500">civilizerestaurant@gmail.com</a><br>
-              Email bán hàng: <a href="mailto:civilizerestaurant@gmail.com" class="text-blue-500">civilizerestaurant@gmail.com</a>
-            </p>
-          </div>
-      
-          <!-- Mẫu liên hệ -->
-          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Gửi Yêu Cầu Liên Hệ</h2>
-          <form action="#" method="POST">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              
-              <!-- Tên -->
-              <div class="form-group">
-                <label for="name" class="block text-gray-700">Họ Tên</label>
-                <input type="text" id="name" class="form-control w-full p-3 border border-gray-300 rounded-md" placeholder="Nhập họ tên">
-              </div>
-              
-              <!-- Email -->
-              <div class="form-group">
-                <label for="email" class="block text-gray-700">Email</label>
-                <input type="email" id="email" class="form-control w-full p-3 border border-gray-300 rounded-md" placeholder="Nhập email của bạn">
-              </div>
+    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+        <x-page-hero 
+            title="Chính Sách Liên Hệ & Hỗ Trợ" 
+            subtitle="Đội ngũ chăm sóc khách hàng CIVILIZE Restaurant luôn sẵn sàng lắng nghe và phục vụ quý khách." 
+            :breadcrumbs="[
+                ['name' => 'Chính sách', 'url' => ''],
+                ['name' => 'Chính sách liên hệ', 'url' => '']
+            ]" 
+        />
+
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl pt-8 sm:pt-12">
+            <div class="bg-white shadow-2xs border border-stone-200/90 rounded-none sm:rounded-sm p-8 sm:p-12">
+                <h2 class="text-xl sm:text-2xl font-black font-serif text-stone-900 mb-4">Thông Tin Liên Hệ Trực Tiếp</h2>
+                <p class="text-stone-700 leading-relaxed mb-6">
+                    Quý khách có thể kết nối với chúng tôi qua các kênh tiếp đón chính thức:
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="p-5 bg-stone-50 border border-stone-200 rounded-none sm:rounded-sm">
+                        <i class="fa-solid fa-location-dot text-[#C25E00] text-lg mb-2 block"></i>
+                        <h4 class="font-bold text-stone-900 text-sm mb-1">Địa chỉ nhà hàng</h4>
+                        <p class="text-xs text-stone-600 leading-relaxed">4H45+988, Phúc Thọ, Hà Nội, Việt Nam</p>
+                    </div>
+                    <div class="p-5 bg-stone-50 border border-stone-200 rounded-none sm:rounded-sm">
+                        <i class="fa-solid fa-phone text-[#C25E00] text-lg mb-2 block"></i>
+                        <h4 class="font-bold text-stone-900 text-sm mb-1">Hotline đặt bàn</h4>
+                        <p class="text-xs text-stone-600 leading-relaxed">0981 487 674<br>(Hỗ trợ 24/7)</p>
+                    </div>
+                    <div class="p-5 bg-stone-50 border border-stone-200 rounded-none sm:rounded-sm">
+                        <i class="fa-solid fa-envelope text-[#C25E00] text-lg mb-2 block"></i>
+                        <h4 class="font-bold text-stone-900 text-sm mb-1">Thư điện tử</h4>
+                        <p class="text-xs text-stone-600 leading-relaxed">civilizerestaurant@gmail.com</p>
+                    </div>
+                </div>
+            
+                <h3 class="text-lg sm:text-xl font-bold font-serif text-stone-900 mb-4 pb-2 border-b border-stone-200">Gửi Tin Nhắn Cho Nhà Hàng</h3>
+                <form action="{{ route('site.contact.submit') }}" method="POST" class="space-y-4">
+                    @csrf
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="name" class="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">Họ và tên</label>
+                            <input type="text" id="name" name="name" required class="w-full px-4 py-3 bg-stone-50/60 border border-stone-300 rounded-none sm:rounded-sm text-stone-900 text-sm focus:outline-none focus:bg-white focus:border-[#C25E00]" placeholder="Nguyễn Văn A">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">Email liên hệ</label>
+                            <input type="email" id="email" name="email" required class="w-full px-4 py-3 bg-stone-50/60 border border-stone-300 rounded-none sm:rounded-sm text-stone-900 text-sm focus:outline-none focus:bg-white focus:border-[#C25E00]" placeholder="email@domain.com">
+                        </div>
+                    </div>
+            
+                    <div>
+                        <label for="message" class="block text-xs font-bold uppercase tracking-wider text-stone-700 mb-1.5">Nội dung yêu cầu</label>
+                        <textarea id="message" name="content" rows="4" required class="w-full px-4 py-3 bg-stone-50/60 border border-stone-300 rounded-none sm:rounded-sm text-stone-900 text-sm focus:outline-none focus:bg-white focus:border-[#C25E00]" placeholder="Nhập câu hỏi hoặc yêu cầu hỗ trợ của quý khách..."></textarea>
+                    </div>
+            
+                    <div class="pt-2">
+                        <button type="submit" class="w-full bg-[#C25E00] hover:bg-[#A34E00] text-white py-3.5 px-4 rounded-none sm:rounded-sm font-bold text-xs uppercase tracking-[0.2em] transition-all cursor-pointer shadow-xs hover:shadow-md">
+                            Gửi yêu cầu liên hệ
+                        </button>
+                    </div>
+                </form>
             </div>
-      
-            <!-- Nội dung -->
-            <div class="form-group mt-6">
-              <label for="message" class="block text-gray-700">Nội Dung</label>
-              <textarea id="message" rows="4" class="form-control w-full p-3 border border-gray-300 rounded-md" placeholder="Nhập nội dung yêu cầu của bạn"></textarea>
-            </div>
-      
-            <!-- Nút gửi -->
-            <div class="mt-6">
-              <button type="submit" class="w-full bg-orange-500 text-white py-3 px-4 rounded-md hover:bg-orange-600 focus:outline-none">
-                Gửi Yêu Cầu
-              </button>
-            </div>
-          </form>
         </div>
-      </div>
-      
+    </main>
 </x-layout-frontend>

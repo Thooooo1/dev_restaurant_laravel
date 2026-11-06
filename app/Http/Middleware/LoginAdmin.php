@@ -17,14 +17,23 @@ class LoginAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if(!Auth::check()){
-            return redirect()->route('admin.login')->with('error','Vui lòng đăng nhập!');
+            return redirect()->route('admin.login')->with('error','Vui lòng đăng nhập để truy cập trang quản trị!');
         }
         $user = Auth::user();
-        // Cho cả admin và employee vào backend
+
+        // Khách hàng / thành viên tuyệt đối không được vào backend
         if($user->roles !== 'admin' && $user->roles !== 'employee')
         {
-            return redirect()->route('site.home')->with('error','Bạn không có quyền truy cập!');
+            return redirect()->route('site.home')->with('error','Tài khoản của bạn là Khách hàng / Thành viên, không có quyền truy cập trang quản trị!');
         }
+
+        // Kiểm tra tài khoản có bị khóa không
+        if($user->status != 1)
+        {
+            Auth::logout();
+            return redirect()->route('admin.login')->with('error','Tài khoản của bạn đang bị khóa hoặc ngừng hoạt động!');
+        }
+
         return $next($request);
     }
 }

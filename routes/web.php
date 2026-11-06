@@ -18,6 +18,7 @@ use App\Http\Controllers\frontend\ReviewController as DanhGiaController;
 use App\Http\Controllers\frontend\OrderController as DonHangController;
 use App\Http\Controllers\frontend\UserFavoriteController as YeuThichController;
 use App\Http\Controllers\frontend\InquiryController as YeuCauController;
+use App\Http\Controllers\frontend\ChatbotController;
 
 // Backend Controllers
 use App\Http\Controllers\backend\DashboardController;
@@ -40,6 +41,9 @@ use App\Http\Controllers\backend\InquiryController;
 use App\Http\Controllers\backend\TableController;
 use App\Http\Controllers\backend\TableOrderController;
 use App\Http\Controllers\backend\ImportGoodsController;
+use App\Http\Controllers\backend\NotificationController;
+use App\Http\Controllers\backend\SettingController;
+use App\Http\Controllers\frontend\ServiceCallController;
 
 // Auth Controllers
 use App\Http\Controllers\auth\AuthController;
@@ -77,9 +81,40 @@ Route::get('/delcart/{id}', [GiohangController::class, 'delcart'])->name('site.d
 Route::get('/thanh-toan', [GiohangController::class, 'checkoutForm'])->name('site.checkoutForm');
 Route::post('/thanh-toan', [GiohangController::class, 'checkout'])->name('site.checkout');
 Route::get('/cam-on', [GiohangController::class, 'thanks'])->name('site.thanks');
+
+// Cart AJAX Endpoints for In-Menu Live Cart
+Route::post('/cart/add-ajax/{id}', [GiohangController::class, 'addcartAjax'])->name('site.cart.addAjax');
+Route::post('/cart/update-qty-ajax', [GiohangController::class, 'updateQtyAjax'])->name('site.cart.updateQtyAjax');
+Route::delete('/cart/remove-ajax/{id}', [GiohangController::class, 'removeItemAjax'])->name('site.cart.removeAjax');
+Route::post('/cart/clear-ajax', [GiohangController::class, 'clearCartAjax'])->name('site.cart.clearAjax');
+Route::get('/cart/live-data', [GiohangController::class, 'getLiveCart'])->name('site.cart.liveData');
+Route::post('/cart/send-kitchen-ajax', [GiohangController::class, 'sendToKitchenAjax'])->name('site.cart.sendKitchenAjax');
+Route::post('/cart/pay-table-now-ajax', [GiohangController::class, 'payTableOrderNowAjax'])->name('site.cart.payTableNowAjax');
+Route::post('/cart/switch-dining-mode', [GiohangController::class, 'switchDiningMode'])->name('site.cart.switchDiningMode');
+Route::get('/cart/available-tables', [GiohangController::class, 'getAvailableTables'])->name('site.cart.availableTables');
 // Momo Callback
 Route::get('/checkout/return', [GiohangController::class, 'momoReturn'])->name('site.momo.return');
 Route::post('/checkout/ipn', [GiohangController::class, 'momoIpn'])->name('site.momo.ipn');
+Route::get('/checkout/momo-sandbox/{order}', [GiohangController::class, 'momoSandboxPay'])->name('site.momo.sandbox');
+Route::post('/checkout/momo-sandbox/{order}/confirm', [GiohangController::class, 'momoSandboxConfirm'])->name('site.momo.sandbox.confirm');
+
+// VietQR Online Payment (Quét mã VietQR trực tuyến)
+Route::get('/checkout/vietqr/{order}', [GiohangController::class, 'vietqrPay'])->name('site.vietqr.pay');
+
+// Webhook Thanh toán trực tuyến (Sepay / Casso / Ngân hàng tự động & Polling)
+Route::prefix('api')->group(function () {
+    Route::post('/webhook/payment', [App\Http\Controllers\api\PaymentWebhookController::class, 'handleWebhook'])->name('api.payment.webhook');
+    Route::post('/webhook/sepay', [App\Http\Controllers\api\PaymentWebhookController::class, 'handleWebhook'])->name('api.payment.sepay');
+    Route::post('/webhook/casso', [App\Http\Controllers\api\PaymentWebhookController::class, 'handleWebhook'])->name('api.payment.casso');
+    Route::get('/payment/check-status/{orderId}', [App\Http\Controllers\api\PaymentWebhookController::class, 'checkPaymentStatus'])->name('api.payment.check-status');
+    Route::post('/payment/simulate-webhook', [App\Http\Controllers\api\PaymentWebhookController::class, 'simulateWebhook'])->name('api.payment.simulate-webhook');
+});
+
+// Alias routes cho webhook bên thứ 3 (không cần prefix api)
+Route::post('/webhook/payment', [App\Http\Controllers\api\PaymentWebhookController::class, 'handleWebhook']);
+Route::post('/webhook/sepay', [App\Http\Controllers\api\PaymentWebhookController::class, 'handleWebhook']);
+Route::post('/webhook/casso', [App\Http\Controllers\api\PaymentWebhookController::class, 'handleWebhook']);
+Route::get('/payment/check-status/{orderId}', [App\Http\Controllers\api\PaymentWebhookController::class, 'checkPaymentStatus']);
 
 // Orders
 Route::get('/don-hang', [DonHangController::class, 'index'])->name('site.orders');
@@ -87,11 +122,26 @@ Route::get('/don-hang/{id}', [DonHangController::class, 'detail'])->name('site.o
 Route::get('/don-hang/reorder/{id}', [DonHangController::class, 'reorder'])->name('site.orders.reorder');
 Route::post('/don-hang/{id}/huy', [DonHangController::class, 'cancel'])->name('site.orders.cancel');
 
-// Table QR Scan
+// Table QR Scan, Order & Pay (Quẹt QR Gọi Món & Thanh Toán Trực Tiếp)
 Route::get('/ban/{id}/goi-mon', [App\Http\Controllers\frontend\TableOrderController::class, 'scan'])->name('site.table.scan');
+Route::post('/ban/{id}/bat-dau', [App\Http\Controllers\frontend\TableOrderController::class, 'startOrder'])->name('site.table.start');
 Route::post('/ban/{id}/xac-thuc', [App\Http\Controllers\frontend\TableOrderController::class, 'verify'])->name('site.table.verify');
+Route::get('/ban/{id}/thanh-toan-qr', [App\Http\Controllers\frontend\TableOrderController::class, 'paymentQr'])->name('site.table.payment.qr');
+Route::post('/ban/{id}/xac-nhan-thanh-toan', [App\Http\Controllers\frontend\TableOrderController::class, 'confirmPayment'])->name('site.table.payment.confirm');
+Route::get('/ban/{id}/hoa-don', [App\Http\Controllers\frontend\TableOrderController::class, 'viewBill'])->name('site.table.bill');
 Route::post('/clear-kitchen-session', [App\Http\Controllers\frontend\CartController::class, 'clearKitchenSession'])->name('site.clear.kitchen.session');
 Route::get('/ket-thuc-goi-mon', [App\Http\Controllers\frontend\TableOrderController::class, 'endTableOrder'])->name('site.table.end');
+
+// Service Call (Gọi nhân viên phục vụ)
+Route::post('/api/call-waiter', [ServiceCallController::class, 'store'])->name('site.service-call.store');
+Route::get('/api/service-call/tables', [ServiceCallController::class, 'getTables'])->name('site.service-call.tables');
+
+// Notifications (Thông báo cho thành viên & khách hàng)
+Route::prefix('notifications')->group(function () {
+    Route::get('/feed', [App\Http\Controllers\frontend\NotificationController::class, 'getFeed'])->name('site.notifications.feed');
+    Route::post('/{id}/read', [App\Http\Controllers\frontend\NotificationController::class, 'markAsRead'])->name('site.notifications.read');
+    Route::post('/mark-all-read', [App\Http\Controllers\frontend\NotificationController::class, 'markAllAsRead'])->name('site.notifications.markAllRead');
+});
 
 // Booking
 Route::get('/dat-ban', [DatBanController::class, 'index'])->name('site.booking');
@@ -132,6 +182,11 @@ Route::post('/quen-mat-khau', [ThanhVienController::class, 'sendOtp'])->name('si
 Route::post('/xac-nhan-otp', [ThanhVienController::class, 'verifyOtp'])->name('site.verify_otp');
 Route::get('/dat-lai-mat-khau', [ThanhVienController::class, 'showResetPasswordForm'])->name('site.show_reset_password');
 Route::post('/dat-lai-mat-khau', [ThanhVienController::class, 'resetPassword'])->name('site.reset_password');
+
+// Chatbot Routes
+Route::post('/chatbot/message', [ChatbotController::class, 'sendMessage'])->name('chatbot.message');
+Route::get('/chatbot/suggestions', [ChatbotController::class, 'getSuggestions'])->name('chatbot.suggestions');
+Route::post('/chatbot/clear', [ChatbotController::class, 'clearSession'])->name('chatbot.clear');
 
 
 
@@ -202,6 +257,17 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::get('/{id}/detail', [BookingController::class, 'detail'])->name('admin.booking.detail');
     });
 
+    // System Live Notifications & Service Calls (Thông báo hệ thống & Gọi nhân viên)
+    Route::prefix('notifications')->group(function () {
+        Route::get('/latest', [NotificationController::class, 'getLatestNotifications'])->name('admin.notifications.latest');
+        Route::post('/{id}/read', [NotificationController::class, 'markAsRead'])->name('admin.notifications.read');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('admin.notifications.markAllRead');
+        Route::post('/booking/{id}/viewed', [NotificationController::class, 'markBookingViewed'])->name('admin.notifications.booking.viewed');
+        Route::post('/service-call/{id}/complete', [NotificationController::class, 'completeServiceCall'])->name('admin.notifications.service-call.complete');
+        Route::post('/service-call/{id}/cancel', [NotificationController::class, 'cancelServiceCall'])->name('admin.notifications.service-call.cancel');
+        Route::post('/table/{tableId}/complete-calls', [NotificationController::class, 'completeTableCalls'])->name('admin.notifications.table.complete-calls');
+    });
+
     // ==============================
         // ROUTE CHỈ CHO ADMIN
         // ==============================
@@ -244,14 +310,16 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::get('/{category}/restore', [CategoryController::class, 'restore'])->name('admin.category.restore');
         });
 
-        // Import Goods (Quản lý nhập hàng)
+        // Import Goods (Quản lý nhập kho - Phiếu nhập hàng)
         Route::prefix('import-goods')->group(function () {
             Route::get('/', [ImportGoodsController::class, 'index'])->name('admin.import-goods.index');
             Route::get('/create', [ImportGoodsController::class, 'create'])->name('admin.import-goods.create');
             Route::post('/', [ImportGoodsController::class, 'store'])->name('admin.import-goods.store');
+            Route::get('/{id}', [ImportGoodsController::class, 'show'])->name('admin.import-goods.show');
             Route::get('/{id}/edit', [ImportGoodsController::class, 'edit'])->name('admin.import-goods.edit');
             Route::put('/{id}', [ImportGoodsController::class, 'update'])->name('admin.import-goods.update');
             Route::delete('/{id}', [ImportGoodsController::class, 'destroy'])->name('admin.import-goods.destroy');
+            Route::get('/{id}/print', [ImportGoodsController::class, 'printSlip'])->name('admin.import-goods.print');
         });
 
         // Brands
@@ -408,6 +476,14 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::delete('/{id}/destroy', [TableController::class, 'destroy'])->name('admin.table.destroy');
             // Download QR
             Route::get('/{id}/qr', [TableController::class, 'downloadQr'])->name('admin.table.qr');
+            // Dishes & Bill Breakdown for Table
+            Route::get('/{id}/dishes', [TableController::class, 'getTableDishes'])->name('admin.table.dishes');
+        });
+
+        // Settings (Cài đặt hệ thống)
+        Route::prefix('setting')->group(function () {
+            Route::get('/', [SettingController::class, 'index'])->name('admin.setting.index');
+            Route::post('/update', [SettingController::class, 'update'])->name('admin.setting.update');
         });
     });
 });

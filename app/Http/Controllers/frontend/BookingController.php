@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Booking;
 use App\Mail\BookingNotification;
+use App\Services\NotificationService;
 use Mail;
 
 class BookingController extends Controller
@@ -29,7 +30,18 @@ class BookingController extends Controller
 
         $booking = Booking::create($request->all());
 
-        Mail::to($request->email)->send(new BookingNotification($booking));
+        // Bắn thông báo thời gian thực cho Admin, Nhân viên và Khách hàng
+        try {
+            NotificationService::notifyNewBooking($booking);
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi notification đặt bàn: ' . $e->getMessage());
+        }
+
+        try {
+            Mail::to($request->email)->send(new BookingNotification($booking));
+        } catch (\Exception $e) {
+            \Log::error('Lỗi gửi email đặt bàn: ' . $e->getMessage());
+        }
 
         return redirect()->back()->with('success', 'Đặt bàn thành công!');
     }

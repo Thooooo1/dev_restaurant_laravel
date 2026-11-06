@@ -1,60 +1,132 @@
 @if ($posts->isEmpty())
-    <div class="text-center py-8">
-        <p class="text-gray-600 text-lg">Không có bài viết nào để hiển thị.</p>
+    <div class="bg-white rounded-none sm:rounded-sm border border-stone-200 p-12 text-center my-4 shadow-2xs">
+        <div class="w-14 h-14 rounded-none sm:rounded-sm bg-orange-50 text-[#F47716] flex items-center justify-center mx-auto text-2xl mb-4 border border-orange-100">
+            <i class="far fa-newspaper"></i>
+        </div>
+        <h3 class="text-base sm:text-lg font-bold text-stone-900 mb-1.5">Chưa có bài viết nào phù hợp</h3>
+        <p class="text-stone-500 text-xs sm:text-sm max-w-md mx-auto mb-6 leading-relaxed">
+            Quý khách vui lòng thử tìm kiếm bằng từ khóa khác hoặc quay lại danh sách toàn bộ bài viết của nhà hàng.
+        </p>
+        <a href="{{ route('site.blog') }}" 
+           class="inline-flex items-center justify-center px-6 py-2.5 rounded-none sm:rounded-sm bg-[#F47716] hover:bg-[#EA580C] text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-2xs">
+            <span>Xem tất cả bài viết</span>
+        </a>
     </div>
 @else
-    @foreach ($posts as $post)
-    <article class="blog_item mb-8">
-        <div class="blog_item_img relative">
-            <img class="rounded-0 w-full" src="{{ asset('images/post/' . $post->image) }}" alt="{{ $post->title }}">
-            <p class="text-gray-600 text-lg mb-4">Ngày đăng: {{ \Carbon\Carbon::parse($post->created_at)->format('d-m-Y') }}</p>
-            <a href="{{ route('site.blog.detail', ['slug'=>$post->slug]) }}" class="blog_item_date absolute top-0 left-0 bg-gray-800 text-white p-4">
-                <h3 class="text-2xl">{{ $post->created_at->format('d') }}</h3>
-                <p>{{ $post->created_at->format('M') }}</p>
-            </a>
-        </div>
-        <div class="blog_details mt-4">
-            <a class="d-inline-block" href="{{ route('site.blog.detail', ['slug'=>$post->slug]) }}">
-                <h2 class="text-gray-800 text-xl font-bold">{{ $post->title }}</h2>
-            </a>
-            <p class="mt-2">{{ $post->description }}</p>
-            <ul class="blog-info-link flex mt-4 space-x-4">
-                <li><a href="{{ route('site.blog', ['topic' => $post->id]) }}" class="text-blue-600"><i class="fa fa-user"></i> {{ $post->topic->name }}</a></li>
-                <li><a href="#" class="text-blue-600"><i class="fa fa-comments"></i> 30 Bình luận</a></li>
-            </ul>
-        </div>
-    </article>
-    @endforeach
+    <div class="space-y-6">
+        @foreach ($posts as $post)
+            @php
+                $imgSrc = !empty($post->image) && file_exists(public_path('images/post/' . $post->image))
+                    ? asset('images/post/' . $post->image)
+                    : (file_exists(public_path('images/gallery/' . $post->image))
+                        ? asset('images/gallery/' . $post->image)
+                        : asset('images/blog/single_blog_1.png'));
+            @endphp
+            <article class="group bg-white rounded-none sm:rounded-sm border border-stone-200 hover:border-stone-400 shadow-2xs transition-all duration-200 overflow-hidden flex flex-col sm:flex-row">
+                
+                <!-- Ảnh bài viết -->
+                <div class="relative w-full sm:w-[42%] md:w-[38%] shrink-0 overflow-hidden bg-stone-100 aspect-[16/10] sm:aspect-auto">
+                    <a href="{{ route('site.blog.detail', ['slug' => $post->slug]) }}" class="block w-full h-full min-h-[180px] sm:min-h-[220px]">
+                        <img src="{{ $imgSrc }}" 
+                             alt="{{ $post->title }}"
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
+                    </a>
+                </div>
 
-    <nav class="blog-pagination justify-center flex mt-8">
-        <ul class="pagination flex space-x-4">
-            @if ($posts->onFirstPage())
-                <li><span class="px-4 py-2 text-gray-400 bg-gray-100 cursor-not-allowed rounded-md">Trang trước</span></li>
-            @else
-                <li><a href="{{ $posts->previousPageUrl() }}" class="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-600">Trang trước</a></li>
-            @endif
+                <!-- Nội dung bài viết -->
+                <div class="p-5 sm:p-6 flex flex-col justify-between flex-1 min-w-0">
+                    <div>
+                        <!-- Meta Tag & Ngày đăng -->
+                        <div class="flex items-center gap-2.5 text-xs mb-2.5">
+                            @if ($post->topic)
+                                <span class="text-[#F47716] font-bold uppercase tracking-wider text-[11px]">
+                                    {{ $post->topic->name }}
+                                </span>
+                                <span class="text-stone-300">•</span>
+                            @endif
+                            <span class="text-stone-400 font-medium text-xs flex items-center gap-1.5">
+                                <i class="far fa-calendar-alt text-xs"></i>
+                                {{ \Carbon\Carbon::parse($post->created_at)->format('d/m/Y') }}
+                            </span>
+                        </div>
 
-            @foreach ($posts->links()->elements as $element)
-                @if (is_string($element))
-                    <li><span class="px-4 py-2 text-gray-400 bg-gray-100 rounded-md">{{ $element }}</span></li>
-                @endif
+                        <!-- Tiêu đề câu tự nhiên, rõ ràng -->
+                        <h2 class="text-base sm:text-lg font-bold text-stone-900 group-hover:text-[#F47716] transition-colors leading-snug line-clamp-2 mb-2.5">
+                            <a href="{{ route('site.blog.detail', ['slug' => $post->slug]) }}">
+                                {{ $post->title }}
+                            </a>
+                        </h2>
 
-                @if (is_array($element))
-                    @foreach ($element as $page => $url)
-                        @if ($page == $posts->currentPage())
-                            <li><span class="px-4 py-2 bg-gray-800 text-white rounded-md">{{ $page }}</span></li>
-                        @else
-                            <li><a href="{{ $url }}" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-400">{{ $page }}</a></li>
+                        <!-- Đoạn trích -->
+                        @if (!empty($post->description))
+                            <p class="text-stone-600 text-xs sm:text-sm leading-relaxed line-clamp-3 mb-4">
+                                {{ $post->description }}
+                            </p>
                         @endif
-                    @endforeach
-                @endif
-            @endforeach
+                    </div>
 
-            @if ($posts->hasMorePages())
-                <li><a href="{{ $posts->nextPageUrl() }}" class="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-600">Trang sau</a></li>
-            @else
-                <li><span class="px-4 py-2 text-gray-400 bg-gray-100 cursor-not-allowed rounded-md">Trang sau</span></li>
-            @endif
-        </ul>
-    </nav>
+                    <!-- Footer thẻ bài viết -->
+                    <div class="pt-3.5 border-t border-stone-100 flex items-center justify-between mt-auto">
+                        <div class="flex items-center gap-2 text-xs text-stone-600 font-medium">
+                            <img src="{{ asset('images/logo/logo.png') }}" alt="CIVILIZE Restaurant" class="h-5 w-auto object-contain">
+                            <span class="text-stone-800 font-bold text-xs">CIVILIZE Restaurant</span>
+                        </div>
+
+                        <a href="{{ route('site.blog.detail', ['slug' => $post->slug]) }}" 
+                           class="inline-flex items-center gap-1.5 text-xs font-bold text-[#F47716] group-hover:translate-x-1 transition-transform duration-200 uppercase tracking-wider">
+                            <span>Đọc tiếp</span>
+                            <i class="fas fa-chevron-right text-[10px]"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </article>
+        @endforeach
+    </div>
+
+    <!-- Phân trang thanh lịch, góc sắc nét chuẩn editorial -->
+    @if ($posts->hasPages())
+        <div class="flex justify-center items-center mt-10 mb-4">
+            <nav class="flex items-center gap-1.5 flex-wrap">
+                
+                {{-- Previous Page Link --}}
+                @if ($posts->onFirstPage())
+                    <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-stone-100 rounded-none sm:rounded-sm border border-stone-200 cursor-not-allowed">
+                        <i class="fas fa-chevron-left mr-1"></i> Trước
+                    </span>
+                @else
+                    <a href="{{ $posts->previousPageUrl() }}" 
+                       class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-50 hover:text-[#F47716] border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs">
+                        <i class="fas fa-chevron-left mr-1"></i> Trước
+                    </a>
+                @endif
+
+                {{-- Pagination Elements --}}
+                @foreach ($posts->getUrlRange(1, $posts->lastPage()) as $page => $url)
+                    @if ($page == $posts->currentPage())
+                        <span class="w-9 h-9 flex items-center justify-center text-xs font-black bg-[#F47716] text-white rounded-none sm:rounded-sm shadow-2xs">
+                            {{ $page }}
+                        </span>
+                    @else
+                        <a href="{{ $url }}" 
+                           class="w-9 h-9 flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-50 hover:text-[#F47716] border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs">
+                            {{ $page }}
+                        </a>
+                    @endif
+                @endforeach
+
+                {{-- Next Page Link --}}
+                @if ($posts->hasMorePages())
+                    <a href="{{ $posts->nextPageUrl() }}" 
+                       class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-50 hover:text-[#F47716] border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs">
+                        Sau <i class="fas fa-chevron-right ml-1"></i>
+                    </a>
+                @else
+                    <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-stone-100 rounded-none sm:rounded-sm border border-stone-200 cursor-not-allowed">
+                        Sau <i class="fas fa-chevron-right ml-1"></i>
+                    </span>
+                @endif
+            </nav>
+        </div>
+    @endif
 @endif

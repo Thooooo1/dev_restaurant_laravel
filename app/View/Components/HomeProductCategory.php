@@ -24,35 +24,27 @@ class HomeProductCategory extends Component
      */
     public function render(): View|Closure|string
     {
-        $list_catid=[];
-        $category=$this->category_item;
-        $args1=[
-            ['status','=',1],
-            ['parent_id','=',$category->id]
-        ];
-        array_push($list_catid,$category->id);
-        $categories1 = Category::select("id","parent_id","status")->where($args1)->get();
-        if($categories1 != null)
-        {
-            foreach ($categories1 as $category1){
-                array_push($list_catid,$category1->id);
-                $args2=[
-                    ['status','=',1],
-                    ['parent_id','=',$category1->id]
-                ];
-                $categories2=Category::select("id","parent_id","status")->where($args2)->get();
-                if($categories1 != null){
-                    foreach($categories2 as $category2){
-                        array_push($list_catid,$category2->id);
-                    }
-                }
+        $category = $this->category_item;
+
+        if (isset($category->category_ids) && is_array($category->category_ids)) {
+            $list_catid = $category->category_ids;
+        } elseif ($category->id === 'drinks') {
+            $list_catid = [13, 15, 16, 18, 19];
+        } else {
+            $list_catid = [$category->id];
+            $categories1 = Category::select("id", "parent_id", "status")
+                ->where([['status', '=', 1], ['parent_id', '=', $category->id]])
+                ->get();
+            foreach ($categories1 as $cat1) {
+                $list_catid[] = $cat1->id;
             }
         }
-        //print_r($list_catid);
-        $products = Product::where('status','=',1)
-        ->WhereIn('category_id',$list_catid)
-        ->limit(5)
-        ->get();
-        return view('components.home-product-category',compact('products'));
+
+        $products = Product::where('status', '=', 1)
+            ->whereIn('category_id', $list_catid)
+            ->limit(8)
+            ->get();
+
+        return view('components.home-product-category', compact('products'));
     }
 }

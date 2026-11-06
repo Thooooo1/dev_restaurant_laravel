@@ -22,19 +22,41 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $phone = $request->phone;
+        $loginInput = trim($request->phone);
         $password = $request->password;
 
-        $credentials = [
-            'phone' => $phone,
-            'password' => $password,
-        ];
+        // Thử tìm tài khoản theo Số điện thoại hoặc Tên đăng nhập (username)
+        $user = \App\Models\User::where('phone', $loginInput)
+            ->orWhere('username', $loginInput)
+            ->first();
 
-        if (Auth::attempt($credentials)) {
-            return redirect()->route('admin.dashboard');
+        if (!$user) {
+            return redirect()->route('admin.login')->with('error', 'Tài khoản không tồn tại trong hệ thống!')->withInput();
         }
 
-        return redirect()->route('admin.login')->with('error','Thông tin không chính xác!');
+        if (!Hash::check($password, $user->password)) {
+            return redirect()->route('admin.login')->with('error', 'Mật khẩu không chính xác!')->withInput();
+        }
+
+        // CHẶN TUYỆT ĐỐI KHÁCH HÀNG / THÀNH VIÊN VÀO ADMIN
+        if ($user->roles !== 'admin' && $user->roles !== 'employee') {
+            return redirect()->route('admin.login')->with('error', 'Tài khoản này là Khách hàng / Thành viên, không có quyền truy cập trang quản trị!')->withInput();
+        }
+
+        // Kiểm tra trạng thái tài khoản
+        if ($user->status != 1) {
+            return redirect()->route('admin.login')->with('error', 'Tài khoản của bạn đang bị khóa hoặc ngừng kích hoạt!')->withInput();
+        }
+
+        // Đăng nhập hợp lệ
+        Auth::login($user);
+
+        // Điều hướng chính xác theo phân quyền:
+        if ($user->roles === 'employee') {
+            return redirect()->route('admin.table-order.index')->with('success', 'Đăng nhập thành công! Chào mừng nhân viên ' . $user->fullname . '.');
+        }
+
+        return redirect()->route('admin.dashboard')->with('success', 'Đăng nhập thành công với quyền Quản trị viên!');
     }
 
     function logout(){

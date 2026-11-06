@@ -8,12 +8,7 @@
                         <div class="col-sm-6">
                             <strong class="fw-bold h4 text-danger">THÊM MÓN ĂN</strong>
                         </div>
-                        <div class="col-sm-6">
-                            <ol class="breadcrumb float-sm-right">
-                                <li class="breadcrumb-item"><a href="{{ url('admin/') }}">Trang chủ</a></li>
-                                <li class="breadcrumb-item active">Sản phẩm</li>
-                            </ol>
-                        </div>
+                        
                     </div>
                 </div>
             </section>
