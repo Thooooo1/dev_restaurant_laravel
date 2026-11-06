@@ -33,69 +33,79 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen flex items-center justify-center p-4">
-    <div class="max-w-md w-full bg-white p-8 rounded-none sm:rounded-sm shadow-md border-t-4 border-t-[#C25E00] border-x border-b border-slate-200">
+<body class="bg-[#FAF8F5] min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white p-7 sm:p-9 rounded-2xl sm:rounded-3xl border border-stone-200/90 shadow-xl">
         @include("components.alert")
         <div class="text-center mb-6">
-            <img src="{{ asset('images/logo/logo.png') }}" alt="CIVILIZE" class="h-16 w-auto mx-auto mb-3 object-contain">
-            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight font-serif">Hệ Thống Quản Trị CIVILIZE</h1>
+            <img src="{{ asset('images/logo/logo.png') }}" alt="CIVILIZE" class="h-14 w-auto mx-auto mb-2.5 object-contain">
+            <span class="text-xs uppercase font-bold tracking-[0.2em] text-[#C25E00] block mb-1">CIVILIZE RESTAURANT</span>
+            <h1 class="text-2xl sm:text-3xl font-black font-serif text-stone-900 tracking-tight">Hệ Thống Quản Trị</h1>
         </div>
+
         <form action="{{ route('admin.dologin') }}" method="POST" class="space-y-4">
             @csrf
             <div>
-                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tên đăng nhập hoặc Số điện thoại</label>
                 <input type="text" 
                        name="phone" 
                        id="adminLoginInput"
                        required
-                       class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-none sm:rounded-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#C25E00] focus:bg-white transition-all" 
-                       placeholder="Ví dụ: admin1 hoặc nhanvien1">
+                       class="w-full px-5 py-3.5 bg-white border border-stone-300 rounded-xl sm:rounded-2xl text-stone-900 text-sm sm:text-base placeholder-stone-400 focus:outline-none focus:border-[#C25E00] focus:ring-2 focus:ring-[#C25E00]/20 transition-all shadow-2xs" 
+                       placeholder="Email, số điện thoại hoặc tên đăng nhập"
+                       autofocus>
             </div>
 
             <div>
-                <div class="flex justify-between items-center mb-1.5">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Mật khẩu</label>
-                </div>
                 <input type="password" 
                        name="password" 
                        id="adminPasswordInput"
                        required
-                       class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-none sm:rounded-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#C25E00] focus:bg-white transition-all" 
-                       placeholder="••••••••">
+                       class="w-full px-5 py-3.5 bg-white border border-stone-300 rounded-xl sm:rounded-2xl text-stone-900 text-sm sm:text-base placeholder-stone-400 focus:outline-none focus:border-[#C25E00] focus:ring-2 focus:ring-[#C25E00]/20 transition-all shadow-2xs" 
+                       placeholder="Mật khẩu">
             </div>
 
-            <!-- Gợi ý tài khoản demo 1-click -->
-            <div class="p-3 bg-amber-50/80 border border-amber-200/80 rounded-none sm:rounded-sm text-xs">
-                <div class="text-[11px] font-bold text-amber-900 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                    <span><i class="fa-solid fa-key mr-1 text-[#C25E00]"></i> Tài khoản Demo (Mật khẩu: 123456):</span>
+            <!-- GỢI Ý TÀI KHOẢN DEMO 1-CLICK -->
+            <div class="p-3.5 bg-amber-50/90 border border-amber-200 rounded-xl text-xs space-y-2">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="font-bold text-amber-900 text-xs flex items-center gap-1.5">
+                        <i class="fa-solid fa-key text-[#C25E00]"></i>
+                        <span>Tài khoản Demo Quản Trị:</span>
+                    </span>
+                    <span class="text-[11px] font-semibold text-stone-500">Mật khẩu: <strong class="text-stone-800">123456</strong></span>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
+                <div class="space-y-1.5">
                     <button type="button" 
                             onclick="fillAdminLogin('admin1', '123456')" 
-                            class="py-1.5 px-2 bg-white hover:bg-stone-100 text-stone-800 border border-stone-200 rounded-none text-left font-semibold text-[11px] transition cursor-pointer flex flex-col">
-                        <span class="font-bold text-[#C25E00]">Quản trị viên:</span>
-                        <span class="text-stone-500 font-mono">admin1</span>
+                            class="w-full py-2 px-3 bg-white hover:bg-stone-50 border border-amber-200/80 rounded-lg text-left flex items-center justify-between transition cursor-pointer">
+                        <span class="font-bold text-[#C25E00] text-xs">
+                            admin1 <span class="text-stone-500 font-medium text-[11px] ml-1">(Quản trị viên)</span>
+                        </span>
+                        <span class="text-[11px] text-stone-500 underline font-medium">Bấm để điền nhanh</span>
                     </button>
                     <button type="button" 
                             onclick="fillAdminLogin('nhanvien1', '123456')" 
-                            class="py-1.5 px-2 bg-white hover:bg-stone-100 text-stone-800 border border-stone-200 rounded-none text-left font-semibold text-[11px] transition cursor-pointer flex flex-col">
-                        <span class="font-bold text-[#C25E00]">Nhân viên POS:</span>
-                        <span class="text-stone-500 font-mono">nhanvien1</span>
+                            class="w-full py-2 px-3 bg-white hover:bg-stone-50 border border-amber-200/80 rounded-lg text-left flex items-center justify-between transition cursor-pointer">
+                        <span class="font-bold text-[#C25E00] text-xs">
+                            nhanvien1 <span class="text-stone-500 font-medium text-[11px] ml-1">(Nhân viên POS)</span>
+                        </span>
+                        <span class="text-[11px] text-stone-500 underline font-medium">Bấm để điền nhanh</span>
                     </button>
                 </div>
             </div>
 
             <div class="pt-2">
-                <button type="submit" class="w-full bg-stone-900 hover:bg-[#C25E00] text-white py-3 px-4 rounded-none sm:rounded-sm font-bold text-xs uppercase tracking-[0.2em] shadow-xs transition-all flex items-center justify-center cursor-pointer">
-                    <span>Đăng nhập hệ thống</span>
+                <button type="submit" 
+                        class="w-full bg-[#C25E00] hover:bg-[#a85000] text-white py-3.5 px-4 rounded-xl sm:rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all cursor-pointer shadow-md hover:shadow-lg active:scale-[0.99]">
+                    Đăng nhập hệ thống
                 </button>
             </div>        
         </form>
 
         <script>
             function fillAdminLogin(username, password) {
-                document.getElementById('adminLoginInput').value = username;
-                document.getElementById('adminPasswordInput').value = password;
+                const inputUser = document.getElementById('adminLoginInput');
+                const inputPass = document.getElementById('adminPasswordInput');
+                if (inputUser) inputUser.value = username;
+                if (inputPass) inputPass.value = password;
             }
         </script>
     </div>
