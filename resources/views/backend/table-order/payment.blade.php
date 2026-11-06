@@ -42,10 +42,10 @@
     <!-- Main Payment Canvas -->
     <div class="ant-card p-5 shadow-sm">
         <!-- Payment Options & Total Header -->
-        <div class="p-4 bg-[#FAFAFA] border border-[#F0F0F0] rounded mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="flex flex-wrap items-center gap-3">
-                <label for="paymentMethodSelect" class="text-xs font-semibold text-[rgba(0,0,0,0.65)] uppercase">Phương thức thanh toán:</label>
-                <select class="polaris-select text-xs font-medium" name="payment_method" id="paymentMethodSelect">
+        <div class="p-5 bg-[#FAFAFA] border border-[#F0F0F0] rounded-xl mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-3.5">
+                <label for="paymentMethodSelect" class="text-sm font-bold text-gray-700 uppercase tracking-wide">Phương thức thanh toán:</label>
+                <select class="polaris-select text-sm font-semibold py-2 px-3.5 rounded-lg border-gray-300 bg-white" name="payment_method" id="paymentMethodSelect">
                     <option value="1" {{ ($order->payment_method == 1 || !$order->payment_method) ? 'selected' : '' }}>Tiền mặt</option>
                     <option value="2" {{ $order->payment_method == 2 ? 'selected' : '' }}>Chuyển khoản VietQR</option>
                     <option value="3" {{ $order->payment_method == 3 ? 'selected' : '' }}>Quẹt thẻ POS (ATM / Visa / Master)</option>
@@ -53,45 +53,45 @@
                 <button type="button" 
                         id="openVietQrModalBtn" 
                         onclick="openVietQrModal()" 
-                        class="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded text-xs font-bold shadow-xs flex items-center justify-center cursor-pointer transition-all">
+                        class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-sm font-bold shadow-xs flex items-center justify-center cursor-pointer transition-all">
                     <span>Mở mã QR</span>
                 </button>
             </div>
-            <div class="flex items-center gap-2 sm:justify-end">
-                <span class="text-xs font-semibold text-[rgba(0,0,0,0.45)] uppercase">Tổng tiền thanh toán:</span>
-                <span class="text-2xl font-bold font-mono text-[#F47716]" id="total-amount-header">{{ number_format($totalAmount, 0, ',', '.') }} ₫</span>
+            <div class="flex items-center gap-3 sm:justify-end">
+                <span class="text-sm font-bold text-gray-500 uppercase tracking-wide">Tổng tiền thanh toán:</span>
+                <span class="text-3xl font-black font-mono text-[#F47716]" id="total-amount-header">{{ number_format($totalAmount, 0, ',', '.') }} ₫</span>
             </div>
         </div>
 
         <!-- Table of Items (Polaris Table Style) -->
-        <div class="overflow-x-auto border border-[#F0F0F0] rounded">
+        <div class="overflow-x-auto border border-[#F0F0F0] rounded-xl shadow-2xs">
             <table class="w-full" id="paymentTable">
-                <thead>
-                    <tr>
-                        <th class="w-12 text-center">#</th>
-                        <th>Tên món ăn</th>
-                        <th class="text-right">Số lượng</th>
-                        <th class="text-right">Đơn giá</th>
-                        <th class="text-right">Thành tiền</th>
-                        <th class="text-center action-col w-12"></th>
+                <thead class="bg-gray-50/80 border-b border-[#F0F0F0]">
+                    <tr class="text-xs uppercase text-gray-500 font-bold tracking-wider">
+                        <th class="w-14 py-3.5 px-4 text-center">#</th>
+                        <th class="py-3.5 px-4 text-left text-sm font-bold text-gray-700">Tên món ăn</th>
+                        <th class="py-3.5 px-4 text-right text-sm font-bold text-gray-700">Số lượng</th>
+                        <th class="py-3.5 px-4 text-right text-sm font-bold text-gray-700">Đơn giá</th>
+                        <th class="py-3.5 px-4 text-right text-sm font-bold text-gray-700">Thành tiền</th>
+                        <th class="py-3.5 px-4 text-center action-col w-12"></th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-100">
                     @foreach($orderDetails as $i => $item)
-                        <tr data-id="{{ $item->id }}" data-price="{{ $item->price }}" data-name="{{ $item->product->name ?? 'N/A' }}">
-                            <td class="text-center font-mono text-xs text-[rgba(0,0,0,0.45)]">{{ $i + 1 }}</td>
-                            <td>
-                                <div class="font-medium text-xs text-[rgba(0,0,0,0.85)]">{{ $item->product->name ?? 'N/A' }}</div>
+                        <tr data-id="{{ $item->id }}" data-price="{{ $item->price }}" data-name="{{ $item->product->name ?? 'N/A' }}" class="hover:bg-amber-50/20 transition-colors">
+                            <td class="py-3.5 px-4 text-center font-mono text-sm text-gray-400">{{ $i + 1 }}</td>
+                            <td class="py-3.5 px-4">
+                                <div class="font-bold text-base text-gray-900">{{ $item->product->name ?? 'N/A' }}</div>
                             </td>
-                            <td class="text-right">
-                                <span class="qty-display font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $item->qty }}</span>
-                                <input type="number" class="polaris-input qty-input d-none text-right font-mono text-xs" style="width: 70px; display: inline-block;" value="{{ $item->qty }}" min="1" oninput="updateRowTotal(this)">
+                            <td class="py-3.5 px-4 text-right">
+                                <span class="qty-display font-mono font-bold text-base text-gray-900 bg-gray-100 px-3 py-1 rounded-md">{{ $item->qty }}</span>
+                                <input type="number" class="polaris-input qty-input d-none text-right font-mono text-base font-bold" style="width: 80px; display: inline-block;" value="{{ $item->qty }}" min="1" oninput="updateRowTotal(this)">
                             </td>
-                            <td class="text-right font-mono text-xs text-[rgba(0,0,0,0.65)]">{{ number_format($item->price, 0, ',', '.') }} ₫</td>
-                            <td class="text-right font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)] amount-display">{{ number_format($item->amount, 0, ',', '.') }} ₫</td>
-                            <td class="text-center action-col">
-                                <button class="text-gray-400 hover:text-red-500 transition-colors btn-delete-item disabled" disabled onclick="confirmDeleteItem({{ $item->id }})">
-                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                            <td class="py-3.5 px-4 text-right font-mono text-base text-gray-600">{{ number_format($item->price, 0, ',', '.') }} ₫</td>
+                            <td class="py-3.5 px-4 text-right font-mono font-bold text-base text-gray-900 amount-display">{{ number_format($item->amount, 0, ',', '.') }} ₫</td>
+                            <td class="py-3.5 px-4 text-center action-col">
+                                <button class="text-gray-400 hover:text-red-500 transition-colors btn-delete-item disabled p-1" disabled onclick="confirmDeleteItem({{ $item->id }})">
+                                    <i class="fa-solid fa-trash-can text-sm"></i>
                                 </button>
                             </td>
                         </tr>
@@ -101,18 +101,18 @@
         </div>
 
         <!-- Bottom Action Toolbar -->
-        <div class="mt-5 pt-4 border-t border-[#F0F0F0] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <a href="{{ route('admin.table-order.index') }}" class="ant-btn">
+        <div class="mt-6 pt-5 border-t border-[#F0F0F0] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <a href="{{ route('admin.table-order.index') }}" class="ant-btn text-sm py-2 px-4 font-medium flex items-center gap-2">
                 <i class="fa-solid fa-arrow-left text-xs"></i>
                 <span>Quay lại sơ đồ bàn</span>
             </a>
-            <div class="flex items-center gap-2">
-                <button type="button" class="ant-btn" onclick="printProvisionalBill()">
+            <div class="flex items-center gap-3">
+                <button type="button" class="ant-btn text-sm py-2 px-4 font-medium flex items-center gap-2" onclick="printProvisionalBill()">
                     <i class="fa-solid fa-print text-xs"></i>
                     <span>In hoá đơn</span>
                 </button>
-                <button type="button" class="ant-btn ant-btn-primary px-5" onclick="handleConfirmPayment()">
-                    <i class="fa-solid fa-check text-xs"></i>
+                <button type="button" class="ant-btn ant-btn-primary px-6 py-2.5 text-base font-bold flex items-center gap-2 shadow-xs" onclick="handleConfirmPayment()">
+                    <i class="fa-solid fa-check text-sm"></i>
                     <span>Xác nhận thu tiền</span>
                 </button>
             </div>
