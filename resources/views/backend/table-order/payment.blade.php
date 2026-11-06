@@ -164,17 +164,12 @@
         <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-gray-100 overflow-hidden transform transition-all duration-300">
             <!-- Modal Header -->
             <div class="px-6 py-4 bg-white text-gray-900 flex items-center justify-between border-b border-gray-100">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-orange-50 text-[#F47716] flex items-center justify-center text-sm border border-orange-100">
-                        <i class="fa-solid fa-qrcode"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-900">Thanh Toán Chuyển Khoản VietQR</h3>
-                        <p class="text-[11px] text-gray-500">{{ $table->name }} • {{ $table->floor->name ?? 'Khu vực chính' }} • Đơn #{{ $order->id }}</p>
-                    </div>
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-900">Thanh Toán Chuyển Khoản VietQR</h3>
+                    <p class="text-[11px] text-gray-500 mt-0.5">{{ $table->name }} • {{ $table->floor->name ?? 'Khu vực chính' }} • Đơn #{{ $order->id }}</p>
                 </div>
-                <button type="button" onclick="closeVietQrModal()" class="text-gray-400 hover:text-gray-700 text-lg w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200">
-                    <i class="fa-solid fa-xmark"></i>
+                <button type="button" onclick="closeVietQrModal()" class="text-gray-400 hover:text-gray-700 text-sm w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200">
+                    ✕
                 </button>
             </div>
 
@@ -266,8 +261,7 @@
                             <button type="button" 
                                     id="posConfirmPayBtn"
                                     onclick="confirmVietQrPaymentNow()" 
-                                    class="w-full py-3 px-4 bg-[#52C41A] hover:bg-[#389E0D] text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md hover:shadow-lg active:scale-[0.99]">
-                                <i class="fa-solid fa-circle-check text-base"></i>
+                                    class="w-full py-3 px-4 bg-[#52C41A] hover:bg-[#389E0D] text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center cursor-pointer shadow-md hover:shadow-lg active:scale-[0.99]">
                                 <span>Xác nhận thanh toán thành công</span>
                             </button>
                         </div>
@@ -460,7 +454,7 @@
                             } else {
                                 if (btn) {
                                     btn.disabled = false;
-                                    btn.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> <span>Xác nhận thanh toán thành công</span>';
+                                    btn.innerHTML = '<span>Xác nhận thanh toán thành công</span>';
                                 }
                                 toastr.error(payRes.message || 'Thanh toán thất bại');
                             }
@@ -468,7 +462,7 @@
                         error: function() {
                             if (btn) {
                                 btn.disabled = false;
-                                btn.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> <span>Xác nhận thanh toán thành công</span>';
+                                btn.innerHTML = '<span>Xác nhận thanh toán thành công</span>';
                             }
                             toastr.error('Lỗi khi gửi yêu cầu thanh toán');
                         }
@@ -477,7 +471,7 @@
                 error: function() {
                     if (btn) {
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="fa-solid fa-circle-check text-base"></i> <span>Xác nhận thanh toán thành công</span>';
+                        btn.innerHTML = '<span>Xác nhận thanh toán thành công</span>';
                     }
                     toastr.error('Lỗi cập nhật đơn hàng trước khi thanh toán');
                 }

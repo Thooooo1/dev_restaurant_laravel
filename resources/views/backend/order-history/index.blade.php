@@ -7,7 +7,6 @@
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('admin.dashboard') }}" class="ant-btn ant-btn-sm">
-                <i class="fa-solid fa-chart-pie text-xs"></i>
                 <span>Xem báo cáo tổng quan</span>
             </a>
         </div>
