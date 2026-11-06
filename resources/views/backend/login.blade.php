@@ -63,35 +63,6 @@
                        placeholder="Mật khẩu">
             </div>
 
-            <!-- GỢI Ý TÀI KHOẢN DEMO 1-CLICK -->
-            <div class="p-3.5 bg-amber-50/90 border border-amber-200 rounded-xl text-xs space-y-2">
-                <div class="flex items-center justify-between mb-1">
-                    <span class="font-bold text-amber-900 text-xs flex items-center gap-1.5">
-                        <i class="fa-solid fa-key text-[#C25E00]"></i>
-                        <span>Tài khoản Demo Quản Trị:</span>
-                    </span>
-                    <span class="text-[11px] font-semibold text-stone-500">Mật khẩu: <strong class="text-stone-800">123456</strong></span>
-                </div>
-                <div class="space-y-1.5">
-                    <button type="button" 
-                            onclick="fillAdminLogin('admin1', '123456')" 
-                            class="w-full py-2 px-3 bg-white hover:bg-stone-50 border border-amber-200/80 rounded-lg text-left flex items-center justify-between transition cursor-pointer">
-                        <span class="font-bold text-[#C25E00] text-xs">
-                            admin1 <span class="text-stone-500 font-medium text-[11px] ml-1">(Quản trị viên)</span>
-                        </span>
-                        <span class="text-[11px] text-stone-500 underline font-medium">Bấm để điền nhanh</span>
-                    </button>
-                    <button type="button" 
-                            onclick="fillAdminLogin('nhanvien1', '123456')" 
-                            class="w-full py-2 px-3 bg-white hover:bg-stone-50 border border-amber-200/80 rounded-lg text-left flex items-center justify-between transition cursor-pointer">
-                        <span class="font-bold text-[#C25E00] text-xs">
-                            nhanvien1 <span class="text-stone-500 font-medium text-[11px] ml-1">(Nhân viên POS)</span>
-                        </span>
-                        <span class="text-[11px] text-stone-500 underline font-medium">Bấm để điền nhanh</span>
-                    </button>
-                </div>
-            </div>
-
             <div class="pt-2">
                 <button type="submit" 
                         class="w-full bg-[#C25E00] hover:bg-[#a85000] text-white py-3.5 px-4 rounded-xl sm:rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all cursor-pointer shadow-md hover:shadow-lg active:scale-[0.99]">
@@ -99,15 +70,6 @@
                 </button>
             </div>        
         </form>
-
-        <script>
-            function fillAdminLogin(username, password) {
-                const inputUser = document.getElementById('adminLoginInput');
-                const inputPass = document.getElementById('adminPasswordInput');
-                if (inputUser) inputUser.value = username;
-                if (inputPass) inputPass.value = password;
-            }
-        </script>
     </div>
 </body>
 </html>
