@@ -425,21 +425,24 @@
                             <div x-cloak x-show="open" @click.away="open = false" @keydown.escape.window="open = false" x-transition style="display: none;"
                                  class="absolute right-0 mt-2 bg-white border border-stone-200 shadow-xl z-50 w-72 py-2 overflow-hidden rounded-sm">
                                 <div class="px-5 py-3.5 border-b border-stone-100 bg-stone-50/70">
-                                    <p class="text-xs {{ $userRole === 'admin' ? 'text-[#C25E00]' : ($userRole === 'employee' ? 'text-blue-600' : 'text-stone-500') }} font-bold uppercase tracking-wider">{{ $dropdownTitle }}</p>
-                                    <p class="text-base font-bold text-stone-900 truncate mt-0.5">{{ Auth::user()->fullname ?? Auth::user()->name }}</p>
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-xs text-stone-400 font-semibold uppercase tracking-wider">Tài khoản</p>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded {{ $userRole === 'admin' ? 'bg-orange-100 text-[#C25E00]' : ($userRole === 'employee' ? 'bg-blue-100 text-blue-700' : 'bg-stone-200 text-stone-600') }}">
+                                            {{ $roleLabel }}
+                                        </span>
+                                    </div>
+                                    <p class="text-base font-bold text-stone-900 truncate mt-1">{{ Auth::user()->fullname ?? Auth::user()->name }}</p>
                                 </div>
 
                                 @if($userRole === 'admin')
                                     <a href="{{ route('admin.dashboard') }}"
-                                       class="flex items-center justify-between px-5 py-3 text-sm font-bold text-[#C25E00] hover:bg-orange-50/70 transition-colors">
-                                        <span>Trang Quản Trị (Admin)</span>
-                                        <span class="text-[10px] uppercase px-1.5 py-0.5 rounded bg-orange-100 text-[#C25E00]">Admin</span>
+                                       class="flex items-center px-5 py-3 text-sm font-bold text-[#C25E00] hover:bg-orange-50/70 transition-colors">
+                                        <span>Vào trang quản trị</span>
                                     </a>
                                 @elseif($userRole === 'employee')
                                     <a href="{{ route('admin.table-order.index') }}"
-                                       class="flex items-center justify-between px-5 py-3 text-sm font-bold text-[#C25E00] hover:bg-orange-50/70 transition-colors">
+                                       class="flex items-center px-5 py-3 text-sm font-bold text-[#C25E00] hover:bg-orange-50/70 transition-colors">
                                         <span>Màn hình Bán hàng (POS)</span>
-                                        <span class="text-[10px] uppercase px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">POS</span>
                                     </a>
                                 @endif
 
