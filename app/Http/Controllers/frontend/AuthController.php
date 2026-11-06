@@ -78,12 +78,18 @@ class AuthController extends Controller
         \App\Http\Controllers\frontend\CartController::mergeGuestCartToUser($user->id, $oldSessionId);
         $request->session()->regenerate();
         
-        // Luôn xóa session bàn nếu đăng nhập bình thường
-        if (!session()->has('is_table_order')) {
-            session()->forget('table_id');
-            session()->forget('table_order_id');
-            session()->forget('table_name');
-            session()->forget('is_table_order');
+        // Nếu là nhân viên hoặc admin, xóa triệt để session bàn để không bị dính chế độ khách tại bàn
+        if ($user->isAdmin() || $user->isEmployee()) {
+            session()->forget([
+                'table_id',
+                'table_order_id',
+                'table_name',
+                'table_floor_name',
+                'is_table_order',
+                'dining_mode',
+                'customer_phone',
+                'customer_name'
+            ]);
         }
         
         if ($redirectUrl) {

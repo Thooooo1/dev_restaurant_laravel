@@ -31,18 +31,18 @@
 <div id="serviceCallModal" class="fixed inset-0 z-[999999] hidden bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 transition-all duration-200" style="z-index: 999999 !important;">
     <div class="bg-white rounded-xl sm:rounded-2xl max-w-lg w-full max-h-[90dvh] flex flex-col shadow-2xl border border-stone-200/80 overflow-hidden transform scale-95 transition-all duration-200" id="serviceCallModalBox">
         
-        <!-- Header: Tinh tế chuẩn ẩm thực CIVILIZE -->
-        <div class="bg-stone-900 px-5 py-4 text-white relative border-b border-amber-600/30 shrink-0">
-            <button type="button" id="closeServiceCallBtn" class="absolute top-3.5 right-3.5 text-stone-400 hover:text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer text-sm font-bold">
-                ✕
+        <!-- Header: Tinh tế chuẩn ẩm thực CIVILIZE (Màu cam thương hiệu đồng bộ) -->
+        <div class="bg-[#C25E00] px-5 py-4 text-white relative border-b border-[#A34E00] shrink-0">
+            <button type="button" id="closeServiceCallBtn" class="absolute top-3.5 right-3.5 text-white/80 hover:text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/15 transition-colors cursor-pointer" aria-label="Đóng">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
             <div>
                 <h3 class="text-base font-bold tracking-tight text-white uppercase">Gọi Nhân Viên Phục Vụ</h3>
                 <div class="flex items-center gap-2 mt-0.5">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" id="modalTableBadge">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-semibold bg-white/20 text-white border border-white/30 backdrop-blur-xs" id="modalTableBadge">
                         <span id="modalTableSubtitleText">{{ $currentTableName ? ('Vị trí: ' . $currentTableName) : 'Chọn số bàn của bạn' }}</span>
                     </span>
-                    <span class="text-[11px] text-stone-400 hidden sm:inline">• Trực bàn sẵn sàng</span>
+                    <span class="text-[11px] text-white/85 hidden sm:inline">• Trực bàn sẵn sàng</span>
                 </div>
             </div>
         </div>
@@ -71,38 +71,44 @@
                     <label class="block text-xs font-bold text-stone-800">
                         Quý khách cần hỗ trợ dịch vụ gì?
                     </label>
-                    <span class="text-[11px] text-stone-400">Chạm để chọn nhanh</span>
+                    <span class="text-[11px] text-stone-400">Chạm để chọn (có thể chọn nhiều)</span>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="serviceQuickChips">
-                    <!-- Chip 1: Thêm đá lạnh -->
-                    <button type="button" class="service-chip p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="water" data-note="Xin thêm đá lạnh">
-                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Thêm đá lạnh</span>
+                    <!-- Chip 1: Thêm đá -->
+                    <button type="button" class="service-chip relative p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="water" data-label="Thêm đá">
+                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Thêm đá</span>
+                        <svg class="chip-check hidden absolute top-1.5 right-1.5 w-3 h-3 text-[#C25E00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                     </button>
 
-                    <!-- Chip 2: Khăn lạnh / Giấy ăn -->
-                    <button type="button" class="service-chip p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="cutlery" data-note="Xin khăn lạnh / giấy ăn">
-                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Khăn lạnh / Giấy</span>
+                    <!-- Chip 2: Xin khăn lạnh / giấy -->
+                    <button type="button" class="service-chip relative p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="cutlery" data-label="Xin khăn lạnh / giấy">
+                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Xin khăn lạnh / giấy</span>
+                        <svg class="chip-check hidden absolute top-1.5 right-1.5 w-3 h-3 text-[#C25E00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                     </button>
 
-                    <!-- Chip 3: Bát đĩa / Đũa thìa -->
-                    <button type="button" class="service-chip p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="cutlery" data-note="Xin thêm bát đĩa / đũa thìa">
-                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Bát đĩa / Đũa thìa</span>
+                    <!-- Chip 3: Xin thêm bát đĩa -->
+                    <button type="button" class="service-chip relative p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="cutlery" data-label="Xin thêm bát đĩa">
+                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Xin thêm bát đĩa</span>
+                        <svg class="chip-check hidden absolute top-1.5 right-1.5 w-3 h-3 text-[#C25E00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                     </button>
 
-                    <!-- Chip 4: Châm nước / Trà đá -->
-                    <button type="button" class="service-chip p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="water" data-note="Châm thêm nước lọc / trà đá">
-                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Châm trà / Nước</span>
+                    <!-- Chip 4: Châm thêm nước -->
+                    <button type="button" class="service-chip relative p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="water" data-label="Châm thêm nước">
+                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Châm thêm nước</span>
+                        <svg class="chip-check hidden absolute top-1.5 right-1.5 w-3 h-3 text-[#C25E00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                     </button>
 
-                    <!-- Chip 5: Gia vị (Ớt, chanh, mắm) -->
-                    <button type="button" class="service-chip p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="cutlery" data-note="Xin thêm gia vị (ớt, chanh, nước mắm)">
-                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Gia vị / Ớt chanh</span>
+                    <!-- Chip 5: Xin thêm gia vị -->
+                    <button type="button" class="service-chip relative p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="cutlery" data-label="Xin thêm gia vị">
+                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Xin thêm gia vị</span>
+                        <svg class="chip-check hidden absolute top-1.5 right-1.5 w-3 h-3 text-[#C25E00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                     </button>
 
-                    <!-- Chip 6: Gọi tính tiền -->
-                    <button type="button" class="service-chip p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="bill" data-note="Yêu cầu thanh toán hóa đơn tại bàn">
-                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Gọi tính tiền</span>
+                    <!-- Chip 6: Yêu cầu thanh toán -->
+                    <button type="button" class="service-chip relative p-2.5 rounded-lg border border-stone-200 bg-stone-50/70 hover:bg-stone-100 text-center transition-all cursor-pointer group" data-type="bill" data-label="Yêu cầu thanh toán">
+                        <span class="text-xs font-semibold text-stone-800 leading-tight block">Yêu cầu thanh toán</span>
+                        <svg class="chip-check hidden absolute top-1.5 right-1.5 w-3 h-3 text-[#C25E00]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
                     </button>
                 </div>
             </div>
@@ -119,18 +125,77 @@
                           class="w-full text-xs px-3.5 py-2.5 bg-stone-50 border border-stone-300 rounded-md focus:outline-none focus:border-[#C25E00] focus:bg-white resize-none text-stone-800 transition-colors"></textarea>
             </div>
 
-            <!-- Thông báo trạng thái gửi -->
+            <!-- Thông báo lỗi (nếu có) -->
             <div id="serviceCallStatusMsg" class="hidden text-xs p-3 rounded-md"></div>
 
-            <!-- Footer: Nút bấm chuẩn chuông nhà hàng -->
-            <div class="flex items-center gap-2.5 pt-1">
-                <button type="button" id="cancelServiceCallBtn" class="px-4 py-2.5 text-xs font-semibold text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors cursor-pointer">
-                    Đóng
+            <!-- Footer: Nút bấm gửi yêu cầu -->
+            <div class="pt-1">
+                <div class="flex items-center gap-2.5">
+                    <button type="button" id="cancelServiceCallBtn" class="px-4 py-2.5 text-xs font-semibold text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors cursor-pointer">
+                        Đóng
+                    </button>
+                    <button type="submit" id="submitServiceCallBtn" class="flex-1 py-2.5 px-4 text-xs font-bold text-white bg-[#C25E00] hover:bg-[#A34E00] rounded-md shadow-md transition-all flex items-center justify-center cursor-pointer uppercase tracking-wider">
+                        <span id="submitServiceCallBtnText">Gửi Yêu Cầu Phục Vụ</span>
+                    </button>
+                </div>
+                <p class="text-[11px] text-stone-500 text-center mt-2 leading-relaxed">
+                    Nhân viên sẽ nhận được thông báo và hỗ trợ bạn sớm nhất.
+                </p>
+            </div>
+        </form>
+
+        <!-- Panel Trạng thái sau khi gửi (Xác nhận theo thời gian thực) -->
+        <div id="serviceCallSuccessState" class="hidden p-5 text-center flex-1 overflow-y-auto space-y-4">
+            <div class="w-12 h-12 bg-amber-50 text-[#C25E00] rounded-full flex items-center justify-center mx-auto border border-amber-200">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <div>
+                <h4 class="text-base font-bold text-stone-900">Đã gửi yêu cầu thành công</h4>
+                <p class="text-xs text-stone-500 mt-1" id="successStateSubtitle">
+                    Nhân viên đã nhận được yêu cầu và đang đến hỗ trợ bàn của bạn.
+                </p>
+            </div>
+
+            <!-- Box tóm tắt thông tin đã gửi -->
+            <div class="bg-stone-50 rounded-lg p-3 text-left border border-stone-200 space-y-1.5 text-xs">
+                <div class="flex justify-between text-stone-600">
+                    <span>Số bàn:</span>
+                    <strong class="text-stone-900 font-semibold" id="successStateTable">--</strong>
+                </div>
+                <div class="flex justify-between text-stone-600">
+                    <span>Nội dung yêu cầu:</span>
+                    <strong class="text-[#C25E00] font-semibold text-right max-w-[200px]" id="successStateRequests">--</strong>
+                </div>
+                <div id="successStateNoteRow" class="hidden flex justify-between text-stone-600">
+                    <span>Ghi chú:</span>
+                    <span class="text-stone-800 text-right italic max-w-[200px]" id="successStateNote"></span>
+                </div>
+            </div>
+
+            <!-- Timeline trạng thái -->
+            <div class="border-t border-stone-200 pt-3 text-left space-y-2">
+                <div class="text-[11px] font-bold text-stone-500 uppercase tracking-wider">Tiến trình phục vụ</div>
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-center gap-2 text-emerald-700 font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span>Đã tiếp nhận yêu cầu trên hệ thống</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-amber-700 font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span id="callStatusStep2">Nhân viên đang trên đường đến bàn</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-2">
+                <button type="button" id="sendAnotherCallBtn" class="flex-1 py-2 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-md transition-colors cursor-pointer">
+                    Gửi thêm yêu cầu
                 </button>
-                <button type="submit" id="submitServiceCallBtn" class="flex-1 py-2.5 px-4 text-xs font-bold text-white bg-[#C25E00] hover:bg-[#A34E00] rounded-md shadow-md transition-all flex items-center justify-center cursor-pointer uppercase tracking-wider">
-                    <span id="submitServiceCallBtnText">Rung Chuông Gọi Nhân Viên</span>
+                <button type="button" id="closeSuccessModalBtn" class="flex-1 py-2 text-xs font-bold text-white bg-[#C25E00] hover:bg-[#A34E00] rounded-md transition-colors cursor-pointer">
+                    Đóng cửa sổ
                 </button>
             </div>
+        </div>
         </form>
     </div>
 </div>
@@ -177,29 +242,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Xử lý chạm nhanh các thẻ nhu cầu (Service Chips)
+    // Xử lý chạm nhanh các thẻ nhu cầu (Service Chips) - Hỗ trợ chọn nhiều cùng lúc (Multi-select)
     chips.forEach(chip => {
         chip.addEventListener('click', function() {
-            const isSelected = this.classList.contains('border-[#C25E00]');
-            
-            // Bỏ chọn các chip khác
-            chips.forEach(c => {
-                c.classList.remove('border-[#C25E00]', 'bg-amber-500/10', 'ring-1', 'ring-[#C25E00]');
-                c.classList.add('border-stone-200', 'bg-stone-50/70');
-            });
+            const isSelected = this.classList.contains('is-selected');
+            const checkIcon = this.querySelector('.chip-check');
 
             if (!isSelected) {
+                this.classList.add('is-selected', 'border-[#C25E00]', 'bg-amber-50', 'ring-1', 'ring-[#C25E00]');
                 this.classList.remove('border-stone-200', 'bg-stone-50/70');
-                this.classList.add('border-[#C25E00]', 'bg-amber-500/10', 'ring-1', 'ring-[#C25E00]');
-                
-                const type = this.getAttribute('data-type') || 'call_waiter';
-                const noteText = this.getAttribute('data-note') || '';
-                typeInput.value = type;
-                noteInput.value = noteText;
+                if (checkIcon) checkIcon.classList.remove('hidden');
             } else {
-                typeInput.value = 'call_waiter';
-                noteInput.value = '';
+                this.classList.remove('is-selected', 'border-[#C25E00]', 'bg-amber-50', 'ring-1', 'ring-[#C25E00]');
+                this.classList.add('border-stone-200', 'bg-stone-50/70');
+                if (checkIcon) checkIcon.classList.add('hidden');
             }
+
+            // Đồng bộ call_type: nếu có chọn bill thì type là bill
+            const selectedChips = document.querySelectorAll('.service-chip.is-selected');
+            const hasBill = Array.from(selectedChips).some(c => c.getAttribute('data-type') === 'bill');
+            typeInput.value = hasBill ? 'bill' : (selectedChips.length > 0 ? 'cutlery' : 'call_waiter');
         });
     });
 
@@ -298,8 +360,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(form);
             formData.set('table_id', tableId);
 
+            // Tập hợp các yêu cầu đã chọn
+            const selectedChips = document.querySelectorAll('.service-chip.is-selected');
+            const labels = Array.from(selectedChips).map(c => c.getAttribute('data-label'));
+            const finalLabel = labels.length > 0 ? labels.join(', ') : 'Gọi nhân viên phục vụ';
+            formData.set('call_type_label', finalLabel);
+
             submitBtn.disabled = true;
-            submitBtnText.textContent = 'Đang rung chuông...';
+            submitBtnText.textContent = 'Đang gửi yêu cầu...';
 
             fetch('{{ route("site.service-call.store", [], false) }}', {
                 method: 'POST',
@@ -312,29 +380,37 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => res.json())
             .then(data => {
                 submitBtn.disabled = false;
-                submitBtnText.textContent = 'Rung Chuông Gọi Nhân Viên';
+                submitBtnText.textContent = 'Gửi Yêu Cầu Phục Vụ';
 
                 if (data.success) {
                     playDing();
 
-                    statusMsg.className = 'text-xs p-3 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 block';
-                    statusMsg.textContent = data.message || 'Nhân viên đã nhận được chuông và đang đến ngay!';
+                    // Chuyển sang màn hình xác nhận phục vụ chi tiết
+                    form.classList.add('hidden');
+                    const successState = document.getElementById('serviceCallSuccessState');
+                    if (successState) {
+                        successState.classList.remove('hidden');
+
+                        const selectedTableOption = tableSelect.options[tableSelect.selectedIndex];
+                        const tableName = (selectedTableOption && selectedTableOption.value) ? selectedTableOption.text.split(' (')[0] : (modalTableSubtitleText.textContent.replace('Vị trí: ', '').replace('Bàn: ', '') || 'Bàn của bạn');
+                        document.getElementById('successStateTable').textContent = tableName;
+                        document.getElementById('successStateRequests').textContent = finalLabel;
+                        
+                        const customNote = noteInput.value.trim();
+                        const noteRow = document.getElementById('successStateNoteRow');
+                        if (customNote) {
+                            document.getElementById('successStateNote').textContent = customNote;
+                            noteRow.classList.remove('hidden');
+                        } else {
+                            noteRow.classList.add('hidden');
+                        }
+                    }
 
                     // Visual feedback trên nút chuông nổi
                     if (pingIndicator) pingIndicator.classList.remove('hidden');
                     if (bellIcon) bellIcon.classList.add('text-amber-300');
-                    if (btnSub) btnSub.textContent = 'Nhân viên đang đến...';
-                    if (btnAction) btnAction.textContent = 'Đang gọi';
-
-                    setTimeout(() => {
-                        closeModal();
-                        statusMsg.classList.add('hidden');
-                        noteInput.value = '';
-                        chips.forEach(c => {
-                            c.classList.remove('border-[#C25E00]', 'bg-amber-500/10', 'ring-1', 'ring-[#C25E00]');
-                            c.classList.add('border-stone-200', 'bg-stone-50/70');
-                        });
-                    }, 1800);
+                    if (btnSub) btnSub.textContent = 'Đã gửi yêu cầu...';
+                    if (btnAction) btnAction.textContent = 'Đang chờ';
                 } else {
                     statusMsg.className = 'text-xs p-3 rounded-md bg-rose-50 text-rose-700 border border-rose-200 block';
                     statusMsg.textContent = data.message || 'Có lỗi xảy ra, vui lòng thử lại.';
@@ -342,10 +418,49 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(err => {
                 submitBtn.disabled = false;
-                submitBtnText.textContent = 'Rung Chuông Gọi Nhân Viên';
+                submitBtnText.textContent = 'Gửi Yêu Cầu Phục Vụ';
                 statusMsg.className = 'text-xs p-3 rounded-md bg-rose-50 text-rose-700 border border-rose-200 block';
                 statusMsg.textContent = 'Không thể gửi yêu cầu, vui lòng vẫy tay gọi nhân viên trực tiếp.';
             });
+        });
+    }
+
+    // Nút "Gửi thêm yêu cầu" và "Đóng cửa sổ" trong panel trạng thái
+    const sendAnotherBtn = document.getElementById('sendAnotherCallBtn');
+    const closeSuccessBtn = document.getElementById('closeSuccessModalBtn');
+
+    if (sendAnotherBtn) {
+        sendAnotherBtn.addEventListener('click', function() {
+            const successState = document.getElementById('serviceCallSuccessState');
+            if (successState) successState.classList.add('hidden');
+            form.classList.remove('hidden');
+            noteInput.value = '';
+            chips.forEach(c => {
+                c.classList.remove('is-selected', 'border-[#C25E00]', 'bg-amber-50', 'ring-1', 'ring-[#C25E00]');
+                c.classList.add('border-stone-200', 'bg-stone-50/70');
+                const checkEl = c.querySelector('.chip-check');
+                if (checkEl) checkEl.classList.add('hidden');
+            });
+            typeInput.value = 'call_waiter';
+        });
+    }
+
+    if (closeSuccessBtn) {
+        closeSuccessBtn.addEventListener('click', function() {
+            closeModal();
+            setTimeout(() => {
+                const successState = document.getElementById('serviceCallSuccessState');
+                if (successState) successState.classList.add('hidden');
+                form.classList.remove('hidden');
+                noteInput.value = '';
+                chips.forEach(c => {
+                    c.classList.remove('is-selected', 'border-[#C25E00]', 'bg-amber-50', 'ring-1', 'ring-[#C25E00]');
+                    c.classList.add('border-stone-200', 'bg-stone-50/70');
+                    const checkEl = c.querySelector('.chip-check');
+                    if (checkEl) checkEl.classList.add('hidden');
+                });
+                typeInput.value = 'call_waiter';
+            }, 300);
         });
     }
 });

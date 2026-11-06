@@ -39,7 +39,7 @@ class ServiceCallController extends Controller
 
         $callType = $request->input('call_type', 'call_waiter');
         $types = ServiceCall::TYPES;
-        $callTypeLabel = $types[$callType]['label'] ?? 'Gọi nhân viên phục vụ';
+        $callTypeLabel = $request->input('call_type_label') ?: ($types[$callType]['label'] ?? 'Gọi nhân viên phục vụ');
         $note = $request->input('note');
 
         // Tìm active order nếu có

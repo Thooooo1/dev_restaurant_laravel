@@ -19,12 +19,19 @@
 
     <!-- Filter Bar (Shopify Polaris IndexFilters Style) -->
     <div class="ant-card p-3.5 mb-4 shadow-sm">
-        <form method="GET" action="" class="flex flex-wrap gap-3 items-center">
+        <form method="GET" action="" id="productFilterForm" class="flex flex-wrap gap-3 items-center">
             <div class="flex-1 min-w-[220px]">
-                <input type="text" name="search" class="polaris-input text-xs" placeholder="Tìm theo tên món ăn..." value="{{ request('search') }}">
+                <div class="relative">
+                    <input type="text" 
+                           name="search" 
+                           class="polaris-input text-xs w-full pl-8 pr-3" 
+                           placeholder="Tìm theo tên món ăn (nhấn Enter để tìm)..." 
+                           value="{{ request('search') }}">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400 text-xs absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
             </div>
             <div class="min-w-[160px]">
-                <select name="category" class="polaris-select text-xs w-full">
+                <select name="category" class="polaris-select text-xs w-full" onchange="this.form.submit()">
                     <option value="">Tất cả danh mục</option>
                     @foreach ($categories as $category)
                         <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
@@ -33,23 +40,21 @@
                     @endforeach
                 </select>
             </div>
-            <div class="min-w-[160px]">
-                <select name="brand" class="polaris-select text-xs w-full">
-                    <option value="">Tất cả thương hiệu</option>
-                    @foreach ($brands as $brand)
-                        <option value="{{ $brand->id }}" {{ request('brand') == $brand->id ? 'selected' : '' }}>
-                            {{ $brand->name }}
-                        </option>
-                    @endforeach
+            <div class="min-w-[150px]">
+                <select name="status" class="polaris-select text-xs w-full" onchange="this.form.submit()">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Đang bán</option>
+                    <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Tạm dừng</option>
                 </select>
             </div>
             <div class="flex items-center gap-2">
                 <button type="submit" class="ant-btn ant-btn-primary ant-btn-sm">
-                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    <i class="fa-solid fa-filter text-xs"></i>
                     <span>Lọc</span>
                 </button>
-                @if(request('search') || request('category') || request('brand'))
-                    <a href="{{ url('admin/product') }}" class="ant-btn ant-btn-sm">
+                @if(request()->hasAny(['search', 'category', 'status', 'brand']))
+                    <a href="{{ url('admin/product') }}" class="ant-btn ant-btn-sm" title="Xóa bộ lọc">
+                        <i class="fa-solid fa-rotate-left text-xs text-gray-400"></i>
                         <span>Đặt lại</span>
                     </a>
                 @endif
@@ -63,65 +68,95 @@
             <table class="w-full">
                 <thead>
                     <tr>
-                        <th class="w-12 text-center">ID</th>
-                        <th class="w-16 text-center">Hình ảnh</th>
-                        <th>Tên món ăn</th>
-                        <th>Danh mục</th>
-                        <th>Thương hiệu</th>
-                        <th class="text-right">Giá vốn</th>
-                        <th class="text-right">Giá bán</th>
-                        <th class="text-center">Tồn kho</th>
-                        <th class="text-center">Trạng thái</th>
-                        <th class="text-center w-32">Thao tác</th>
+                        <th class="w-12 text-center" style="text-align: center !important;">ID</th>
+                        <th class="w-16 text-center" style="text-align: center !important;">Hình ảnh</th>
+                        <th class="text-left" style="text-align: left !important;">Tên món ăn</th>
+                        <th class="text-left" style="text-align: left !important;">Danh mục</th>
+                        <th class="text-left" style="text-align: left !important;">Khu vực bếp</th>
+                        <th class="text-right" style="text-align: right !important;">Giá vốn</th>
+                        <th class="text-right" style="text-align: right !important;">Giá bán</th>
+                        <th class="text-right" style="text-align: right !important;">Tồn kho</th>
+                        <th class="text-center" style="text-align: center !important;">Trạng thái</th>
+                        <th class="text-center w-36" style="text-align: center !important;">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($products as $product)
                         <tr>
-                            <td class="text-center font-mono text-xs text-[rgba(0,0,0,0.45)]">
+                            <td class="text-center font-mono text-xs text-[rgba(0,0,0,0.45)]" style="text-align: center !important;">
                                 #{{ $product->id }}
                             </td>
-                            <td class="text-center py-2">
+                            <td class="text-center py-2" style="text-align: center !important;">
                                 <img src="{{ asset('/images/product/' . $product->image) }}" class="w-11 h-11 object-cover rounded border border-[#F0F0F0] mx-auto bg-slate-50" alt="{{ $product->name }}" onerror="this.src='{{ asset('/images/default-product.png') }}'">
                             </td>
-                            <td>
+                            <td class="text-left" style="text-align: left !important;">
                                 <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $product->name }}</div>
                                 @if ($product->new_p == 1)
                                     <span class="polaris-badge polaris-badge-processing text-[10px] mt-0.5">Món mới</span>
                                 @endif
                             </td>
-                            <td class="text-xs text-[rgba(0,0,0,0.65)]">{{ $product->category->name ?? '---' }}</td>
-                            <td class="text-xs text-[rgba(0,0,0,0.65)]">{{ $product->brand->name ?? '---' }}</td>
-                            <td class="text-right font-mono text-xs text-[rgba(0,0,0,0.45)]">
+                            <td class="text-left text-xs text-[rgba(0,0,0,0.65)]" style="text-align: left !important;">
+                                {{ $product->category->name ?? '---' }}
+                            </td>
+                            <td class="text-left" style="text-align: left !important;">
+                                @if ($product->kitchen_area === 'Quầy pha chế')
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                        <i class="fa-solid fa-mug-hot text-[10px]"></i> {{ $product->kitchen_area }}
+                                    </span>
+                                @elseif ($product->kitchen_area === 'Bếp nướng')
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                                        <i class="fa-solid fa-fire text-[10px]"></i> {{ $product->kitchen_area }}
+                                    </span>
+                                @elseif ($product->kitchen_area === 'Bếp nóng')
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
+                                        <i class="fa-solid fa-kitchen-set text-[10px]"></i> {{ $product->kitchen_area }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <i class="fa-solid fa-bowl-food text-[10px]"></i> {{ $product->kitchen_area }}
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="text-right font-mono text-xs text-[rgba(0,0,0,0.55)]" style="text-align: right !important;">
                                 {{ number_format($product->price_buy, 0, ',', '.') }} ₫
                             </td>
-                            <td class="text-right font-mono font-semibold text-xs text-[#F47716]">
+                            <td class="text-right font-mono font-semibold text-xs text-[#F47716]" style="text-align: right !important;">
                                 {{ number_format($product->price_sale, 0, ',', '.') }} ₫
                             </td>
-                            <td class="text-center font-mono text-xs text-[rgba(0,0,0,0.85)]">
-                                {{ $product->qty }}
+                            <td class="text-right font-mono text-xs text-[rgba(0,0,0,0.85)]" style="text-align: right !important;">
+                                <span class="font-semibold">{{ number_format($product->qty, 0, ',', '.') }}</span>
+                                <span class="text-[11px] text-gray-400 font-sans ml-0.5">{{ $product->unit }}</span>
                             </td>
-                            <td class="text-center">
+                            <td class="text-center" style="text-align: center !important;">
                                 @if ($product->status == 1)
                                     <span class="polaris-badge polaris-badge-success text-[11px]">Đang bán</span>
                                 @else
                                     <span class="polaris-badge polaris-badge-default text-[11px]">Tạm dừng</span>
                                 @endif
                             </td>
-                            <td class="text-center">
-                                <div class="flex items-center justify-center gap-1.5">
-                                    <a href="{{ route('admin.product.status', ['product' => $product->id]) }}" class="text-gray-400 hover:text-emerald-600 transition-colors p-1" title="{{ $product->status == 1 ? 'Tạm ngưng phục vụ' : 'Kích hoạt bán' }}">
+                            <td class="text-center" style="text-align: center !important;">
+                                <div class="flex items-center justify-center gap-1">
+                                    <a href="{{ route('admin.product.status', ['product' => $product->id]) }}" 
+                                       class="text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors p-1.5 rounded flex items-center justify-center" 
+                                       title="{{ $product->status == 1 ? 'Món đang phục vụ (Bấm để tạm ngưng)' : 'Món đang tạm dừng (Bấm để kích hoạt bán)' }}">
                                         <i class="fa-solid {{ $product->status == 1 ? 'fa-toggle-on text-emerald-600' : 'fa-toggle-off text-gray-400' }} text-base"></i>
                                     </a>
-                                    <a href="{{ route('admin.product.show', ['product' => $product->id]) }}" class="text-gray-400 hover:text-blue-600 transition-colors p-1" title="Xem chi tiết">
+                                    <a href="{{ route('admin.product.show', ['product' => $product->id]) }}" 
+                                       class="text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors p-1.5 rounded flex items-center justify-center" 
+                                       title="Xem chi tiết món">
                                         <i class="fa-regular fa-eye text-xs"></i>
                                     </a>
-                                    <a href="{{ route('admin.product.edit', ['product' => $product->id]) }}" class="text-gray-400 hover:text-[#F47716] transition-colors p-1" title="Chỉnh sửa">
+                                    <a href="{{ route('admin.product.edit', ['product' => $product->id]) }}" 
+                                       class="text-gray-400 hover:text-[#F47716] hover:bg-orange-50 transition-colors p-1.5 rounded flex items-center justify-center" 
+                                       title="Chỉnh sửa món">
                                         <i class="fa-regular fa-pen-to-square text-xs"></i>
                                     </a>
-                                    <a href="{{ route('admin.product.delete', ['product' => $product->id]) }}" class="text-gray-400 hover:text-red-500 transition-colors p-1" title="Xóa vào thùng rác" onclick="return confirm('Bạn có chắc chắn muốn chuyển món này vào thùng rác?')">
+                                    <button type="button" 
+                                            onclick="openDeleteModal('{{ route('admin.product.delete', ['product' => $product->id]) }}', '{{ addslashes($product->name) }}')" 
+                                            class="text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors p-1.5 rounded flex items-center justify-center cursor-pointer" 
+                                            title="Xóa vào thùng rác">
                                         <i class="fa-solid fa-trash-can text-xs"></i>
-                                    </a>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -134,8 +169,66 @@
             </table>
         </div>
 
-        <div class="px-5 py-3 border-t border-[#F0F0F0] bg-[#FAFAFA] flex justify-center">
-            {{ $products->appends(request()->query())->links() }}
+        <!-- Pagination & Summary Stats Footer -->
+        <div class="px-5 py-3 border-t border-[#F0F0F0] bg-[#FAFAFA] flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="text-xs text-[rgba(0,0,0,0.65)] font-medium">
+                Hiển thị <span class="font-semibold text-gray-900">{{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }}</span> trong tổng số <span class="font-semibold text-[#F47716]">{{ $products->total() }}</span> món ăn
+            </div>
+            <div>
+                {{ $products->appends(request()->query())->links() }}
+            </div>
         </div>
     </div>
+
+    <!-- Confirm Delete Modal (Ant Design Modal Style) -->
+    <div id="deleteConfirmModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40 backdrop-blur-xs transition-opacity duration-200">
+        <div class="bg-white rounded-xl shadow-2xl border border-gray-100 w-full max-w-sm p-6 transform transition-all scale-95 opacity-0 duration-200" id="deleteModalBox">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-sm font-bold text-gray-900 mb-1">Xác nhận chuyển vào thùng rác</h3>
+                    <p class="text-xs text-gray-500 leading-relaxed">
+                        Bạn có chắc chắn muốn chuyển món <strong id="deleteProductName" class="text-gray-800"></strong> vào thùng rác không?
+                    </p>
+                </div>
+            </div>
+            <div class="mt-6 flex items-center justify-end gap-2">
+                <button type="button" onclick="closeDeleteModal()" class="px-3.5 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition cursor-pointer">
+                    Hủy bỏ
+                </button>
+                <a id="deleteConfirmBtn" href="#" class="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-xs font-semibold text-white transition shadow-sm cursor-pointer">
+                    Xóa vào thùng rác
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openDeleteModal(url, name) {
+            const modal = document.getElementById('deleteConfirmModal');
+            const box = document.getElementById('deleteModalBox');
+            const nameEl = document.getElementById('deleteProductName');
+            const btn = document.getElementById('deleteConfirmBtn');
+
+            nameEl.textContent = name;
+            btn.href = url;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.remove('scale-95', 'opacity-0');
+                box.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteConfirmModal');
+            const box = document.getElementById('deleteModalBox');
+            box.classList.remove('scale-100', 'opacity-100');
+            box.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+    </script>
 </x-layout-backend>

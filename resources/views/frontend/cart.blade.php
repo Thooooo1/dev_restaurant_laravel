@@ -3,20 +3,22 @@
         $cartKey = Auth::check() ? ('cart_' . Auth::id()) : ('cart_guest_' . session()->getId());
         $cart = $cart ?? session()->get($cartKey, []);
         $cartTotal = !empty($cart) ? array_sum(array_map(fn($item) => $item['price'] * $item['qty'], $cart)) : 0;
+        $isStaff = Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee());
+        $isTableActive = session('is_table_order') && !$isStaff;
     @endphp
 
     <main class="bg-[#FAF8F5] min-h-screen pb-16">
         <!-- Page Breadcrumb & Header -->
         <x-page-hero 
-            :title="session('is_table_order') ? ('Gọi Món Bàn ' . session('table_name')) : 'Giỏ Hàng Giao Tận Nơi'" 
-            :subtitle="session('is_table_order') ? 'Các món ăn bạn đã chọn cho bàn hiện tại.' : 'Danh sách món ăn quý khách đã chọn giao tận nơi tại CIVILIZE Restaurant.'" 
+            :title="$isTableActive ? ('Gọi Món Bàn ' . session('table_name')) : 'Giỏ Hàng Giao Tận Nơi'" 
+            :subtitle="$isTableActive ? 'Các món ăn bạn đã chọn cho bàn hiện tại.' : 'Danh sách món ăn quý khách đã chọn giao tận nơi tại CIVILIZE Restaurant.'" 
             :breadcrumbs="[
-                ['name' => session('is_table_order') ? ('Gọi món ' . session('table_name')) : 'Giỏ hàng giao tận nơi', 'url' => '']
+                ['name' => $isTableActive ? ('Gọi món ' . session('table_name')) : 'Giỏ hàng giao tận nơi', 'url' => '']
             ]" 
         />
 
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl pt-8 sm:pt-10">
-            @if(session('is_table_order'))
+            @if($isTableActive)
                 <div class="mb-6 p-4 rounded-none sm:rounded-sm bg-amber-50 border border-amber-200 flex flex-wrap items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
                         <span class="w-2.5 h-2.5 rounded-full bg-[#C25E00] animate-pulse"></span>
@@ -261,7 +263,7 @@
                                 </div>
 
                                 <!-- Primary Button -->
-                                @if (session('is_table_order') && session('table_name'))
+                                @if ($isTableActive && session('table_name'))
                                     <button type="submit" 
                                             onclick="return confirm('Gửi thực đơn cho nhân viên nhà bếp để xác nhận?')" 
                                             class="w-full py-4 rounded-none sm:rounded-sm bg-stone-900 hover:bg-[#C25E00] text-white font-bold text-xs uppercase tracking-[0.2em] shadow-xs hover:shadow-md transition-all flex items-center justify-center cursor-pointer">
@@ -419,12 +421,6 @@
                 var totalElement = document.getElementById('cart-total-amount');
                 if (totalElement) totalElement.textContent = formatCurrency(total) + '₫';
             }
-
-            @if(session('is_table_order'))
-            setInterval(function() {
-                window.location.reload();
-            }, 8000);
-            @endif
         });
     </script>
 </x-layout-frontend>

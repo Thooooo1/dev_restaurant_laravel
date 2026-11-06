@@ -667,6 +667,21 @@ class CartController extends Controller
      */
     public function index()
     {
+        // Nhân viên và Quản trị viên không dùng giỏ hàng cá nhân khách hàng, chuyển thẳng về POS
+        if (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee())) {
+            session()->forget([
+                'table_id',
+                'table_order_id',
+                'table_name',
+                'table_floor_name',
+                'is_table_order',
+                'dining_mode',
+                'customer_phone',
+                'customer_name'
+            ]);
+            return redirect()->route('admin.table-order.index')->with('info', 'Tài khoản nhân viên thao tác phục vụ và bán hàng tại Màn hình POS.');
+        }
+
         $cartKey = $this->getCartKey();
         $cart = session()->get($cartKey, []);
         $tableOrder = null;

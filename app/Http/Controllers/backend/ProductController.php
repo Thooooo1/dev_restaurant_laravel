@@ -27,6 +27,9 @@ class ProductController extends Controller
         if ($request->has('brand') && $request->brand) {
             $query->where('brand_id', $request->brand);
         }
+        if ($request->has('status') && $request->status !== null && $request->status !== '') {
+            $query->where('status', (int)$request->status);
+        }
         if ($request->has('search') && $request->search) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }

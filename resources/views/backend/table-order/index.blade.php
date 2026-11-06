@@ -591,13 +591,38 @@
                     url: '{{ route("admin.table-order.checkNewOrders") }}',
                     method: 'GET',
                     success: function(response) {
-                        if (response.success && response.new_orders.length > 0) {
-                            response.new_orders.forEach(order => {
-                                if (!processedOrderIds.has(order.id)) {
-                                    processedOrderIds.add(order.id);
-                                    openNewOrderModal(order);
-                                }
-                            });
+                        if (response.success) {
+                            if (response.new_orders && response.new_orders.length > 0) {
+                                response.new_orders.forEach(order => {
+                                    if (!processedOrderIds.has(order.id)) {
+                                        processedOrderIds.add(order.id);
+                                        openNewOrderModal(order);
+                                    }
+                                });
+                            }
+                            if (response.service_calls && response.service_calls.length > 0) {
+                                response.service_calls.forEach(call => {
+                                    if (!$('#serviceCallBar-' + call.table_id).length) {
+                                        const tableCard = $(`.table-card[data-table-id="${call.table_id}"]`);
+                                        if (tableCard.length) {
+                                            const callLabel = call.call_type_label || (call.call_type === 'bill' ? 'Yêu cầu thanh toán' : 'Gọi phục vụ');
+                                            const barHtml = `
+                                                <div class="px-3 py-1.5 bg-amber-500 text-white text-xs font-bold flex items-center justify-between" id="serviceCallBar-${call.table_id}">
+                                                    <span class="truncate mr-1.5" title="${call.note || callLabel}">
+                                                        ${callLabel}
+                                                    </span>
+                                                    <button type="button" 
+                                                            onclick="event.stopPropagation(); resolveTableServiceCall(${call.id}, ${call.table_id})" 
+                                                            class="bg-white text-amber-900 hover:bg-amber-50 px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap cursor-pointer shadow-2xs">
+                                                        Đã xong
+                                                    </button>
+                                                </div>
+                                            `;
+                                            tableCard.find('> div:last-child').before(barHtml);
+                                        }
+                                    }
+                                });
+                            }
                         }
                     },
                     error: function() {

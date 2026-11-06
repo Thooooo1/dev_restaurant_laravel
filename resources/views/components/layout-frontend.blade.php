@@ -363,16 +363,27 @@
                             Đặt Bàn
                         </a>
                     @else
-                        <!-- THÀNH VIÊN ĐÃ ĐĂNG NHẬP: Giao diện thuần typography, sang trọng, không icon thừa -->
-                        <!-- 1. Giỏ hàng: Typography thanh lịch kèm số lượng -->
-                        <a href="{{ url('/gio-hang') }}" 
-                           class="group inline-flex items-center gap-1.5 px-3 py-2 text-stone-700 hover:text-[#C25E00] transition-colors"
-                           title="Giỏ hàng món ăn của bạn">
-                            <span class="text-xs sm:text-[13px] font-bold tracking-wide uppercase">Giỏ hàng</span>
-                            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ $userCartCount > 0 ? 'bg-[#C25E00] text-white' : 'bg-stone-100 text-stone-500' }}">
-                                {{ $userCartCount }}
-                            </span>
-                        </a>
+                        @php
+                            $isStaffUser = Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee());
+                        @endphp
+
+                        @if (!$isStaffUser)
+                            <!-- 1. Giỏ hàng: Typography thanh lịch kèm số lượng (Chỉ dành cho Khách hàng) -->
+                            <a href="{{ url('/gio-hang') }}" 
+                               class="group inline-flex items-center gap-1.5 px-3 py-2 text-stone-700 hover:text-[#C25E00] transition-colors"
+                               title="Giỏ hàng món ăn của bạn">
+                                <span class="text-xs sm:text-[13px] font-bold tracking-wide uppercase">Giỏ hàng</span>
+                                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ $userCartCount > 0 ? 'bg-[#C25E00] text-white' : 'bg-stone-100 text-stone-500' }}">
+                                    {{ $userCartCount }}
+                                </span>
+                            </a>
+                        @else
+                            <!-- Phím tắt Màn hình POS dành riêng cho Nhân viên & Quản trị viên -->
+                            <a href="{{ route('admin.table-order.index') }}" 
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-[#C25E00] hover:bg-[#A34E00] rounded-sm transition-colors uppercase tracking-wider shadow-2xs">
+                                <span>Màn hình POS</span>
+                            </a>
+                        @endif
 
                         <!-- 1.5 Chuông Thông Báo Facebook / Messenger Style -->
                         <x-frontend-notification-bell />
@@ -436,13 +447,15 @@
                                    class="flex items-center px-5 py-3 text-sm font-medium text-stone-700 hover:text-[#C25E00] hover:bg-stone-50 transition-colors">
                                     <span>Hồ sơ cá nhân</span>
                                 </a>
-                                <a href="{{ url('/gio-hang') }}"
-                                   class="flex items-center justify-between px-5 py-3 text-sm font-medium text-stone-700 hover:text-[#C25E00] hover:bg-stone-50 transition-colors">
-                                    <span>Giỏ hàng món ăn</span>
-                                    @if ($userCartCount > 0)
-                                        <span class="bg-[#C25E00] text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $userCartCount }}</span>
-                                    @endif
-                                </a>
+                                @if(!$isStaffUser)
+                                    <a href="{{ url('/gio-hang') }}"
+                                       class="flex items-center justify-between px-5 py-3 text-sm font-medium text-stone-700 hover:text-[#C25E00] hover:bg-stone-50 transition-colors">
+                                        <span>Giỏ hàng món ăn</span>
+                                        @if ($userCartCount > 0)
+                                            <span class="bg-[#C25E00] text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $userCartCount }}</span>
+                                        @endif
+                                    </a>
+                                @endif
                                 <a href="{{ route('site.orders') }}"
                                    class="flex items-center px-5 py-3 text-sm font-medium text-stone-700 hover:text-[#C25E00] hover:bg-stone-50 transition-colors">
                                     <span>Đơn hàng đã đặt</span>
@@ -470,14 +483,23 @@
 
                 <!-- Mobile Hamburger Button & Quick Actions -->
                 <div class="flex items-center gap-2 md:hidden">
-                    <a href="{{ url('/gio-hang') }}" class="relative px-2.5 py-1 text-xs font-bold text-stone-700 hover:text-[#C25E00] uppercase tracking-wider border border-stone-200 rounded">
-                        <span>Giỏ hàng</span>
-                        @if ($userCartCount > 0)
-                            <span class="ml-1 bg-[#C25E00] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                                {{ $userCartCount }}
-                            </span>
-                        @endif
-                    </a>
+                    @php
+                        $isStaffUserMobile = Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee());
+                    @endphp
+                    @if (!$isStaffUserMobile)
+                        <a href="{{ url('/gio-hang') }}" class="relative px-2.5 py-1 text-xs font-bold text-stone-700 hover:text-[#C25E00] uppercase tracking-wider border border-stone-200 rounded">
+                            <span>Giỏ hàng</span>
+                            @if ($userCartCount > 0)
+                                <span class="ml-1 bg-[#C25E00] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                                    {{ $userCartCount }}
+                                </span>
+                            @endif
+                        </a>
+                    @else
+                        <a href="{{ route('admin.table-order.index') }}" class="px-2.5 py-1 text-xs font-bold text-white bg-[#C25E00] uppercase tracking-wider rounded">
+                            <span>POS</span>
+                        </a>
+                    @endif
                     <button @click="openMenu = !openMenu" 
                             class="p-2 text-stone-700 hover:text-stone-900 rounded-none sm:rounded-sm focus:outline-none"
                             aria-label="Toggle navigation">
