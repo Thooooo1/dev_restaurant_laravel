@@ -216,13 +216,6 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::post('/{id}/update', [OrderController::class, 'update'])->name('admin.order.update');
     });
 
-    // Order History
-    Route::prefix('order-history')->group(function () {
-        Route::get('/', [OrderHistoryController::class, 'index'])->name('admin.order-history.index');
-        Route::get('/export', [OrderHistoryController::class, 'export'])->name('admin.order-history.export');
-        Route::get('/{id}', [OrderHistoryController::class, 'show'])->name('admin.order-history.show');
-    });
-
     // Table Orders (POS)
     Route::prefix('table-order')->group(function () {
         Route::get('/', [TableOrderController::class, 'index'])->name('admin.table-order.index');
@@ -268,10 +261,20 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::post('/table/{tableId}/complete-calls', [NotificationController::class, 'completeTableCalls'])->name('admin.notifications.table.complete-calls');
     });
 
+    // Dishes & Bill Breakdown for Table (Dành cho POS cả Admin & Employee)
+    Route::get('/table/{id}/dishes', [TableController::class, 'getTableDishes'])->name('admin.table.dishes');
+
     // ==============================
         // ROUTE CHỈ CHO ADMIN
         // ==============================
         Route::middleware('admin-access')->group(function () {
+            // Order History (Báo cáo & Doanh thu)
+            Route::prefix('order-history')->group(function () {
+                Route::get('/', [OrderHistoryController::class, 'index'])->name('admin.order-history.index');
+                Route::get('/export', [OrderHistoryController::class, 'export'])->name('admin.order-history.export');
+                Route::get('/{id}', [OrderHistoryController::class, 'show'])->name('admin.order-history.show');
+            });
+
             // Inquiries
             Route::prefix('inquiries')->group(function () {
                 Route::get('/', [InquiryController::class, 'index'])->name('admin.inquiry.index');
@@ -476,8 +479,6 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::delete('/{id}/destroy', [TableController::class, 'destroy'])->name('admin.table.destroy');
             // Download QR
             Route::get('/{id}/qr', [TableController::class, 'downloadQr'])->name('admin.table.qr');
-            // Dishes & Bill Breakdown for Table
-            Route::get('/{id}/dishes', [TableController::class, 'getTableDishes'])->name('admin.table.dishes');
         });
 
         // Settings (Cài đặt hệ thống)

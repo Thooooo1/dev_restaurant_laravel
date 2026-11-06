@@ -76,7 +76,7 @@
                 <div class="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-xs">
                     <span class="text-gray-400">Trạng thái:</span>
                     <span class="font-bold {{ (int)$order->status === 2 ? 'text-emerald-600' : 'text-amber-600' }}">
-                        {{ (int)$order->status === 2 ? '✓ Đã thanh toán' : '⏳ Chưa thanh toán' }}
+                        {{ (int)$order->status === 2 ? 'Đã thanh toán' : 'Chưa thanh toán' }}
                     </span>
                 </div>
             </div>

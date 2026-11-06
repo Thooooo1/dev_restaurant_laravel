@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('order', function (Blueprint $table) {
-            $table->boolean('has_new_items')->default(false)->after('order_turn');
-        });
+        if (!Schema::hasColumn('order', 'has_new_items')) {
+            Schema::table('order', function (Blueprint $table) {
+                $table->boolean('has_new_items')->default(false)->after('order_turn');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('order', function (Blueprint $table) {
-            $table->dropColumn('has_new_items');
-        });
+        if (Schema::hasColumn('order', 'has_new_items')) {
+            Schema::table('order', function (Blueprint $table) {
+                $table->dropColumn('has_new_items');
+            });
+        }
     }
 };

@@ -67,9 +67,8 @@
                                 {{ $order->address }}
                             </td>
                             <td class="text-center">
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold {{ $pm['bg'] }} {{ $pm['text'] }} border {{ $pm['border'] }}">
-                                    <i class="fa-solid {{ $pm['icon'] }} text-[10px]"></i>
-                                    <span>{{ $pm['name'] }}</span>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold {{ $pm['bg'] }} {{ $pm['text'] }} border {{ $pm['border'] }}">
+                                    {{ $pm['name'] }}
                                 </span>
                             </td>
                             <td class="font-mono text-xs text-[rgba(0,0,0,0.45)]">

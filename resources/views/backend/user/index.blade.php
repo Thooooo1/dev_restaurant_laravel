@@ -23,7 +23,7 @@
             </div>
             <div class="flex items-center gap-2">
                 @if($isEmployee)
-                    <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-green-700" href="{{ route('admin.user.create', ['role' => 'admin']) }}">
+                    <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-green-700" href="{{ route('admin.user.create', ['role' => 'employee']) }}">
                         <i class="fa-solid fa-plus"></i> Thêm nhân viên
                     </a>
                 @else
@@ -95,7 +95,7 @@
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-800 font-medium">{{ $user->fullname }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600 font-mono">{{ $user->username }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-center">
-                                    @if($user->roles == 'admin' || $user->admin_lever == 1)
+                                    @if($user->roles === 'admin')
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-[#C25E00] border border-orange-200">
                                             Quản trị viên
                                         </span>

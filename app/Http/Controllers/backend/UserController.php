@@ -104,10 +104,12 @@ class UserController extends Controller
             if ($request->password) {
                 $user->password = Hash::make($request->password);
             }
-            if ($request->roles == 'admin') {
+            if ($request->roles === 'admin') {
+                $user->admin_lever = 1;
+            } elseif ($request->roles === 'employee') {
                 $user->admin_lever = 2;
-            } elseif ($request->roles == 'employee') {
-                $user->admin_lever = 2;
+            } else {
+                $user->admin_lever = null;
             }
         }
 
@@ -207,8 +209,10 @@ class UserController extends Controller
         // 9. Quyền / Vai trò: cập nhật nếu có chọn
         if ($request->filled('roles')) {
             $user->roles = $request->roles;
-            if ($request->roles == 'admin' || $request->roles == 'employee') {
-                $user->admin_lever = $user->admin_lever ?: 2;
+            if ($request->roles === 'admin') {
+                $user->admin_lever = 1;
+            } elseif ($request->roles === 'employee') {
+                $user->admin_lever = 2;
             } else {
                 $user->admin_lever = null;
             }
@@ -310,29 +314,29 @@ class UserController extends Controller
     {
         $user = User::find($id);
 
-        if (!$user || $user->roles != 'admin') {
-            return redirect()->route('admin.user.index')->with('error', 'Không tìm thấy admin.');
+        if (!$user) {
+            return redirect()->route('admin.user.employees')->with('error', 'Không tìm thấy người dùng.');
         }
 
-        $user->roles = 'customer';
-        $user->admin_lever = null;
+        $user->roles = 'employee';
+        $user->admin_lever = 2;
         $user->save();
 
-        return redirect()->route('admin.user.index')->with('success', 'Xóa quyền admin thành công.');
+        return redirect()->route('admin.user.employees')->with('success', 'Chuyển về quyền Nhân viên thành công.');
     }
     public function addAdmin($id)
     {
         $user = User::find($id);
 
-        if (!$user || $user->roles != 'customer') {
-            return redirect()->route('admin.user.index')->with('error', 'Không tìm thấy người dùng hoặc người dùng không hợp lệ.');
+        if (!$user) {
+            return redirect()->route('admin.user.employees')->with('error', 'Không tìm thấy người dùng.');
         }
 
         $user->roles = 'admin';
-        $user->admin_lever = 2; 
+        $user->admin_lever = 1; 
         $user->save();
 
-        return redirect()->route('admin.user.index')->with('success', 'Cấp quyền admin thành công.');
+        return redirect()->route('admin.user.employees')->with('success', 'Cấp quyền Quản trị viên thành công.');
     }
 
 

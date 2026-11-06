@@ -7,7 +7,6 @@
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary ant-btn-sm">
-                <i class="fa-solid fa-chair text-xs"></i>
                 <span>Xem sơ đồ bàn</span>
             </a>
         </div>

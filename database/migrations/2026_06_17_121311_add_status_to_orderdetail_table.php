@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('orderdetail', function (Blueprint $table) {
-            $table->string('status')->default('pending')->comment('pending: Chờ xác nhận, confirmed: Đã xác nhận, cooking: Đầu bếp đang chế biến');
-        });
+        if (!Schema::hasColumn('orderdetail', 'status')) {
+            Schema::table('orderdetail', function (Blueprint $table) {
+                $table->string('status')->default('pending')->comment('pending: Chờ xác nhận, confirmed: Đã xác nhận, cooking: Đầu bếp đang chế biến');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('orderdetail', function (Blueprint $table) {
-            $table->dropColumn('status');
-        });
+        if (Schema::hasColumn('orderdetail', 'status')) {
+            Schema::table('orderdetail', function (Blueprint $table) {
+                $table->dropColumn('status');
+            });
+        }
     }
 };

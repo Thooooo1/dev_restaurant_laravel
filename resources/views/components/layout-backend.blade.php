@@ -423,37 +423,42 @@
                             <span>Bán hàng (POS)</span>
                         </a>
 
-                        <!-- 4. Thực đơn & giá -->
-                        @if(Auth::user()->isAdmin())
-                            <a href="{{ url('admin/product/') }}" 
-                               class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/product*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                                <i class="fa-solid fa-utensils w-4 text-center text-sm {{ request()->is('admin/product*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                                <span>Thực đơn & giá</span>
-                            </a>
-                        @endif
+                        <!-- 3. Đơn hàng giao -->
+                        <a href="{{ url('admin/order/') }}" 
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
+                            <i class="fa-solid fa-truck-ramp-box w-4 text-center text-sm {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
+                            <span>Đơn hàng giao</span>
+                        </a>
 
-                        <!-- 5. Đặt bàn -->
+                        <!-- 4. Đặt bàn -->
                         <a href="{{ url('admin/booking/') }}" 
                            class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/booking*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
                             <i class="fa-solid fa-calendar-check w-4 text-center text-sm {{ request()->is('admin/booking*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
                             <span>Đặt bàn</span>
                         </a>
 
-                        <!-- 6. Quản lý nhập kho -->
                         @if(Auth::user()->isAdmin())
+                            <!-- 5. Thực đơn & giá -->
+                            <a href="{{ url('admin/product/') }}" 
+                               class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/product*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
+                                <i class="fa-solid fa-utensils w-4 text-center text-sm {{ request()->is('admin/product*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
+                                <span>Thực đơn & giá</span>
+                            </a>
+
+                            <!-- 6. Quản lý nhập kho -->
                             <a href="{{ route('admin.import-goods.index') }}" 
                                class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.import-goods.*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
                                 <i class="fa-solid fa-boxes-packing w-4 text-center text-sm {{ request()->routeIs('admin.import-goods.*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
                                 <span>Quản lý nhập kho</span>
                             </a>
-                        @endif
 
-                        <!-- 7. Báo cáo & Doanh thu -->
-                        <a href="{{ route('admin.order-history.index') }}" 
-                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.order-history.*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-file-invoice-dollar w-4 text-center text-sm {{ request()->routeIs('admin.order-history.*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                            <span>Báo cáo & Doanh thu</span>
-                        </a>
+                            <!-- 7. Báo cáo & Doanh thu -->
+                            <a href="{{ route('admin.order-history.index') }}" 
+                               class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.order-history.*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
+                                <i class="fa-solid fa-file-invoice-dollar w-4 text-center text-sm {{ request()->routeIs('admin.order-history.*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
+                                <span>Báo cáo & Doanh thu</span>
+                            </a>
+                        @endif
                     </div>
                 </div>
 
@@ -493,11 +498,6 @@
                         Dữ liệu & Nội dung
                     </div>
                     <div class="space-y-0.5">
-                        <a href="{{ url('admin/order/') }}" class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-truck-ramp-box w-4 text-center text-sm text-[rgba(0,0,0,0.65)]"></i>
-                            <span>Đơn hàng giao</span>
-                        </a>
-
                         <a href="{{ url('admin/category/') }}" class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/category*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
                             <i class="fa-solid fa-list-ul w-4 text-center text-sm text-[rgba(0,0,0,0.65)]"></i>
                             <span>Danh mục món</span>

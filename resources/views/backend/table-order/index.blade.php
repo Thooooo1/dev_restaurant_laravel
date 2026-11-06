@@ -23,9 +23,11 @@
             <a href="{{ route('admin.order.index') }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700">
                 <span>Đơn hàng giao</span>
             </a>
-            <a href="{{ route('admin.dashboard') }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700">
-                <span>Báo cáo doanh thu</span>
-            </a>
+            @if(Auth::user()->isAdmin())
+                <a href="{{ route('admin.dashboard') }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700">
+                    <span>Báo cáo doanh thu</span>
+                </a>
+            @endif
         </div>
     </div>
 
