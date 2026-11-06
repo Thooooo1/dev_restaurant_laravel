@@ -10,9 +10,11 @@ use App\Models\Orderdetail;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\User;
+use App\Models\OrderItemLog;
 use App\Http\Requests\StoreTableOrderRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class TableOrderController extends Controller
 {
