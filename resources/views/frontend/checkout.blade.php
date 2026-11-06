@@ -109,14 +109,9 @@
                             </div>
 
                             @if($isTableOrder)
-                                <div class="p-4 rounded-none sm:rounded-sm bg-amber-50 border border-amber-200 flex items-center gap-3">
-                                    <div class="w-9 h-9 rounded-none sm:rounded-sm bg-[#C25E00] text-white flex items-center justify-center shrink-0">
-                                        <i class="fa-solid fa-chair text-sm"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-stone-900 text-xs sm:text-sm">Thanh toán tại bàn (Bàn: {{ session('table_name') }})</h4>
-                                        <p class="text-stone-600 text-[11px] sm:text-xs">Bạn sẽ thanh toán trực tiếp với nhân viên phục vụ sau khi dùng bữa.</p>
-                                    </div>
+                                <div class="p-4 rounded-none sm:rounded-sm bg-orange-50/40 border border-orange-200">
+                                    <h4 class="font-bold text-stone-900 text-xs sm:text-sm">Thanh toán tại bàn (Bàn: {{ session('table_name') }})</h4>
+                                    <p class="text-stone-600 text-[11px] sm:text-xs mt-0.5">Bạn sẽ thanh toán trực tiếp với nhân viên phục vụ sau khi dùng bữa.</p>
                                     <input type="hidden" name="payment_method" value="TaiBan">
                                 </div>
                             @else
@@ -128,9 +123,6 @@
                                                value="VietQR" 
                                                class="accent-[#F47716] payment-radio shrink-0" 
                                                {{ old('payment_method', 'VietQR') === 'VietQR' ? 'checked' : '' }}>
-                                        <div class="w-8 h-8 rounded-none sm:rounded-sm bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shrink-0 font-bold text-xs shadow-xs">
-                                            <i class="fa-solid fa-qrcode text-sm"></i>
-                                        </div>
                                         <div class="min-w-0">
                                             <span class="block font-bold text-stone-900 text-xs sm:text-sm truncate">Chuyển khoản VietQR</span>
                                             <span class="block text-[10px] text-stone-500 leading-tight">Quét mã ngân hàng (Duyệt tự động)</span>
@@ -144,9 +136,6 @@
                                                value="COD" 
                                                class="accent-[#F47716] payment-radio shrink-0" 
                                                {{ old('payment_method') === 'COD' ? 'checked' : '' }}>
-                                        <div class="w-8 h-8 rounded-none sm:rounded-sm bg-stone-200 text-stone-700 flex items-center justify-center shrink-0">
-                                            <i class="fa-solid fa-money-bill-wave text-sm"></i>
-                                        </div>
                                         <div class="min-w-0">
                                             <span class="block font-bold text-stone-900 text-xs sm:text-sm truncate">Tiền Mặt (COD)</span>
                                             <span class="block text-[10px] text-stone-500 leading-tight">Thanh toán khi nhận món</span>
@@ -209,13 +198,12 @@
                             <!-- Submit Button -->
                             <button type="submit" 
                                     id="submit-order-btn"
-                                    class="w-full py-3.5 rounded-none sm:rounded-sm bg-stone-900 hover:bg-[#C25E00] text-white font-bold text-xs uppercase tracking-[0.2em] shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                                    class="w-full py-3.5 rounded-none sm:rounded-sm bg-stone-900 hover:bg-[#F47716] text-white font-bold text-xs uppercase tracking-[0.2em] shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
                                 <span>{{ $isTableOrder ? 'Xác Nhận Gọi Món' : 'Hoàn Tất Đặt Đơn' }}</span>
                             </button>
 
                             <div class="pt-1 text-center">
                                 <p class="text-[11px] text-stone-400">
-                                    <i class="fa-solid fa-clock mr-1 text-[#C25E00]"></i>
                                     Nhà hàng sẽ liên hệ xác nhận trong vòng 15 phút.
                                 </p>
                             </div>
