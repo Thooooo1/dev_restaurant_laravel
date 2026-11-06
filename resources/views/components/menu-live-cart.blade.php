@@ -879,6 +879,9 @@
         // 1. Cập nhật Badge số lượng
         const badge = document.getElementById('liveCartItemCountBadge');
         if (badge) badge.textContent = data.count || 0;
+        if (typeof window.updateGlobalCartBadges === 'function') {
+            window.updateGlobalCartBadges(data.count || 0);
+        }
 
         const clearBtn = document.getElementById('clearLiveCartBtn');
         if (clearBtn) {

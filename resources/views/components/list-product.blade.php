@@ -28,9 +28,10 @@
                                     Chi tiết
                                 </a>
 
-                                <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" data-save-scroll="true">
+                                <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" onsubmit="event.preventDefault(); window.addToCartGlobal ? window.addToCartGlobal({{ $product->id }}, this.querySelector('button')) : null;">
                                     @csrf
-                                    <button type="submit"
+                                    <button type="button"
+                                        onclick="window.addToCartGlobal ? window.addToCartGlobal({{ $product->id }}, this) : this.closest('form')?.submit()"
                                         class="px-3 py-1.5 bg-[#C25E00] text-white hover:bg-[#A34E00] rounded-none sm:rounded-sm transition-colors shadow-sm cursor-pointer text-xs font-bold uppercase tracking-wider"
                                         title="Thêm vào giỏ hàng">
                                         + Thêm

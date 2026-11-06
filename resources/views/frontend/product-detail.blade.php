@@ -127,7 +127,7 @@
                         </div>
 
                         <!-- Order Form: Quantity Stepper & Dual CTAs -->
-                        <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" data-save-scroll="true" class="space-y-5">
+                        <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" onsubmit="event.preventDefault(); window.addToCartGlobal ? window.addToCartGlobal({{ $product->id }}, this.querySelector('button[type=submit]'), parseInt(document.getElementById('quantity')?.value, 10) || 1) : null;" class="space-y-5">
                             @csrf
                             
                             <!-- Quantity selector -->

@@ -36,9 +36,10 @@
                 Chi tiết
             </a>
 
-            <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" data-save-scroll="true">
+            <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" onsubmit="event.preventDefault(); window.addToCartGlobal ? window.addToCartGlobal({{ $product->id }}, this.querySelector('button')) : null;">
                 @csrf
-                <button type="submit" 
+                <button type="button" 
+                        onclick="window.addToCartGlobal ? window.addToCartGlobal({{ $product->id }}, this) : this.closest('form')?.submit()"
                         class="px-3 py-1.5 rounded-sm bg-[#C25E00] text-white hover:bg-[#A34E00] font-bold text-xs uppercase tracking-wider shadow-md transition-colors duration-200 cursor-pointer">
                     + Thêm món
                 </button>
@@ -83,9 +84,10 @@
                 @endif
             </div>
 
-            <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" data-save-scroll="true">
+            <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" onsubmit="event.preventDefault(); window.addToCartGlobal ? window.addToCartGlobal({{ $product->id }}, this.querySelector('button')) : null;">
                 @csrf
-                <button type="submit" 
+                <button type="button" 
+                        onclick="window.addToCartGlobal ? window.addToCartGlobal({{ $product->id }}, this) : this.closest('form')?.submit()"
                         class="px-3 py-1 rounded-sm bg-stone-900 hover:bg-[#C25E00] text-white font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs"
                         title="Thêm vào giỏ">
                     <span>+ Chọn</span>

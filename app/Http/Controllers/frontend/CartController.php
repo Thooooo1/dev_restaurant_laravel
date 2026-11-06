@@ -122,7 +122,7 @@ class CartController extends Controller
         $product = Product::find($id);
 
         if (!$product) {
-            if ($request->wantsJson() || $request->ajax()) {
+            if ($request->wantsJson() || $request->ajax() || $request->input('ajax') || $request->header('X-Requested-With') === 'XMLHttpRequest') {
                 return response()->json(['success' => false, 'message' => 'Món ăn không tồn tại hoặc đã ngừng kinh doanh.'], 404);
             }
             return redirect()->back()->with('error', 'Sản phẩm không tồn tại.');
@@ -130,7 +130,8 @@ class CartController extends Controller
 
         $cartKey = $this->getCartKey();
         $cart = session()->get($cartKey, []);
-        $qty = isset($cart[$id]) ? $cart[$id]['qty'] + 1 : 1;
+        $addQty = max(1, (int)$request->input('qty', 1));
+        $qty = isset($cart[$id]) ? $cart[$id]['qty'] + $addQty : $addQty;
 
         $cart[$id] = [
             'name' => $product->name,
@@ -144,7 +145,7 @@ class CartController extends Controller
 
         session()->put($cartKey, $cart);
 
-        if ($request->wantsJson() || $request->ajax() || $request->input('ajax')) {
+        if ($request->wantsJson() || $request->ajax() || $request->input('ajax') || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return $this->getLiveCartResponse('Đã thêm "' . $product->name . '" vào giỏ hàng!');
         }
 

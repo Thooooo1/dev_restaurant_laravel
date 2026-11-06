@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover, interactive-widget=resizes-content">
     <meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#1c1917" media="(prefers-color-scheme: dark)">
@@ -339,7 +340,7 @@
                             <a href="{{ url('/gio-hang') }}" 
                                class="inline-flex items-center gap-1 text-stone-700 hover:text-[#C25E00] font-bold text-xs uppercase tracking-wider px-2 py-2 transition-colors whitespace-nowrap">
                                 <span>Giỏ hàng</span>
-                                <span class="px-1.5 py-0.2 rounded-full text-[10px] font-black {{ $userCartCount > 0 ? 'bg-[#C25E00] text-white' : 'bg-stone-100 text-stone-500' }}">
+                                <span class="global-cart-badge px-1.5 py-0.2 rounded-full text-[10px] font-black {{ $userCartCount > 0 ? 'bg-[#C25E00] text-white' : 'bg-stone-100 text-stone-500' }}">
                                     {{ $userCartCount }}
                                 </span>
                             </a>
@@ -373,7 +374,7 @@
                                class="group inline-flex items-center gap-1.5 px-3 py-2 text-stone-700 hover:text-[#C25E00] transition-colors"
                                title="Giỏ hàng món ăn của bạn">
                                 <span class="text-xs sm:text-[13px] font-bold tracking-wide uppercase">Giỏ hàng</span>
-                                <span class="px-1.5 py-0.5 rounded-full text-[10px] font-black {{ $userCartCount > 0 ? 'bg-[#C25E00] text-white' : 'bg-stone-100 text-stone-500' }}">
+                                <span class="global-cart-badge px-1.5 py-0.5 rounded-full text-[10px] font-black {{ $userCartCount > 0 ? 'bg-[#C25E00] text-white' : 'bg-stone-100 text-stone-500' }}">
                                     {{ $userCartCount }}
                                 </span>
                             </a>
@@ -454,9 +455,7 @@
                                     <a href="{{ url('/gio-hang') }}"
                                        class="flex items-center justify-between px-5 py-3 text-sm font-medium text-stone-700 hover:text-[#C25E00] hover:bg-stone-50 transition-colors">
                                         <span>Giỏ hàng món ăn</span>
-                                        @if ($userCartCount > 0)
-                                            <span class="bg-[#C25E00] text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $userCartCount }}</span>
-                                        @endif
+                                        <span class="global-cart-badge-dropdown {{ $userCartCount > 0 ? '' : 'hidden' }} bg-[#C25E00] text-white text-xs font-bold px-2 py-0.5 rounded-full">{{ $userCartCount }}</span>
                                     </a>
                                 @endif
                                 <a href="{{ route('site.orders') }}"
@@ -492,11 +491,9 @@
                     @if (!$isStaffUserMobile)
                         <a href="{{ url('/gio-hang') }}" class="relative px-2.5 py-1 text-xs font-bold text-stone-700 hover:text-[#C25E00] uppercase tracking-wider border border-stone-200 rounded">
                             <span>Giỏ hàng</span>
-                            @if ($userCartCount > 0)
-                                <span class="ml-1 bg-[#C25E00] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                                    {{ $userCartCount }}
-                                </span>
-                            @endif
+                            <span class="global-cart-badge-mobile {{ $userCartCount > 0 ? '' : 'hidden' }} ml-1 bg-[#C25E00] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
+                                {{ $userCartCount }}
+                            </span>
                         </a>
                     @else
                         <a href="{{ route('admin.table-order.index') }}" class="px-2.5 py-1 text-xs font-bold text-white bg-[#C25E00] uppercase tracking-wider rounded">
@@ -771,6 +768,111 @@
     {{ $footer ?? '' }}
 
     <script>
+        // Global Toast Notification (Phong cách tối giản, tuyệt đối không có icon hay emoji theo yêu cầu)
+        window.showGlobalCartToast = function(message, type = 'success') {
+            const existing = document.getElementById('globalCartToastNotification');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'globalCartToastNotification';
+            toast.className = `fixed bottom-20 right-5 z-[999999] px-4 py-2.5 rounded shadow-xl text-xs font-bold flex items-center transform transition-all duration-300 ease-out translate-y-2 opacity-0 ${
+                type === 'success' ? 'bg-stone-900 text-white border border-[#C25E00]' :
+                (type === 'error' ? 'bg-red-900 text-white border border-red-700' : 'bg-stone-900 text-white border border-stone-700')
+            }`;
+            toast.style.zIndex = '999999';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 2200);
+        };
+
+        // Global Cập nhật Badge giỏ hàng trên toàn trang
+        window.updateGlobalCartBadges = function(count) {
+            count = parseInt(count, 10) || 0;
+            document.querySelectorAll('.global-cart-badge').forEach(badge => {
+                badge.textContent = count;
+                if (count > 0) {
+                    badge.classList.remove('bg-stone-100', 'text-stone-500');
+                    badge.classList.add('bg-[#C25E00]', 'text-white');
+                } else {
+                    badge.classList.add('bg-stone-100', 'text-stone-500');
+                    badge.classList.remove('bg-[#C25E00]', 'text-white');
+                }
+            });
+            document.querySelectorAll('.global-cart-badge-dropdown').forEach(badge => {
+                badge.textContent = count;
+                if (count > 0) badge.classList.remove('hidden');
+                else badge.classList.add('hidden');
+            });
+            document.querySelectorAll('.global-cart-badge-mobile').forEach(badge => {
+                badge.textContent = count;
+                if (count > 0) badge.classList.remove('hidden');
+                else badge.classList.add('hidden');
+            });
+        };
+
+        // Global Add to Cart AJAX (Không bao giờ reload trang)
+        window.addToCartGlobal = function(productId, btnElement, qty = 1) {
+            if (!productId) return;
+
+            let originalHtml = '';
+            if (btnElement) {
+                originalHtml = btnElement.innerHTML;
+                btnElement.disabled = true;
+                btnElement.textContent = 'Đang thêm...';
+            }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') 
+                || '{{ csrf_token() }}';
+
+            fetch('{{ url("/addcart") }}/' + productId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ ajax: 1, qty: qty })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (btnElement) {
+                    btnElement.textContent = 'Đã chọn';
+                    setTimeout(() => {
+                        btnElement.innerHTML = originalHtml;
+                        btnElement.disabled = false;
+                    }, 1000);
+                }
+
+                if (data && data.success) {
+                    window.updateGlobalCartBadges(data.count);
+                    if (typeof window.renderLiveCartFromData === 'function') {
+                        window.renderLiveCartFromData(data);
+                    }
+                    window.showGlobalCartToast(data.message || 'Đã thêm món vào giỏ hàng', 'success');
+                } else {
+                    window.showGlobalCartToast((data && data.message) ? data.message : 'Không thể thêm món vào giỏ', 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Lỗi thêm món:', err);
+                if (btnElement) {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.disabled = false;
+                }
+                window.showGlobalCartToast('Không thể kết nối đến máy chủ', 'error');
+            });
+        };
+
+        // Đồng bộ alias để tương thích với tất cả trang gọi addToCartAjax
+        window.addToCartAjax = window.addToCartGlobal;
+
+        // Chặn triệt để mọi form submit có action /addcart/ để không bao giờ bị load lại trang
         document.addEventListener('DOMContentLoaded', function () {
             var savedScrollY = sessionStorage.getItem('savedScrollY');
             if (savedScrollY !== null) {
@@ -778,11 +880,21 @@
                 sessionStorage.removeItem('savedScrollY');
             }
 
-            document.querySelectorAll('form[data-save-scroll="true"]').forEach(function (form) {
-                form.addEventListener('submit', function () {
-                    sessionStorage.setItem('savedScrollY', window.scrollY.toString());
-                });
-            });
+            document.addEventListener('submit', function (e) {
+                const form = e.target;
+                if (form && form.action && form.action.includes('/addcart/')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const match = form.action.match(/\/addcart\/(\d+)/);
+                    if (match && match[1]) {
+                        const btn = form.querySelector('button[type="submit"]') || form.querySelector('button');
+                        const qtyInput = form.querySelector('input[name="qty"]');
+                        const qty = qtyInput ? (parseInt(qtyInput.value, 10) || 1) : 1;
+                        window.addToCartGlobal(match[1], btn, qty);
+                    }
+                    return false;
+                }
+            }, true);
         });
     </script>
 
