@@ -210,6 +210,7 @@ Route::get('/admin/logout', [AuthController::class, 'logout'])->name('admin.logo
 // Admin Dashboard (Protected)
 Route::prefix('admin')->middleware('login-admin')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/export-best-selling', [DashboardController::class, 'exportBestSelling'])->name('admin.dashboard.exportBestSelling');
 
     // ==============================
     // ROUTE CHO CẢ ADMIN VÀ EMPLOYEE
@@ -218,6 +219,7 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
     // Orders
     Route::prefix('order')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('admin.order.index');
+        Route::get('/export', [OrderController::class, 'export'])->name('admin.order.export');
         Route::get('/orders/{id}', [OrderController::class, 'detail'])->name('admin.order.orderdetail');
         Route::get('/print/{id}', [OrderController::class, 'print'])->name('admin.order.printorder');
         Route::get('/{id}/edit', [OrderController::class, 'edit'])->name('admin.order.edit');
@@ -280,6 +282,7 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::prefix('order-history')->group(function () {
                 Route::get('/', [OrderHistoryController::class, 'index'])->name('admin.order-history.index');
                 Route::get('/export', [OrderHistoryController::class, 'export'])->name('admin.order-history.export');
+                Route::get('/export-payment', [OrderHistoryController::class, 'exportPayment'])->name('admin.order-history.exportPayment');
                 Route::get('/{id}', [OrderHistoryController::class, 'show'])->name('admin.order-history.show');
             });
 
@@ -292,6 +295,7 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         // Products
         Route::prefix('product')->group(function () {
             Route::get('/', [ProductController::class, 'index'])->name('admin.product.index');
+            Route::get('/export', [ProductController::class, 'export'])->name('admin.product.export');
             Route::get('/create', [ProductController::class, 'create'])->name('admin.product.create');
             Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('admin.product.edit');
             Route::get('/{product}/show', [ProductController::class, 'show'])->name('admin.product.show');
@@ -324,6 +328,7 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         // Import Goods (Quản lý nhập kho - Phiếu nhập hàng)
         Route::prefix('import-goods')->group(function () {
             Route::get('/', [ImportGoodsController::class, 'index'])->name('admin.import-goods.index');
+            Route::get('/export', [ImportGoodsController::class, 'export'])->name('admin.import-goods.export');
             Route::get('/create', [ImportGoodsController::class, 'create'])->name('admin.import-goods.create');
             Route::post('/', [ImportGoodsController::class, 'store'])->name('admin.import-goods.store');
             Route::get('/{id}', [ImportGoodsController::class, 'show'])->name('admin.import-goods.show');
@@ -427,6 +432,7 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::prefix('user')->group(function () {
             Route::get('/', [UserController::class, 'index'])->name('admin.user.index');
             Route::get('/customers', [UserController::class, 'customers'])->name('admin.user.customers');
+            Route::get('/customers/export', [UserController::class, 'exportCustomers'])->name('admin.user.customers.export');
             Route::get('/employees', [UserController::class, 'listEmployees'])->name('admin.user.employees');
             Route::get('/create', [UserController::class, 'create'])->name('admin.user.create');
             Route::get('/{user}/show', [UserController::class, 'show'])->name('admin.user.show');

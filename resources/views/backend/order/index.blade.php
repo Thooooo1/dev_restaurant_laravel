@@ -5,10 +5,12 @@
         <div>
             <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Đơn hàng Giao tận nơi & Mang đi</h1>
         </div>
-        <div class="flex items-center gap-2">
-            <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary ant-btn-sm">
-                <i class="fa-solid fa-plus text-xs"></i>
-                <span>Tạo đơn tại quầy</span>
+        <div class="flex items-center gap-2 flex-wrap">
+            <a href="{{ route('admin.order.export', request()->all()) }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                <span>Xuất Excel đơn hàng</span>
+            </a>
+            <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider">
+                <span>+ Tạo đơn tại quầy</span>
             </a>
         </div>
     </div>

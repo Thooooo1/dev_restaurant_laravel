@@ -5,12 +5,8 @@ namespace App\Exports;
 use App\Models\Order;
 use App\Models\Orderdetail;
 use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class RevenueExport implements FromView, WithStyles, ShouldAutoSize
+class RevenueExport
 {
     protected $year;
     protected $quarter;
@@ -74,15 +70,5 @@ class RevenueExport implements FromView, WithStyles, ShouldAutoSize
             'quarter' => $this->quarter,
             'month' => $this->month
         ]);
-    }
-
-    public function styles(Worksheet $sheet)
-    {
-        return [
-            1 => ['font' => ['bold' => true, 'size' => 16]],
-            2 => ['font' => ['bold' => true]],
-            3 => ['font' => ['italic' => true]],
-            5 => ['font' => ['bold' => true]], // Header row
-        ];
     }
 }

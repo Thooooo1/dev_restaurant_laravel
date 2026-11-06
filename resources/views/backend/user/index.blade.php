@@ -21,14 +21,17 @@
                     @endif
                 </h1>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
                 @if($isEmployee)
-                    <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-green-700" href="{{ route('admin.user.create', ['role' => 'employee']) }}">
-                        <i class="fa-solid fa-plus"></i> Thêm nhân viên
+                    <a class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider" href="{{ route('admin.user.create', ['role' => 'employee']) }}">
+                        <span>+ Thêm nhân viên</span>
                     </a>
                 @else
-                    <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-500/25 hover:from-green-600 hover:to-green-700" href="{{ route('admin.user.create', ['role' => 'customer']) }}">
-                        <i class="fa-solid fa-plus"></i> Thêm khách hàng
+                    <a class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50" href="{{ route('admin.user.customers.export', request()->all()) }}">
+                        <span>Xuất Excel khách hàng</span>
+                    </a>
+                    <a class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider" href="{{ route('admin.user.create', ['role' => 'customer']) }}">
+                        <span>+ Thêm khách hàng</span>
                     </a>
                 @endif
             </div>

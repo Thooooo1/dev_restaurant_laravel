@@ -57,6 +57,18 @@ class ImportGoodsController extends Controller
         ));
     }
 
+    public function export(Request $request)
+    {
+        $search = $request->query('search');
+        $year = $request->query('year');
+        $month = $request->query('month');
+
+        return \App\Services\ExcelExporter::download(
+            new \App\Exports\InventoryExport($search, $year, $month),
+            'bao-cao-nhap-kho.xls'
+        );
+    }
+
     /**
      * Form lập Phiếu Nhập Kho mới
      */

@@ -5,8 +5,14 @@
         <div>
             <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Lịch sử Gọi món & Doanh thu</h1>
         </div>
-        <div class="flex items-center gap-2">
-            <a href="{{ route('admin.dashboard') }}" class="ant-btn ant-btn-sm">
+        <div class="flex items-center gap-2 flex-wrap">
+            <a href="{{ route('admin.order-history.export', request()->all()) }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                <span>Xuất Excel doanh thu</span>
+            </a>
+            <a href="{{ route('admin.order-history.exportPayment', request()->all()) }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                <span>Xuất Excel thanh toán</span>
+            </a>
+            <a href="{{ route('admin.dashboard') }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
                 <span>Xem báo cáo tổng quan</span>
             </a>
         </div>

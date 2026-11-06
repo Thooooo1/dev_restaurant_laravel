@@ -70,6 +70,15 @@ class OrderHistoryController extends Controller
         $quarter = $request->input('quarter');
         $month = $request->input('month');
 
-        return Excel::download(new RevenueExport($year, $quarter, $month), 'bao-cao-doanh-thu.xlsx');
+        return \App\Services\ExcelExporter::download(new RevenueExport($year, $quarter, $month), 'bao-cao-doanh-thu.xls');
+    }
+
+    public function exportPayment(Request $request)
+    {
+        $year = $request->input('year', Carbon::now()->year);
+        $quarter = $request->input('quarter');
+        $month = $request->input('month');
+
+        return \App\Services\ExcelExporter::download(new \App\Exports\PaymentReportExport($year, $quarter, $month), 'bao-cao-thanh-toan.xls');
     }
 }

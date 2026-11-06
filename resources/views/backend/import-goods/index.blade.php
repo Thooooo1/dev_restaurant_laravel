@@ -7,10 +7,14 @@
                     Quản lý nhập kho
                 </h1>
             </div>
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2 flex-wrap">
+                <a href="{{ route('admin.import-goods.export', request()->all()) }}" 
+                   class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                    <span>Xuất Excel kho hàng</span>
+                </a>
                 <a href="{{ route('admin.import-goods.create') }}" 
-                   class="inline-flex items-center px-4 py-2.5 bg-[#F47716] hover:bg-[#EA580C] text-white rounded-lg text-sm font-semibold transition-all shadow-md shadow-orange-500/20">
-                    <span>+ Lập Phiếu Nhập Mới</span>
+                   class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider shadow-2xs">
+                    <span>+ Lập phiếu nhập mới</span>
                 </a>
             </div>
         </div>

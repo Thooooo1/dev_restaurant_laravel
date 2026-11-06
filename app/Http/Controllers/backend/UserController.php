@@ -57,6 +57,17 @@ class UserController extends Controller
         return view('backend.user.index', compact('users', 'type'));
     }
 
+    public function exportCustomers(Request $request)
+    {
+        $q = $request->query('q');
+        $status = $request->query('status');
+
+        return \App\Services\ExcelExporter::download(
+            new \App\Exports\CustomerExport($q, $status),
+            'danh-sach-khach-hang.xls'
+        );
+    }
+
     /**
      * Show the form for creating a new resource.
      */

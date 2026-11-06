@@ -63,6 +63,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Danh sách đơn hàng của khách hàng
+     */
+    public function orders()
+    {
+        return $this->hasMany(\App\Models\Order::class, 'user_id');
+    }
+
+    /**
      * Kiểm tra xem người dùng có phải là quản lý không
      */
     public function isAdmin(): bool

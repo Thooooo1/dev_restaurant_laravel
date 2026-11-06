@@ -27,10 +27,16 @@
                     </a>
                 </div>
 
+                <a href="{{ route('admin.order-history.export') }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                    <span>Xuất Excel doanh thu</span>
+                </a>
+                <a href="{{ route('admin.dashboard.exportBestSelling', ['type' => $type ?? 'today']) }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                    <span>Xuất Excel món bán chạy</span>
+                </a>
+
                 <!-- Ant Design Primary Button: + Tạo đơn mới -->
-                <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary">
-                    <i class="fa-solid fa-plus text-xs"></i>
-                    <span>Tạo đơn mới</span>
+                <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider">
+                    <span>+ Tạo đơn mới</span>
                 </a>
             </div>
         </div>
@@ -166,11 +172,9 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <a href="{{ url('admin/order') }}" class="ant-btn text-xs">
-                        <i class="fa-solid fa-arrow-up-right-from-square text-xs text-gray-400"></i>
                         <span>Quản lý đơn hàng</span>
                     </a>
                     <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary text-xs">
-                        <i class="fa-solid fa-plus text-xs"></i>
                         <span>Tạo đơn mới</span>
                     </a>
                 </div>
@@ -221,14 +225,9 @@
                                 #{{ $ro->id }}
                             </td>
                             <td class="whitespace-nowrap">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-full bg-orange-50 text-[#F47716] font-bold text-[11px] flex items-center justify-center flex-shrink-0">
-                                        {{ mb_substr($ro->customer_name ?? 'K', 0, 1) }}
-                                    </div>
-                                    <div>
-                                        <div class="font-medium text-xs text-[rgba(0,0,0,0.85)]">{{ $ro->customer_name }}</div>
-                                        <div class="text-[11px] text-[rgba(0,0,0,0.45)]">{{ $ro->customer_phone }}</div>
-                                    </div>
+                                <div>
+                                    <div class="font-medium text-xs text-[rgba(0,0,0,0.85)]">{{ $ro->customer_name }}</div>
+                                    <div class="text-[11px] text-[rgba(0,0,0,0.45)]">{{ $ro->customer_phone }}</div>
                                 </div>
                             </td>
                             <td class="text-xs text-[rgba(0,0,0,0.65)] whitespace-nowrap">

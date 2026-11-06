@@ -23,6 +23,12 @@ class OrderController extends Controller
         return view('backend.order.index', compact('orders', 'statusFilter'));
     }
 
+    public function export(Request $request)
+    {
+        $status = $request->query('status');
+        return \App\Services\ExcelExporter::download(new \App\Exports\OrderExport($status), 'danh-sach-don-hang.xls');
+    }
+
     public function edit($id)
     {
         $order = Order::find($id);

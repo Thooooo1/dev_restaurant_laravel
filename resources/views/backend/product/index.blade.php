@@ -5,13 +5,14 @@
         <div>
             <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Thực đơn & Món ăn</h1>
         </div>
-        <div class="flex items-center gap-2">
-            <a href="{{ url('admin/product/create') }}" class="ant-btn ant-btn-primary ant-btn-sm">
-                <i class="fa-solid fa-plus text-xs"></i>
-                <span>Thêm món mới</span>
+        <div class="flex items-center gap-2 flex-wrap">
+            <a href="{{ route('admin.product.export', request()->all()) }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                <span>Xuất Excel thực đơn</span>
             </a>
-            <a href="{{ url('admin/product/trash') }}" class="ant-btn ant-btn-sm">
-                <i class="fa-solid fa-trash text-xs text-gray-400"></i>
+            <a href="{{ url('admin/product/create') }}" class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider">
+                <span>+ Thêm món mới</span>
+            </a>
+            <a href="{{ url('admin/product/trash') }}" class="ant-btn ant-btn-sm text-gray-500 hover:text-red-600 font-medium bg-white border border-gray-200">
                 <span>Thùng rác</span>
             </a>
         </div>

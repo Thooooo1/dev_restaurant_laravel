@@ -328,4 +328,13 @@ class DashboardController extends Controller
             'hasChartData' => $hasChartData,
         ]);
     }
+
+    public function exportBestSelling(Request $request)
+    {
+        $type = $request->get('type', 'all');
+        return \App\Services\ExcelExporter::download(
+            new \App\Exports\BestSellingExport($type),
+            'bao-cao-mon-ban-chay.xls'
+        );
+    }
 }

@@ -44,6 +44,19 @@ class ProductController extends Controller
         return view('backend.product.index', compact('products', 'categories', 'brands'));
     }
 
+    public function export(Request $request)
+    {
+        $category = $request->query('category');
+        $brand = $request->query('brand');
+        $status = $request->query('status');
+        $search = $request->query('search');
+
+        return \App\Services\ExcelExporter::download(
+            new \App\Exports\ProductExport($category, $brand, $status, $search),
+            'danh-muc-mon-an.xls'
+        );
+    }
+
 
     /**
      * Show the form for creating a new resource.
