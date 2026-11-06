@@ -121,10 +121,6 @@
                                     <input type="checkbox" name="enable_cash" value="1" {{ !empty($settings['enable_cash']) ? 'checked' : '' }} class="rounded text-[#F47716] focus:ring-0">
                                     <span class="font-medium text-gray-800">Tiền mặt tại quầy</span>
                                 </label>
-                                <label class="flex items-center gap-2 p-2 border rounded border-gray-200 cursor-pointer hover:bg-gray-50">
-                                    <input type="checkbox" name="enable_momo" value="1" {{ !empty($settings['enable_momo']) ? 'checked' : '' }} class="rounded text-[#F47716] focus:ring-0">
-                                    <span class="font-medium text-gray-800">Ví MoMo</span>
-                                </label>
                             </div>
                         </div>
                     </div>

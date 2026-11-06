@@ -206,21 +206,18 @@
 
         <div class="pt-2 border-t border-stone-200 flex items-center justify-between">
             <span class="font-bold text-stone-900 text-sm">Tổng thanh toán:</span>
-            <span id="liveCartFinalTotal" class="font-black text-[#C25E00] text-xl tracking-tight">{{ number_format($finalTotal, 0, ',', '.') }}₫</span>
+            <span id="liveCartFinalTotal" class="font-black text-[#F47716] text-xl tracking-tight">{{ number_format($finalTotal, 0, ',', '.') }}₫</span>
         </div>
 
         <!-- Phương thức thanh toán (Payments) - Chỉ hiển thị khi Giao hàng tận nơi -->
         <div id="liveCartPaymentMethodsWrapper" class="pt-3 border-t border-stone-200/60 {{ $isTableOrder ? 'hidden' : '' }}">
             <span class="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1.5">Phương thức thanh toán</span>
-            <div class="grid grid-cols-3 gap-1.5">
+            <div class="grid grid-cols-2 gap-1.5">
                 <button type="button" onclick="selectPaymentPill('cash', this)" class="payment-pill-btn py-1.5 px-1 rounded-lg text-center text-xs font-bold transition-all border border-stone-900 bg-stone-900 text-white shadow-xs cursor-pointer">
                     Tiền mặt
                 </button>
                 <button type="button" onclick="selectPaymentPill('vietqr', this)" class="payment-pill-btn py-1.5 px-1 rounded-lg text-center text-xs font-bold transition-all border border-stone-200 bg-white text-stone-700 hover:bg-stone-100 cursor-pointer">
                     VietQR
-                </button>
-                <button type="button" onclick="selectPaymentPill('momo', this)" class="payment-pill-btn py-1.5 px-1 rounded-lg text-center text-xs font-bold transition-all border border-stone-200 bg-white text-stone-700 hover:bg-stone-100 cursor-pointer">
-                    Ví MoMo
                 </button>
             </div>
         </div>

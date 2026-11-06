@@ -120,13 +120,13 @@
                                     <input type="hidden" name="payment_method" value="TaiBan">
                                 </div>
                             @else
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="payment-options">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="payment-options">
                                     <!-- VietQR Option (Chuyển khoản ngân hàng tự động) -->
-                                    <label class="relative flex items-center gap-3 p-3.5 rounded-none sm:rounded-sm border border-stone-200 hover:border-[#C25E00] cursor-pointer transition-colors bg-stone-50/50 has-[:checked]:bg-amber-50/60 has-[:checked]:border-[#C25E00] has-[:checked]:shadow-2xs">
+                                    <label class="relative flex items-center gap-3 p-3.5 rounded-none sm:rounded-sm border border-stone-200 hover:border-[#F47716] cursor-pointer transition-colors bg-stone-50/50 has-[:checked]:bg-orange-50/40 has-[:checked]:border-[#F47716] has-[:checked]:shadow-2xs">
                                         <input type="radio" 
                                                name="payment_method" 
                                                value="VietQR" 
-                                               class="accent-[#C25E00] payment-radio shrink-0" 
+                                               class="accent-[#F47716] payment-radio shrink-0" 
                                                {{ old('payment_method', 'VietQR') === 'VietQR' ? 'checked' : '' }}>
                                         <div class="w-8 h-8 rounded-none sm:rounded-sm bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shrink-0 font-bold text-xs shadow-xs">
                                             <i class="fa-solid fa-qrcode text-sm"></i>
@@ -137,26 +137,12 @@
                                         </div>
                                     </label>
 
-                                    <!-- Momo Option -->
-                                    <label class="relative flex items-center gap-3 p-3.5 rounded-none sm:rounded-sm border border-stone-200 hover:border-[#C25E00] cursor-pointer transition-colors bg-stone-50/50 has-[:checked]:bg-amber-50/60 has-[:checked]:border-[#C25E00] has-[:checked]:shadow-2xs">
-                                        <input type="radio" 
-                                               name="payment_method" 
-                                               value="Momo" 
-                                               class="accent-[#C25E00] payment-radio shrink-0" 
-                                               {{ old('payment_method') === 'Momo' ? 'checked' : '' }}>
-                                        <img src="{{ asset('images/logo/momologo.png') }}" alt="Ví MoMo" class="w-8 h-8 object-contain shrink-0">
-                                        <div class="min-w-0">
-                                            <span class="block font-bold text-stone-900 text-xs sm:text-sm truncate">Ví Điện Tử MoMo</span>
-                                            <span class="block text-[10px] text-stone-500 leading-tight">Thanh toán qua ví MoMo</span>
-                                        </div>
-                                    </label>
-
                                     <!-- COD Option -->
-                                    <label class="relative flex items-center gap-3 p-3.5 rounded-none sm:rounded-sm border border-stone-200 hover:border-[#C25E00] cursor-pointer transition-colors bg-stone-50/50 has-[:checked]:bg-amber-50/60 has-[:checked]:border-[#C25E00] has-[:checked]:shadow-2xs">
+                                    <label class="relative flex items-center gap-3 p-3.5 rounded-none sm:rounded-sm border border-stone-200 hover:border-[#F47716] cursor-pointer transition-colors bg-stone-50/50 has-[:checked]:bg-orange-50/40 has-[:checked]:border-[#F47716] has-[:checked]:shadow-2xs">
                                         <input type="radio" 
                                                name="payment_method" 
                                                value="COD" 
-                                               class="accent-[#C25E00] payment-radio shrink-0" 
+                                               class="accent-[#F47716] payment-radio shrink-0" 
                                                {{ old('payment_method') === 'COD' ? 'checked' : '' }}>
                                         <div class="w-8 h-8 rounded-none sm:rounded-sm bg-stone-200 text-stone-700 flex items-center justify-center shrink-0">
                                             <i class="fa-solid fa-money-bill-wave text-sm"></i>
