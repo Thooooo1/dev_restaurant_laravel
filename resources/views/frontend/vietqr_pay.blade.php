@@ -10,88 +10,102 @@
                     Quét Mã VietQR Thanh Toán
                 </h1>
                 <p class="text-xs sm:text-sm text-stone-600 mt-1 max-w-md mx-auto">
-                    Mở ứng dụng ngân hàng bất kỳ (MB, VCB, Techcom, Momo, VietQR...) và quét mã để thanh toán.
+                    Mở ứng dụng ngân hàng bất kỳ (MB, VCB, Techcom, VietinBank...) hoặc ví điện tử để quét mã thanh toán.
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-                <!-- Cột trái: Mã VietQR động -->
-                <div class="md:col-span-6 bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-stone-200/90 text-center relative overflow-hidden">
-                    <!-- Trạng thái chờ thanh toán -->
-                    <div id="qrLoadingState" class="mb-4">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200 animate-pulse">
+                <!-- Cột trái (7 cols): Mã VietQR động & Countdown Timer -->
+                <div class="md:col-span-7 bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-stone-200/90 text-center relative overflow-hidden flex flex-col items-center justify-between">
+                    <div class="w-full">
+                        <p class="text-xs font-semibold text-stone-700 leading-relaxed mb-4">
+                            Quét mã QR dưới đây bằng ứng dụng ngân hàng hoặc ví điện tử để hoàn tất thanh toán.
+                        </p>
+
+                        <!-- Khung ảnh QR trắng tinh gọn hiện đại -->
+                        <div class="relative inline-block p-3 bg-white rounded-2xl border border-stone-200 shadow-md group">
+                            <img src="{{ $qrUrl }}" 
+                                 alt="Mã VietQR thanh toán" 
+                                 id="vietqrImage"
+                                 class="w-64 h-64 sm:w-72 sm:h-72 object-contain rounded-xl mx-auto">
+                            
+                            <!-- Overlay khi thành công -->
+                            <div id="paymentSuccessOverlay" class="hidden absolute inset-0 bg-white/95 rounded-2xl flex flex-col items-center justify-center p-6 text-center z-10">
+                                <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mb-3 animate-bounce">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </div>
+                                <h3 class="text-lg font-black text-stone-900">Thanh Toán Thành Công!</h3>
+                                <p class="text-xs text-stone-600 mt-1">Hệ thống đã tự động nhận tiền qua Webhook.</p>
+                                <span class="text-xs text-emerald-600 font-bold mt-2">Đang chuyển trang sau 2 giây...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Countdown Timer & Lắng nghe tự động -->
+                    <div class="w-full mt-6 pt-4 border-t border-stone-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-1.5 text-stone-600 font-medium">
+                            <i class="fa-regular fa-clock text-blue-600"></i>
+                            <span>Mã QR có hiệu lực:</span>
+                            <span id="vietqrCountdown" class="font-mono font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">03:00</span>
+                        </div>
+
+                        <div id="qrLoadingState" class="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200 animate-pulse">
                             <span class="w-2 h-2 rounded-full bg-amber-500"></span>
                             <span>Đang chờ chuyển khoản...</span>
                         </div>
                     </div>
 
-                    <!-- Khung ảnh QR -->
-                    <div class="relative inline-block p-3 bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl border-2 border-[#C25E00]/30 shadow-inner group">
-                        <img src="{{ $qrUrl }}" 
-                             alt="Mã VietQR thanh toán" 
-                             id="vietqrImage"
-                             class="w-64 h-64 sm:w-72 sm:h-72 object-contain rounded-xl mx-auto shadow-sm">
-                        
-                        <!-- Overlay khi thành công -->
-                        <div id="paymentSuccessOverlay" class="hidden absolute inset-0 bg-white/95 rounded-2xl flex flex-col items-center justify-center p-6 text-center">
-                            <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mb-3 animate-bounce">
-                                <i class="fa-solid fa-circle-check"></i>
-                            </div>
-                            <h3 class="text-lg font-black text-stone-900">Thanh Toán Thành Công!</h3>
-                            <p class="text-xs text-stone-600 mt-1">Hệ thống đã tự động nhận tiền qua Webhook.</p>
-                            <span class="text-xs text-emerald-600 font-bold mt-2">Đang chuyển trang sau 2 giây...</span>
-                        </div>
-                    </div>
-
-                    <p class="text-[11px] text-stone-500 mt-4 text-center">
-                        <span>Hệ thống tự động duyệt ngay sau khi chuyển (không cần gửi ảnh bill)</span>
-                    </p>
-
                     <!-- Nút giả lập Webhook cho dev test -->
-                    <div class="mt-6 pt-4 border-t border-stone-100">
-                        <button type="button" 
-                                id="simulateWebhookBtn"
-                                class="w-full py-2.5 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold rounded-xl transition-colors flex items-center justify-center cursor-pointer">
-                            <span>[Thử nghiệm] Giả lập Webhook đã nhận tiền</span>
-                        </button>
-                    </div>
+                    @if(config('payment.mode') === 'demo')
+                        <div class="w-full mt-4 pt-3 border-t border-stone-100">
+                            <button type="button" 
+                                    id="simulateWebhookBtn"
+                                    class="w-full py-2.5 px-4 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                                <i class="fa-solid fa-bolt text-amber-600"></i>
+                                <span>[Demo] Giả lập Webhook đã nhận tiền</span>
+                            </button>
+                        </div>
+                    @endif
                 </div>
 
-                <!-- Cột phải: Thông tin chi tiết & Hướng dẫn -->
-                <div class="md:col-span-6 space-y-4">
+                <!-- Cột phải (5 cols): Tổng Tiền & Thông tin chi tiết (Kiểu Checkout) -->
+                <div class="md:col-span-5 space-y-4">
                     <!-- Chi tiết thanh toán -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200/90 space-y-4">
-                        <h2 class="text-sm font-bold uppercase tracking-wider text-stone-800 border-b border-stone-100 pb-3 flex items-center justify-between">
-                            <span>Thông tin chuyển khoản</span>
-                            <span class="text-xs font-normal text-stone-500">Đơn hàng #{{ $order->id }}</span>
-                        </h2>
-
-                        <!-- Số tiền -->
-                        <div class="p-3.5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl text-white flex items-center justify-between">
+                        <!-- Card Tổng tiền nổi bật (như ảnh thiết kế) -->
+                        <div class="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-sm flex items-center justify-between">
                             <div>
-                                <span class="text-[11px] text-orange-100 font-medium block">Số tiền cần thanh toán</span>
-                                <span class="text-xl sm:text-2xl font-black tracking-tight">
+                                <span class="text-[11px] uppercase tracking-wider text-blue-100 font-medium block">Tổng thanh toán</span>
+                                <span class="text-xs text-blue-200">Đơn hàng #{{ $order->id }}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-2xl font-black font-mono tracking-tight">
                                     {{ number_format($order->total_price, 0, ',', '.') }}đ
                                 </span>
                             </div>
-                            <button type="button" onclick="copyText('{{ (int)$order->total_price }}', 'Đã sao chép số tiền!')" class="px-2.5 py-1 bg-white/20 hover:bg-white/30 rounded text-xs font-semibold transition-colors">
-                                Sao chép
-                            </button>
                         </div>
 
-                        <!-- Nội dung chuyển khoản (RẤT QUAN TRỌNG) -->
+                        <!-- Phương thức thanh toán -->
+                        <div class="p-3 bg-gray-50 rounded-xl border border-gray-200/80 flex items-center justify-between text-xs">
+                            <span class="text-gray-500">Phương thức thanh toán:</span>
+                            <span class="font-bold text-gray-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-qrcode text-blue-600"></i> VietQR (Napas 247)
+                            </span>
+                        </div>
+
+                        <!-- Nội dung chuyển khoản (BẮT BUỘC ĐỂ ĐỐI SOÁT WEBHOOK) -->
                         <div class="p-3.5 bg-amber-50/70 border border-amber-300 rounded-xl flex items-center justify-between">
                             <div>
-                                <span class="text-[11px] font-bold text-amber-800 uppercase block">Nội dung chuyển khoản (bắt buộc)</span>
-                                <span class="text-base font-black text-[#C25E00] tracking-wider" id="memoText">{{ $memo }}</span>
+                                <span class="text-[10px] font-bold text-amber-800 uppercase block">Nội dung chuyển khoản (bắt buộc)</span>
+                                <span class="text-base font-black text-[#C25E00] tracking-wider font-mono" id="memoText">{{ $memo }}</span>
                             </div>
-                            <button type="button" onclick="copyText('{{ $memo }}', 'Đã sao chép nội dung chuyển khoản!')" class="px-3 py-1.5 bg-[#C25E00] hover:bg-[#A34E00] text-white rounded-lg text-xs font-bold transition-colors shadow-xs">
+                            <button type="button" onclick="copyText('{{ $memo }}', 'Đã sao chép nội dung chuyển khoản!')" class="px-3 py-1.5 bg-[#C25E00] hover:bg-[#A34E00] text-white rounded-lg text-xs font-bold transition-colors shadow-xs cursor-pointer">
                                 Sao chép
                             </button>
                         </div>
 
                         <!-- Thông tin ngân hàng -->
-                        <div class="space-y-2.5 text-xs text-stone-700 pt-1">
+                        <div class="space-y-2.5 text-xs text-stone-700 pt-1 border-t border-stone-100">
                             <div class="flex items-center justify-between py-1.5 border-b border-stone-100">
                                 <span class="text-stone-500">Ngân hàng thụ hưởng:</span>
                                 <span class="font-bold text-stone-900">{{ $bankInfo['bank_name'] }}</span>
@@ -100,34 +114,20 @@
                                 <span class="text-stone-500">Số tài khoản:</span>
                                 <div class="flex items-center gap-2">
                                     <span class="font-mono font-bold text-stone-900 text-sm">{{ $bankInfo['account_no'] }}</span>
-                                    <button type="button" onclick="copyText('{{ $bankInfo['account_no'] }}', 'Đã sao chép số tài khoản!')" class="text-[#C25E00] hover:underline font-bold text-[11px]">
-                                        Copy
+                                    <button type="button" onclick="copyText('{{ $bankInfo['account_no'] }}', 'Đã sao chép số tài khoản!')" class="text-[#C25E00] hover:underline font-bold text-[11px] cursor-pointer">
+                                        Sao chép
                                     </button>
                                 </div>
                             </div>
-                            <div class="flex items-center justify-between py-1.5 border-b border-stone-100">
+                            <div class="flex items-center justify-between py-1.5">
                                 <span class="text-stone-500">Chủ tài khoản:</span>
                                 <span class="font-bold text-stone-900 uppercase">{{ $bankInfo['account_name'] }}</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Hướng dẫn các bước -->
-                    <div class="bg-stone-50 p-5 rounded-2xl border border-stone-200/80 text-xs text-stone-600 space-y-2.5">
-                        <h3 class="font-bold text-stone-800 flex items-center gap-2">
-                            <i class="fa-solid fa-circle-info text-[#C25E00]"></i>
-                            <span>Các bước thanh toán nhanh</span>
-                        </h3>
-                        <ol class="list-decimal list-inside space-y-1.5 text-[11px] leading-relaxed">
-                            <li>Mở ứng dụng Ngân hàng hoặc Ví MoMo trên điện thoại.</li>
-                            <li>Chọn tính năng <strong>Quét mã QR</strong> và hướng camera vào mã bên cạnh.</li>
-                            <li>Kiểm tra đúng số tiền và bấm <strong>Xác nhận thanh toán</strong>.</li>
-                            <li>Hệ thống Webhook sẽ tự động cập nhật đơn hàng của bạn ngay lập tức!</li>
-                        </ol>
-                    </div>
-
                     <!-- Nút quay lại hoặc hỗ trợ -->
-                    <div class="flex items-center justify-between text-xs pt-1">
+                    <div class="flex items-center justify-between text-xs pt-1 px-1">
                         <a href="{{ route('site.cart') }}" class="text-stone-500 hover:text-stone-900 font-medium">
                             <i class="fa-solid fa-arrow-left mr-1"></i> Quay lại giỏ hàng
                         </a>
@@ -145,12 +145,14 @@
 
     <script>
         function copyText(text, message) {
-            navigator.clipboard.writeText(text).then(() => {
-                const toast = document.getElementById('copyToast');
-                toast.textContent = message || 'Đã sao chép!';
-                toast.classList.remove('hidden');
-                setTimeout(() => toast.classList.add('hidden'), 2000);
-            });
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    const toast = document.getElementById('copyToast');
+                    toast.textContent = message || 'Đã sao chép!';
+                    toast.classList.remove('hidden');
+                    setTimeout(() => toast.classList.add('hidden'), 2000);
+                });
+            }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -158,6 +160,21 @@
             const checkStatusUrl = '{{ route("api.payment.check-status", $order->id) }}';
             const thanksUrl = '{{ route("site.thanks") }}';
             let isCompleted = false;
+
+            // Countdown timer đếm ngược 3 phút (180s)
+            let countdownSeconds = 180;
+            const countdownEl = document.getElementById('vietqrCountdown');
+            const countdownTimer = setInterval(function() {
+                countdownSeconds--;
+                if (countdownSeconds <= 0) {
+                    clearInterval(countdownTimer);
+                    if (countdownEl) countdownEl.textContent = 'Hết hạn';
+                } else {
+                    const mins = Math.floor(countdownSeconds / 60).toString().padStart(2, '0');
+                    const secs = (countdownSeconds % 60).toString().padStart(2, '0');
+                    if (countdownEl) countdownEl.textContent = `${mins}:${secs}`;
+                }
+            }, 1000);
 
             // Polling kiểm tra trạng thái thanh toán tự động mỗi 3 giây
             const pollInterval = setInterval(function() {
@@ -169,6 +186,7 @@
                         if (data.success && data.is_paid) {
                             isCompleted = true;
                             clearInterval(pollInterval);
+                            clearInterval(countdownTimer);
 
                             // Hiển thị overlay thành công
                             document.getElementById('paymentSuccessOverlay')?.classList.remove('hidden');

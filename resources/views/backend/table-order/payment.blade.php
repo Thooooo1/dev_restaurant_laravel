@@ -159,82 +159,133 @@
         </div>
     </div>
 
-    <!-- Modal VietQR Cho Khách Quét Trực Tiếp -->
-    <div id="modalVietQr" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-100 overflow-hidden transform transition-all duration-300">
+    <!-- Modal VietQR Hiện Đại Chuẩn UI Kiểu Mới (Theo phong cách Checkout 2 cột) -->
+    <div id="modalVietQr" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-gray-100 overflow-hidden transform transition-all duration-300">
             <!-- Modal Header -->
-            <div class="px-5 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white flex items-center justify-between">
+            <div class="px-6 py-4 bg-stone-900 text-white flex items-center justify-between border-b border-stone-800">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-base">
+                    <div class="w-8 h-8 rounded-lg bg-[#C25E00] flex items-center justify-center text-white text-sm shadow-xs">
                         <i class="fa-solid fa-qrcode"></i>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold uppercase tracking-wider">Thanh Toán Chuyển Khoản VietQR</h3>
-                        <p class="text-[11px] text-blue-100">{{ $table->name }} ({{ $table->floor->name ?? 'Khu vực chính' }})</p>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-white">Thanh Toán Chuyển Khoản VietQR</h3>
+                        <p class="text-[11px] text-stone-400">{{ $table->name }} • {{ $table->floor->name ?? 'Khu vực chính' }} • Đơn #{{ $order->id }}</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeVietQrModal()" class="text-white/80 hover:text-white text-lg w-7 h-7 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors">
+                <button type="button" onclick="closeVietQrModal()" class="text-stone-400 hover:text-white text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-800 transition-colors cursor-pointer">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <!-- Modal Body -->
-            <div class="p-6 text-center space-y-4">
-                <!-- Status Badge -->
-                <div id="posQrStatus" class="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-800 text-xs font-semibold rounded-full border border-amber-200 animate-pulse">
-                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                    <span>Đang chờ khách quét mã & chuyển khoản...</span>
-                </div>
-
-                <!-- QR Image with Success Overlay -->
-                <div class="relative inline-block p-3 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border-2 border-indigo-200 shadow-inner">
-                    <img src="" id="posVietQrImage" alt="VietQR Bàn" class="w-64 h-64 object-contain rounded-xl mx-auto shadow-xs">
+            <!-- Modal Body (2 Cột chuẩn như thiết kế Checkout) -->
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
                     
-                    <div id="posPaymentSuccessOverlay" class="hidden absolute inset-0 bg-white/95 rounded-2xl flex flex-col items-center justify-center p-4 text-center">
-                        <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mb-2 animate-bounce">
-                            <i class="fa-solid fa-circle-check"></i>
+                    <!-- Cột Trái (7 cols): Mã QR Code & Đếm ngược thời gian thực -->
+                    <div class="md:col-span-7 flex flex-col items-center justify-between p-5 bg-[#FAF8F5] rounded-xl border border-stone-200/80 text-center">
+                        <div class="w-full">
+                            <p class="text-xs font-semibold text-stone-700 leading-relaxed mb-3">
+                                Quét mã QR dưới đây bằng ứng dụng Ngân hàng hoặc Ví điện tử để hoàn tất thanh toán.
+                            </p>
+                            
+                            <!-- Khung chứa mã QR trắng tinh tế -->
+                            <div class="relative inline-block p-3 bg-white rounded-xl border border-stone-300/80 shadow-md group">
+                                <img src="" id="posVietQrImage" alt="VietQR Bàn" class="w-60 h-60 sm:w-64 sm:h-64 object-contain rounded-lg mx-auto">
+                                
+                                <!-- Overlay khi nhận tiền thành công -->
+                                <div id="posPaymentSuccessOverlay" class="hidden absolute inset-0 bg-white/95 rounded-xl flex flex-col items-center justify-center p-4 text-center z-10">
+                                    <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl mb-2 animate-bounce">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                    </div>
+                                    <h4 class="text-base font-black text-gray-900">ĐÃ NHẬN TIỀN THÀNH CÔNG!</h4>
+                                    <p class="text-xs text-gray-500 mt-0.5">Webhook ngân hàng đã tự động xác nhận.</p>
+                                    <span class="text-xs text-emerald-600 font-bold mt-2">Đang hoàn tất hóa đơn...</span>
+                                </div>
+                            </div>
                         </div>
-                        <h4 class="text-base font-black text-gray-900">ĐÃ NHẬN TIỀN THÀNH CÔNG!</h4>
-                        <p class="text-xs text-gray-500 mt-0.5">Webhook ngân hàng đã tự động xác nhận.</p>
-                        <span class="text-xs text-emerald-600 font-bold mt-2">Đang hoàn tất hóa đơn...</span>
-                    </div>
-                </div>
 
-                <!-- Transfer Info -->
-                <div class="bg-gray-50 p-4 rounded-xl text-left text-xs space-y-2 border border-gray-100">
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-500">Số tiền:</span>
-                        <span class="text-base font-black text-[#F47716]" id="posQrAmount">0 ₫</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-gray-500">Nội dung chuyển khoản:</span>
-                        <span class="font-mono font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200" id="posQrMemo">BAN{{ $table->id }}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-[11px] pt-1 border-t border-gray-200">
-                        <span class="text-gray-500">Ngân hàng:</span>
-                        <span class="font-bold text-gray-800">{{ config('vietqr.bank_name') }}</span>
-                    </div>
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span class="text-gray-500">Số tài khoản:</span>
-                        <span class="font-mono font-bold text-gray-800">{{ config('vietqr.account_no') }} ({{ config('vietqr.account_name') }})</span>
-                    </div>
-                </div>
+                        <!-- Countdown Timer & Lắng nghe thời gian thực -->
+                        <div class="w-full mt-4 pt-3 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+                            <div class="flex items-center gap-1.5 text-stone-600 font-medium">
+                                <i class="fa-regular fa-clock text-blue-600"></i>
+                                <span>Mã QR có hiệu lực:</span>
+                                <span id="posQrCountdown" class="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">03:00</span>
+                            </div>
 
-                <!-- Controls -->
-                <div class="flex items-center gap-2 pt-2">
-                    <button type="button" 
-                            id="posSimulateBtn"
-                            onclick="simulatePosWebhook()" 
-                            class="flex-1 py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
-                        <i class="fa-solid fa-bolt text-amber-600"></i>
-                        <span>Giả lập Webhook nhận tiền</span>
-                    </button>
-                    <button type="button" 
-                            onclick="handleConfirmPayment()" 
-                            class="flex-1 py-2 px-3 bg-[#52C41A] hover:bg-[#389E0D] text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-xs">
-                        <i class="fa-solid fa-check"></i>
-                        <span>Xác nhận đã nhận tiền</span>
-                    </button>
+                            <div id="posQrStatus" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-50 text-amber-800 text-[11px] font-semibold rounded-full border border-amber-200 animate-pulse">
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                <span>Đang chờ chuyển khoản...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột Phải (5 cols): Tổng Tiền & Chi tiết chuyển khoản & Nút thao tác -->
+                    <div class="md:col-span-5 flex flex-col justify-between space-y-4">
+                        <div class="space-y-3">
+                            <!-- Card Tổng tiền nổi bật (như ảnh thiết kế) -->
+                            <div class="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-sm flex items-center justify-between">
+                                <div>
+                                    <span class="text-[11px] uppercase tracking-wider text-blue-100 font-medium block">Tổng thanh toán</span>
+                                    <span class="text-xs text-blue-200">VietQR Napas 247</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-2xl font-black font-mono tracking-tight" id="posQrAmount">0 ₫</span>
+                                </div>
+                            </div>
+
+                            <!-- Thông tin chuyển khoản chi tiết -->
+                            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200/80 text-xs space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-500">Phương thức:</span>
+                                    <span class="font-bold text-gray-800 flex items-center gap-1">
+                                        <i class="fa-solid fa-qrcode text-blue-600"></i> VietQR (Napas 247)
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between pt-1 border-t border-gray-100">
+                                    <span class="text-gray-500">Nội dung CK:</span>
+                                    <div class="flex items-center gap-1">
+                                        <span class="font-mono font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200" id="posQrMemo">BAN{{ $table->id }}</span>
+                                        <button type="button" onclick="copyPosMemo()" class="text-[11px] text-stone-500 hover:text-blue-600 cursor-pointer p-0.5" title="Sao chép nội dung">
+                                            <i class="fa-regular fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between pt-1 border-t border-gray-100">
+                                    <span class="text-gray-500">Ngân hàng:</span>
+                                    <span class="font-bold text-gray-800">{{ config('vietqr.bank_name') }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-500">Số tài khoản:</span>
+                                    <span class="font-mono font-bold text-gray-800">{{ config('vietqr.account_no') }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-500">Chủ tài khoản:</span>
+                                    <span class="font-bold text-gray-800 uppercase">{{ config('vietqr.account_name') }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nút Thao Tác (Giả lập Webhook & Xác nhận) -->
+                        <div class="space-y-2 pt-2">
+                            <button type="button" 
+                                    onclick="handleConfirmPayment()" 
+                                    class="w-full py-2.5 px-3 bg-[#52C41A] hover:bg-[#389E0D] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm hover:shadow active:scale-[0.99]">
+                                <i class="fa-solid fa-check"></i>
+                                <span>Xác nhận đã nhận tiền</span>
+                            </button>
+
+                            @if(config('payment.mode') === 'demo')
+                                <button type="button" 
+                                        id="posSimulateBtn"
+                                        onclick="simulatePosWebhook()" 
+                                        class="w-full py-2 px-3 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                                    <i class="fa-solid fa-bolt text-amber-600"></i>
+                                    <span>[Demo] Giả lập Webhook nhận tiền</span>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -275,15 +326,59 @@
 
             document.getElementById('modalVietQr').classList.remove('hidden');
 
-            // Bắt đầu polling kiểm tra trạng thái Webhook
+            // Bắt đầu đếm ngược thời gian hiệu lực và polling Webhook
+            startPosCountdown();
             startPosPaymentPolling();
         }
 
         function closeVietQrModal() {
             document.getElementById('modalVietQr').classList.add('hidden');
+            stopPosCountdown();
             if (posPollInterval) {
                 clearInterval(posPollInterval);
                 posPollInterval = null;
+            }
+        }
+
+        let posCountdownSeconds = 180; // 3 phút đếm ngược chuẩn như ảnh 1
+        let posCountdownTimer = null;
+
+        function startPosCountdown() {
+            posCountdownSeconds = 180;
+            updatePosCountdownDisplay();
+            if (posCountdownTimer) clearInterval(posCountdownTimer);
+            posCountdownTimer = setInterval(function() {
+                posCountdownSeconds--;
+                if (posCountdownSeconds <= 0) {
+                    clearInterval(posCountdownTimer);
+                    const el = document.getElementById('posQrCountdown');
+                    if (el) el.textContent = 'Hết hạn';
+                } else {
+                    updatePosCountdownDisplay();
+                }
+            }, 1000);
+        }
+
+        function stopPosCountdown() {
+            if (posCountdownTimer) {
+                clearInterval(posCountdownTimer);
+                posCountdownTimer = null;
+            }
+        }
+
+        function updatePosCountdownDisplay() {
+            const mins = Math.floor(posCountdownSeconds / 60).toString().padStart(2, '0');
+            const secs = (posCountdownSeconds % 60).toString().padStart(2, '0');
+            const el = document.getElementById('posQrCountdown');
+            if (el) el.textContent = `${mins}:${secs}`;
+        }
+
+        function copyPosMemo() {
+            const memo = document.getElementById('posQrMemo')?.textContent;
+            if (memo && navigator.clipboard) {
+                navigator.clipboard.writeText(memo).then(() => {
+                    toastr.success('Đã sao chép nội dung chuyển khoản: ' + memo);
+                });
             }
         }
 
