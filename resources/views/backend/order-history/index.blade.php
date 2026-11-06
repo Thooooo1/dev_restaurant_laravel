@@ -93,10 +93,10 @@
                                 {{ $order->created_at->format('H:i d/m/Y') }}
                             </td>
                             <td>
-                                <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $order->user->fullname ?? $order->name ?? 'Khách lẻ' }}</div>
+                                <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $order->customer_name }}</div>
                             </td>
                             <td class="font-mono text-xs text-[rgba(0,0,0,0.65)]">
-                                {{ $order->user->phone ?? $order->phone ?? '---' }}
+                                {{ $order->customer_phone }}
                             </td>
                             <td class="text-right font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)]">
                                 {{ number_format($order->total_price, 0, ',', '.') }} ₫

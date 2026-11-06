@@ -133,4 +133,40 @@ class Order extends Model
         }
         return (int)$this->orderStyle === 2 ? 'Giao hàng tận nơi' : 'Mang về';
     }
+
+    /**
+     * Tên khách hàng chuẩn xác của đơn hàng (ưu tiên name trên hóa đơn, sau đó là tài khoản khách hàng, loại trừ tài khoản admin/nhân viên)
+     */
+    public function getCustomerNameAttribute(): string
+    {
+        if (!empty(trim($this->name ?? ''))) {
+            return trim($this->name);
+        }
+
+        if ($this->user && $this->user->roles === 'customer') {
+            return $this->user->fullname ?: ($this->user->username ?: 'Khách hàng');
+        }
+
+        if ($this->table_id) {
+            return 'Khách tại bàn';
+        }
+
+        return 'Khách lẻ';
+    }
+
+    /**
+     * Số điện thoại khách hàng chuẩn xác của đơn hàng
+     */
+    public function getCustomerPhoneAttribute(): string
+    {
+        if (!empty(trim($this->phone ?? ''))) {
+            return trim($this->phone);
+        }
+
+        if ($this->user && $this->user->roles === 'customer' && !empty($this->user->phone)) {
+            return $this->user->phone;
+        }
+
+        return '---';
+    }
 }

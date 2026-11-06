@@ -76,8 +76,8 @@
                 <div class="pb-3 border-b border-[#F0F0F0] flex items-center justify-between text-xs">
                     <div>
                         <span class="text-[rgba(0,0,0,0.45)]">Khách:</span>
-                        <strong class="text-[rgba(0,0,0,0.85)] ml-1">{{ $order->user->fullname ?? $order->customer_name ?? 'Khách lẻ' }}</strong>
-                        <span class="text-[rgba(0,0,0,0.45)] ml-1">({{ $order->user->phone ?? $order->customer_phone ?? 'Tại bàn' }})</span>
+                        <strong class="text-[rgba(0,0,0,0.85)] ml-1">{{ $order->customer_name }}</strong>
+                        <span class="text-[rgba(0,0,0,0.45)] ml-1">({{ $order->customer_phone }})</span>
                     </div>
                     <span class="polaris-badge polaris-badge-default">{{ $order->number_of_guests ?? 2 }} khách</span>
                 </div>
@@ -618,8 +618,8 @@
                     const html = generateKitchenTicketHTML({
                         floor: '{{ $table->floor->name ?? '' }}',
                         table: '{{ $table->name }}',
-                        customer_name: '{{ $order->user->fullname ?? $order->customer_name ?? 'Khách lẻ' }}',
-                        customer_phone: '{{ $order->user->phone ?? $order->customer_phone ?? '---' }}',
+                        customer_name: @json($order->customer_name),
+                        customer_phone: @json($order->customer_phone),
                         order_turn: orderTurn,
                         note: note,
                         items
@@ -635,8 +635,8 @@
                 const html = generateKitchenTicketHTML({
                     floor: '{{ $table->floor->name ?? '' }}',
                     table: '{{ $table->name }}',
-                    customer_name: '{{ $order->user->fullname ?? $order->customer_name ?? 'Khách lẻ' }}',
-                    customer_phone: '{{ $order->user->phone ?? $order->customer_phone ?? '---' }}',
+                    customer_name: @json($order->customer_name),
+                    customer_phone: @json($order->customer_phone),
                     order_turn: orderTurn,
                     note: note,
                     items
@@ -692,8 +692,8 @@
             const html = generateCustomerBillHTML({
                 floor: '{{ $table->floor->name ?? '' }}',
                 table: '{{ $table->name }}',
-                customer_name: '{{ $order->user->fullname ?? $order->customer_name ?? 'Khách lẻ' }}',
-                customer_phone: '{{ $order->user->phone ?? $order->customer_phone ?? '---' }}',
+                customer_name: @json($order->customer_name),
+                customer_phone: @json($order->customer_phone),
                 order_id: currentOrderId,
                 items: billItems,
                 total: total

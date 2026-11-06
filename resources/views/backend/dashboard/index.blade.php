@@ -223,11 +223,11 @@
                             <td class="whitespace-nowrap">
                                 <div class="flex items-center gap-2">
                                     <div class="w-6 h-6 rounded-full bg-orange-50 text-[#F47716] font-bold text-[11px] flex items-center justify-center flex-shrink-0">
-                                        {{ mb_substr($ro->name ?? 'K', 0, 1) }}
+                                        {{ mb_substr($ro->customer_name ?? 'K', 0, 1) }}
                                     </div>
                                     <div>
-                                        <div class="font-medium text-xs text-[rgba(0,0,0,0.85)]">{{ $ro->name }}</div>
-                                        <div class="text-[11px] text-[rgba(0,0,0,0.45)]">{{ $ro->phone }}</div>
+                                        <div class="font-medium text-xs text-[rgba(0,0,0,0.85)]">{{ $ro->customer_name }}</div>
+                                        <div class="text-[11px] text-[rgba(0,0,0,0.45)]">{{ $ro->customer_phone }}</div>
                                     </div>
                                 </div>
                             </td>

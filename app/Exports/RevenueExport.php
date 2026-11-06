@@ -56,8 +56,8 @@ class RevenueExport implements FromView, WithStyles, ShouldAutoSize
                 $data[] = [
                     'order_id' => $order->id,
                     'created_at' => $order->created_at->format('d/m/Y H:i'),
-                    'customer_name' => $order->user->fullname ?? $order->name ?? 'Khách lẻ',
-                    'phone' => $order->user->phone ?? $order->phone ?? '',
+                    'customer_name' => $order->customer_name,
+                    'phone' => $order->customer_phone,
                     'product_name' => $detail->product->name ?? 'N/A',
                     'qty' => $detail->qty,
                     'price' => $detail->price,

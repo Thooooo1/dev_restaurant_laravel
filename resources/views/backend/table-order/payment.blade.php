@@ -12,7 +12,7 @@
                         <span class="polaris-badge polaris-badge-warning">Chờ thanh toán</span>
                     </div>
                     <p class="text-xs text-[rgba(0,0,0,0.45)] mt-0.5">
-                        Mã đơn: <span class="font-mono font-medium text-[rgba(0,0,0,0.65)]">#{{ $order->id }}</span> • Khách: <strong>{{ $order->user->fullname ?? $order->name ?? 'Khách lẻ' }}</strong> ({{ $order->user->phone ?? $order->phone ?? 'Tại bàn' }})
+                        Mã đơn: <span class="font-mono font-medium text-[rgba(0,0,0,0.65)]">#{{ $order->id }}</span> • Khách: <strong>{{ $order->customer_name }}</strong> ({{ $order->customer_phone }})
                     </p>
                 </div>
             </div>
@@ -704,8 +704,8 @@
                 return;
             }
 
-            const customerName = @json($order->user->fullname ?? $order->name ?? 'Khách lẻ');
-            const customerPhone = @json($order->user->phone ?? $order->phone ?? '---');
+            const customerName = @json($order->customer_name);
+            const customerPhone = @json($order->customer_phone);
             const floorName = @json($table->floor->name ?? '');
             const tableName = @json($table->name ?? '');
             const orderId = @json($order->id);

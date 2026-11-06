@@ -89,9 +89,9 @@
                                 <span class="px-2 py-0.5 rounded bg-white/10 text-white font-mono text-xs font-bold">#{{ $activeOrder->id }}</span>
                             </div>
                             <h2 class="text-lg font-bold text-white mt-0.5">
-                                {{ $activeOrder->name ?: ($activeOrder->user->fullname ?? 'Khách tại bàn') }}
-                                @if($activeOrder->phone)
-                                    <span class="text-xs text-stone-300 font-normal">({{ $activeOrder->phone }})</span>
+                                {{ $activeOrder->customer_name }}
+                                @if($activeOrder->customer_phone && $activeOrder->customer_phone !== '---')
+                                    <span class="text-xs text-stone-300 font-normal">({{ $activeOrder->customer_phone }})</span>
                                 @endif
                             </h2>
                         </div>
