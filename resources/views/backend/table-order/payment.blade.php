@@ -53,9 +53,8 @@
                 <button type="button" 
                         id="openVietQrModalBtn" 
                         onclick="openVietQrModal()" 
-                        class="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded text-xs font-bold shadow-xs flex items-center gap-1.5 cursor-pointer transition-all">
-                    <i class="fa-solid fa-qrcode text-sm"></i>
-                    <span>Mở mã QR cho khách quét</span>
+                        class="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded text-xs font-bold shadow-xs flex items-center justify-center cursor-pointer transition-all">
+                    <span>Mở mã QR</span>
                 </button>
             </div>
             <div class="flex items-center gap-2 sm:justify-end">
