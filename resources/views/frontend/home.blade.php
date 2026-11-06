@@ -61,37 +61,39 @@
                             ? asset('images/banner/' . $imgFile)
                             : asset('images/banner/' . $fallback['image']);
                     @endphp
-                    <div class="hero-slide-item relative w-full min-h-[520px] sm:min-h-[580px] lg:min-h-[640px] flex items-center outline-none">
+                    <div class="hero-slide-item relative w-full min-h-[580px] sm:min-h-[660px] lg:min-h-[720px] flex items-end outline-none">
                         <!-- High-Res Background Image -->
                         <div class="absolute inset-0 overflow-hidden">
                             <img src="{{ $imgUrl }}" 
                                  alt="{{ $titleText }}" 
-                                 class="w-full h-full object-cover brightness-[0.80] scale-100 transition-transform duration-700 ease-out">
-                            <div class="absolute inset-0 bg-black/40"></div>
+                                 class="w-full h-full object-cover brightness-[0.78] scale-100 transition-transform duration-700 ease-out">
+                            <!-- Gradient Scrim tối dần xuống dưới giúp chữ to ở nửa dưới cực kỳ rõ nét -->
+                            <div class="absolute inset-0 bg-gradient-to-t from-stone-950/95 via-stone-950/50 to-stone-950/20"></div>
+                            <div class="absolute inset-0 bg-gradient-to-r from-stone-950/80 via-transparent to-transparent w-full md:w-2/3"></div>
                         </div>
 
-                        <!-- Slide Content: Đơn giản, thoáng đãng, chữ trắng to rõ như trước -->
-                        <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 py-16 sm:py-20">
-                            <div class="max-w-2xl text-left text-white">
+                        <!-- Slide Content: Chữ to hơn và dịch xuống dưới theo đúng yêu cầu -->
+                        <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 pt-28 sm:pt-36 pb-16 sm:pb-20 lg:pb-24">
+                            <div class="max-w-3xl text-left text-white">
 
-                                <!-- Headline To Rõ Toàn Bộ Chữ Trắng Chuẩn Ảnh Cũ -->
-                                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight tracking-tight drop-shadow-md">
+                                <!-- Headline Chữ To Hơn, Cực Kỳ Bề Thế & Rõ Nét -->
+                                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-[64px] xl:text-[72px] font-black text-white mb-5 leading-[1.15] tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)]">
                                     {{ $titleText }}
                                 </h1>
 
-                                <!-- Subtitle Dễ Đọc -->
-                                <p class="text-sm sm:text-base md:text-lg text-white/95 font-normal leading-relaxed max-w-xl mb-7 drop-shadow-sm">
+                                <!-- Subtitle Chữ To Hơn & Dễ Đọc -->
+                                <p class="text-base sm:text-lg md:text-xl lg:text-[21px] text-white/95 font-medium leading-relaxed max-w-2xl mb-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                                     {{ $descText }}
                                 </p>
 
-                                <!-- Hai Nút Chuẩn Trước Đó: XEM THỰC ĐƠN & ĐẶT BÀN TRƯỚC -->
-                                <div class="flex flex-wrap items-center gap-3.5">
+                                <!-- Hai Nút Bấm To Rõ: XEM THỰC ĐƠN & ĐẶT BÀN TRƯỚC -->
+                                <div class="flex flex-wrap items-center gap-4">
                                     <a href="{{ route('site.product.gridview') }}" 
-                                       class="px-6 sm:px-8 py-3 rounded-none sm:rounded-sm bg-[#F47716] hover:bg-[#EA580C] text-white font-extrabold text-xs uppercase tracking-wider transition-colors shadow-md">
+                                       class="px-8 sm:px-10 py-3.5 sm:py-4 rounded-none sm:rounded-sm bg-[#F47716] hover:bg-[#EA580C] text-white font-black text-xs sm:text-sm uppercase tracking-wider transition-all shadow-lg hover:shadow-orange-500/30 hover:-translate-y-0.5 active:translate-y-0">
                                         <span>XEM THỰC ĐƠN</span>
                                     </a>
                                     <a href="{{ route('site.booking') }}" 
-                                       class="px-6 sm:px-8 py-3 rounded-none sm:rounded-sm bg-stone-900/40 hover:bg-white text-white hover:text-stone-900 border border-white/60 hover:border-white font-extrabold text-xs uppercase tracking-wider backdrop-blur-xs transition-colors">
+                                       class="px-8 sm:px-10 py-3.5 sm:py-4 rounded-none sm:rounded-sm bg-stone-900/60 hover:bg-white text-white hover:text-stone-900 border border-white/60 hover:border-white font-black text-xs sm:text-sm uppercase tracking-wider backdrop-blur-xs transition-all shadow-lg hover:-translate-y-0.5 active:translate-y-0">
                                         <span>ĐẶT BÀN TRƯỚC</span>
                                     </a>
                                 </div>
