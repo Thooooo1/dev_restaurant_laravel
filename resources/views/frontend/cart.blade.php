@@ -1,16 +1,17 @@
 <x-layout-frontend>
     @php
-        $cart = session()->get('cart_' . Auth::id(), []);
-        $cartTotal = array_sum(array_map(fn($item) => $item['price'] * $item['qty'], $cart));
+        $cartKey = Auth::check() ? ('cart_' . Auth::id()) : ('cart_guest_' . session()->getId());
+        $cart = $cart ?? session()->get($cartKey, []);
+        $cartTotal = !empty($cart) ? array_sum(array_map(fn($item) => $item['price'] * $item['qty'], $cart)) : 0;
     @endphp
 
     <main class="bg-[#FAF8F5] min-h-screen pb-16">
         <!-- Page Breadcrumb & Header -->
         <x-page-hero 
-            :title="session('is_table_order') ? ('Gọi Món — ' . session('table_name')) : 'Giỏ Hàng Món Ăn'" 
-            :subtitle="session('is_table_order') ? 'Các món ăn bạn đã chọn cho bàn hiện tại.' : 'Danh sách món ăn quý khách đã chọn tại CIVILIZE Restaurant.'" 
+            :title="session('is_table_order') ? ('Gọi Món Bàn ' . session('table_name')) : 'Giỏ Hàng Giao Tận Nơi'" 
+            :subtitle="session('is_table_order') ? 'Các món ăn bạn đã chọn cho bàn hiện tại.' : 'Danh sách món ăn quý khách đã chọn giao tận nơi tại CIVILIZE Restaurant.'" 
             :breadcrumbs="[
-                ['name' => session('is_table_order') ? ('Gọi món ' . session('table_name')) : 'Giỏ hàng', 'url' => '']
+                ['name' => session('is_table_order') ? ('Gọi món ' . session('table_name')) : 'Giỏ hàng giao tận nơi', 'url' => '']
             ]" 
         />
 
@@ -38,25 +39,8 @@
                 </div>
             @endif
 
-            @if(!Auth::check())
-                <div class="bg-white rounded-none sm:rounded-sm border border-stone-200/90 p-8 sm:p-12 text-center max-w-xl mx-auto shadow-2xs">
-                    <span class="inline-block px-3 py-1 bg-orange-100 text-[#C25E00] text-xs font-bold uppercase tracking-wider rounded-sm mb-3">
-                        Tài khoản thành viên
-                    </span>
-                    <h2 class="text-2xl font-bold font-serif text-stone-900 mb-6">Đăng Nhập Tài Khoản</h2>
-                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-                        <a href="{{ route('site.login') }}" 
-                           class="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3 rounded-none sm:rounded-sm bg-[#C25E00] hover:bg-[#A34E00] text-white font-bold text-sm transition-colors shadow-xs">
-                            Đăng Nhập Ngay
-                        </a>
-                        <a href="{{ route('site.register') }}" 
-                           class="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3 rounded-none sm:rounded-sm border border-stone-300 hover:border-stone-900 text-stone-800 hover:text-stone-900 font-bold text-sm transition-colors bg-white">
-                            Tạo Tài Khoản
-                        </a>
-                    </div>
-                </div>
-            @elseif(count($cart) == 0)
-                <!-- 1. Hộp thông báo giỏ trống ấm cúng, tinh tế, không viền cam cứng đờ -->
+            @if(count($cart) == 0)
+                <!-- 1. Hộp thông báo giỏ trống ấm cúng, tinh tế -->
                 <div class="bg-white rounded-none sm:rounded-sm border border-stone-200/90 p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-2xs mb-12">
                     <span class="inline-block px-3 py-1 bg-stone-100 text-stone-600 text-xs font-bold uppercase tracking-wider rounded-sm mb-3">
                         Giỏ hàng
@@ -67,17 +51,17 @@
                     </h2>
                     
                     <p class="text-stone-600 text-sm sm:text-[15px] max-w-lg mx-auto mb-7 leading-relaxed">
-                        Quý khách vui lòng chọn các món ăn từ thực đơn của nhà hàng để thêm vào giỏ, hoặc đặt bàn trước để nhân viên chuẩn bị chu đáo nhất.
+                        Quý khách vui lòng chọn các món ăn từ thực đơn của nhà hàng để thêm vào giỏ hàng giao tận nơi.
                     </p>
                     
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5">
                         <a href="{{ route('site.product.gridview') }}" 
                            class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 rounded-none sm:rounded-sm bg-[#C25E00] hover:bg-[#A34E00] text-white font-bold text-sm transition-all shadow-xs">
-                            <span>Khám Phá Thực Đơn Quán</span>
+                            <span>Khám Phá Thực Đơn</span>
                         </a>
-                        <a href="{{ route('site.booking') }}" 
+                        <a href="{{ route('site.product.gridview') }}" 
                            class="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-none sm:rounded-sm bg-white hover:bg-stone-50 border border-stone-300 text-stone-800 font-bold text-sm transition-all shadow-2xs">
-                            <span>Đặt Bàn Trực Tuyến</span>
+                            <span>Tiếp Tục Mua Sắm</span>
                         </a>
                     </div>
                 </div>
@@ -286,7 +270,7 @@
                                 @else
                                     <a href="{{ route('site.checkoutForm') }}" 
                                        class="w-full py-3.5 rounded-none sm:rounded-sm bg-[#C25E00] hover:bg-[#A34E00] text-white font-bold text-sm tracking-wide shadow-xs hover:shadow-md transition-all flex items-center justify-center text-center cursor-pointer">
-                                        <span>Tiến Hành Đặt Đơn</span>
+                                        <span>Tiến Hành Đặt Hàng</span>
                                     </a>
                                 @endif
 
