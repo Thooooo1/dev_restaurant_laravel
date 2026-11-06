@@ -14,16 +14,13 @@
     </div>
 
     <!-- Stats Card (Ant Design Pro / IBM Carbon Style - Phẳng, thanh lịch, không gradient) -->
-    <div class="ant-card p-4 mb-4 shadow-sm flex items-center justify-between">
+    <div class="ant-card p-4 mb-4 shadow-sm">
         <div>
             <p class="text-xs text-[rgba(0,0,0,0.45)] font-semibold uppercase tracking-wider">Tổng doanh thu thực tế (theo bộ lọc)</p>
             <p class="text-2xl font-bold font-mono text-[rgba(0,0,0,0.85)] mt-1">
                 {{ number_format($totalRevenue, 0, ',', '.') }}
                 <span class="text-sm font-normal text-[rgba(0,0,0,0.45)]">₫</span>
             </p>
-        </div>
-        <div class="w-10 h-10 rounded bg-[#FFF2E8] text-[#F47716] flex items-center justify-center border border-[#FFBB96]">
-            <i class="fa-solid fa-sack-dollar text-sm"></i>
         </div>
     </div>
 
