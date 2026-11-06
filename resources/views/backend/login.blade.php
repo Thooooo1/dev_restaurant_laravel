@@ -43,12 +43,13 @@
         <form action="{{ route('admin.dologin') }}" method="POST" class="space-y-4">
             @csrf
             <div>
-                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Số điện thoại</label>
+                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">Tên đăng nhập hoặc Số điện thoại</label>
                 <input type="text" 
                        name="phone" 
+                       id="adminLoginInput"
                        required
                        class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-none sm:rounded-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#C25E00] focus:bg-white transition-all" 
-                       placeholder="Ví dụ: 0912345678">
+                       placeholder="Ví dụ: admin1 hoặc nhanvien1">
             </div>
 
             <div>
@@ -57,9 +58,31 @@
                 </div>
                 <input type="password" 
                        name="password" 
+                       id="adminPasswordInput"
                        required
                        class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-none sm:rounded-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#C25E00] focus:bg-white transition-all" 
                        placeholder="••••••••">
+            </div>
+
+            <!-- Gợi ý tài khoản demo 1-click -->
+            <div class="p-3 bg-amber-50/80 border border-amber-200/80 rounded-none sm:rounded-sm text-xs">
+                <div class="text-[11px] font-bold text-amber-900 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                    <span><i class="fa-solid fa-key mr-1 text-[#C25E00]"></i> Tài khoản Demo (Mật khẩu: 123456):</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" 
+                            onclick="fillAdminLogin('admin1', '123456')" 
+                            class="py-1.5 px-2 bg-white hover:bg-stone-100 text-stone-800 border border-stone-200 rounded-none text-left font-semibold text-[11px] transition cursor-pointer flex flex-col">
+                        <span class="font-bold text-[#C25E00]">Quản trị viên:</span>
+                        <span class="text-stone-500 font-mono">admin1</span>
+                    </button>
+                    <button type="button" 
+                            onclick="fillAdminLogin('nhanvien1', '123456')" 
+                            class="py-1.5 px-2 bg-white hover:bg-stone-100 text-stone-800 border border-stone-200 rounded-none text-left font-semibold text-[11px] transition cursor-pointer flex flex-col">
+                        <span class="font-bold text-[#C25E00]">Nhân viên POS:</span>
+                        <span class="text-stone-500 font-mono">nhanvien1</span>
+                    </button>
+                </div>
             </div>
 
             <div class="pt-2">
@@ -68,6 +91,13 @@
                 </button>
             </div>        
         </form>
+
+        <script>
+            function fillAdminLogin(username, password) {
+                document.getElementById('adminLoginInput').value = username;
+                document.getElementById('adminPasswordInput').value = password;
+            }
+        </script>
     </div>
 </body>
 </html>

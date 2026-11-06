@@ -22,13 +22,25 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $loginInput = trim($request->phone);
+        $rawInput = trim($request->phone);
+        $noSpaceInput = str_replace(' ', '', $rawInput);
         $password = $request->password;
 
-        // Thử tìm tài khoản theo Số điện thoại hoặc Tên đăng nhập (username)
-        $user = \App\Models\User::where('phone', $loginInput)
-            ->orWhere('username', $loginInput)
-            ->first();
+        // Thử tìm tài khoản theo Số điện thoại, Tên đăng nhập (username - hỗ trợ cả 'admin 1' và 'admin1') hoặc Email
+        $user = \App\Models\User::where('phone', $rawInput)
+            ->orWhere('username', $rawInput)
+            ->orWhere('username', $noSpaceInput)
+            ->orWhere('email', $rawInput)
+            ->orWhere('email', $noSpaceInput);
+
+        // Alias tiện dụng cho demo
+        if (in_array(strtolower($rawInput), ['admin', 'admin 1', 'admin1'])) {
+            $user->orWhere('username', 'admin1');
+        } elseif (in_array(strtolower($rawInput), ['nhanvien', 'nhanvien 1', 'nhanvien1'])) {
+            $user->orWhere('username', 'nhanvien1');
+        }
+
+        $user = $user->first();
 
         if (!$user) {
             return redirect()->route('admin.login')->with('error', 'Tài khoản không tồn tại trong hệ thống!')->withInput();
@@ -52,7 +64,8 @@ class AuthController extends Controller
         Auth::login($user);
 
         // Điều hướng chính xác theo phân quyền:
-        if ($user->roles === 'employee') {
+        // Nhân viên (admin_lever = 2 hoặc roles = employee) vào màn hình POS gọi món tại bàn
+        if ($user->admin_lever == 2 || $user->roles === 'employee') {
             return redirect()->route('admin.table-order.index')->with('success', 'Đăng nhập thành công! Chào mừng nhân viên ' . $user->fullname . '.');
         }
 

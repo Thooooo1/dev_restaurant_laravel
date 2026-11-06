@@ -39,6 +39,23 @@
                                placeholder="Mật khẩu" 
                                required>
                     </div>
+
+                    <!-- GỢI Ý TÀI KHOẢN DEMO 1-CLICK -->
+                    <div class="p-3.5 bg-amber-50/90 border border-amber-200 rounded-xl text-xs">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="font-bold text-amber-900 text-xs flex items-center gap-1.5">
+                                <i class="fa-solid fa-key text-[#C25E00]"></i>
+                                <span>Tài khoản Demo Khách Hàng:</span>
+                            </span>
+                            <span class="text-[11px] font-semibold text-stone-500">Mật khẩu: <strong class="text-stone-800">123456</strong></span>
+                        </div>
+                        <button type="button" 
+                                onclick="fillCustomerLogin('khachhang1', '123456')" 
+                                class="w-full py-2 px-3 bg-white hover:bg-stone-50 border border-amber-200/80 rounded-lg text-left flex items-center justify-between transition cursor-pointer">
+                            <span class="font-bold text-[#C25E00] text-xs">khachhang1</span>
+                            <span class="text-[11px] text-stone-500 underline font-medium">Bấm để điền nhanh</span>
+                        </button>
+                    </div>
                 
                     <!-- 3. NÚT ĐĂNG NHẬP -->
                     <div class="pt-2">
@@ -48,6 +65,15 @@
                         </button>
                     </div>
                 </form>
+
+                <script>
+                    function fillCustomerLogin(username, password) {
+                        const inputPhone = document.getElementById('phone');
+                        const inputPass = document.getElementById('password');
+                        if (inputPhone) inputPhone.value = username;
+                        if (inputPass) inputPass.value = password;
+                    }
+                </script>
 
                 <!-- 4. CHUYỂN SANG ĐĂNG KÝ -->
                 <div class="mt-6 pt-5 border-t border-stone-100 text-center text-xs sm:text-sm text-stone-600">

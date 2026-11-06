@@ -36,11 +36,18 @@ class AuthController extends Controller
              return redirect()->route('site.login')->with('error', 'Vui lòng nhập mật khẩu!')->withInput();
         }
 
+        $noSpaceInput = str_replace(' ', '', $rawInput);
+
         // Tìm user theo email, số điện thoại đã chuẩn hóa hoặc tên đăng nhập
         $user = User::where('status', 1)
-            ->where(function($q) use ($phone, $rawInput) {
+            ->where(function($q) use ($phone, $rawInput, $noSpaceInput) {
                 $q->where('email', $rawInput)
-                  ->orWhere('username', $rawInput);
+                  ->orWhere('email', $noSpaceInput)
+                  ->orWhere('username', $rawInput)
+                  ->orWhere('username', $noSpaceInput);
+                if (in_array(strtolower($rawInput), ['khachhang', 'khachhang 1', 'khachhang1'])) {
+                    $q->orWhere('username', 'khachhang1');
+                }
                 if (!empty($phone) && strlen($phone) >= 9) {
                     $q->orWhere('phone', $phone);
                 }
