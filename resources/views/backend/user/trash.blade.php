@@ -34,10 +34,12 @@
                                 <td>{{ $user->email }}</td>
                                 <td>{{ $user->phone }}</td>
                                 <td>
-                                    <a href="{{ route('admin.user.restore', ['user' => $user->id]) }}" class="bg-blue-600 hover:bg-blue-700  rounded px-4 py-2 inline-flex items-center space-x-2">
-                                        <i class="fa-solid fa-arrow-rotate-left"></i>
-                                        
-                                    </a>
+                                    <form action="{{ route('admin.user.restore', ['user' => $user->id]) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 rounded px-4 py-2 inline-flex items-center space-x-2 text-white cursor-pointer" title="Khôi phục">
+                                            <i class="fa-solid fa-arrow-rotate-left"></i>
+                                        </button>
+                                    </form>
                                     <form action="{{ route('admin.user.destroy', ['user' => $user->id]) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')

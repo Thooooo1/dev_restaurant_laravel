@@ -59,9 +59,9 @@
                            class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-3.5 rounded-none sm:rounded-sm bg-[#C25E00] hover:bg-[#A34E00] text-white font-bold text-sm transition-all shadow-xs">
                             <span>Khám Phá Thực Đơn</span>
                         </a>
-                        <a href="{{ route('site.product.gridview') }}" 
+                        <a href="{{ route('site.home') }}" 
                            class="w-full sm:w-auto inline-flex items-center justify-center px-7 py-3.5 rounded-none sm:rounded-sm bg-white hover:bg-stone-50 border border-stone-300 text-stone-800 font-bold text-sm transition-all shadow-2xs">
-                            <span>Tiếp Tục Mua Sắm</span>
+                            <span>Về Trang Chủ</span>
                         </a>
                     </div>
                 </div>

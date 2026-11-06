@@ -60,8 +60,9 @@ class AuthController extends Controller
             return redirect()->route('admin.login')->with('error', 'Tài khoản của bạn đang bị khóa hoặc ngừng kích hoạt!')->withInput();
         }
 
-        // Đăng nhập hợp lệ
+        // Đăng nhập hợp lệ và tái tạo Session ID để chống tấn công Session Fixation
         Auth::login($user);
+        $request->session()->regenerate();
 
         // Điều hướng chính xác theo phân quyền:
         // Nhân viên (admin_lever = 2 hoặc roles = employee) vào màn hình POS gọi món tại bàn

@@ -112,9 +112,12 @@
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $user->email ?: '---' }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-center">
                                     @if (Auth::user()->admin_lever == 1 || Auth::user()->id == $user->id)
-                                        <a href="{{ route('admin.user.toggleLine', $user->id) }}" class="inline-flex items-center justify-center w-8 h-8 {{ $user->line == 1 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600' }} rounded-lg text-sm transition-all hover:{{ $user->line == 1 ? 'bg-green-100' : 'bg-red-100' }}" title="{{ $user->line == 1 ? 'Online' : 'Offline' }}">
-                                            <i class="fas {{ $user->line == 1 ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
-                                        </a>
+                                        <form action="{{ route('admin.user.toggleLine', $user->id) }}" method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit" class="inline-flex items-center justify-center w-8 h-8 {{ $user->line == 1 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600' }} rounded-lg text-sm transition-all hover:{{ $user->line == 1 ? 'bg-green-100' : 'bg-red-100' }} cursor-pointer" title="{{ $user->line == 1 ? 'Online' : 'Offline' }}">
+                                                <i class="fas {{ $user->line == 1 ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
+                                            </button>
+                                        </form>
                                     @endif
                                     <a href="{{ route('admin.user.show', ['user' => $user->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100 ml-1">
                                         <i class="fa-regular fa-eye"></i>
@@ -122,9 +125,12 @@
                                     <a href="{{ route('admin.user.edit', ['user' => $user->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-orange-50 text-orange-600 rounded-lg text-sm transition-all hover:bg-orange-100 ml-1">
                                         <i class="fa-regular fa-pen-to-square"></i>
                                     </a>
-                                    <a href="{{ route('admin.user.delete', ['user' => $user->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-lg text-sm transition-all hover:bg-red-100 ml-1">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </a>
+                                    <form action="{{ route('admin.user.delete', ['user' => $user->id]) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa?')">
+                                        @csrf
+                                        <button type="submit" class="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-lg text-sm transition-all hover:bg-red-100 ml-1 cursor-pointer" title="Xóa nhân viên">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-center text-sm text-slate-600">
                                     {{ $user->id }}
@@ -165,12 +171,14 @@
                                        title="Chỉnh sửa thông tin">
                                         <i class="fa-regular fa-pen-to-square"></i>
                                     </a>
-                                    <a href="{{ route('admin.user.delete', ['user' => $user->id]) }}" 
-                                       class="inline-flex items-center justify-center w-7 h-7 bg-red-50 text-rose-600 rounded-md text-xs hover:bg-rose-600 hover:text-white transition-colors ml-1" 
-                                       title="Xóa khách hàng" 
-                                       onclick="return confirm('Bạn có chắc chắn muốn xóa khách hàng {{ $user->fullname }}?')">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </a>
+                                    <form action="{{ route('admin.user.delete', ['user' => $user->id]) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách hàng {{ $user->fullname }}?')">
+                                        @csrf
+                                        <button type="submit" 
+                                                class="inline-flex items-center justify-center w-7 h-7 bg-red-50 text-rose-600 rounded-md text-xs hover:bg-rose-600 hover:text-white transition-colors ml-1 cursor-pointer" 
+                                                title="Xóa khách hàng">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             @endif
                         </tr>

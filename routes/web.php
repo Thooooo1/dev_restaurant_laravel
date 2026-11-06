@@ -434,14 +434,14 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::post('/store', [UserController::class, 'store'])->name('admin.user.store');
             Route::delete('/{user}/destroy', [UserController::class, 'destroy'])->name('admin.user.destroy');
             Route::get('/{user}/edit', [UserController::class, 'edit'])->name('admin.user.edit');
-            Route::match(['get', 'post'], '/{user}/delete', [UserController::class, 'delete'])->name('admin.user.delete');
+            Route::post('/{user}/delete', [UserController::class, 'delete'])->name('admin.user.delete');
             Route::get('/trash', [UserController::class, 'trash'])->name('admin.user.trash');
-            Route::match(['get', 'post'], '/{user}/status', [UserController::class, 'status'])->name('admin.user.status');
-            Route::match(['get', 'post'], '/{user}/restore', [UserController::class, 'restore'])->name('admin.user.restore');
-            Route::match(['get', 'post'], '/{user}/remove-admin', [UserController::class, 'removeAdmin'])->name('admin.user.removeAdmin');
-            Route::match(['get', 'post'], '/{user}/add-admin', [UserController::class, 'addAdmin'])->name('admin.user.addAdmin');
+            Route::post('/{user}/status', [UserController::class, 'status'])->name('admin.user.status');
+            Route::post('/{user}/restore', [UserController::class, 'restore'])->name('admin.user.restore');
+            Route::post('/{user}/remove-admin', [UserController::class, 'removeAdmin'])->name('admin.user.removeAdmin');
+            Route::post('/{user}/add-admin', [UserController::class, 'addAdmin'])->name('admin.user.addAdmin');
         });
-        Route::match(['get', 'post'], '/user/{user}/toggle-line', [UserController::class, 'toggleLine'])->name('admin.user.toggleLine');
+        Route::post('/user/{user}/toggle-line', [UserController::class, 'toggleLine'])->name('admin.user.toggleLine');
 
         // Keywords
         Route::prefix('keyword')->group(function () {

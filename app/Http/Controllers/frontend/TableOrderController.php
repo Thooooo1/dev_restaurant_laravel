@@ -239,6 +239,10 @@ class TableOrderController extends Controller
      */
     public function confirmPayment(Request $request, $id)
     {
+        if (config('payment.mode') !== 'demo') {
+            return back()->with('error', 'Thanh toán sẽ tự động xác nhận khi hệ thống ngân hàng nhận tiền.');
+        }
+
         $table = Table::find($id);
         $orderId = $request->input('order_id', session('table_order_id'));
 

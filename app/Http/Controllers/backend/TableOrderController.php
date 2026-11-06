@@ -877,22 +877,22 @@ class TableOrderController extends Controller
         return DB::transaction(function () use ($request) {
             $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
 
-            // Chống thanh toán 2 lần
-            if ((int)$order->status === 2) {
+            // Chống thanh toán 2 lần & chỉ cho phép thanh toán hóa đơn đang mở (status 0 hoặc 1)
+            if (!in_array((int)$order->status, [0, 1])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Hóa đơn này đã được thanh toán trước đó.'
+                    'message' => 'Hóa đơn này không ở trạng thái hợp lệ để thanh toán hoặc đã hoàn tất trước đó.'
                 ], 400);
             }
 
-            // Tính lại chính xác tổng tiền từ các chi tiết món hợp lệ trong DB
-            $actualTotal = Orderdetail::where('order_id', $order->id)
+            // Tính lại chính xác tổng tiền từ các chi tiết món hợp lệ trong DB (tuyệt đối không tin tưởng client)
+            $actualTotal = (float) Orderdetail::where('order_id', $order->id)
                 ->where('status', '!=', 'cancelled')
                 ->sum('amount');
 
             $order->status = 2; // Đã thanh toán
             $order->payment_method = $request->payment_method;
-            $order->total_price = $actualTotal > 0 ? $actualTotal : $request->total_price;
+            $order->total_price = $actualTotal;
             $order->save();
 
             // Clear table lock cho các bàn liên kết
