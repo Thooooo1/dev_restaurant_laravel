@@ -100,20 +100,20 @@
                             </td>
                             <td class="text-left" style="text-align: left !important;">
                                 @if ($product->kitchen_area === 'Quầy pha chế')
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                        <i class="fa-solid fa-mug-hot text-[10px]"></i> {{ $product->kitchen_area }}
+                                    <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                                        {{ $product->kitchen_area }}
                                     </span>
                                 @elseif ($product->kitchen_area === 'Bếp nướng')
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                                        <i class="fa-solid fa-fire text-[10px]"></i> {{ $product->kitchen_area }}
+                                    <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                                        {{ $product->kitchen_area }}
                                     </span>
                                 @elseif ($product->kitchen_area === 'Bếp nóng')
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
-                                        <i class="fa-solid fa-kitchen-set text-[10px]"></i> {{ $product->kitchen_area }}
+                                    <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
+                                        {{ $product->kitchen_area }}
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        <i class="fa-solid fa-bowl-food text-[10px]"></i> {{ $product->kitchen_area }}
+                                    <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        {{ $product->kitchen_area }}
                                     </span>
                                 @endif
                             </td>
