@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'login-admin' => LoginAdmin::class,
             'admin-access' => AdminAccess::class,
+            'payment-demo' => \App\Http\Middleware\EnsurePaymentDemoMode::class,
         ]);
         $middleware->appendToGroup('login-admin', [
             LoginAdmin::class,

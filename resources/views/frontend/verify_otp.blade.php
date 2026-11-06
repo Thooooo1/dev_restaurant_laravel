@@ -18,6 +18,7 @@
                 {{-- HIỂN THỊ OTP TO RÕ, ĐẬM CHẤT ARCHITECTURAL --}}
                 @if (isset($otp_display))
                     <div class="bg-amber-50/80 border border-amber-300 text-stone-900 p-4 rounded-none sm:rounded-sm mb-6 text-center shadow-2xs">
+                        <div class="text-[10px] font-bold uppercase tracking-widest text-amber-800 bg-amber-200/60 inline-block px-2.5 py-1 mb-2 rounded-xs">[Môi Trường Thử Nghiệm - Mã OTP Mô Phỏng Qua SMS]</div>
                         <div class="text-xs font-bold uppercase tracking-widest text-[#C25E00] mb-1">Mã OTP Của Quý Khách</div>
                         <div class="text-3xl sm:text-4xl font-mono font-black tracking-[0.25em] text-stone-900 my-1">{{ $otp_display }}</div>
                         <div class="text-[11px] text-stone-500 font-medium">Mã có hiệu lực trong vòng 10 phút</div>

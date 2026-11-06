@@ -95,8 +95,12 @@ Route::get('/cart/available-tables', [GiohangController::class, 'getAvailableTab
 // Momo Callback
 Route::get('/checkout/return', [GiohangController::class, 'momoReturn'])->name('site.momo.return');
 Route::post('/checkout/ipn', [GiohangController::class, 'momoIpn'])->name('site.momo.ipn');
-Route::get('/checkout/momo-sandbox/{order}', [GiohangController::class, 'momoSandboxPay'])->name('site.momo.sandbox');
-Route::post('/checkout/momo-sandbox/{order}/confirm', [GiohangController::class, 'momoSandboxConfirm'])->name('site.momo.sandbox.confirm');
+
+// Momo Sandbox Giả lập (Chỉ khả dụng ở chế độ PAYMENT_MODE=demo)
+Route::middleware('payment-demo')->group(function () {
+    Route::get('/checkout/momo-sandbox/{order}', [GiohangController::class, 'momoSandboxPay'])->name('site.momo.sandbox');
+    Route::post('/checkout/momo-sandbox/{order}/confirm', [GiohangController::class, 'momoSandboxConfirm'])->name('site.momo.sandbox.confirm');
+});
 
 // VietQR Online Payment (Quét mã VietQR trực tuyến)
 Route::get('/checkout/vietqr/{order}', [GiohangController::class, 'vietqrPay'])->name('site.vietqr.pay');
@@ -107,7 +111,11 @@ Route::prefix('api')->group(function () {
     Route::post('/webhook/sepay', [App\Http\Controllers\api\PaymentWebhookController::class, 'handleWebhook'])->name('api.payment.sepay');
     Route::post('/webhook/casso', [App\Http\Controllers\api\PaymentWebhookController::class, 'handleWebhook'])->name('api.payment.casso');
     Route::get('/payment/check-status/{orderId}', [App\Http\Controllers\api\PaymentWebhookController::class, 'checkPaymentStatus'])->name('api.payment.check-status');
-    Route::post('/payment/simulate-webhook', [App\Http\Controllers\api\PaymentWebhookController::class, 'simulateWebhook'])->name('api.payment.simulate-webhook');
+    
+    // Giả lập webhook (Chỉ hoạt động ở PAYMENT_MODE=demo)
+    Route::middleware('payment-demo')->group(function () {
+        Route::post('/payment/simulate-webhook', [App\Http\Controllers\api\PaymentWebhookController::class, 'simulateWebhook'])->name('api.payment.simulate-webhook');
+    });
 });
 
 // Alias routes cho webhook bên thứ 3 (không cần prefix api)
@@ -426,14 +434,14 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::post('/store', [UserController::class, 'store'])->name('admin.user.store');
             Route::delete('/{user}/destroy', [UserController::class, 'destroy'])->name('admin.user.destroy');
             Route::get('/{user}/edit', [UserController::class, 'edit'])->name('admin.user.edit');
-            Route::get('/{user}/delete', [UserController::class, 'delete'])->name('admin.user.delete');
+            Route::match(['get', 'post'], '/{user}/delete', [UserController::class, 'delete'])->name('admin.user.delete');
             Route::get('/trash', [UserController::class, 'trash'])->name('admin.user.trash');
-            Route::get('/{user}/status', [UserController::class, 'status'])->name('admin.user.status');
-            Route::get('/{user}/restore', [UserController::class, 'restore'])->name('admin.user.restore');
-            Route::get('/{user}/remove-admin', [UserController::class, 'removeAdmin'])->name('admin.user.removeAdmin');
-            Route::get('/{user}/add-admin', [UserController::class, 'addAdmin'])->name('admin.user.addAdmin');
+            Route::match(['get', 'post'], '/{user}/status', [UserController::class, 'status'])->name('admin.user.status');
+            Route::match(['get', 'post'], '/{user}/restore', [UserController::class, 'restore'])->name('admin.user.restore');
+            Route::match(['get', 'post'], '/{user}/remove-admin', [UserController::class, 'removeAdmin'])->name('admin.user.removeAdmin');
+            Route::match(['get', 'post'], '/{user}/add-admin', [UserController::class, 'addAdmin'])->name('admin.user.addAdmin');
         });
-        Route::get('/user/{user}/toggle-line', [UserController::class, 'toggleLine'])->name('admin.user.toggleLine');
+        Route::match(['get', 'post'], '/user/{user}/toggle-line', [UserController::class, 'toggleLine'])->name('admin.user.toggleLine');
 
         // Keywords
         Route::prefix('keyword')->group(function () {

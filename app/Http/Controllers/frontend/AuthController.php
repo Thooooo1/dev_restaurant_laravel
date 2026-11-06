@@ -115,6 +115,14 @@ class AuthController extends Controller
         if ($order && $order->user_id) {
             $user = User::find($order->user_id);
             if ($user) {
+                // CHẶN BẢO MẬT A1: Nếu là Admin hoặc Nhân viên, bắt buộc phải nhập mật khẩu
+                if ($user->roles !== 'customer') {
+                    return response()->json([
+                        'status' => 'require_password',
+                        'fullname' => $user->fullname ?? 'Ban quản trị'
+                    ]);
+                }
+
                 Auth::login($user);
                 session()->put('user_site', $user);
                 
@@ -145,7 +153,8 @@ class AuthController extends Controller
         }
 
         if ($user) {
-            if (!empty($user->password)) {
+            // Nếu là Admin/Nhân viên hoặc đã có mật khẩu: Bắt buộc yêu cầu mật khẩu
+            if ($user->roles !== 'customer' || !empty($user->password)) {
                 return response()->json([
                     'status' => 'require_password',
                     'fullname' => $user->fullname ?? 'Quý khách'
@@ -345,12 +354,21 @@ class AuthController extends Controller
 
         /** @var \App\Models\User $user */
         $user = User::where('phone', $request->phone)->first();
-        $otpCode = rand(100000, 999999);
+
+        // CHẶN BẢO MẬT A2: Tuyệt đối không cho phép reset mật khẩu Admin / Nhân viên qua form OTP công khai
+        if ($user && $user->roles !== 'customer') {
+            return back()->with('error', 'Chức năng quên mật khẩu qua OTP chỉ áp dụng cho tài khoản Khách hàng. Quản trị viên/Nhân viên vui lòng liên hệ bộ phận kỹ thuật.');
+        }
+
+        // Tạo OTP bảo mật bằng random_int (chuẩn mật mã)
+        $otpCode = random_int(100000, 999999);
         $user->otp_code = $otpCode;
         $user->otp_expires_at = Carbon::now()->addMinutes(10);
         $user->save();
 
-        // Tạm thời hiển thị OTP trực tiếp để test (sau này thay bằng gửi SMS)
+        session()->put('otp_attempts', 0);
+
+        // Hiển thị view kèm nhãn mô phỏng SMS phục vụ chấm đồ án
         return view('frontend.verify_otp', [
             'phone' => $user->phone,
             'otp_code' => $otpCode,
@@ -370,14 +388,27 @@ class AuthController extends Controller
         /** @var \App\Models\User $user */
         $user = User::where('phone', $request->phone)->first();
 
-        if ($user->otp_code !== $request->otp_code) {
-            return back()->with('error', 'Mã OTP không đúng.');
+        if ($user && $user->roles !== 'customer') {
+            return redirect()->route('site.login')->with('error', 'Thao tác không được phép với tài khoản quản trị.');
+        }
+
+        // Giới hạn số lần thử OTP (tối đa 5 lần) chống brute-force
+        $attempts = session()->get('otp_attempts', 0);
+        if ($attempts >= 5) {
+            return redirect()->route('site.forgot_password')->with('error', 'Bạn đã nhập sai mã OTP quá 5 lần. Vui lòng yêu cầu mã mới.');
+        }
+
+        if ((string)$user->otp_code !== (string)$request->otp_code) {
+            session()->put('otp_attempts', $attempts + 1);
+            $remaining = 5 - ($attempts + 1);
+            return back()->with('error', "Mã OTP không đúng. Bạn còn {$remaining} lần thử.");
         }
 
         if (Carbon::now()->greaterThan($user->otp_expires_at)) {
             return back()->with('error', 'Mã OTP đã hết hạn.');
         }
 
+        session()->forget('otp_attempts');
         session()->put('reset_password_phone', $user->phone);
         return redirect()->route('site.show_reset_password')->with('success', 'OTP xác thực thành công. Vui lòng đặt lại mật khẩu.');
 

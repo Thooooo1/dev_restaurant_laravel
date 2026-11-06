@@ -63,10 +63,12 @@ class TableOrderController extends Controller
             $phone = preg_replace('/[^0-9]/', '', (string)$phone);
             session(['customer_phone' => $phone]);
 
-            // Tự động đăng nhập nếu đã có tài khoản thành viên
+            // Tự động đăng nhập nếu đã có tài khoản thành viên (CHỈ DÀNH CHO KHÁCH HÀNG, TUYỆT ĐỐI KHÔNG TỰ ĐĂNG NHẬP ADMIN/EMPLOYEE)
             $user = User::where('phone', $phone)->first();
             if ($user && !Auth::check()) {
-                Auth::login($user);
+                if ($user->roles === 'customer') {
+                    Auth::login($user);
+                }
             }
         }
 

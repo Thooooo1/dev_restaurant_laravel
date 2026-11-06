@@ -27,6 +27,37 @@ class PaymentWebhookController extends Controller
     {
         Log::info('=== PAYMENT WEBHOOK RECEIVED ===', $request->all());
 
+        // Kiểm tra xác thực Token khi ở môi trường Production
+        $isProduction = config('payment.mode', 'demo') === 'production';
+        $expectedToken = config('payment.webhook_token', env('PAYMENT_WEBHOOK_TOKEN'));
+
+        if ($isProduction && !empty($expectedToken)) {
+            $authHeader = $request->header('Authorization', '');
+            $secureToken = $request->header('secure-token') ?? $request->header('X-Token') ?? $request->input('token');
+
+            $tokenFromAuth = '';
+            if (str_starts_with($authHeader, 'Apikey ')) {
+                $tokenFromAuth = substr($authHeader, 7);
+            } elseif (str_starts_with($authHeader, 'Bearer ')) {
+                $tokenFromAuth = substr($authHeader, 7);
+            }
+
+            $valid = false;
+            if ($tokenFromAuth && hash_equals((string)$expectedToken, (string)$tokenFromAuth)) {
+                $valid = true;
+            } elseif ($secureToken && hash_equals((string)$expectedToken, (string)$secureToken)) {
+                $valid = true;
+            }
+
+            if (!$valid) {
+                Log::warning('Webhook bị từ chối: Token không hợp lệ hoặc thiếu xác thực', ['headers' => $request->headers->all()]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized: Token xác thực Webhook không hợp lệ.'
+                ], 401);
+            }
+        }
+
         // Lấy thông tin giao dịch từ payload của Sepay / Casso hoặc payload tùy chỉnh
         $amount = (float) ($request->input('transferAmount') 
             ?? $request->input('amount') 
@@ -94,6 +125,15 @@ class PaymentWebhookController extends Controller
                 'order_id' => $order->id,
                 'already_paid' => true
             ]);
+        }
+
+        // Kiểm tra đối soát số tiền khi ở môi trường Production
+        if ($isProduction && $order->total_price > 0 && $amount < $order->total_price) {
+            Log::warning("Số tiền chuyển không đủ cho đơn #{$order->id}: Chuyển {$amount}đ, Tổng đơn {$order->total_price}đ");
+            return response()->json([
+                'success' => false,
+                'message' => "Số tiền chuyển {$amount}đ nhỏ hơn tổng đơn {$order->total_price}đ"
+            ], 400);
         }
 
         // Cập nhật trạng thái đơn hàng sang ĐÃ THANH TOÁN

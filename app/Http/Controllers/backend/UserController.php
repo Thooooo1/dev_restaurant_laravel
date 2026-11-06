@@ -264,17 +264,44 @@ class UserController extends Controller
     {
         $user = User::find($id);
         if ($user != null) {
+            // Chốt chặn: Không được tự khóa tài khoản của chính mình
+            if (Auth::id() == $user->id) {
+                return redirect()->back()->with('error', 'Bạn không thể tự khóa tài khoản của chính mình!');
+            }
+
+            // Chốt chặn: Không được khóa Quản trị viên duy nhất
+            if ($user->status == 1 && $user->roles === 'admin') {
+                $adminCount = User::where('roles', 'admin')->whereNull('deleted_at')->where('status', 1)->count();
+                if ($adminCount <= 1) {
+                    return redirect()->back()->with('error', 'Không thể khóa Quản trị viên duy nhất đang hoạt động!');
+                }
+            }
+
             $user->status = ($user->status == 1) ? 2 : 1;
             $user->save();
 
-            return redirect()->route('admin.user.index')->with('success', 'Trạng thái đã được thay đổi');
+            return redirect()->back()->with('success', 'Trạng thái đã được thay đổi thành công.');
         }
-        return redirect()->route('admin.user.index')->with('error', 'Mẫu tin không tồn tại');
+        return redirect()->back()->with('error', 'Mẫu tin không tồn tại');
     }
+
     public function delete(string $id)
     {
         $user = User::find($id);
         if($user != null){
+            // Chốt chặn: Không được tự xóa tài khoản của chính mình
+            if (Auth::id() == $user->id) {
+                return redirect()->back()->with('error', 'Bạn không thể tự xóa tài khoản của chính mình!');
+            }
+
+            // Chốt chặn: Không được xóa Quản trị viên duy nhất
+            if ($user->roles === 'admin') {
+                $adminCount = User::where('roles', 'admin')->whereNull('deleted_at')->where('status', 1)->count();
+                if ($adminCount <= 1) {
+                    return redirect()->back()->with('error', 'Không thể xóa Quản trị viên duy nhất của hệ thống!');
+                }
+            }
+
             $role = $user->roles;
             $user->delete();
             if ($role == 'customer') {
@@ -284,6 +311,7 @@ class UserController extends Controller
         }
         return redirect()->back()->with('error','Mẫu tin không tồn tại');
     }
+
     public function restore(string $id)
     {
         $user = User::withTrashed()->where('id',$id);
@@ -293,6 +321,7 @@ class UserController extends Controller
         }
         return redirect()->route("admin.user.trash")->with('error','Mẫu này không tồn tại');
     }
+
     public function toggleLine(User $user)
     {
         $currentUser = Auth::user();
@@ -316,6 +345,17 @@ class UserController extends Controller
 
         if (!$user) {
             return redirect()->route('admin.user.employees')->with('error', 'Không tìm thấy người dùng.');
+        }
+
+        // Chốt chặn: Không được tự hạ quyền Quản trị viên của chính mình
+        if (Auth::id() == $user->id) {
+            return redirect()->route('admin.user.employees')->with('error', 'Bạn không thể tự hạ quyền Quản trị viên của chính mình!');
+        }
+
+        // Chốt chặn: Không được hạ quyền Quản trị viên duy nhất còn lại
+        $adminCount = User::where('roles', 'admin')->whereNull('deleted_at')->where('status', 1)->count();
+        if ($adminCount <= 1) {
+            return redirect()->route('admin.user.employees')->with('error', 'Hệ thống phải có ít nhất 1 Quản trị viên cấp cao!');
         }
 
         $user->roles = 'employee';
