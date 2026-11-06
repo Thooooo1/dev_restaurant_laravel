@@ -149,7 +149,13 @@
     <!-- ======================================================== -->
     <!-- VIEW MODE: GRID                                          -->
     <!-- ======================================================== -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+    @php
+        $ck = Auth::check() ? 'cart_' . Auth::id() : 'cart_guest_' . session()->getId();
+        $sc = session()->get($ck, []);
+        $hasCartItems = count($sc) > 0;
+    @endphp
+
+    <div id="menuProductGridWrapper" class="grid grid-cols-1 sm:grid-cols-2 {{ $hasCartItems ? 'lg:grid-cols-3 xl:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4' }} gap-4 sm:gap-5 transition-all">
         @foreach ($products as $product)
             @php
                 $hasDiscount = !empty($product->price_sale) && !empty($product->price_buy) && ($product->price_sale < $product->price_buy);
@@ -243,26 +249,26 @@
                     </div>
 
                     <!-- Bottom Row: Đánh giá thật nếu có; nút + Chọn chuẩn POS -->
-                    <div class="pt-3 border-t border-stone-100 flex items-center justify-between mt-auto">
-                        <div>
+                    <div class="pt-3 border-t border-stone-100 flex items-center justify-between gap-2 mt-auto">
+                        <div class="min-w-0 flex-1">
                             @if ($product->reviews_count > 0)
-                                <div class="flex items-center gap-1.5 text-xs font-semibold text-stone-600">
-                                    <i class="fa-solid fa-star text-amber-400 text-xs"></i>
+                                <div class="flex items-center gap-1 text-xs font-semibold text-stone-600 truncate">
+                                    <i class="fa-solid fa-star text-amber-400 text-[11px] shrink-0"></i>
                                     <span>{{ number_format($product->reviews_avg_rating ?? 5.0, 1) }}</span>
-                                    <span class="text-stone-400 font-normal">({{ $product->reviews_count }})</span>
+                                    <span class="text-stone-400 font-normal text-[10px]">({{ $product->reviews_count }})</span>
                                 </div>
                             @elseif ($product->category)
-                                <span class="text-[11px] font-medium text-stone-400">
+                                <span class="text-[11px] font-medium text-stone-400 truncate block" title="{{ $product->category->name }}">
                                     {{ $product->category->name }}
                                 </span>
                             @else
-                                <span class="text-[11px] font-medium text-stone-400">Phục vụ nóng</span>
+                                <span class="text-[11px] font-medium text-stone-400 truncate block">Phục vụ nóng</span>
                             @endif
                         </div>
 
                         <button type="button" 
                                 onclick="window.addToCartAjax ? window.addToCartAjax({{ $product->id }}, this) : this.closest('form')?.submit()"
-                                class="px-4 py-2 rounded-none sm:rounded-sm bg-[#F47716] hover:bg-[#EA580C] text-white font-bold text-xs uppercase tracking-wide transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer flex items-center gap-1">
+                                class="px-3.5 py-1.5 rounded-none sm:rounded-sm bg-[#F47716] hover:bg-[#EA580C] text-white font-bold text-xs uppercase tracking-wide transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer inline-flex items-center justify-center shrink-0 whitespace-nowrap">
                             <span>+ Chọn</span>
                         </button>
                     </div>

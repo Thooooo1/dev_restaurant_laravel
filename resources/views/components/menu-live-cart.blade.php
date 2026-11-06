@@ -1083,6 +1083,7 @@
         // 9. TỰ ĐỘNG BẬT/TẮT GIỎ HÀNG THỰC ĐƠN THEO TRẠNG THÁI ORDER
         const foodCol = document.getElementById('menuProductListColumn');
         const cartSlot = document.getElementById('menuLiveCartSlot');
+        const gridWrapper = document.getElementById('menuProductGridWrapper');
         const floatingBtn = document.getElementById('floatingCartButton');
         const fCountBadge = document.getElementById('floatingCartCountBadge');
         const fTotalText = document.getElementById('floatingCartTotalText');
@@ -1093,6 +1094,10 @@
                 foodCol.classList.remove('lg:col-span-12');
                 foodCol.classList.add('lg:col-span-8', 'xl:col-span-8');
                 cartSlot.classList.remove('hidden');
+            }
+            if (gridWrapper) {
+                gridWrapper.classList.remove('xl:grid-cols-4');
+                gridWrapper.classList.add('xl:grid-cols-3');
             }
             if (floatingBtn) {
                 floatingBtn.classList.add('hidden'); // Đã mở giỏ thì ẩn nút float
@@ -1106,6 +1111,10 @@
                 foodCol.classList.add('lg:col-span-12');
                 cartSlot.classList.add('hidden');
             }
+            if (gridWrapper) {
+                gridWrapper.classList.remove('xl:grid-cols-3');
+                gridWrapper.classList.add('xl:grid-cols-4');
+            }
             if (floatingBtn) {
                 floatingBtn.classList.add('hidden');
             }
@@ -1116,6 +1125,7 @@
     window.toggleLiveCart = function(forceOpen) {
         const foodCol = document.getElementById('menuProductListColumn');
         const cartSlot = document.getElementById('menuLiveCartSlot');
+        const gridWrapper = document.getElementById('menuProductGridWrapper');
         const floatingBtn = document.getElementById('floatingCartButton');
         
         if (!foodCol || !cartSlot) return;
@@ -1126,11 +1136,19 @@
             foodCol.classList.remove('lg:col-span-12');
             foodCol.classList.add('lg:col-span-8', 'xl:col-span-8');
             cartSlot.classList.remove('hidden');
+            if (gridWrapper) {
+                gridWrapper.classList.remove('xl:grid-cols-4');
+                gridWrapper.classList.add('xl:grid-cols-3');
+            }
             if (floatingBtn) floatingBtn.classList.add('hidden');
         } else {
             foodCol.classList.remove('lg:col-span-8', 'xl:col-span-8');
             foodCol.classList.add('lg:col-span-12');
             cartSlot.classList.add('hidden');
+            if (gridWrapper) {
+                gridWrapper.classList.remove('xl:grid-cols-3');
+                gridWrapper.classList.add('xl:grid-cols-4');
+            }
             if (floatingBtn && liveCartState && liveCartState.count > 0) {
                 floatingBtn.classList.remove('hidden');
             }
