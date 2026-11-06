@@ -34,48 +34,51 @@
     <!-- Stat Overview Mini Cards (Shopify Polaris / Ant Design Style) -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-5">
         <!-- Tổng số bàn -->
-        <div class="bg-white p-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">Tổng số bàn</span>
-                <span class="text-xl font-black text-gray-900 mt-0.5 block">{{ $posStats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
+                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tổng số bàn</span>
+                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-semibold px-2 py-1 rounded bg-blue-50 text-blue-700">
+            <span class="text-xs font-medium px-2.5 py-1 rounded-md bg-gray-100 text-gray-600">
                 {{ count($floors) }} tầng
             </span>
         </div>
 
         <!-- Đang có khách -->
-        <div class="bg-white p-3.5 rounded-xl border border-amber-200/80 shadow-sm flex items-center justify-between bg-amber-50/20">
+        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-semibold text-amber-800 uppercase tracking-wider block flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#F47716]"></span>
                     Đang có khách
                 </span>
-                <span class="text-xl font-black text-amber-900 mt-0.5 block">{{ $posStats['occupied'] ?? 0 }} <span class="text-xs font-normal text-amber-700">bàn</span></span>
+                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['occupied'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-bold px-2 py-1 rounded bg-amber-100 text-amber-800">
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-orange-50 text-[#F47716] border border-orange-100">
                 {{ $posStats['total'] > 0 ? round(($posStats['occupied'] / $posStats['total']) * 100) : 0 }}%
             </span>
         </div>
 
         <!-- Bàn còn trống -->
-        <div class="bg-white p-3.5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
+        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider block">Bàn sẵn sàng</span>
-                <span class="text-xl font-black text-gray-800 mt-0.5 block">{{ $posStats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
+                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Bàn sẵn sàng
+                </span>
+                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-semibold px-2 py-1 rounded bg-emerald-50 text-emerald-700">
+            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
                 Sẵn có
             </span>
         </div>
 
         <!-- Doanh thu tạm tính trên bàn -->
-        <div class="bg-white p-3.5 rounded-xl border border-orange-200/80 shadow-sm flex items-center justify-between bg-orange-50/20">
+        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div>
-                <span class="text-[11px] font-semibold text-orange-800 uppercase tracking-wider block">Tạm tính trên bàn</span>
-                <span class="text-xl font-black text-[#C25E00] mt-0.5 block tracking-tight">{{ number_format($posStats['serving_revenue'] ?? 0) }}₫</span>
+                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tạm tính trên bàn</span>
+                <span class="text-2xl font-black text-[#F47716] mt-0.5 block tracking-tight">{{ number_format($posStats['serving_revenue'] ?? 0) }}₫</span>
             </div>
-            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-orange-100 text-orange-800">
+            <span class="text-xs font-medium px-2.5 py-1 rounded-md bg-gray-100 text-gray-600">
                 {{ $posStats['occupied'] }} đơn
             </span>
         </div>
@@ -136,7 +139,7 @@
                         @php
                             $floorOccupied = $floor->tables->filter(fn($t) => isset($activeOrders[$t->id]))->count();
                         @endphp
-                        <span>Đang dùng: <strong class="text-amber-600 font-bold text-sm">{{ $floorOccupied }}</strong> / {{ $floor->tables->count() }} bàn</span>
+                        <span>Đang dùng: <strong class="text-[#F47716] font-bold text-sm">{{ $floorOccupied }}</strong> / {{ $floor->tables->count() }} bàn</span>
                     </div>
                 </div>
                 
@@ -178,14 +181,14 @@
                             <!-- THẺ BÀN ĂN: Thiết kế chuẩn POS hiện đại, rộng rãi, lớn, dễ thao tác -->
                             <div class="bg-white rounded-2xl border transition-all duration-200 flex flex-col justify-between min-h-[220px] relative overflow-hidden shadow-xs hover:shadow-lg hover:-translate-y-0.5
                                 @if($hasNewItems) border-rose-400 ring-2 ring-rose-300
-                                @elseif($isOccupied) border-amber-300 bg-amber-50/15
-                                @elseif($isLocked) border-indigo-200 bg-indigo-50/15
+                                @elseif($isOccupied) border-orange-200 bg-orange-50/10
+                                @elseif($isLocked) border-indigo-200 bg-indigo-50/10
                                 @else border-gray-200 hover:border-gray-300 @endif">
 
                                 <!-- Top Color Accent Strip -->
                                 <div class="h-2 w-full 
                                     @if($hasNewItems) bg-rose-500 animate-pulse
-                                    @elseif($isOccupied) bg-gradient-to-r from-amber-500 to-orange-500
+                                    @elseif($isOccupied) bg-[#F47716]
                                     @elseif($isLocked) bg-indigo-500
                                     @else bg-emerald-500 @endif">
                                 </div>
@@ -208,7 +211,7 @@
                                                 Món mới
                                             </span>
                                         @elseif($isOccupied)
-                                            <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                            <span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-orange-50 text-[#F47716] border border-orange-100">
                                                 Có khách
                                             </span>
                                         @elseif($isLocked)
@@ -235,13 +238,13 @@
                                                 <i class="fa-solid fa-link"></i>
                                             </button>
                                             @if(Auth::user()->isAdmin())
-                                                <a href="{{ route('admin.table.edit', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-amber-600 flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
+                                                <a href="{{ route('admin.table.edit', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#F47716] flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
                                                     <i class="fa-solid fa-pen"></i>
                                                 </a>
                                             @endif
                                         @else
                                             @if(Auth::user()->isAdmin())
-                                                <a href="{{ route('admin.table.edit', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-amber-600 flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
+                                                <a href="{{ route('admin.table.edit', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#F47716] flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
                                                     <i class="fa-solid fa-pen"></i>
                                                 </a>
                                             @endif
@@ -269,8 +272,8 @@
                                                 </button>
                                             </div>
 
-                                            <!-- Tổng tiền tạm tính: Chữ đậm, to, rõ ràng, không font-mono -->
-                                            <div class="text-xl font-black text-[#C25E00] tracking-tight pt-1">
+                                            <!-- Tổng tiền tạm tính: Chữ đậm, to, rõ ràng, chuẩn màu cam thương hiệu #F47716 -->
+                                            <div class="text-xl font-black text-[#F47716] tracking-tight pt-1">
                                                 {{ number_format($tableAmount, 0, ',', '.') }}₫
                                             </div>
                                         </div>
@@ -290,13 +293,13 @@
 
                                 <!-- Service Call Banner (Nếu khách đang rung chuông) -->
                                 @if($tableServiceCall)
-                                    <div class="px-3 py-1.5 bg-amber-500 text-white text-xs font-bold flex items-center justify-between" id="serviceCallBar-{{ $table->id }}">
+                                    <div class="px-3 py-1.5 bg-[#F47716] text-white text-xs font-bold flex items-center justify-between" id="serviceCallBar-{{ $table->id }}">
                                         <span class="truncate mr-1.5" title="{{ $tableServiceCall->note ?? $tableServiceCall->type_info['label'] }}">
                                             {{ $tableServiceCall->type_info['label'] }}
                                         </span>
                                         <button type="button" 
                                                 onclick="event.stopPropagation(); resolveTableServiceCall({{ $tableServiceCall->id }}, {{ $table->id }})" 
-                                                class="bg-white text-amber-900 hover:bg-amber-50 px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap cursor-pointer shadow-2xs">
+                                                class="bg-white text-[#F47716] hover:bg-orange-50 px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap cursor-pointer shadow-2xs">
                                             Đã xong
                                         </button>
                                     </div>
@@ -306,7 +309,7 @@
                                 <div class="p-3 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
                                     @if($isOccupied)
                                         <a href="{{ route('admin.table-order.order', $table->id) }}" 
-                                           class="flex-1 py-2.5 px-3 bg-white hover:bg-amber-50 border border-gray-200 hover:border-amber-400 text-gray-800 hover:text-amber-800 font-bold rounded-xl text-xs sm:text-sm text-center transition-colors shadow-2xs">
+                                           class="flex-1 py-2.5 px-3 bg-white hover:bg-orange-50 border border-gray-200 hover:border-orange-200 text-gray-800 hover:text-[#F47716] font-bold rounded-xl text-xs sm:text-sm text-center transition-colors shadow-2xs">
                                             Gọi món
                                         </a>
                                         <a href="{{ route('admin.table-order.payment', $table->id) }}" 
@@ -321,7 +324,7 @@
                                         <!-- Bàn trống: Nút Mở bàn -->
                                         <button type="button" 
                                                 onclick="handleTableClick({{ $table->id }}, '{{ $table->name }}', false, '{{ $floor->name }}', false)" 
-                                                class="w-full py-2.5 px-3 bg-stone-900 hover:bg-[#C25E00] text-white font-bold rounded-xl text-xs sm:text-sm text-center transition-all cursor-pointer shadow-2xs">
+                                                class="w-full py-2.5 px-3 bg-stone-900 hover:bg-[#F47716] text-white font-bold rounded-xl text-xs sm:text-sm text-center transition-all cursor-pointer shadow-2xs">
                                             Mở bàn & Gọi món
                                         </button>
                                     @endif
@@ -397,7 +400,7 @@
                     <button type="button" onclick="closeModal('registerTableModal')" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition-colors cursor-pointer">
                         Đóng
                     </button>
-                    <button type="submit" class="flex-1 px-4 py-2.5 rounded-lg bg-[#F47716] hover:bg-[#EA580C] text-white font-bold transition-all shadow-xs cursor-pointer uppercase tracking-wider">
+                    <button type="submit" class="flex-1 px-4 py-2.5 rounded-lg bg-[#F47716] hover:bg-[#d9650d] text-white font-bold transition-all shadow-xs cursor-pointer uppercase tracking-wider">
                         Xác nhận mở bàn
                     </button>
                 </div>
@@ -457,7 +460,7 @@
                     <button type="button" onclick="closeNewOrderModal()" class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
                         Đóng
                     </button>
-                    <button type="button" id="viewNewOrderBtn" class="flex-1 px-3 py-2 rounded-lg bg-[#F47716] hover:bg-[#EA580C] text-white font-bold transition-all text-center">
+                    <button type="button" id="viewNewOrderBtn" class="flex-1 px-3 py-2 rounded-lg bg-[#F47716] hover:bg-[#d9650d] text-white font-bold transition-all text-center">
                         Xem & In
                     </button>
                 </div>
@@ -607,13 +610,13 @@
                                         if (tableCard.length) {
                                             const callLabel = call.call_type_label || (call.call_type === 'bill' ? 'Yêu cầu thanh toán' : 'Gọi phục vụ');
                                             const barHtml = `
-                                                <div class="px-3 py-1.5 bg-amber-500 text-white text-xs font-bold flex items-center justify-between" id="serviceCallBar-${call.table_id}">
+                                                <div class="px-3 py-1.5 bg-[#F47716] text-white text-xs font-bold flex items-center justify-between" id="serviceCallBar-${call.table_id}">
                                                     <span class="truncate mr-1.5" title="${call.note || callLabel}">
                                                         ${callLabel}
                                                     </span>
                                                     <button type="button" 
                                                             onclick="event.stopPropagation(); resolveTableServiceCall(${call.id}, ${call.table_id})" 
-                                                            class="bg-white text-amber-900 hover:bg-amber-50 px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap cursor-pointer shadow-2xs">
+                                                            class="bg-white text-[#F47716] hover:bg-orange-50 px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap cursor-pointer shadow-2xs">
                                                         Đã xong
                                                     </button>
                                                 </div>
@@ -983,7 +986,7 @@
                     </div>
 
                     <!-- Summary & Totals -->
-                    <div class="bg-gradient-to-br from-amber-50/60 to-orange-50/60 p-4 rounded-xl border border-orange-100/80 space-y-1.5 text-xs">
+                    <div class="bg-orange-50/30 p-4 rounded-xl border border-orange-100 space-y-1.5 text-xs">
                         <div class="flex justify-between text-gray-600">
                             <span>Tạm tính (<span id="modalTotalItems">0</span> món):</span>
                             <span class="font-semibold text-gray-900" id="modalSubtotal">0₫</span>
@@ -1013,7 +1016,7 @@
                         <button type="button" onclick="closeDishesModal()" class="ant-btn ant-btn-sm text-gray-600 hover:text-gray-800 font-medium cursor-pointer">
                             Đóng
                         </button>
-                        <a id="modalOrderMoreBtn" href="#" class="ant-btn ant-btn-sm bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 font-semibold">
+                        <a id="modalOrderMoreBtn" href="#" class="ant-btn ant-btn-sm bg-orange-50 text-[#F47716] hover:bg-orange-100 border border-orange-200 font-semibold">
                             <span>Gọi thêm món</span>
                         </a>
                         <a id="modalPaymentBtn" href="#" class="ant-btn ant-btn-sm bg-emerald-600 text-white hover:bg-emerald-700 font-bold border-none shadow-xs uppercase tracking-wider">
