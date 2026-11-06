@@ -373,26 +373,14 @@
                         @enderror
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label for="customerGender" class="block font-bold text-gray-700 mb-1">
-                                Giới tính
-                            </label>
-                            <select class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 focus:border-[#F47716] focus:outline-none transition-all text-xs bg-white" id="customerGender" name="gender">
-                                <option value="1" {{ old('gender') == '1' ? 'selected' : '' }}>Anh / Nam</option>
-                                <option value="0" {{ old('gender') == '0' ? 'selected' : '' }}>Chị / Nữ</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="numberOfGuests" class="block font-bold text-gray-700 mb-1">
-                                Số lượng khách <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="number" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 focus:border-[#F47716] focus:outline-none transition-all text-xs bg-gray-50 focus:bg-white font-bold" id="numberOfGuests" name="number_of_guests" min="1" value="{{ old('number_of_guests', 1) }}">
-                            @error('number_of_guests')
-                                <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                    <div>
+                        <label for="numberOfGuests" class="block font-bold text-gray-700 mb-1">
+                            Số lượng khách <span class="text-rose-500">*</span>
+                        </label>
+                        <input type="number" class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 focus:border-[#F47716] focus:outline-none transition-all text-xs bg-gray-50 focus:bg-white font-bold" id="numberOfGuests" name="number_of_guests" min="1" value="{{ old('number_of_guests', 1) }}">
+                        @error('number_of_guests')
+                            <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
                 
@@ -666,11 +654,6 @@
                         if (response.success && response.user) {
                             $('#customerName').val(response.user.fullname);
                             $('#customerName').prop('readonly', true);
-                            if (response.user.gender !== null && response.user.gender !== undefined) {
-                                $('#customerGender').val(String(response.user.gender));
-                            } else {
-                                $('#customerGender').val('1');
-                            }
                             if (typeof toastr !== 'undefined') toastr.success('Đã tìm thấy khách hàng: ' + response.user.fullname);
                         } else {
                             if ($('#customerName').prop('readonly')) {
@@ -700,7 +683,6 @@
                 $('#customerPhone').val('');
                 $('#customerName').val('');
                 $('#customerName').prop('readonly', false);
-                $('#customerGender').val('1');
                 $('#numberOfGuests').val('1');
                 openModal('registerTableModal');
             }
