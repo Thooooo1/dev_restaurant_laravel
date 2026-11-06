@@ -206,16 +206,11 @@
                         </div>
 
                         <!-- Countdown Timer & Lắng nghe thời gian thực -->
-                        <div class="w-full mt-4 pt-3 border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
-                            <div class="flex items-center gap-1.5 text-stone-600 font-medium">
+                        <div class="w-full mt-4 pt-3 border-t border-gray-100 flex items-center justify-center gap-2 text-xs">
+                            <div class="flex items-center gap-1.5 text-gray-500 font-medium">
                                 <i class="fa-regular fa-clock text-blue-600"></i>
                                 <span>Mã QR có hiệu lực:</span>
                                 <span id="posQrCountdown" class="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">03:00</span>
-                            </div>
-
-                            <div id="posQrStatus" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-amber-50 text-amber-800 text-[11px] font-semibold rounded-full border border-amber-200 animate-pulse">
-                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                <span>Đang chờ chuyển khoản...</span>
                             </div>
                         </div>
                     </div>

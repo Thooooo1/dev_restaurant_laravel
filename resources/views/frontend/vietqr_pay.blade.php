@@ -42,16 +42,11 @@
                     </div>
 
                     <!-- Countdown Timer & Lắng nghe tự động -->
-                    <div class="w-full mt-6 pt-4 border-t border-stone-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                    <div class="w-full mt-6 pt-4 border-t border-stone-100 flex items-center justify-center gap-3 text-xs">
                         <div class="flex items-center gap-1.5 text-stone-600 font-medium">
                             <i class="fa-regular fa-clock text-blue-600"></i>
                             <span>Mã QR có hiệu lực:</span>
                             <span id="vietqrCountdown" class="font-mono font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">03:00</span>
-                        </div>
-
-                        <div id="qrLoadingState" class="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-200 animate-pulse">
-                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                            <span>Đang chờ chuyển khoản...</span>
                         </div>
                     </div>
 
