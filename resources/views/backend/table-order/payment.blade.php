@@ -163,17 +163,17 @@
     <div id="modalVietQr" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
         <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-gray-100 overflow-hidden transform transition-all duration-300">
             <!-- Modal Header -->
-            <div class="px-6 py-4 bg-stone-900 text-white flex items-center justify-between border-b border-stone-800">
+            <div class="px-6 py-4 bg-white text-gray-900 flex items-center justify-between border-b border-gray-100">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-[#C25E00] flex items-center justify-center text-white text-sm shadow-xs">
+                    <div class="w-8 h-8 rounded-lg bg-orange-50 text-[#F47716] flex items-center justify-center text-sm border border-orange-100">
                         <i class="fa-solid fa-qrcode"></i>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold uppercase tracking-wider text-white">Thanh Toán Chuyển Khoản VietQR</h3>
-                        <p class="text-[11px] text-stone-400">{{ $table->name }} • {{ $table->floor->name ?? 'Khu vực chính' }} • Đơn #{{ $order->id }}</p>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-900">Thanh Toán Chuyển Khoản VietQR</h3>
+                        <p class="text-[11px] text-gray-500">{{ $table->name }} • {{ $table->floor->name ?? 'Khu vực chính' }} • Đơn #{{ $order->id }}</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeVietQrModal()" class="text-stone-400 hover:text-white text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-800 transition-colors cursor-pointer">
+                <button type="button" onclick="closeVietQrModal()" class="text-gray-400 hover:text-gray-700 text-lg w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>

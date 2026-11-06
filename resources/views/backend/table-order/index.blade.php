@@ -338,9 +338,9 @@
     <!-- Modal Đăng ký bàn khi bấm mở bàn trống -->
     <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 backdrop-blur-2xs" id="registerTableModal">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-auto border border-gray-200">
-            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-stone-900 text-white rounded-t-xl">
-                <h3 class="text-base font-bold text-white tracking-tight" id="modalTableName">Mở Bàn Mới</h3>
-                <button onclick="closeModal('registerTableModal')" class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/20 text-gray-300 hover:text-white transition-colors cursor-pointer text-sm">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-white text-gray-900 rounded-t-xl">
+                <h3 class="text-base font-bold text-gray-900 tracking-tight" id="modalTableName">Mở Bàn Mới</h3>
+                <button onclick="closeModal('registerTableModal')" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer text-sm">
                     ✕
                 </button>
             </div>
@@ -408,9 +408,9 @@
     <!-- Modal Ghép bàn -->
     <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 backdrop-blur-2xs" id="mergeTableModal">
         <div class="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-auto border border-gray-200">
-            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-stone-900 text-white rounded-t-xl">
-                <h3 class="text-base font-bold text-white tracking-tight" id="mergeSourceTableName">Ghép Bàn Ăn</h3>
-                <button onclick="closeModal('mergeTableModal')" class="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/20 text-gray-300 hover:text-white transition-colors cursor-pointer text-sm">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-white text-gray-900 rounded-t-xl">
+                <h3 class="text-base font-bold text-gray-900 tracking-tight" id="mergeSourceTableName">Ghép Bàn Ăn</h3>
+                <button onclick="closeModal('mergeTableModal')" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer text-sm">
                     ✕
                 </button>
             </div>
@@ -924,19 +924,19 @@
         <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
             <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-gray-100">
                 
-                <!-- Modal Header: High-end Stone-900 Gradient matching Table QR & Order Screen -->
-                <div class="px-6 py-4 bg-gradient-to-r from-stone-900 to-stone-800 text-white flex items-center justify-between border-b border-stone-700">
+                <!-- Modal Header: Nền trắng chữ đen thanh lịch, hiện đại -->
+                <div class="px-6 py-4 bg-white text-gray-900 flex items-center justify-between border-b border-gray-100">
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="text-[11px] uppercase font-bold tracking-wider text-amber-400">ĐƠN HÀNG ĐANG PHỤC VỤ</span>
-                            <span id="modalTableBadge" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            <span class="text-[11px] uppercase font-bold tracking-wider text-[#F47716]">ĐƠN HÀNG ĐANG PHỤC VỤ</span>
+                            <span id="modalTableBadge" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 Đang phục vụ
                             </span>
                         </div>
-                        <h3 class="text-base font-bold text-white mt-0.5" id="modalTableTitle">Chi tiết món ăn bàn</h3>
-                        <p class="text-xs text-stone-300 mt-0.5" id="modalTableSub">Đang tải thông tin bàn...</p>
+                        <h3 class="text-base font-bold text-gray-900 mt-0.5" id="modalTableTitle">Chi tiết món ăn bàn</h3>
+                        <p class="text-xs text-gray-500 mt-0.5" id="modalTableSub">Đang tải thông tin bàn...</p>
                     </div>
-                    <button type="button" onclick="closeDishesModal()" class="w-8 h-8 rounded-lg bg-stone-800 text-stone-300 hover:text-white hover:bg-stone-700 flex items-center justify-center transition-colors font-bold text-sm cursor-pointer border border-stone-700">
+                    <button type="button" onclick="closeDishesModal()" class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:text-gray-800 hover:bg-gray-100 flex items-center justify-center transition-colors font-bold text-sm cursor-pointer border border-gray-200" aria-label="Đóng">
                         ✕
                     </button>
                 </div>
