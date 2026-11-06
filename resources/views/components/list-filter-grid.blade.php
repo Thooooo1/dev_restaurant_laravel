@@ -116,15 +116,25 @@
     <!-- ======================================================== -->
     <!-- 4. MAIN ORDER GRID: Left Food Grid + Right My Order      -->
     <!-- ======================================================== -->
+    @php
+        $cartKey = Auth::check() ? 'cart_' . Auth::id() : 'cart_guest_' . session()->getId();
+        $sessionCart = session()->get($cartKey, []);
+        $initCartCount = 0;
+        foreach ($sessionCart as $it) {
+            $initCartCount += (int)($it['qty'] ?? 1);
+        }
+        $hasItemsInCart = ($initCartCount > 0);
+    @endphp
+
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" id="menuMainGridLayout">
         
-        <!-- CỘT TRÁI: DANH SÁCH MÓN ĂN (8 CỘT) -->
-        <div class="lg:col-span-8 xl:col-span-8">
+        <!-- CỘT TRÁI: DANH SÁCH MÓN ĂN (12 cột khi chưa chọn món, 8 cột khi đã có món) -->
+        <div id="menuProductListColumn" class="{{ $hasItemsInCart ? 'lg:col-span-8 xl:col-span-8' : 'lg:col-span-12' }} transition-all duration-300">
             <x-list-product-grid :categoryitem="$categoryitem" :branditem="$branditem" />
         </div>
 
-        <!-- CỘT PHẢI: MY ORDER / GIỎ HÀNG THỜI GIAN THỰC (4 CỘT) -->
-        <div class="lg:col-span-4 xl:col-span-4 sticky top-24 z-20" id="menuLiveCartSlot">
+        <!-- CỘT PHẢI: MY ORDER / GIỎ HÀNG THỜI GIAN THỰC (4 cột - Chỉ hiện khi có món hoặc khi bấm mở) -->
+        <div id="menuLiveCartSlot" class="lg:col-span-4 xl:col-span-4 sticky top-24 z-20 {{ $hasItemsInCart ? '' : 'hidden' }} transition-all duration-300">
             <x-menu-live-cart />
         </div>
     </div>

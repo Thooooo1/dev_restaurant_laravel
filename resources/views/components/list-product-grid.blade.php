@@ -149,7 +149,7 @@
     <!-- ======================================================== -->
     <!-- VIEW MODE: GRID                                          -->
     <!-- ======================================================== -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
         @foreach ($products as $product)
             @php
                 $hasDiscount = !empty($product->price_sale) && !empty($product->price_buy) && ($product->price_sale < $product->price_buy);

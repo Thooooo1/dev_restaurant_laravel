@@ -68,13 +68,22 @@
             </p>
         </div>
 
-        <button type="button" 
-                onclick="clearLiveCart()" 
-                id="clearLiveCartBtn"
-                class="w-8 h-8 rounded-none sm:rounded-sm hover:bg-rose-50 text-stone-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer {{ $cartCount == 0 ? 'hidden' : '' }}"
-                title="Làm trống toàn bộ giỏ">
-            <i class="fa-regular fa-trash-can text-sm"></i>
-        </button>
+        <div class="flex items-center gap-1">
+            <button type="button" 
+                    onclick="clearLiveCart()" 
+                    id="clearLiveCartBtn"
+                    class="w-8 h-8 rounded-none sm:rounded-sm hover:bg-rose-50 text-stone-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer {{ $cartCount == 0 ? 'hidden' : '' }}"
+                    title="Làm trống toàn bộ giỏ">
+                <i class="fa-regular fa-trash-can text-sm"></i>
+            </button>
+            <button type="button" 
+                    onclick="window.toggleLiveCart ? window.toggleLiveCart(false) : null" 
+                    id="collapseLiveCartBtn"
+                    class="w-8 h-8 rounded-none sm:rounded-sm hover:bg-stone-100 text-stone-400 hover:text-stone-700 flex items-center justify-center transition-colors cursor-pointer"
+                    title="Thu gọn giỏ hàng để xem menu rộng hơn">
+                <i class="fa-solid fa-xmark text-sm"></i>
+            </button>
+        </div>
     </div>
 
     <!-- 2. HÌNH THỨC PHỤC VỤ (Tại quán (-10%) | Giao hàng) -->
@@ -500,6 +509,25 @@
             </button>
         </div>
     </div>
+</div>
+
+<!-- ======================================================== -->
+<!-- FLOATING CART BUTTON (Nút nổi giỏ hàng khi thu gọn)       -->
+<!-- ======================================================== -->
+<div id="floatingCartButton" 
+     onclick="window.toggleLiveCart ? window.toggleLiveCart(true) : null"
+     class="hidden fixed bottom-6 right-6 z-40 bg-[#1C1917] hover:bg-black text-white px-4 py-2.5 rounded-none sm:rounded-sm shadow-xl border border-stone-700 items-center gap-3 cursor-pointer transition-all hover:scale-105">
+    <div class="relative">
+        <i class="fa-solid fa-cart-shopping text-[#F47716] text-base"></i>
+        <span id="floatingCartCountBadge" class="absolute -top-2 -right-2.5 bg-[#F47716] text-white text-[10px] font-black min-w-4 h-4 px-1 rounded-full flex items-center justify-center">
+            {{ $cartCount }}
+        </span>
+    </div>
+    <div class="text-left">
+        <div class="text-[10px] text-stone-400 font-medium leading-tight">Đơn hàng của bạn</div>
+        <div id="floatingCartTotalText" class="text-xs font-black text-[#F47716]">{{ number_format($finalTotal, 0, ',', '.') }}₫</div>
+    </div>
+    <i class="fa-solid fa-chevron-up text-xs text-stone-400 ml-1"></i>
 </div>
 
 <!-- ======================================================== -->
@@ -1051,7 +1079,63 @@
         // 8. Cập nhật badge trên menu tab (nếu có trên trang)
         const tabCartBadge = document.getElementById('tabCartCountBadge');
         if (tabCartBadge) tabCartBadge.textContent = data.count || 0;
+
+        // 9. TỰ ĐỘNG BẬT/TẮT GIỎ HÀNG THỰC ĐƠN THEO TRẠNG THÁI ORDER
+        const foodCol = document.getElementById('menuProductListColumn');
+        const cartSlot = document.getElementById('menuLiveCartSlot');
+        const floatingBtn = document.getElementById('floatingCartButton');
+        const fCountBadge = document.getElementById('floatingCartCountBadge');
+        const fTotalText = document.getElementById('floatingCartTotalText');
+
+        if (data.count > 0) {
+            // Khi có món ăn được chọn: Mở giỏ hàng sang layout 8 - 4
+            if (foodCol && cartSlot) {
+                foodCol.classList.remove('lg:col-span-12');
+                foodCol.classList.add('lg:col-span-8', 'xl:col-span-8');
+                cartSlot.classList.remove('hidden');
+            }
+            if (floatingBtn) {
+                floatingBtn.classList.add('hidden'); // Đã mở giỏ thì ẩn nút float
+            }
+            if (fCountBadge) fCountBadge.textContent = data.count;
+            if (fTotalText) fTotalText.textContent = data.total_formatted || '0₫';
+        } else {
+            // Khi chưa chọn món nào (0 món): Tự động mở rộng danh sách món full 12 cột
+            if (foodCol && cartSlot) {
+                foodCol.classList.remove('lg:col-span-8', 'xl:col-span-8');
+                foodCol.classList.add('lg:col-span-12');
+                cartSlot.classList.add('hidden');
+            }
+            if (floatingBtn) {
+                floatingBtn.classList.add('hidden');
+            }
+        }
     }
+
+    // Hàm chuyển đổi bật/tắt thủ công giỏ hàng desktop
+    window.toggleLiveCart = function(forceOpen) {
+        const foodCol = document.getElementById('menuProductListColumn');
+        const cartSlot = document.getElementById('menuLiveCartSlot');
+        const floatingBtn = document.getElementById('floatingCartButton');
+        
+        if (!foodCol || !cartSlot) return;
+
+        let shouldOpen = (forceOpen !== undefined) ? forceOpen : cartSlot.classList.contains('hidden');
+
+        if (shouldOpen) {
+            foodCol.classList.remove('lg:col-span-12');
+            foodCol.classList.add('lg:col-span-8', 'xl:col-span-8');
+            cartSlot.classList.remove('hidden');
+            if (floatingBtn) floatingBtn.classList.add('hidden');
+        } else {
+            foodCol.classList.remove('lg:col-span-8', 'xl:col-span-8');
+            foodCol.classList.add('lg:col-span-12');
+            cartSlot.classList.add('hidden');
+            if (floatingBtn && liveCartState && liveCartState.count > 0) {
+                floatingBtn.classList.remove('hidden');
+            }
+        }
+    };
 
     // Toast nhỏ góc dưới
     function showCartToast(message, type = 'success') {

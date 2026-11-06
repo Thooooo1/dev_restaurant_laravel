@@ -39,16 +39,17 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- CỘT PHẢI: THANH BÊN BÁO CHÍ TINH GỌN (4 CỘT)              -->
+    <!-- CỘT PHẢI: THANH BÊN BÁO CHÍ & TIỆC TINH HOA (4 CỘT)       -->
     <!-- ======================================================== -->
-    <aside class="lg:col-span-4 sticky top-24">
+    <aside class="lg:col-span-4 space-y-6">
         
         <div class="bg-white rounded-none sm:rounded-sm border border-stone-200 p-6 space-y-6 shadow-2xs">
             
             <!-- 1. Tìm kiếm bài viết -->
             <div>
-                <h3 class="font-bold text-stone-900 text-xs sm:text-sm uppercase tracking-wider mb-3">
-                    Tìm kiếm bài viết
+                <h3 class="font-bold text-stone-900 text-xs sm:text-sm uppercase tracking-wider mb-3 flex items-center justify-between">
+                    <span>Tìm kiếm bài viết</span>
+                    <i class="fas fa-search text-stone-300 text-xs"></i>
                 </h3>
                 <form action="{{ route('site.blog') }}" method="GET" class="relative">
                     @if ($topicitem !== 'all')
@@ -67,7 +68,7 @@
                 </form>
             </div>
 
-            <!-- 2. Chủ đề bài viết (Phong cách chuyên mục báo chí phẳng, không bo tròn viên thuốc) -->
+            <!-- 2. Chủ đề bài viết -->
             <div class="pt-5 border-t border-stone-100">
                 <h3 class="font-bold text-stone-900 text-xs sm:text-sm uppercase tracking-wider mb-3">
                     Chủ đề bài viết
@@ -94,7 +95,43 @@
                 </ul>
             </div>
 
-            <!-- 3. Khoảnh khắc quán (Khôi phục toàn bộ 6 ảnh gốc của dự án theo đúng yêu cầu) -->
+            <!-- 3. Bài viết mới nhất (Recent Posts) -->
+            @if (isset($recentPosts) && $recentPosts->count() > 0)
+                <div class="pt-5 border-t border-stone-100">
+                    <h3 class="font-bold text-stone-900 text-xs sm:text-sm uppercase tracking-wider mb-3.5 flex items-center justify-between">
+                        <span>Bài viết mới nhất</span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#F47716]"></span>
+                    </h3>
+                    <div class="space-y-3.5">
+                        @foreach ($recentPosts as $rPost)
+                            @php
+                                $rImg = !empty($rPost->image) && file_exists(public_path('images/post/' . $rPost->image))
+                                    ? asset('images/post/' . $rPost->image)
+                                    : asset('images/banner/vietnamese_banquet_feast.jpg');
+                            @endphp
+                            <a href="{{ route('site.blog.detail', ['slug' => $rPost->slug]) }}" 
+                               class="group flex items-start gap-3 p-1.5 -mx-1.5 rounded-none sm:rounded-sm hover:bg-stone-50 transition-colors">
+                                <div class="w-16 h-16 shrink-0 rounded-none sm:rounded-sm overflow-hidden bg-stone-100 border border-stone-200">
+                                    <img src="{{ $rImg }}" 
+                                         alt="{{ $rPost->title }}" 
+                                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-1.5 text-[10px] text-stone-400 mb-1">
+                                        <i class="far fa-calendar-alt text-[9px]"></i>
+                                        <span>{{ $rPost->created_at ? $rPost->created_at->format('d/m/Y') : 'Mới cập nhật' }}</span>
+                                    </div>
+                                    <h4 class="text-xs font-bold text-stone-800 group-hover:text-[#F47716] transition-colors line-clamp-2 leading-snug">
+                                        {{ $rPost->title }}
+                                    </h4>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- 4. Khoảnh khắc quán (6 ảnh gốc) -->
             <div class="pt-5 border-t border-stone-100">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="font-bold text-stone-900 text-xs sm:text-sm uppercase tracking-wider">
@@ -130,6 +167,62 @@
                 </div>
             </div>
 
+            <!-- 5. Thẻ từ khóa thịnh hành (Popular Tags) -->
+            @if (isset($hotTags) && count($hotTags) > 0)
+                <div class="pt-5 border-t border-stone-100">
+                    <h3 class="font-bold text-stone-900 text-xs sm:text-sm uppercase tracking-wider mb-3">
+                        Từ khóa thịnh hành
+                    </h3>
+                    <div class="flex flex-wrap gap-1.5">
+                        @foreach ($hotTags as $tag)
+                            <a href="{{ route('site.blog', ['search' => $tag]) }}" 
+                               class="text-[11px] px-2.5 py-1 bg-stone-50 hover:bg-orange-50 text-stone-600 hover:text-[#F47716] border border-stone-200 hover:border-orange-200 rounded-none sm:rounded-sm transition-colors font-medium">
+                                #{{ $tag }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+        </div>
+
+        <!-- 6. BANNER ĐẶT BÀN ƯU ĐÃI VIP (Card kêu gọi chuyển đổi thực khách) -->
+        <div class="relative bg-gradient-to-br from-[#1C1917] via-[#292524] to-[#1C1917] text-white rounded-none sm:rounded-sm p-6 border border-stone-800 shadow-sm overflow-hidden">
+            <!-- Decorative Pattern -->
+            <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-[#F47716]/10 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="relative z-10 space-y-4">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-[#F47716]/20 border border-[#F47716]/40 text-[#F47716] text-[10px] font-bold uppercase tracking-wider">
+                    <i class="fas fa-crown text-[9px]"></i>
+                    <span>Ưu Đãi Đặc Biệt</span>
+                </div>
+
+                <div>
+                    <h4 class="font-serif text-lg font-bold text-amber-100 leading-tight">
+                        Đặt Bàn Trước Tiệc Gia Đình & Hội Họp
+                    </h4>
+                    <p class="text-xs text-stone-300 mt-1.5 leading-relaxed">
+                        Nhận ngay <strong class="text-[#F47716] font-bold">ưu đãi 10%</strong> tổng hóa đơn, ưu tiên vị trí ngồi thoáng mát và setup tiệc chu đáo.
+                    </p>
+                </div>
+
+                <div class="pt-2 border-t border-stone-700/60 flex flex-col gap-2.5">
+                    <a href="tel:0338990538" class="flex items-center gap-2.5 text-xs text-stone-200 hover:text-white group">
+                        <div class="w-8 h-8 rounded-none sm:rounded-sm bg-[#F47716] flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
+                            <i class="fas fa-phone-alt text-xs"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] text-stone-400 block font-medium">Hotline tư vấn tiệc 24/7:</span>
+                            <span class="text-sm font-extrabold text-[#F47716] tracking-wide">0338 990 538</span>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('site.booking') }}" 
+                       class="w-full text-center py-2.5 px-4 bg-[#F47716] hover:bg-[#EA580C] text-white font-bold text-xs uppercase tracking-wider rounded-none sm:rounded-sm transition-all shadow-2xs hover:shadow-xs block">
+                        Đặt Bàn Trực Tuyến Ngay
+                    </a>
+                </div>
+            </div>
         </div>
 
     </aside>
