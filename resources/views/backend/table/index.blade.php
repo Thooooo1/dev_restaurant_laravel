@@ -350,18 +350,19 @@
         <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
             <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-gray-100">
                 
-                <!-- Modal Header -->
-                <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-orange-50/50 border-b border-gray-100 flex items-center justify-between">
+                <!-- Modal Header: High-end Stone-900 Gradient matching Table QR & Order Screen -->
+                <div class="px-6 py-4 bg-gradient-to-r from-stone-900 to-stone-800 text-white flex items-center justify-between border-b border-stone-700">
                     <div>
                         <div class="flex items-center gap-2">
-                            <h3 class="text-base font-bold text-gray-900" id="modalTableTitle">Chi tiết món ăn bàn</h3>
-                            <span id="modalTableBadge" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            <span class="text-[11px] uppercase font-bold tracking-wider text-amber-400">ĐƠN HÀNG ĐANG PHỤC VỤ</span>
+                            <span id="modalTableBadge" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                                 Đang phục vụ
                             </span>
                         </div>
-                        <p class="text-xs text-gray-500 mt-0.5" id="modalTableSub">Đang tải thông tin bàn...</p>
+                        <h3 class="text-base font-bold text-white mt-0.5" id="modalTableTitle">Chi tiết món ăn bàn</h3>
+                        <p class="text-xs text-stone-300 mt-0.5" id="modalTableSub">Đang tải thông tin bàn...</p>
                     </div>
-                    <button type="button" onclick="closeDishesModal()" class="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-200 flex items-center justify-center transition-colors font-bold text-sm cursor-pointer">
+                    <button type="button" onclick="closeDishesModal()" class="w-8 h-8 rounded-lg bg-stone-800 text-stone-300 hover:text-white hover:bg-stone-700 flex items-center justify-center transition-colors font-bold text-sm cursor-pointer border border-stone-700">
                         ✕
                     </button>
                 </div>
