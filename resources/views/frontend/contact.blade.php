@@ -178,8 +178,7 @@
                 <!-- 4. Google Maps Hoàn Chỉnh: Ghim chính xác 120 Phúc Hòa, Phúc Thọ -->
                 <div class="w-full">
                     <div class="mb-3.5 flex items-center justify-between">
-                        <div class="flex items-center gap-2 text-stone-800 font-bold text-xs sm:text-sm">
-                            <i class="fas fa-map-location-dot text-[#C25E00]"></i>
+                        <div class="text-stone-800 font-bold text-xs sm:text-sm">
                             <span>Bản đồ vị trí nhà hàng CIVILIZE Phúc Thọ</span>
                         </div>
                         <a href="https://maps.google.com/?q=21.1097,105.5620" 
