@@ -104,52 +104,6 @@
         </section>
 
         <!-- ======================================================== -->
-        <!-- SECTION 1.5: DẢI CAM KẾT & GIỚI THIỆU GIÁ TRỊ NHÀ HÀNG    -->
-        <!-- ======================================================== -->
-        <section class="bg-white border-b border-stone-200/80 py-6 sm:py-7 relative z-20 shadow-2xs">
-            <div class="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-orange-50 text-[#F47716] flex items-center justify-center shrink-0 text-base sm:text-lg shadow-xs">
-                            <i class="fas fa-leaf"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-extrabold text-stone-900 text-xs sm:text-sm">100% Tươi Mới</h4>
-                            <p class="text-stone-500 text-[11px] sm:text-xs">Rau sạch sông Đáy, bò tươi mỗi ngày</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-orange-50 text-[#F47716] flex items-center justify-center shrink-0 text-base sm:text-lg shadow-xs">
-                            <i class="fas fa-hat-chef"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-extrabold text-stone-900 text-xs sm:text-sm">Bếp Trưởng 12+ Năm</h4>
-                            <p class="text-stone-500 text-[11px] sm:text-xs">Công thức gia truyền đậm vị xứ Đoài</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-orange-50 text-[#F47716] flex items-center justify-center shrink-0 text-base sm:text-lg shadow-xs">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-extrabold text-stone-900 text-xs sm:text-sm">Sảnh Tiệc & Phòng VIP</h4>
-                            <p class="text-stone-500 text-[11px] sm:text-xs">Sức chứa 150 khách, 3 phòng riêng</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-orange-50 text-[#F47716] flex items-center justify-center shrink-0 text-base sm:text-lg shadow-xs">
-                            <i class="fas fa-shield-halved"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-extrabold text-stone-900 text-xs sm:text-sm">Chuẩn ATVSTP</h4>
-                            <p class="text-stone-500 text-[11px] sm:text-xs">Không đồ đông lạnh, không phụ gia</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ======================================================== -->
         <!-- SECTION 2: THỰC ĐƠN TINH HOA THEO DANH MỤC               -->
         <!-- ======================================================== -->
         <x-home-list-category />
