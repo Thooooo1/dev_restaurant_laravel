@@ -31,26 +31,26 @@
                 </p>
             </div>
 
-            <!-- Action Pills -->
+            <!-- Action Buttons (Style chuẩn Ant Design giống Ảnh 1) -->
             <div class="flex items-center gap-2 flex-wrap">
                 <a href="{{ route('admin.table-order.index') }}" 
-                   class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition shadow-2xs">
-                    Quay lại sơ đồ bàn
+                   class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                    <span>Quay lại sơ đồ bàn</span>
                 </a>
 
                 @if ($activeOrder)
                     <a href="{{ route('admin.table-order.order', $table->id) }}" 
-                       class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600 border border-orange-100 hover:bg-orange-100 transition shadow-2xs">
-                        Gọi thêm món
+                       class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                        <span>Gọi thêm món</span>
                     </a>
                     <a href="{{ route('admin.table-order.payment', $table->id) }}" 
-                       class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100 transition shadow-2xs">
-                        Thanh toán
+                       class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider shadow-2xs">
+                        <span>Thanh toán</span>
                     </a>
                 @else
                     <a href="{{ route('admin.table-order.order', $table->id) }}" 
-                       class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-medium bg-orange-50 text-orange-600 border border-orange-100 hover:bg-orange-100 transition shadow-2xs">
-                        Mở bàn & Gọi món
+                       class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider shadow-2xs">
+                        <span>+ Mở bàn & Gọi món</span>
                     </a>
                 @endif
             </div>
@@ -141,8 +141,8 @@
                             </p>
                             <div class="pt-2">
                                 <a href="{{ route('admin.table-order.order', $table->id) }}" 
-                                   class="inline-flex items-center px-4 py-2 rounded-xl text-xs font-semibold bg-[#F47716] text-white hover:bg-orange-600 transition shadow-2xs">
-                                    Mở bàn & Gọi món (POS)
+                                   class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider shadow-2xs">
+                                    <span>+ Mở bàn & Gọi món</span>
                                 </a>
                             </div>
                         </div>
@@ -180,14 +180,14 @@
                     </p>
 
                     <!-- Thao Tác Nút Bấm -->
-                    <div class="w-full mt-6 space-y-2.5">
+                    <div class="w-full mt-6 space-y-2">
                         <button type="button" onclick="window.print()" 
-                                class="w-full py-2.5 px-4 bg-white hover:bg-gray-50 text-gray-800 text-xs font-medium rounded-xl border border-gray-200 shadow-2xs cursor-pointer transition text-center block">
-                            In Standee
+                                class="ant-btn w-full justify-center font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 cursor-pointer">
+                            <span>In Standee</span>
                         </button>
                         <button type="button" onclick="downloadQR()" 
-                                class="w-full py-2.5 px-4 bg-white hover:bg-gray-50 text-gray-800 text-xs font-medium rounded-xl border border-gray-200 shadow-2xs cursor-pointer transition text-center block">
-                            Tải ảnh QR
+                                class="ant-btn w-full justify-center font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 cursor-pointer">
+                            <span>Tải ảnh QR</span>
                         </button>
                     </div>
                 </div>
