@@ -864,11 +864,6 @@
                         <td class="py-2.5 px-3 text-right font-mono font-bold text-gray-900">
                             ${dish.amount_formatted}
                         </td>
-                        <td class="py-2.5 px-3 text-center">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border ${dish.status_badge}">
-                                ${dish.status_text}
-                            </span>
-                        </td>
                     `;
                     tbody.appendChild(row);
                 });
@@ -976,10 +971,9 @@
                             <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold uppercase text-[10px]">
                                 <tr>
                                     <th class="py-2.5 px-3">Món ăn</th>
-                                    <th class="py-2.5 px-3 text-center w-16">SL</th>
-                                    <th class="py-2.5 px-3 text-right w-24">Đơn giá</th>
-                                    <th class="py-2.5 px-3 text-right w-28">Thành tiền</th>
-                                    <th class="py-2.5 px-3 text-center w-28">Trạng thái</th>
+                                    <th class="py-2.5 px-3 text-center w-20">SL</th>
+                                    <th class="py-2.5 px-3 text-right w-28">Đơn giá</th>
+                                    <th class="py-2.5 px-3 text-right w-32">Thành tiền</th>
                                 </tr>
                             </thead>
                             <tbody id="modalDishesTableBody" class="divide-y divide-gray-100">
