@@ -353,13 +353,7 @@
                 <!-- Modal Header: Nền trắng chữ đen thanh lịch, hiện đại -->
                 <div class="px-6 py-4 bg-white text-gray-900 flex items-center justify-between border-b border-gray-100">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[11px] uppercase font-bold tracking-wider text-[#F47716]">ĐƠN HÀNG ĐANG PHỤC VỤ</span>
-                            <span id="modalTableBadge" class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                Đang phục vụ
-                            </span>
-                        </div>
-                        <h3 class="text-base font-bold text-gray-900 mt-0.5" id="modalTableTitle">Chi tiết món ăn bàn</h3>
+                        <h3 class="text-base font-bold text-gray-900" id="modalTableTitle">Chi tiết món ăn bàn</h3>
                         <p class="text-xs text-gray-500 mt-0.5" id="modalTableSub">Đang tải thông tin bàn...</p>
                     </div>
                     <button type="button" onclick="closeDishesModal()" class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:text-gray-800 hover:bg-gray-100 flex items-center justify-center transition-colors font-bold text-sm cursor-pointer border border-gray-200" aria-label="Đóng">
