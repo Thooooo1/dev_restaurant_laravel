@@ -70,12 +70,12 @@
         <section class="py-10 sm:py-14 bg-[#FAF7F2] border-b border-stone-200/80">
             <div class="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-                    <!-- Left: Ảnh chụp thực tế không gian quán (Ảnh thật dự án) -->
+                    <!-- Left: Ảnh chụp thực tế không gian quán chuẩn xác -->
                     <div class="lg:col-span-5 order-2 lg:order-1">
                         <div class="w-full">
                             <div class="rounded-none sm:rounded-sm overflow-hidden shadow-2xs border border-stone-200 bg-stone-100 aspect-[4/3] w-full">
-                                <img src="{{ asset('images/gallery/about2.png') }}" 
-                                     alt="Không gian ẩm thực tại nhà hàng CIVILIZE Phúc Thọ" 
+                                <img src="{{ asset('images/gallery/space_cozy_wood.jpg') }}" 
+                                     alt="Không gian sảnh tiệc bàn gỗ ấm cúng tại nhà hàng CIVILIZE" 
                                      class="w-full h-full object-cover">
                             </div>
                             <p class="text-xs text-stone-500 text-center mt-3 font-medium">
