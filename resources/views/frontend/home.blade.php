@@ -115,13 +115,13 @@
         <!-- ======================================================== -->
         <section class="section-dichvu py-12 sm:py-16 bg-[#FAF6EE] border-t border-b border-stone-200/70">
             <div class="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
-                <!-- Section Header: Căn lề trái, bỏ chữ màu cam theo yêu cầu -->
+                <!-- Section Header: Căn lề trái theo Phương án 1 -->
                 <div class="text-left max-w-3xl mb-8 sm:mb-10">
                     <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-stone-900 tracking-tight mb-2.5">
-                        Dịch vụ bàn tiệc và phòng riêng theo đoàn
+                        Không Gian Bàn Tiệc & Đặt Tiệc Trọn Gói
                     </h2>
                     <p class="text-stone-600 text-xs sm:text-sm md:text-base leading-relaxed">
-                        Bố trí bàn linh hoạt theo quy mô đoàn khách từ bữa cơm gia đình nhỏ đến tiệc liên hoan đông người với set menu thiết kế riêng.
+                        Bố trí linh hoạt từ bữa cơm gia đình ấm cúng đến tiệc liên hoan, sinh nhật đông người với thực đơn riêng theo yêu cầu.
                     </p>
                 </div>
 
