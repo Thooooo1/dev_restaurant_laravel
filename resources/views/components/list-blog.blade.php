@@ -186,45 +186,6 @@
 
         </div>
 
-        <!-- 6. BANNER ĐẶT BÀN ƯU ĐÃI VIP (Card kêu gọi chuyển đổi thực khách) -->
-        <div class="relative bg-gradient-to-br from-[#1C1917] via-[#292524] to-[#1C1917] text-white rounded-none sm:rounded-sm p-6 border border-stone-800 shadow-sm overflow-hidden">
-            <!-- Decorative Pattern -->
-            <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-[#F47716]/10 rounded-full blur-2xl pointer-events-none"></div>
-            
-            <div class="relative z-10 space-y-4">
-                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none bg-[#F47716]/20 border border-[#F47716]/40 text-[#F47716] text-[10px] font-bold uppercase tracking-wider">
-                    <i class="fas fa-crown text-[9px]"></i>
-                    <span>Ưu Đãi Đặc Biệt</span>
-                </div>
-
-                <div>
-                    <h4 class="font-serif text-lg font-bold text-amber-100 leading-tight">
-                        Đặt Bàn Trước Tiệc Gia Đình & Hội Họp
-                    </h4>
-                    <p class="text-xs text-stone-300 mt-1.5 leading-relaxed">
-                        Nhận ngay <strong class="text-[#F47716] font-bold">ưu đãi 10%</strong> tổng hóa đơn, ưu tiên vị trí ngồi thoáng mát và setup tiệc chu đáo.
-                    </p>
-                </div>
-
-                <div class="pt-2 border-t border-stone-700/60 flex flex-col gap-2.5">
-                    <a href="tel:0338990538" class="flex items-center gap-2.5 text-xs text-stone-200 hover:text-white group">
-                        <div class="w-8 h-8 rounded-none sm:rounded-sm bg-[#F47716] flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform">
-                            <i class="fas fa-phone-alt text-xs"></i>
-                        </div>
-                        <div>
-                            <span class="text-[10px] text-stone-400 block font-medium">Hotline tư vấn tiệc 24/7:</span>
-                            <span class="text-sm font-extrabold text-[#F47716] tracking-wide">0338 990 538</span>
-                        </div>
-                    </a>
-
-                    <a href="{{ route('site.booking') }}" 
-                       class="w-full text-center py-2.5 px-4 bg-[#F47716] hover:bg-[#EA580C] text-white font-bold text-xs uppercase tracking-wider rounded-none sm:rounded-sm transition-all shadow-2xs hover:shadow-xs block">
-                        Đặt Bàn Trực Tuyến Ngay
-                    </a>
-                </div>
-            </div>
-        </div>
-
     </aside>
 
 </div>
