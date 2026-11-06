@@ -846,7 +846,7 @@
                     row.innerHTML = `
                         <td class="py-2.5 px-3">
                             <div class="flex items-center gap-2.5">
-                                <img src="${dish.thumbnail}" alt="${dish.name}" class="w-9 h-9 rounded-lg object-cover shrink-0 border border-gray-200" onerror="this.src='/images/default-dish.jpg'"/>
+                                <img src="${dish.thumbnail}" alt="${dish.name}" class="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-200 shadow-2xs" onerror="this.src='{{ asset('/images/default-product.png') }}'"/>
                                 <div>
                                     <div class="font-semibold text-gray-900">${dish.name}</div>
                                     <div class="text-[10px] text-gray-400">Lượt gọi #${dish.order_turn}</div>

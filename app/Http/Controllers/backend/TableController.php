@@ -59,9 +59,10 @@ class TableController extends Controller
         $subtotal = 0;
         foreach ($order->orderDetails as $detail) {
             $product = $detail->product;
-            $thumb = $product && $product->thumbnail 
-                ? asset('images/products/' . $product->thumbnail) 
-                : asset('images/default-dish.jpg');
+            $imgName = $product ? ($product->image ?? $product->thumbnail) : null;
+            $thumb = ($imgName && file_exists(public_path('images/product/' . $imgName))) 
+                ? asset('images/product/' . $imgName) 
+                : asset('images/default-product.png');
 
             $statusText = 'Chờ bếp';
             $statusBadge = 'bg-amber-100 text-amber-700 border-amber-200';
