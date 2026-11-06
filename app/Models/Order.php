@@ -42,6 +42,11 @@ class Order extends Model
         return $this->belongsTo(Table::class, 'table_id');
     }
 
+    public function itemLogs()
+    {
+        return $this->hasMany(OrderItemLog::class, 'order_id')->orderBy('id', 'desc');
+    }
+
     /**
      * Tên và thông tin phương thức thanh toán
      */
