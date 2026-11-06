@@ -290,7 +290,6 @@
                     <h2 class="text-base font-semibold text-[rgba(0,0,0,0.85)]">Danh sách đặt bàn gần đây</h2>
                 </div>
                 <a href="{{ url('admin/booking') }}" class="ant-btn text-xs">
-                    <i class="fa-solid fa-calendar-check text-xs text-gray-400"></i>
                     <span>Quản lý đặt bàn</span>
                 </a>
             </div>
@@ -335,14 +334,9 @@
                                 #{{ $rb->id }}
                             </td>
                             <td class="whitespace-nowrap">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 font-bold text-[11px] flex items-center justify-center flex-shrink-0">
-                                        {{ mb_substr($rb->name ?? 'K', 0, 1) }}
-                                    </div>
-                                    <div>
-                                        <div class="font-medium text-xs text-[rgba(0,0,0,0.85)]">{{ $rb->name }}</div>
-                                        <div class="text-[11px] text-[rgba(0,0,0,0.45)]">{{ $rb->phone }}</div>
-                                    </div>
+                                <div>
+                                    <div class="font-medium text-xs text-[rgba(0,0,0,0.85)]">{{ $rb->name }}</div>
+                                    <div class="text-[11px] text-[rgba(0,0,0,0.45)]">{{ $rb->phone }}</div>
                                 </div>
                             </td>
                             <td class="text-center font-medium text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap">
