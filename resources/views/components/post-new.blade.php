@@ -1,14 +1,11 @@
 <section class="blogs-area py-12 sm:py-16 bg-white border-t border-stone-200/60">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
-        <!-- Section Title -->
-        <div class="text-center max-w-2xl mx-auto mb-8 sm:mb-10">
-            <span class="inline-block text-[#F47716] font-bold uppercase text-xs tracking-wider mb-1">
-                Góc chia sẻ
-            </span>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight mb-2.5">
+        <!-- Section Title: Căn lề trái, bỏ chữ màu cam theo yêu cầu -->
+        <div class="text-left max-w-3xl mb-8 sm:mb-10">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-stone-900 tracking-tight mb-2.5">
                 Cẩm nang ẩm thực & tin tức mới nhất
             </h2>
-            <p class="text-stone-600 text-xs sm:text-sm">
+            <p class="text-stone-600 text-xs sm:text-sm md:text-base leading-relaxed">
                 Những câu chuyện ẩm thực, kinh nghiệm chọn món ngon và các chương trình ưu đãi tri ân khách hàng tại nhà hàng CIVILIZE.
             </p>
         </div>
