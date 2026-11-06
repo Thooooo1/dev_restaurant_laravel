@@ -306,8 +306,8 @@ class TableController extends Controller
         // Hướng người dùng đến trang quét QR của bàn đó
         $url = route('site.table.scan', $id);
         
-        // Tạo QR Code kích thước vừa vặn cho Standee để bàn (220px sắc nét)
-        $qrcode = QrCode::size(220)->generate($url);
+        // Tạo QR Code kích thước vừa vặn cho Standee để bàn (160px)
+        $qrcode = QrCode::size(160)->generate($url);
         
         return view('backend.table.qr', compact('table', 'qrcode', 'url', 'activeOrder'));
     }
