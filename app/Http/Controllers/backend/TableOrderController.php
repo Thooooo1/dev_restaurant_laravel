@@ -93,8 +93,9 @@ class TableOrderController extends Controller
             $order->save();
         }
 
-        // Lấy toàn bộ chi tiết món đã lưu
+        // Lấy toàn bộ chi tiết món hợp lệ (không bao gồm món đã hủy)
         $orderDetails = Orderdetail::where('order_id', $order->id)
+            ->where('status', '!=', 'cancelled')
             ->with('product')
             ->orderBy('id', 'ASC')
             ->get();
@@ -856,6 +857,7 @@ class TableOrderController extends Controller
             return redirect()->route('admin.table-order.index')->with('error', 'Bàn chưa được đăng ký khách');
         }
         $orderDetails = Orderdetail::where('order_id', $order->id)
+            ->where('status', '!=', 'cancelled')
             ->with('product')
             ->orderBy('id', 'ASC')
             ->get();
@@ -872,33 +874,47 @@ class TableOrderController extends Controller
             'total_price' => 'required|numeric|min:0',
         ]);
 
-        $order = Order::findOrFail($request->order_id);
-        
-        // Update order status to 2 (Completed) and save payment method
-        $order->status = 2;
-        $order->payment_method = $request->payment_method;
-        $order->total_price = $request->total_price;
-        $order->save();
+        return DB::transaction(function () use ($request) {
+            $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
 
-        if ($order->user_id) {
-            try {
-                \App\Services\NotificationService::send([
-                    'user_id' => $order->user_id,
-                    'role'    => 'customer',
-                    'type'    => 'payment',
-                    'title'   => 'Thanh toán hoàn tất! Cảm ơn quý khách',
-                    'message' => 'Hóa đơn đơn hàng #' . $order->id . ' đã được thanh toán thành công. Cảm ơn bạn đã lựa chọn dùng bữa tại CIVILIZE!',
-                    'url'     => route('site.orders'),
-                    'icon'    => 'fa-receipt',
-                    'color'   => '#10B981',
-                ]);
-            } catch (\Exception $e) {}
-        }
+            // Chống thanh toán 2 lần
+            if ((int)$order->status === 2) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hóa đơn này đã được thanh toán trước đó.'
+                ], 400);
+            }
 
-        // Clear table lock for all tables linked to this order
-        Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
+            // Tính lại chính xác tổng tiền từ các chi tiết món hợp lệ trong DB
+            $actualTotal = Orderdetail::where('order_id', $order->id)
+                ->where('status', '!=', 'cancelled')
+                ->sum('amount');
 
-        return response()->json(['success' => true, 'message' => 'Thanh toán thành công']);
+            $order->status = 2; // Đã thanh toán
+            $order->payment_method = $request->payment_method;
+            $order->total_price = $actualTotal > 0 ? $actualTotal : $request->total_price;
+            $order->save();
+
+            // Clear table lock cho các bàn liên kết
+            Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
+
+            if ($order->user_id) {
+                try {
+                    \App\Services\NotificationService::send([
+                        'user_id' => $order->user_id,
+                        'role'    => 'customer',
+                        'type'    => 'payment',
+                        'title'   => 'Thanh toán hoàn tất! Cảm ơn quý khách',
+                        'message' => 'Hóa đơn đơn hàng #' . $order->id . ' đã được thanh toán thành công. Cảm ơn bạn đã lựa chọn dùng bữa tại CIVILIZE!',
+                        'url'     => route('site.orders'),
+                        'icon'    => 'fa-receipt',
+                        'color'   => '#10B981',
+                    ]);
+                } catch (\Exception $e) {}
+            }
+
+            return response()->json(['success' => true, 'message' => 'Thanh toán thành công']);
+        });
     }
 
     /**
