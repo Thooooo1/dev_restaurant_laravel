@@ -1,5 +1,5 @@
 <!-- Chatbot Widget Component - CIVILIZE Restaurant Concierge -->
-<div id="civilize-chatbot" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 font-sans" style="font-family: inherit;">
+<div id="civilize-chatbot" class="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-50 font-sans" style="font-family: inherit;">
     <!-- Floating Trigger Button (Chỉ hiển thị khi cửa sổ chat ĐANG ĐÓNG) -->
     <div id="chatbot-trigger-container" class="relative flex items-center transition-all duration-300">
         <button id="chatbot-toggle-btn" 
@@ -15,7 +15,7 @@
 
     <!-- Chat Window Modal (Kích thước chuẩn Restaurant Concierge: rộng 410px, cao 580px, bo góc 16px) -->
     <div id="chatbot-window" 
-         class="hidden fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-[94vw] sm:w-[410px] h-[580px] max-h-[88vh] bg-[#FAF8F5] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-stone-200/90 transition-all duration-300 transform scale-95 opacity-0 z-50">
+         class="hidden fixed bottom-20 right-4 sm:bottom-6 sm:right-6 w-[94vw] sm:w-[410px] h-[540px] max-h-[78vh] bg-[#FAF8F5] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-stone-200/90 transition-all duration-300 transform scale-95 opacity-0 z-50">
         
         <!-- Header: Tông Cam Nâu Đẳng Cấp & Ấm Cúng Chuẩn Luxury Restaurant (Cao ~70px) -->
         <div class="bg-gradient-to-r from-[#A84E00] via-[#C25E00] to-[#D97706] text-white px-4 py-3 flex items-center justify-between shadow-sm shrink-0">

@@ -4,11 +4,25 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover, interactive-widget=resizes-content">
     <meta name="theme-color" content="#1890FF" media="(prefers-color-scheme: light)">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CIVILIZE Admin">
+    <meta name="application-name" content="CIVILIZE Admin">
     <meta name="format-detection" content="telephone=no">
     <title>Quản lý Nhà hàng - CIVILIZE (Ant Design Pro)</title>
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo/logo.png') }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/logo/logo.png') }}">
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').catch(function() {});
+            });
+        }
+    </script>
 
     <!-- Google Fonts: Plus Jakarta Sans & Inter (Chuẩn nét, sắc sảo cho tiếng Việt) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

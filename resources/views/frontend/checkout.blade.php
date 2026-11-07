@@ -1,6 +1,7 @@
 <x-layout-frontend>
     @php
-        $cart = session()->get('cart_' . Auth::id(), []);
+        $cartKey = Auth::check() ? ('cart_' . Auth::id()) : ('cart_guest_' . session()->getId());
+        $cart = $cart ?? session()->get($cartKey, session()->get('cart', []));
         $cartTotal = array_sum(array_map(fn($item) => $item['price'] * $item['qty'], $cart));
         $isTableOrder = (session('is_table_order') && session('table_id'));
     @endphp

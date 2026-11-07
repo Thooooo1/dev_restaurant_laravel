@@ -9,8 +9,8 @@
 @endphp
 
 <div id="serviceCallFloatingWidget" 
-     class="fixed z-40 print:hidden font-sans transition-all duration-200"
-     style="bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px)); left: calc(1rem + env(safe-area-inset-left, 0px));">
+     class="fixed z-40 print:hidden font-sans transition-all duration-200 bottom-20 md:bottom-6 left-4"
+     style="left: calc(1rem + env(safe-area-inset-left, 0px));">
     <!-- Nút chuông gọi phục vụ: Thiết kế tinh tế, thuần typography cao cấp, tương thích Windows, Mac, iOS & Android -->
     <button type="button" 
             id="openServiceCallBtn"

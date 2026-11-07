@@ -7,11 +7,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover, interactive-widget=resizes-content">
     <meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#1c1917" media="(prefers-color-scheme: dark)">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CIVILIZE">
+    <meta name="application-name" content="CIVILIZE">
     <meta name="format-detection" content="telephone=no">
     <title>CIVILIZE Restaurant</title>
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <link rel="apple-touch-icon" href="{{ asset('images/logo/logo.png') }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/logo/logo.png') }}">
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').catch(function() {});
+            });
+        }
+    </script>
     <!-- jQuery -->
     {{--
     <script src="/Scripts/js/jquery-2.0.0.min.js" type="text/javascript"></script> --}}
@@ -308,7 +322,7 @@
     {{ $header ?? '' }}
 </head>
 
-<body class="flex flex-col min-h-screen">
+<body class="flex flex-col min-h-screen pb-16 md:pb-0">
     @include('components.alert')
     <header class="bg-white border-b border-stone-200 sticky top-0 left-0 w-full z-50 shadow-2xs" x-data="{ openMenu: false }">
 
@@ -327,7 +341,7 @@
                 </div>
 
                 <!-- Right Actions: Đồng bộ chiều cao, thiết kế khoa học & đẹp mắt -->
-                <div class="hidden md:flex items-center gap-3 shrink-0">
+                <div class="hidden lg:flex items-center gap-3 shrink-0">
                     @php
                         $userCartKey = Auth::check() ? 'cart_' . Auth::id() : 'cart_guest_' . session()->getId();
                         $userCart = session()->get($userCartKey, []);
@@ -483,8 +497,11 @@
                     @endif
                 </div>
 
-                <!-- Mobile Hamburger Button & Quick Actions -->
-                <div class="flex items-center gap-2 md:hidden">
+                <!-- Mobile & Tablet Hamburger Button & Quick Actions -->
+                <div class="flex items-center gap-2 lg:hidden">
+                    <!-- Chuông thông báo trên Mobile / Tablet -->
+                    <x-frontend-notification-bell />
+
                     @php
                         $isStaffUserMobile = Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee());
                     @endphp
@@ -537,7 +554,7 @@
 
         <!-- Subtle Scroll to Top Button (Đặt phía trên nút chuông gọi bàn, không đè lấn) -->
         <button id="scrollToTop" 
-                class="fixed bottom-20 left-6 z-40 bg-stone-900/90 hover:bg-[#C25E00] text-white rounded-none sm:rounded-sm w-10 h-10 hidden items-center justify-center shadow-md transition-all duration-300 cursor-pointer"
+                class="fixed bottom-36 md:bottom-20 left-4 sm:left-6 z-40 bg-stone-900/90 hover:bg-[#C25E00] text-white rounded-none sm:rounded-sm w-10 h-10 hidden items-center justify-center shadow-md transition-all duration-300 cursor-pointer"
                 title="Lên đầu trang">
             <i class="fas fa-chevron-up text-xs"></i>
         </button>
@@ -903,6 +920,12 @@
 
     <!-- Chatbot Widget -->
     <x-chatbot />
+
+    <!-- Mobile Bottom Navigation Bar (Màn hình điện thoại < 768px) -->
+    <x-mobile-bottom-nav />
+
+    <!-- PWA Install Banner (Máy tính & Điện thoại) -->
+    <x-pwa-install-banner />
 
     <script src="{{ asset('plugins/bootstrap/js/bootstrap.js') }}"></script>
     <script src="{{ asset('plugins/bootstrap/js/boot.js') }}"></script>

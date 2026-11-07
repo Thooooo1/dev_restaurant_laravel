@@ -275,7 +275,7 @@
 <!-- MOBILE FLOATING BOTTOM BAR (< 1024px - An toàn iOS/Android) -->
 <!-- ======================================================== -->
 <div id="mobileFloatingCartBar" 
-     class="block lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-stone-900 text-white shadow-2xl border-t border-stone-800 p-3 {{ $cartCount == 0 ? 'hidden' : '' }}"
+     class="block lg:hidden fixed bottom-[58px] md:bottom-0 left-0 right-0 z-40 bg-stone-900 text-white shadow-2xl border-t border-stone-800 p-3 {{ $cartCount == 0 ? 'hidden' : '' }}"
      style="padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));">
     <div class="container mx-auto flex items-center justify-between gap-3">
         <div class="flex items-center gap-2.5 cursor-pointer select-none" onclick="openMobileCartDrawer()">
