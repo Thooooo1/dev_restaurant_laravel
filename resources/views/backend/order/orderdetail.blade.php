@@ -170,12 +170,12 @@
 
                     <!-- Khối thông tin theo phương thức -->
                     @if($paymentInfo['code'] === 'vietqr')
-                        <!-- Chuyển khoản VietQR -->
-                        <div class="space-y-3">
-                            <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs space-y-2">
+                        <!-- Chuyển khoản VietQR: Bố cục 2 cột cân đối -->
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
+                            <div class="sm:col-span-7 p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs space-y-2">
                                 <div class="flex items-center justify-between">
                                     <span class="text-gray-700 font-semibold">Hình thức:</span>
-                                    <span class="font-bold text-gray-900">Chuyển khoản VietQR (Napas 247)</span>
+                                    <span class="font-bold text-gray-900">Chuyển khoản VietQR</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-gray-700 font-semibold">Ngân hàng:</span>
@@ -190,7 +190,7 @@
                                     <span class="font-bold text-gray-800 uppercase">{{ config('vietqr.account_name') }}</span>
                                 </div>
                                 <div class="flex items-center justify-between pt-1 border-t border-gray-200">
-                                    <span class="text-gray-700 font-semibold">Nội dung chuyển khoản:</span>
+                                    <span class="text-gray-700 font-semibold">Nội dung:</span>
                                     <span class="font-mono font-bold text-gray-900 bg-white px-2 py-0.5 rounded border border-gray-200">
                                         {{ $order->table_id ? ('BAN' . $order->table_id) : ('DH' . $order->id) }}
                                     </span>
@@ -198,12 +198,12 @@
                             </div>
 
                             <!-- Ảnh QR cho thu ngân -->
-                            <div class="p-3 bg-white border border-gray-200 rounded-lg text-center">
-                                <span class="text-[11px] font-bold text-gray-700 block mb-2">Mã VietQR thanh toán cho đơn này:</span>
+                            <div class="sm:col-span-5 p-3 bg-white border border-gray-200 rounded-lg text-center flex flex-col items-center justify-center">
+                                <span class="text-[11px] font-bold text-gray-700 block mb-1">Mã QR thanh toán:</span>
                                 <img src="https://img.vietqr.io/image/{{ config('vietqr.bank_id') }}-{{ config('vietqr.account_no') }}-compact2.png?amount={{ $totalAmount }}&addInfo={{ $order->table_id ? ('BAN' . $order->table_id) : ('DH' . $order->id) }}&accountName={{ urlencode(config('vietqr.account_name')) }}" 
                                      alt="Mã VietQR" 
-                                     class="w-44 h-44 object-contain mx-auto rounded-lg shadow-2xs border border-gray-100">
-                                <span class="text-[10px] text-gray-400 mt-2 block">Khách có thể quét trực tiếp từ ảnh này</span>
+                                     class="w-32 h-32 object-contain mx-auto rounded-lg border border-gray-100">
+                                <span class="text-[10px] text-gray-400 mt-1 block">Quét từ app ngân hàng</span>
                             </div>
                         </div>
                     @elseif($paymentInfo['code'] === 'card')
@@ -349,24 +349,24 @@
                     </div>
 
                     <!-- Bảng tính toán tổng tài chính -->
-                    <div class="mt-4 pt-4 border-t border-gray-100 max-w-xs ml-auto space-y-2 text-xs">
+                    <div class="mt-4 pt-4 border-t border-gray-100 w-80 max-w-full ml-auto space-y-2 text-xs">
                         <div class="flex items-center justify-between text-gray-600">
                             <span>Tiền món ăn:</span>
-                            <span class="font-mono font-medium">{{ number_format($order->orderDetails->sum('amount'), 0, ',', '.') }} ₫</span>
+                            <span class="font-mono font-medium whitespace-nowrap">{{ number_format($order->orderDetails->sum('amount'), 0, ',', '.') }} ₫</span>
                         </div>
                         @if(!$isTableOrder)
                         <div class="flex items-center justify-between text-gray-600">
                             <span>Phí giao hàng:</span>
-                            <span class="font-mono text-emerald-600 font-medium">Miễn phí</span>
+                            <span class="font-mono text-emerald-600 font-medium whitespace-nowrap">Miễn phí</span>
                         </div>
                         @endif
                         <div class="flex items-center justify-between text-gray-600">
                             <span>Chiết khấu / Giảm giá:</span>
-                            <span class="font-mono text-gray-400">0 ₫</span>
+                            <span class="font-mono text-gray-400 whitespace-nowrap">0 ₫</span>
                         </div>
                         <div class="pt-2 border-t border-gray-200 flex items-center justify-between text-sm">
                             <span class="font-bold text-gray-900 uppercase">Tổng thanh toán:</span>
-                            <span class="font-bold font-mono text-xl text-[#F47716]">
+                            <span class="font-bold font-mono text-xl text-[#F47716] whitespace-nowrap">
                                 {{ number_format($totalAmount, 0, ',', '.') }} ₫
                             </span>
                         </div>
