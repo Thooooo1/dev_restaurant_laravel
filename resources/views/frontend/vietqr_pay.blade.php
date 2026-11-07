@@ -72,6 +72,17 @@
                         </span>
                         <span id="paymentStatusText" class="font-medium text-stone-700">Hệ thống đang tự động nhận diện thanh toán...</span>
                     </div>
+
+                    <!-- Nút Giả lập thanh toán nhanh cho Test / Đồ án -->
+                    <div class="w-full mt-3">
+                        <button type="button" 
+                                id="btnSimulatePayment"
+                                onclick="triggerSimulatePayment()" 
+                                class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer text-xs sm:text-sm">
+                            <i class="fa-solid fa-circle-check text-base"></i>
+                            <span>Bấm để xác nhận đã thanh toán (Chế độ Test)</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Cột phải (5 cols): Tổng Tiền & Thông tin chi tiết (Kiểu Checkout) -->
@@ -206,9 +217,15 @@
                     .catch(err => console.log('Checking payment status:', err));
             }, 3000);
 
-            // Tự động nhận tiền sau 2.5 giây (hệ thống tự động xác nhận chuyển khoản và gửi thông báo cho 3 vai trò)
-            setTimeout(function() {
+            // Hàm kích hoạt giả lập thanh toán
+            window.triggerSimulatePayment = function() {
                 if (isCompleted) return;
+
+                const btn = document.getElementById('btnSimulatePayment');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xác nhận thanh toán...';
+                }
 
                 const statusText = document.getElementById('paymentStatusText');
                 if (statusText) statusText.textContent = 'Đang tự động xác nhận nhận tiền...';
@@ -236,10 +253,29 @@
                         setTimeout(function() {
                             window.location.href = thanksUrl;
                         }, 2200);
+                    } else {
+                        console.warn('Simulate webhook response:', data);
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Thử lại xác nhận thanh toán (Chế độ Test)';
+                        }
                     }
                 })
-                .catch(err => console.log('Tự động nhận tiền VietQR:', err));
-            }, 2500);
+                .catch(err => {
+                    console.log('Tự động nhận tiền VietQR:', err);
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Thử lại xác nhận thanh toán (Chế độ Test)';
+                    }
+                });
+            };
+
+            // Tự động nhận tiền sau 3 giây (hệ thống tự động xác nhận chuyển khoản và gửi thông báo cho 3 vai trò)
+            setTimeout(function() {
+                if (!isCompleted) {
+                    triggerSimulatePayment();
+                }
+            }, 3000);
         });
     </script>
 </x-layout-frontend>

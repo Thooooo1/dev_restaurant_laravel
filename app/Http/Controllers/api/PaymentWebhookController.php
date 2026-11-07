@@ -28,11 +28,14 @@ class PaymentWebhookController extends Controller
     {
         Log::info('=== PAYMENT WEBHOOK RECEIVED ===', $request->all());
 
-        // Kiểm tra xác thực Token khi ở môi trường Production
+        // Kiểm tra nếu là yêu cầu giả lập test
+        $isSimulated = str_starts_with((string)$request->input('referenceCode', ''), 'SIMULATED_');
+
+        // Kiểm tra xác thực Token khi ở môi trường Production (và không phải test giả lập)
         $isProduction = config('payment.mode', 'demo') === 'production';
         $expectedToken = config('payment.webhook_token', env('PAYMENT_WEBHOOK_TOKEN'));
 
-        if ($isProduction) {
+        if ($isProduction && !$isSimulated) {
             if (empty($expectedToken)) {
                 Log::error('Webhook bị từ chối: PAYMENT_WEBHOOK_TOKEN chưa được cấu hình trong môi trường Production.');
                 return response()->json([
