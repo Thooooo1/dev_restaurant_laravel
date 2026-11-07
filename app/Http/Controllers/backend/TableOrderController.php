@@ -903,14 +903,20 @@ class TableOrderController extends Controller
             try {
                 $tableName = $order->table ? $order->table->name : "Bàn #{$order->table_id}";
                 $actualTotalFormatted = number_format($actualTotal, 0, ',', '.') . '₫';
+                $pmText = $request->payment_method == 2 ? 'Chuyển khoản VietQR' : ($request->payment_method == 3 ? 'Quẹt thẻ POS' : 'Tiền mặt');
                 \App\Services\NotificationService::send([
                     'role'    => 'employee',
                     'type'    => 'payment',
-                    'title'   => "{$tableName} đã thanh toán ({$actualTotalFormatted})",
-                    'message' => "Hóa đơn {$tableName} (#{$order->id}) đã được thanh toán qua {$request->payment_method}.",
+                    'title'   => "{$tableName} đã thanh toán {$pmText} ({$actualTotalFormatted})",
+                    'message' => "Hóa đơn {$tableName} (#{$order->id}) đã được thanh toán thành công qua {$pmText}.",
                     'url'     => route('admin.table-order.payment', $order->table_id),
                     'icon'    => 'fa-receipt',
                     'color'   => '#10B981',
+                    'data'    => [
+                        'order_id' => $order->id,
+                        'table_id' => $order->table_id,
+                        'is_vietqr' => $request->payment_method == 2
+                    ],
                 ]);
             } catch (\Exception $e) {}
 
