@@ -27,6 +27,9 @@
                     </a>
                 </div>
 
+                <button type="button" onclick="window.location.reload()" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50" title="Tải lại số liệu mới nhất">
+                    <span>Làm mới</span>
+                </button>
                 <a href="{{ route('admin.order-history.export') }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
                     <span>Xuất Excel doanh thu</span>
                 </a>
@@ -456,6 +459,20 @@
                     }
                 });
             }
+
+            // Tự động làm mới khi quay lại tab Dashboard từ màn hình khác
+            let lastFocusTime = Date.now();
+            window.addEventListener('focus', function() {
+                if (Date.now() - lastFocusTime > 5000) {
+                    lastFocusTime = Date.now();
+                    window.location.reload();
+                }
+            });
+
+            // Tự động làm mới dữ liệu định kỳ mỗi 30 giây
+            setInterval(function() {
+                window.location.reload();
+            }, 30000);
         });
     </script>
 </x-layout-backend>

@@ -72,58 +72,53 @@ class DashboardController extends Controller
         }
 
         // === 2. TÍNH TOÁN 4 CHỈ SỐ KPI CHUẨN DOANH NGHIỆP ===
-        // KPI 1: DOANH THU
-        $revenue = (int) Order::whereNull('deleted_at')
-            ->whereIn('status', [1, 2])
-            ->whereBetween('created_at', [$currentStart, $currentEnd])
-            ->sum('total_price');
+        // Hàm lọc đơn hàng phát sinh hoặc hoàn tất thanh toán trong kỳ
+        $buildPeriodOrders = function($start, $end) {
+            return Order::whereNull('deleted_at')
+                ->whereIn('status', [1, 2])
+                ->where(function($q) use ($start, $end) {
+                    $q->whereBetween('created_at', [$start, $end])
+                      ->orWhere(function($sub) use ($start, $end) {
+                          $sub->where('status', 2)
+                              ->whereBetween('updated_at', [$start, $end]);
+                      });
+                });
+        };
 
-        $prevRevenue = (int) Order::whereNull('deleted_at')
-            ->whereIn('status', [1, 2])
-            ->whereBetween('created_at', [$prevStart, $prevEnd])
-            ->sum('total_price');
+        // KPI 1: DOANH THU
+        $revenue = (int) $buildPeriodOrders($currentStart, $currentEnd)->sum('total_price');
+        $prevRevenue = (int) $buildPeriodOrders($prevStart, $prevEnd)->sum('total_price');
 
         $revenueGrowth = $prevRevenue > 0 
             ? round((($revenue - $prevRevenue) / $prevRevenue) * 100, 1) 
             : ($revenue > 0 ? 100.0 : 0.0);
 
-        $cashRevenue = (int) Order::whereNull('deleted_at')
-            ->whereIn('status', [1, 2])
-            ->whereBetween('created_at', [$currentStart, $currentEnd])
-            ->where('payment_method', 1)
+        $cashRevenue = (int) $buildPeriodOrders($currentStart, $currentEnd)
+            ->where(function($q) {
+                $q->whereIn('payment_method', [1, '1', 'COD', 'cod', 'cash', 'tiền mặt']);
+            })
             ->sum('total_price');
 
-        $transferRevenue = (int) Order::whereNull('deleted_at')
-            ->whereIn('status', [1, 2])
-            ->whereBetween('created_at', [$currentStart, $currentEnd])
-            ->where('payment_method', 2)
+        $transferRevenue = (int) $buildPeriodOrders($currentStart, $currentEnd)
+            ->where(function($q) {
+                $q->whereIn('payment_method', [2, '2', 'VietQR', 'vietqr', 'bank', 'chuyển khoản']);
+            })
             ->sum('total_price');
 
         // KPI 2: ĐƠN HÀNG
-        $orderCount = Order::whereNull('deleted_at')
-            ->whereIn('status', [1, 2])
-            ->whereBetween('created_at', [$currentStart, $currentEnd])
-            ->count();
-
-        $prevOrderCount = Order::whereNull('deleted_at')
-            ->whereIn('status', [1, 2])
-            ->whereBetween('created_at', [$prevStart, $prevEnd])
-            ->count();
+        $orderCount = $buildPeriodOrders($currentStart, $currentEnd)->count();
+        $prevOrderCount = $buildPeriodOrders($prevStart, $prevEnd)->count();
 
         $orderGrowth = $prevOrderCount > 0 
             ? round((($orderCount - $prevOrderCount) / $prevOrderCount) * 100, 1) 
             : ($orderCount > 0 ? 100.0 : 0.0);
 
-        $dineInCount = Order::whereNull('deleted_at')
-            ->whereIn('status', [1, 2])
-            ->whereBetween('created_at', [$currentStart, $currentEnd])
-            ->where('orderStyle', 1)
+        $dineInCount = $buildPeriodOrders($currentStart, $currentEnd)
+            ->whereNotNull('table_id')
             ->count();
 
-        $takeawayCount = Order::whereNull('deleted_at')
-            ->whereIn('status', [1, 2])
-            ->whereBetween('created_at', [$currentStart, $currentEnd])
-            ->where('orderStyle', 2)
+        $takeawayCount = $buildPeriodOrders($currentStart, $currentEnd)
+            ->whereNull('table_id')
             ->count();
 
         // KPI 3: GIÁ TRỊ ĐƠN TRUNG BÌNH (AOV)
@@ -133,9 +128,7 @@ class DashboardController extends Controller
             ? round((($avgOrderValue - $prevAvgOrderValue) / $prevAvgOrderValue) * 100, 1) 
             : 0.0;
 
-        $customersCount = Order::whereNull('deleted_at')
-            ->whereIn('status', [1, 2])
-            ->whereBetween('created_at', [$currentStart, $currentEnd])
+        $customersCount = $buildPeriodOrders($currentStart, $currentEnd)
             ->distinct('phone')
             ->count('phone');
 
@@ -208,7 +201,13 @@ class DashboardController extends Controller
                 $hEnd = $hStart->copy()->addHours(2)->subSecond();
                 $rev = (int) Order::whereNull('deleted_at')
                     ->whereIn('status', [1, 2])
-                    ->whereBetween('created_at', [$hStart, $hEnd])
+                    ->where(function($q) use ($hStart, $hEnd) {
+                        $q->whereBetween('created_at', [$hStart, $hEnd])
+                          ->orWhere(function($sub) use ($hStart, $hEnd) {
+                              $sub->where('status', 2)
+                                  ->whereBetween('updated_at', [$hStart, $hEnd]);
+                          });
+                    })
                     ->sum('total_price');
                 $chartRevenueData[] = $rev;
             }
@@ -217,9 +216,17 @@ class DashboardController extends Controller
             while ($current->lte($today)) {
                 $chartLabels[] = $current->format('d/m');
                 $dateStr = $current->toDateString();
+                $dayStart = $current->copy()->startOfDay();
+                $dayEnd = $current->copy()->endOfDay();
                 $rev = (int) Order::whereNull('deleted_at')
-                    ->whereDate('created_at', $dateStr)
                     ->whereIn('status', [1, 2])
+                    ->where(function($q) use ($dayStart, $dayEnd) {
+                        $q->whereBetween('created_at', [$dayStart, $dayEnd])
+                          ->orWhere(function($sub) use ($dayStart, $dayEnd) {
+                              $sub->where('status', 2)
+                                  ->whereBetween('updated_at', [$dayStart, $dayEnd]);
+                          });
+                    })
                     ->sum('total_price');
                 $chartRevenueData[] = $rev;
                 $current->addDay();
@@ -229,9 +236,17 @@ class DashboardController extends Controller
             while ($current->lte($today)) {
                 $chartLabels[] = $current->format('d/m');
                 $dateStr = $current->toDateString();
+                $dayStart = $current->copy()->startOfDay();
+                $dayEnd = $current->copy()->endOfDay();
                 $rev = (int) Order::whereNull('deleted_at')
-                    ->whereDate('created_at', $dateStr)
                     ->whereIn('status', [1, 2])
+                    ->where(function($q) use ($dayStart, $dayEnd) {
+                        $q->whereBetween('created_at', [$dayStart, $dayEnd])
+                          ->orWhere(function($sub) use ($dayStart, $dayEnd) {
+                              $sub->where('status', 2)
+                                  ->whereBetween('updated_at', [$dayStart, $dayEnd]);
+                          });
+                    })
                     ->sum('total_price');
                 $chartRevenueData[] = $rev;
                 $current->addDay();
@@ -244,13 +259,19 @@ class DashboardController extends Controller
 
             while (true) {
                 $tempDate = Carbon::create($currentYear, $currentMonth, 1);
-                $monthStart = $tempDate->startOfMonth()->toDateString();
-                $monthEnd = $tempDate->endOfMonth()->toDateString();
+                $monthStart = $tempDate->copy()->startOfMonth();
+                $monthEnd = $tempDate->copy()->endOfMonth();
                 $chartLabels[] = $tempDate->format('m/Y');
 
                 $rev = (int) Order::whereNull('deleted_at')
-                    ->whereBetween('created_at', [$monthStart . ' 00:00:00', $monthEnd . ' 23:59:59'])
                     ->whereIn('status', [1, 2])
+                    ->where(function($q) use ($monthStart, $monthEnd) {
+                        $q->whereBetween('created_at', [$monthStart, $monthEnd])
+                          ->orWhere(function($sub) use ($monthStart, $monthEnd) {
+                              $sub->where('status', 2)
+                                  ->whereBetween('updated_at', [$monthStart, $monthEnd]);
+                          });
+                    })
                     ->sum('total_price');
 
                 $chartRevenueData[] = $rev;
