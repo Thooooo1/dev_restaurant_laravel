@@ -293,4 +293,63 @@ class SecurityAndPaymentTest extends TestCase
         if ($serviceCall) $serviceCall->delete();
         $order->delete();
     }
+
+    /**
+     * 10. Test Chuông thông báo Backend hiển thị đầy đủ thông báo thanh toán & chuyển khoản thành công
+     */
+    public function test_backend_notification_dropdown_returns_payment_and_transfer_notifications(): void
+    {
+        $admin = User::where('roles', 'admin')->where('status', 1)->first();
+        if (!$admin) {
+            $admin = User::create([
+                'username' => 'test_admin_noti_' . uniqid(),
+                'fullname' => 'Test Admin Noti',
+                'password' => Hash::make('123456'),
+                'phone' => '0999999995',
+                'roles' => 'admin',
+                'admin_lever' => 1,
+                'status' => 1,
+            ]);
+        }
+
+        // Tạo 1 thông báo thanh toán test
+        $testNoti = \App\Models\Notification::create([
+            'role'    => 'admin',
+            'type'    => 'payment',
+            'title'   => 'Đã nhận tiền VietQR: 500.000₫ (Bàn Test)',
+            'message' => 'Hệ thống đã nhận 500.000₫ qua VietQR cho Bàn Test.',
+            'url'     => 'http://localhost:8000/admin',
+            'icon'    => 'fa-circle-check',
+            'color'   => '#10B981',
+            'data'    => ['is_vietqr' => true],
+            'is_read' => false,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.notifications.latest'));
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'success',
+            'total_count',
+            'payment_count',
+            'service_call_count',
+            'new_order_count',
+            'new_booking_count',
+            'payments',
+            'service_calls',
+            'new_orders',
+            'new_bookings'
+        ]);
+
+        $data = $response->json();
+        $this->assertTrue(count($data['payments']) > 0, 'Danh sách thông báo thanh toán không được rỗng');
+
+        // Tìm thông báo vừa tạo
+        $found = collect($data['payments'])->firstWhere('id', $testNoti->id);
+        $this->assertNotNull($found, 'Không tìm thấy thông báo chuyển khoản test trong danh sách chuông');
+        $this->assertTrue($found['is_vietqr']);
+        $this->assertEquals('Chuyển khoản VietQR', $found['badge_label']);
+
+        // Dọn dẹp
+        $testNoti->delete();
+    }
 }

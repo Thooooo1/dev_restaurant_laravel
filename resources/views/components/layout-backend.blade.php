@@ -568,7 +568,7 @@
 
                         <!-- Panel Dropdown Thông Báo -->
                         <div id="systemNotificationDropdown" 
-                             class="hidden absolute right-0 mt-2 w-96 max-w-[92vw] bg-white rounded-lg shadow-2xl border border-[#F0F0F0] z-50 overflow-hidden text-xs">
+                             class="hidden absolute right-0 mt-2 w-[440px] max-w-[94vw] bg-white rounded-lg shadow-2xl border border-[#F0F0F0] z-50 overflow-hidden text-xs">
                             <!-- Header -->
                             <div class="px-4 py-3 bg-gradient-to-r from-orange-50/90 to-amber-50/90 border-b border-[#F0F0F0] flex items-center justify-between">
                                 <div class="flex items-center gap-2">
@@ -596,9 +596,12 @@
                                 </div>
                             </div>
 
-                            <!-- Tabs: Gọi phục vụ | Món mới | Đặt bàn -->
+                            <!-- Tabs: Thanh toán | Gọi phục vụ | Món mới | Đặt bàn -->
                             <div class="flex border-b border-[#F0F0F0] bg-gray-50 text-[11px]">
-                                <button type="button" data-tab="calls" class="noti-tab-btn flex-1 py-2 text-center font-bold text-[#F47716] border-b-2 border-[#F47716] bg-white transition-colors cursor-pointer">
+                                <button type="button" data-tab="payments" class="noti-tab-btn flex-1 py-2 text-center font-bold text-[#F47716] border-b-2 border-[#F47716] bg-white transition-colors cursor-pointer">
+                                    Thanh toán (<span id="tabPaymentsCount">0</span>)
+                                </button>
+                                <button type="button" data-tab="calls" class="noti-tab-btn flex-1 py-2 text-center text-gray-500 hover:text-gray-800 transition-colors cursor-pointer">
                                     Gọi phục vụ (<span id="tabCallsCount">0</span>)
                                 </button>
                                 <button type="button" data-tab="orders" class="noti-tab-btn flex-1 py-2 text-center text-gray-500 hover:text-gray-800 transition-colors cursor-pointer">
@@ -724,6 +727,7 @@
         const bellIcon = document.getElementById('bellIcon');
         const notiSubtext = document.getElementById('notificationSubtext');
         const notiListContainer = document.getElementById('notificationListContainer');
+        const tabPaymentsCount = document.getElementById('tabPaymentsCount');
         const tabCallsCount = document.getElementById('tabCallsCount');
         const tabOrdersCount = document.getElementById('tabOrdersCount');
         const tabBookingsCount = document.getElementById('tabBookingsCount');
@@ -731,9 +735,10 @@
         const soundIcon = document.getElementById('soundIcon');
         const liveToastContainer = document.getElementById('liveToastContainer');
 
-        let currentTab = 'calls';
-        let latestData = { service_calls: [], new_orders: [], new_bookings: [] };
+        let currentTab = 'payments';
+        let latestData = { payments: [], service_calls: [], new_orders: [], new_bookings: [] };
         let knownCallIds = new Set();
+        let knownPaymentIds = new Set();
         let isInitialLoad = true;
         let soundMuted = localStorage.getItem('civilize_noti_sound_muted') === 'true';
 
@@ -793,6 +798,46 @@
             } catch (err) {
                 console.log('AudioContext play error:', err);
             }
+        }
+
+        // Hiển thị toast thông báo thanh toán / chuyển khoản thành công
+        function showPaymentLiveToast(payment) {
+            if (!liveToastContainer) return;
+            const toast = document.createElement('div');
+            toast.className = 'pointer-events-auto bg-white rounded-xl shadow-2xl border-l-4 border-emerald-500 border-y border-r border-emerald-100 p-3.5 transform transition-all duration-300 translate-x-full opacity-0 flex items-start gap-3';
+            toast.id = 'live-payment-toast-' + payment.id;
+
+            const badgeText = payment.badge_label || (payment.is_vietqr ? 'Chuyển khoản VietQR' : 'Thanh toán thành công');
+
+            toast.innerHTML = `
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-gray-900 truncate">${payment.title}</span>
+                        <span class="text-[10px] text-gray-400 whitespace-nowrap">${payment.time_ago}</span>
+                    </div>
+                    <p class="text-xs font-semibold text-emerald-600 mt-0.5">${badgeText}</p>
+                    <p class="text-[11px] text-gray-600 mt-1 line-clamp-2">${payment.message}</p>
+                    <div class="flex items-center gap-2 mt-2">
+                        <a href="${payment.url}" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded shadow-xs transition-colors">
+                            Xem chi tiết
+                        </a>
+                    </div>
+                </div>
+                <button type="button" onclick="this.parentElement.remove()" class="text-gray-400 hover:text-gray-600 text-xs p-1 cursor-pointer">
+                    ✕
+                </button>
+            `;
+
+            liveToastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 10000);
         }
 
         // Hiển thị toast thông báo nhắc nhở nổi trực tiếp góc phải
@@ -903,7 +948,40 @@
         function renderNotificationList() {
             if (!notiListContainer) return;
 
-            if (currentTab === 'calls') {
+            if (currentTab === 'payments') {
+                const payments = latestData.payments || [];
+                if (payments.length === 0) {
+                    notiListContainer.innerHTML = `
+                        <div class="py-10 text-center text-gray-400">
+                            <p class="font-bold text-gray-700 text-xs uppercase tracking-wider">Chưa có giao dịch thanh toán</p>
+                            <span class="text-[11px] text-gray-400 mt-0.5 block">Các giao dịch chuyển khoản VietQR và tiền mặt sẽ hiển thị tại đây</span>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                payments.forEach(p => {
+                    const badgeClass = p.is_vietqr ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800';
+                    const badgeLabel = p.badge_label || (p.is_vietqr ? 'Chuyển khoản VietQR' : 'Thanh toán thành công');
+                    html += `
+                        <a href="${p.url}" class="p-3 hover:bg-emerald-50/40 transition-colors flex items-start gap-3 block border-b border-gray-100 last:border-b-0 ${!p.is_read ? 'bg-emerald-50/20' : ''}">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-1 mb-1">
+                                    <span class="font-bold text-gray-900 text-xs truncate">${p.title}</span>
+                                    <span class="text-[10px] text-gray-400 shrink-0">${p.time_ago}</span>
+                                </div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeClass} uppercase">${badgeLabel}</span>
+                                    <span class="text-[10px] text-gray-400">${p.created_at}</span>
+                                </div>
+                                <p class="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">${p.message}</p>
+                            </div>
+                        </a>
+                    `;
+                });
+                notiListContainer.innerHTML = html;
+            } else if (currentTab === 'calls') {
                 const calls = latestData.service_calls || [];
                 if (calls.length === 0) {
                     notiListContainer.innerHTML = `
@@ -1058,6 +1136,7 @@
                 latestData = data;
 
                 // 1. Cập nhật số đếm các tabs
+                if (tabPaymentsCount) tabPaymentsCount.textContent = data.payment_count || 0;
                 if (tabCallsCount) tabCallsCount.textContent = data.service_call_count;
                 if (tabOrdersCount) tabOrdersCount.textContent = data.new_order_count;
                 if (tabBookingsCount) tabBookingsCount.textContent = data.new_booking_count;
@@ -1068,14 +1147,34 @@
                     notiBadge.textContent = data.total_count > 99 ? '99+' : data.total_count;
                     notiBadge.classList.remove('hidden');
                     bellIcon.classList.add('text-[#F47716]');
-                    notiSubtext.textContent = `Có ${data.service_call_count} bàn đang gọi phục vụ`;
+                    if (data.payment_count > 0) {
+                        notiSubtext.textContent = `Có ${data.payment_count} thông báo thanh toán mới`;
+                    } else if (data.service_call_count > 0) {
+                        notiSubtext.textContent = `Có ${data.service_call_count} bàn đang gọi phục vụ`;
+                    } else {
+                        notiSubtext.textContent = `Có ${data.total_count} thông báo mới`;
+                    }
                 } else if (!isViewing) {
                     notiBadge.classList.add('hidden');
                     bellIcon.classList.remove('text-[#F47716]');
                     notiSubtext.textContent = 'Hệ thống đang hoạt động ổn định';
                 }
 
-                // 3. Kiểm tra các cuộc gọi mới xuất hiện
+                // 3. Kiểm tra thông báo thanh toán mới xuất hiện
+                const currentPayments = data.payments || [];
+                let hasNewPayment = false;
+
+                currentPayments.forEach(payment => {
+                    if (!knownPaymentIds.has(payment.id)) {
+                        knownPaymentIds.add(payment.id);
+                        if (!isInitialLoad && !payment.is_read) {
+                            hasNewPayment = true;
+                            showPaymentLiveToast(payment);
+                        }
+                    }
+                });
+
+                // 4. Kiểm tra các cuộc gọi phục vụ mới xuất hiện
                 const currentCalls = data.service_calls || [];
                 let hasNewCall = false;
 
@@ -1089,7 +1188,7 @@
                     }
                 });
 
-                if (hasNewCall && !isInitialLoad) {
+                if ((hasNewCall || hasNewPayment) && !isInitialLoad) {
                     playWaiterChime();
                     // Hiệu ứng lắc chuông nhắc nhở
                     bellIcon.classList.add('rotate-12');
