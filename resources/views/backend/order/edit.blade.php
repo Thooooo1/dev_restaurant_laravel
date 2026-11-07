@@ -14,7 +14,7 @@
         <div class="card">
             <div class="card-header">
                 <a href="{{ route('admin.order.index') }}" class="btn btn-sm btn-info">
-                    <i class="fa fa-arrow-left"></i> Về danh sách
+                    Về danh sách
                 </a>
             </div>
             <div class="card-body">

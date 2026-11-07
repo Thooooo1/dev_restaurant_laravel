@@ -81,7 +81,7 @@
                         <th>Khách hàng</th>
                         <th>Điện thoại</th>
                         <th class="text-right">Tổng tiền</th>
-                        <th class="text-center">Phương thức</th>
+                        <th>THANH TOÁN</th>
                         <th class="text-center w-24">Chi tiết</th>
                     </tr>
                 </thead>
@@ -103,18 +103,12 @@
                             <td class="text-right font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)]">
                                 {{ number_format($order->total_price, 0, ',', '.') }} ₫
                             </td>
-                            <td class="text-center">
-                                @if($order->payment_method == 1)
-                                    <span class="polaris-badge polaris-badge-default text-[11px]">Tiền mặt</span>
-                                @elseif($order->payment_method == 2)
-                                    <span class="polaris-badge polaris-badge-processing text-[11px]">Chuyển khoản</span>
-                                @else
-                                    <span class="polaris-badge polaris-badge-default text-[11px]">Khác</span>
-                                @endif
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">
+                                {{ $order->payment_method == 2 ? 'Chuyển khoản' : ($order->payment_method == 1 ? 'Tiền mặt' : 'Khác') }}
                             </td>
                             <td class="text-center">
-                                <button type="button" class="text-gray-400 hover:text-blue-600 transition-colors p-1" onclick="openOrderDetail({{ $order->id }})" title="Xem hóa đơn">
-                                    <i class="fa-regular fa-eye text-xs"></i>
+                                <button type="button" class="text-[#F47716] hover:underline text-xs font-medium" onclick="openOrderDetail({{ $order->id }})" title="Xem hóa đơn">
+                                    Chi tiết
                                 </button>
                             </td>
                         </tr>

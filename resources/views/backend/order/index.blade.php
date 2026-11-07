@@ -46,17 +46,14 @@
                         <th>Khách hàng</th>
                         <th>Điện thoại</th>
                         <th>Địa chỉ giao hàng</th>
-                        <th class="text-center">Thanh toán</th>
+                        <th>THANH TOÁN</th>
                         <th>Thời gian đặt</th>
-                        <th class="text-center">Trạng thái</th>
+                        <th>TRẠNG THÁI</th>
                         <th class="text-center w-28">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($orders as $index => $order)
-                        @php
-                            $pm = $order->payment_method_info;
-                        @endphp
                         <tr>
                             <td class="text-center font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)]">
                                 #{{ $order->id }}
@@ -68,26 +65,23 @@
                             <td class="text-xs text-[rgba(0,0,0,0.65)] max-w-[200px] truncate" title="{{ $order->address }}">
                                 {{ $order->address }}
                             </td>
-                            <td class="text-center">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold {{ $pm['bg'] }} {{ $pm['text'] }} border {{ $pm['border'] }}">
-                                    {{ $pm['name'] }}
-                                </span>
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">
+                                {{ $order->payment_method == 2 ? 'Chuyển khoản' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}
                             </td>
-                            <td class="font-mono text-xs text-[rgba(0,0,0,0.45)]">
+                            <td class="font-mono text-xs text-[rgba(0,0,0,0.45)] whitespace-nowrap">
                                 {{ date('H:i d/m/Y', strtotime($order->created_at)) }}
                             </td>
-                            <td class="text-center">
-                                <span class="polaris-badge {{ \App\Enums\OrderStatus::getBadgeClass((int)$order->status) }} text-[11px]">
-                                    {{ $order->status_label }}
-                                </span>
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">
+                                {{ $order->status_label }}
                             </td>
                             <td class="text-center">
-                                <div class="flex items-center justify-center gap-1.5">
-                                    <a href="{{ route('admin.order.orderdetail', $order->id) }}" class="text-gray-400 hover:text-blue-600 transition-colors p-1" title="Chi tiết đơn hàng">
-                                        <i class="fa-regular fa-eye text-xs"></i>
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{{ route('admin.order.orderdetail', $order->id) }}" class="text-[#F47716] hover:underline text-xs font-medium" title="Chi tiết đơn hàng">
+                                        Chi tiết
                                     </a>
-                                    <a href="{{ route('admin.order.edit', $order->id) }}" class="text-gray-400 hover:text-[#F47716] transition-colors p-1" title="Cập nhật trạng thái">
-                                        <i class="fa-regular fa-pen-to-square text-xs"></i>
+                                    <span class="text-gray-300">|</span>
+                                    <a href="{{ route('admin.order.edit', $order->id) }}" class="text-gray-500 hover:text-gray-800 text-xs font-medium" title="Cập nhật trạng thái">
+                                        Sửa
                                     </a>
                                 </div>
                             </td>

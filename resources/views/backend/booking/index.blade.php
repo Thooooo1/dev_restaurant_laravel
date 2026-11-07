@@ -46,7 +46,7 @@
                         <th class="text-center">Số khách</th>
                         <th>Ngày hẹn</th>
                         <th>Giờ hẹn</th>
-                        <th class="text-center">Trạng thái</th>
+                        <th>TRẠNG THÁI</th>
                         <th class="text-center w-28">Thao tác</th>
                     </tr>
                 </thead>
@@ -70,31 +70,23 @@
                             <td class="font-mono text-xs font-semibold text-[rgba(0,0,0,0.85)]">
                                 {{ date('H:i', strtotime($booking->booking_time)) }}
                             </td>
-                            <td class="text-center">
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">
                                 @switch($booking->status)
-                                    @case(1)
-                                        <span class="polaris-badge polaris-badge-warning text-[11px]">Chờ xử lý</span>
-                                        @break
-                                    @case(2)
-                                        <span class="polaris-badge polaris-badge-processing text-[11px]">Đã xác nhận</span>
-                                        @break
-                                    @case(3)
-                                        <span class="polaris-badge polaris-badge-success text-[11px]">Hoàn tất</span>
-                                        @break
-                                    @case(4)
-                                        <span class="polaris-badge polaris-badge-error text-[11px]">Đã hủy</span>
-                                        @break
-                                    @default
-                                        <span class="polaris-badge polaris-badge-default text-[11px]">Mới</span>
+                                    @case(1) Chờ xử lý @break
+                                    @case(2) Đã xác nhận @break
+                                    @case(3) Hoàn tất @break
+                                    @case(4) Đã hủy @break
+                                    @default Mới
                                 @endswitch
                             </td>
                             <td class="text-center">
-                                <div class="flex items-center justify-center gap-1.5">
-                                    <a href="{{ route('admin.booking.detail', $booking->id) }}" class="text-gray-400 hover:text-blue-600 transition-colors p-1" title="Xem chi tiết">
-                                        <i class="fa-regular fa-eye text-xs"></i>
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{{ route('admin.booking.detail', $booking->id) }}" class="text-[#F47716] hover:underline text-xs font-medium" title="Xem chi tiết">
+                                        Chi tiết
                                     </a>
-                                    <a href="{{ route('admin.booking.edit', $booking->id) }}" class="text-gray-400 hover:text-[#F47716] transition-colors p-1" title="Cập nhật trạng thái">
-                                        <i class="fa-regular fa-pen-to-square text-xs"></i>
+                                    <span class="text-gray-300">|</span>
+                                    <a href="{{ route('admin.booking.edit', $booking->id) }}" class="text-gray-500 hover:text-gray-800 text-xs font-medium" title="Cập nhật trạng thái">
+                                        Sửa
                                     </a>
                                 </div>
                             </td>

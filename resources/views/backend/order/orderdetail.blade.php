@@ -30,9 +30,8 @@
                     </h1>
                     
                     <!-- Trạng thái đơn -->
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border {{ $statusConfig['bg'] }} {{ $statusConfig['text'] }} {{ $statusConfig['border'] }}">
-                        <span class="w-2 h-2 rounded-full {{ $statusConfig['dot'] }}"></span>
-                        <span>{{ $statusConfig['label'] }}</span>
+                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                        {{ $statusConfig['label'] }}
                     </span>
 
                     <!-- Loại đơn -->
@@ -168,10 +167,10 @@
                 </div>
 
                 <!-- Thẻ Chi tiết Phương thức Thanh toán (Chuyển khoản, Tiền mặt, Quẹt thẻ) -->
-                <div class="ant-card p-5 border-l-4 border-l-[#F47716]">
+                <div class="ant-card p-5">
                     <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
                         <span>Chi tiết phương thức thanh toán</span>
-                        <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $paymentInfo['bg'] }} {{ $paymentInfo['text'] }} border {{ $paymentInfo['border'] }}">
+                        <span class="text-xs font-semibold text-gray-700">
                             {{ $paymentInfo['name'] }}
                         </span>
                     </h3>
@@ -180,26 +179,26 @@
                     @if($paymentInfo['code'] === 'vietqr')
                         <!-- Chuyển khoản VietQR -->
                         <div class="space-y-3">
-                            <div class="p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-xs space-y-2">
+                            <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-blue-900 font-semibold">Hình thức:</span>
-                                    <span class="font-bold text-blue-700">Chuyển khoản VietQR (Napas 247)</span>
+                                    <span class="text-gray-700 font-semibold">Hình thức:</span>
+                                    <span class="font-bold text-gray-900">Chuyển khoản VietQR (Napas 247)</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-blue-900 font-semibold">Ngân hàng:</span>
+                                    <span class="text-gray-700 font-semibold">Ngân hàng:</span>
                                     <span class="font-bold text-gray-800">{{ config('vietqr.bank_name') }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-blue-900 font-semibold">Số tài khoản:</span>
-                                    <span class="font-mono font-bold text-blue-800 text-sm">{{ config('vietqr.account_no') }}</span>
+                                    <span class="text-gray-700 font-semibold">Số tài khoản:</span>
+                                    <span class="font-mono font-bold text-gray-900 text-sm">{{ config('vietqr.account_no') }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
-                                    <span class="text-blue-900 font-semibold">Chủ tài khoản:</span>
+                                    <span class="text-gray-700 font-semibold">Chủ tài khoản:</span>
                                     <span class="font-bold text-gray-800 uppercase">{{ config('vietqr.account_name') }}</span>
                                 </div>
-                                <div class="flex items-center justify-between pt-1 border-t border-blue-200/80">
-                                    <span class="text-blue-900 font-semibold">Nội dung chuyển khoản:</span>
-                                    <span class="font-mono font-black text-rose-600 bg-white px-2 py-0.5 rounded border border-blue-200">
+                                <div class="flex items-center justify-between pt-1 border-t border-gray-200">
+                                    <span class="text-gray-700 font-semibold">Nội dung chuyển khoản:</span>
+                                    <span class="font-mono font-bold text-gray-900 bg-white px-2 py-0.5 rounded border border-gray-200">
                                         {{ $order->table_id ? ('BAN' . $order->table_id) : ('DH' . $order->id) }}
                                     </span>
                                 </div>
@@ -216,22 +215,22 @@
                         </div>
                     @elseif($paymentInfo['code'] === 'card')
                         <!-- Quẹt thẻ POS -->
-                        <div class="p-4 bg-purple-50/70 border border-purple-200 rounded-lg text-xs space-y-2">
-                            <div class="text-purple-900 font-bold">
+                        <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg text-xs space-y-2">
+                            <div class="text-gray-900 font-bold">
                                 Thanh toán Quẹt Thẻ Máy POS
                             </div>
                             <p class="text-gray-600 text-[11px] leading-relaxed">
                                 Áp dụng cho các loại thẻ ngân hàng: Thẻ ATM nội địa (Napas), Thẻ tín dụng & ghi nợ quốc tế Visa, MasterCard, JCB qua máy POS quẹt thẻ cầm tay tại quầy thu ngân.
                             </p>
-                            <div class="pt-2 border-t border-purple-200/80 flex items-center justify-between text-purple-900 font-semibold">
+                            <div class="pt-2 border-t border-gray-200 flex items-center justify-between text-gray-800 font-semibold">
                                 <span>Thiết bị thanh toán:</span>
-                                <span class="font-bold text-purple-800">Máy POS Cầm Tay Quầy Thu Ngân</span>
+                                <span class="font-bold text-gray-900">Máy POS Cầm Tay Quầy Thu Ngân</span>
                             </div>
                         </div>
                     @elseif($paymentInfo['code'] === 'cash')
                         <!-- Tiền mặt -->
-                        <div class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-lg text-xs space-y-2">
-                            <div class="text-emerald-900 font-bold">
+                        <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg text-xs space-y-2">
+                            <div class="text-gray-900 font-bold">
                                 Thanh toán Tiền Mặt Trực Tiếp
                             </div>
                             <p class="text-gray-600 text-[11px] leading-relaxed">
