@@ -36,26 +36,22 @@
                     </span>
 
                     <!-- Loại đơn -->
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200 flex items-center gap-1">
-                        <i class="fa-solid {{ $isTableOrder ? 'fa-chair text-orange-500' : 'fa-motorcycle text-blue-500' }}"></i>
-                        <span>{{ $isTableOrder ? ('Ăn tại bàn: ' . ($order->table ? $order->table->name : 'Bàn #' . $order->table_id)) : 'Đơn giao hàng' }}</span>
+                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                        {{ $isTableOrder ? ('Ăn tại bàn: ' . ($order->table ? $order->table->name : 'Bàn #' . $order->table_id)) : 'Đơn giao hàng' }}
                     </span>
                 </div>
             </div>
 
             <div class="flex items-center gap-2">
-                <a href="{{ route('admin.order.printorder', $order->id) }}" target="_blank" class="ant-btn ant-btn-default flex items-center gap-1.5 text-xs">
-                    <i class="fa-solid fa-print"></i>
+                <a href="{{ route('admin.order.printorder', $order->id) }}" target="_blank" class="ant-btn ant-btn-default text-xs">
                     <span>In hóa đơn (80mm)</span>
                 </a>
                 @if($isTableOrder && $order->table_id)
-                <a href="{{ route('admin.table-order.order', $order->table_id) }}" class="ant-btn ant-btn-pos flex items-center gap-1.5 text-xs">
-                    <i class="fa-solid fa-cash-register"></i>
+                <a href="{{ route('admin.table-order.order', $order->table_id) }}" class="ant-btn ant-btn-pos text-xs">
                     <span>Mở màn hình POS</span>
                 </a>
                 @endif
                 <a href="{{ route('admin.order.index') }}" class="ant-btn ant-btn-default text-xs">
-                    <i class="fa-solid fa-arrow-left"></i>
                     <span>Quay lại</span>
                 </a>
             </div>
@@ -65,12 +61,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Card 1: Phương thức thanh toán -->
             <div class="ant-card p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Thanh toán</span>
-                    <div class="w-8 h-8 rounded-lg {{ $paymentInfo['bg'] }} flex items-center justify-center text-sm shadow-xs" style="color: {{ $paymentInfo['color'] }}">
-                        <i class="fa-solid {{ $paymentInfo['icon'] }}"></i>
-                    </div>
-                </div>
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Thanh toán</div>
                 <div class="text-base font-bold text-gray-900">{{ $paymentInfo['name'] }}</div>
                 <div class="text-[11px] text-gray-500 mt-0.5 truncate">{{ $paymentInfo['desc'] }}</div>
                 <div class="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-xs">
@@ -83,12 +74,7 @@
 
             <!-- Card 2: Tổng giá trị hóa đơn -->
             <div class="ant-card p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tổng tiền hóa đơn</span>
-                    <div class="w-8 h-8 rounded-lg bg-orange-50 text-[#F47716] flex items-center justify-center text-sm shadow-xs">
-                        <i class="fa-solid fa-coins"></i>
-                    </div>
-                </div>
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Tổng tiền hóa đơn</div>
                 <div class="text-xl font-bold font-mono text-[#F47716]">
                     {{ number_format($totalAmount, 0, ',', '.') }} ₫
                 </div>
@@ -101,12 +87,7 @@
 
             <!-- Card 3: Bàn & Vị trí -->
             <div class="ant-card p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Vị trí / Bàn ăn</span>
-                    <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm shadow-xs">
-                        <i class="fa-solid fa-location-dot"></i>
-                    </div>
-                </div>
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Vị trí / Bàn ăn</div>
                 <div class="text-base font-bold text-gray-900 truncate">
                     @if($isTableOrder && $order->table)
                         {{ $order->table->name }} ({{ $order->table->floor->name ?? 'Khu vực chính' }})
@@ -129,12 +110,7 @@
 
             <!-- Card 4: Thời gian tạo đơn -->
             <div class="ant-card p-4">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Thời gian</span>
-                    <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-sm shadow-xs">
-                        <i class="fa-solid fa-clock"></i>
-                    </div>
-                </div>
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Thời gian</div>
                 <div class="text-base font-bold text-gray-900">
                     {{ $order->created_at ? $order->created_at->format('H:i') : '' }}
                 </div>
@@ -154,9 +130,8 @@
             <div class="lg:col-span-5 space-y-6">
                 <!-- Thẻ Thông tin khách hàng -->
                 <div class="ant-card p-5">
-                    <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 flex items-center gap-2">
-                        <i class="fa-solid fa-user text-orange-500"></i>
-                        <span>Thông tin khách hàng</span>
+                    <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100">
+                        Thông tin khách hàng
                     </h3>
                     <div class="space-y-3 text-xs">
                         <div class="flex items-center justify-between py-1 border-b border-gray-50">
@@ -195,10 +170,7 @@
                 <!-- Thẻ Chi tiết Phương thức Thanh toán (Chuyển khoản, Tiền mặt, Quẹt thẻ) -->
                 <div class="ant-card p-5 border-l-4 border-l-[#F47716]">
                     <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
-                        <span class="flex items-center gap-2">
-                            <i class="fa-solid fa-credit-card text-[#F47716]"></i>
-                            <span>Chi tiết phương thức thanh toán</span>
-                        </span>
+                        <span>Chi tiết phương thức thanh toán</span>
                         <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $paymentInfo['bg'] }} {{ $paymentInfo['text'] }} border {{ $paymentInfo['border'] }}">
                             {{ $paymentInfo['name'] }}
                         </span>
@@ -245,9 +217,8 @@
                     @elseif($paymentInfo['code'] === 'card')
                         <!-- Quẹt thẻ POS -->
                         <div class="p-4 bg-purple-50/70 border border-purple-200 rounded-lg text-xs space-y-2">
-                            <div class="flex items-center gap-2 text-purple-900 font-bold">
-                                <i class="fa-solid fa-credit-card text-base text-purple-600"></i>
-                                <span>Thanh toán Quẹt Thẻ Máy POS</span>
+                            <div class="text-purple-900 font-bold">
+                                Thanh toán Quẹt Thẻ Máy POS
                             </div>
                             <p class="text-gray-600 text-[11px] leading-relaxed">
                                 Áp dụng cho các loại thẻ ngân hàng: Thẻ ATM nội địa (Napas), Thẻ tín dụng & ghi nợ quốc tế Visa, MasterCard, JCB qua máy POS quẹt thẻ cầm tay tại quầy thu ngân.
@@ -260,9 +231,8 @@
                     @elseif($paymentInfo['code'] === 'cash')
                         <!-- Tiền mặt -->
                         <div class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-lg text-xs space-y-2">
-                            <div class="flex items-center gap-2 text-emerald-900 font-bold">
-                                <i class="fa-solid fa-money-bill-wave text-base text-emerald-600"></i>
-                                <span>Thanh toán Tiền Mặt Trực Tiếp</span>
+                            <div class="text-emerald-900 font-bold">
+                                Thanh toán Tiền Mặt Trực Tiếp
                             </div>
                             <p class="text-gray-600 text-[11px] leading-relaxed">
                                 @if($isTableOrder)
@@ -275,9 +245,8 @@
                     @else
                         <!-- Phương thức thanh toán khác -->
                         <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg text-xs space-y-2">
-                            <div class="flex items-center gap-2 text-gray-800 font-bold">
-                                <i class="fa-solid fa-receipt text-base text-gray-600"></i>
-                                <span>{{ $paymentInfo['name'] }}</span>
+                            <div class="text-gray-800 font-bold">
+                                {{ $paymentInfo['name'] }}
                             </div>
                             <p class="text-gray-600 text-[11px]">
                                 {{ $paymentInfo['desc'] }}
@@ -309,7 +278,7 @@
                             </div>
                         </div>
                         <button type="submit" class="ant-btn ant-btn-primary w-full text-xs font-bold py-2 justify-center">
-                            <i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thay đổi
+                            Lưu thay đổi
                         </button>
                     </form>
                 </div>
@@ -319,9 +288,8 @@
             <div class="lg:col-span-7 space-y-6">
                 <div class="ant-card p-5">
                     <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
-                        <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
-                            <i class="fa-solid fa-utensils text-orange-500"></i>
-                            <span>Danh sách món ăn ({{ $order->orderDetails->count() }} món)</span>
+                        <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider">
+                            Danh sách món ăn ({{ $order->orderDetails->count() }} món)
                         </h3>
                         <span class="text-xs text-gray-500">Lượt gọi món: #{{ $order->order_turn ?? 1 }}</span>
                     </div>
@@ -350,8 +318,8 @@
                                                              alt="{{ $detail->product->name }}" 
                                                              class="w-full h-full object-cover">
                                                     @else
-                                                        <div class="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-                                                            <i class="fa-solid fa-bowl-food"></i>
+                                                        <div class="w-full h-full flex items-center justify-center text-gray-400 text-[10px] font-semibold bg-gray-50">
+                                                            Món
                                                         </div>
                                                     @endif
                                                 </div>
