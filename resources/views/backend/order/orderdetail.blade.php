@@ -14,16 +14,9 @@
     @endphp
 
     <div class="space-y-6">
-        <!-- Header & Breadcrumb -->
+        <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#F0F0F0]">
             <div>
-                <div class="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                    <a href="{{ route('admin.dashboard') }}" class="hover:text-[#F47716]">Trang chủ</a>
-                    <span>/</span>
-                    <a href="{{ route('admin.order.index') }}" class="hover:text-[#F47716]">Quản lý đơn hàng</a>
-                    <span>/</span>
-                    <span class="text-gray-800 font-semibold">Đơn #{{ $order->id }}</span>
-                </div>
                 <div class="flex flex-wrap items-center gap-3">
                     <h1 class="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
                         Chi Tiết Đơn Hàng #{{ $order->id }}
