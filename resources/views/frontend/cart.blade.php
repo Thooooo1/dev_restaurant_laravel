@@ -200,12 +200,15 @@
                                                 </span>
                                             </div>
 
-                                            <!-- Remove button -->
-                                            <a href="{{ route('site.delcart', $id) }}" 
-                                               class="w-7 h-7 rounded flex items-center justify-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 text-sm font-bold transition-colors" 
-                                               title="Xóa món">
-                                                ×
-                                            </a>
+                                            <!-- Remove button (POST with CSRF Protection) -->
+                                            <form action="{{ route('site.delcart', $id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" 
+                                                        class="w-7 h-7 rounded flex items-center justify-center text-stone-400 hover:text-rose-600 hover:bg-rose-50 text-sm font-bold transition-colors cursor-pointer" 
+                                                        title="Xóa món">
+                                                    ×
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 @endforeach

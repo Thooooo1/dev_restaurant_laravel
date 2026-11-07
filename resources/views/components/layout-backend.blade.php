@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="utf-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover, interactive-widget=resizes-content">
     <meta name="theme-color" content="#1890FF" media="(prefers-color-scheme: light)">
     <meta name="mobile-web-app-capable" content="yes">
@@ -1250,6 +1251,36 @@
         
         window.addEventListener('resize', checkScreenSize);
         checkScreenSize();
+
+        // Global CSRF Protection: Tự động chuyển toàn bộ link trạng thái, xóa, khôi phục sang POST kèm CSRF token
+        window.submitAdminAction = function(url) {
+            let form = document.getElementById('globalAdminPostForm');
+            if (!form) {
+                form = document.createElement('form');
+                form.id = 'globalAdminPostForm';
+                form.method = 'POST';
+                form.style.display = 'none';
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                form.innerHTML = `<input type="hidden" name="_token" value="${token}">`;
+                document.body.appendChild(form);
+            }
+            form.action = url;
+            form.submit();
+        };
+
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (!link) return;
+            const href = link.getAttribute('href');
+            if (!href || href === '#' || href.startsWith('javascript:')) return;
+
+            // Kiểm tra các thao tác thay đổi dữ liệu trong trang quản trị
+            if (/\/admin\/.*?\/(status|delete|restore)/.test(href)) {
+                e.preventDefault();
+                e.stopPropagation();
+                window.submitAdminAction(href);
+            }
+        }, true);
     </script>
 </body>
 </html>

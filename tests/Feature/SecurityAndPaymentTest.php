@@ -634,4 +634,48 @@ class SecurityAndPaymentTest extends TestCase
         $product->forceDelete();
         $user->forceDelete();
     }
+
+    /**
+     * 17. Test Chan hoan toan phuong thuc GET doi voi cac route thay doi du lieu admin (CSRF Protection)
+     */
+    public function test_get_method_on_admin_actions_returns_405(): void
+    {
+        $admin = User::where('roles', 'admin')->where('status', 1)->first();
+        if (!$admin) {
+            $admin = User::create([
+                'username' => 'test_admin_csrf_' . uniqid(),
+                'fullname' => 'Admin CSRF Test',
+                'password' => Hash::make('123456'),
+                'phone' => '093' . rand(1000000, 9999999),
+                'gender' => 1,
+                'roles' => 'admin',
+                'admin_lever' => 1,
+                'status' => 1,
+            ]);
+        }
+
+        $product = Product::first();
+        if (!$product) {
+            $this->markTestSkipped('No product');
+        }
+
+        // GET request on admin product delete/status/restore phai bi chan bang 405 Method Not Allowed
+        $responseDelete = $this->actingAs($admin)->get(route('admin.product.delete', $product->id));
+        $responseDelete->assertStatus(405);
+
+        $responseStatus = $this->actingAs($admin)->get(route('admin.product.status', $product->id));
+        $responseStatus->assertStatus(405);
+
+        $responseRestore = $this->actingAs($admin)->get(route('admin.product.restore', $product->id));
+        $responseRestore->assertStatus(405);
+    }
+
+    /**
+     * 18. Test Chan hoan toan phuong thuc GET doi voi route xoa mon gio hang delcart
+     */
+    public function test_get_method_on_delcart_returns_405(): void
+    {
+        $response = $this->get('/delcart/1');
+        $response->assertStatus(405);
+    }
 }

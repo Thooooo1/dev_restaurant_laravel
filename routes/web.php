@@ -77,7 +77,7 @@ Route::get('/gioi-thieu', [GioithieuController::class, 'index'])->name('site.abo
 Route::get('/gio-hang', [GiohangController::class, 'index'])->name('site.cart');
 Route::post('/addcart/{id}', [GiohangController::class, 'addcart'])->name('site.addcart');
 Route::post('/updatecart', [GiohangController::class, 'updatecart'])->name('site.updatecart');
-Route::match(['get', 'post', 'delete'], '/delcart/{id}', [GiohangController::class, 'delcart'])->name('site.delcart');
+Route::match(['post', 'delete'], '/delcart/{id}', [GiohangController::class, 'delcart'])->name('site.delcart');
 Route::get('/thanh-toan', [GiohangController::class, 'checkoutForm'])->name('site.checkoutForm');
 Route::post('/thanh-toan', [GiohangController::class, 'checkout'])->middleware('throttle:15,1')->name('site.checkout');
 Route::get('/cam-on', [GiohangController::class, 'thanks'])->name('site.thanks');
@@ -302,12 +302,12 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('admin.product.edit');
             Route::get('/{product}/show', [ProductController::class, 'show'])->name('admin.product.show');
             Route::put('/{product}/update', [ProductController::class, 'update'])->name('admin.product.update');
-            Route::get('/{product}/delete', [ProductController::class, 'delete'])->name('admin.product.delete');
+            Route::post('/{product}/delete', [ProductController::class, 'delete'])->name('admin.product.delete');
             Route::delete('/{product}/destroy', [ProductController::class, 'destroy'])->name('admin.product.destroy');
             Route::get('/trash', [ProductController::class, 'trash'])->name('admin.product.trash');
             Route::post('/store', [ProductController::class, 'store'])->name('admin.product.store');
-            Route::get('/{product}/status', [ProductController::class, 'status'])->name('admin.product.status');
-            Route::get('/{product}/restore', [ProductController::class, 'restore'])->name('admin.product.restore');
+            Route::post('/{product}/status', [ProductController::class, 'status'])->name('admin.product.status');
+            Route::post('/{product}/restore', [ProductController::class, 'restore'])->name('admin.product.restore');
             Route::get('/{product}/reviews', [ProductController::class, 'showReviews'])->name('admin.product.reviews');
             Route::post('/review/respond/{product}/{review}', [ReviewController::class, 'respond'])->name('admin.review.respond');
         });
@@ -321,10 +321,10 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::delete('/{category}/destroy', [CategoryController::class, 'destroy'])->name('admin.category.destroy');
             Route::get('/{category}/edit', [CategoryController::class, 'edit'])->name('admin.category.edit');
             Route::post('/store', [CategoryController::class, 'store'])->name('admin.category.store');
-            Route::get('/{category}/delete', [CategoryController::class, 'delete'])->name('admin.category.delete');
+            Route::post('/{category}/delete', [CategoryController::class, 'delete'])->name('admin.category.delete');
             Route::get('/trash', [CategoryController::class, 'trash'])->name('admin.category.trash');
-            Route::get('/{category}/status', [CategoryController::class, 'status'])->name('admin.category.status');
-            Route::get('/{category}/restore', [CategoryController::class, 'restore'])->name('admin.category.restore');
+            Route::post('/{category}/status', [CategoryController::class, 'status'])->name('admin.category.status');
+            Route::post('/{category}/restore', [CategoryController::class, 'restore'])->name('admin.category.restore');
         });
 
         // Import Goods (Quản lý nhập kho - Phiếu nhập hàng)
@@ -349,10 +349,10 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::get('/create', [BrandController::class, 'create'])->name('admin.brand.create');
             Route::put('/{brand}/update', [BrandController::class, 'update'])->name('admin.brand.update');
             Route::get('/{brand}/edit', [BrandController::class, 'edit'])->name('admin.brand.edit');
-            Route::get('/{brand}/delete', [BrandController::class, 'delete'])->name('admin.brand.delete');
+            Route::post('/{brand}/delete', [BrandController::class, 'delete'])->name('admin.brand.delete');
             Route::get('/trash', [BrandController::class, 'trash'])->name('admin.brand.trash');
-            Route::get('/{brand}/status', [BrandController::class, 'status'])->name('admin.brand.status');
-            Route::get('/{brand}/restore', [BrandController::class, 'restore'])->name('admin.brand.restore');
+            Route::post('/{brand}/status', [BrandController::class, 'status'])->name('admin.brand.status');
+            Route::post('/{brand}/restore', [BrandController::class, 'restore'])->name('admin.brand.restore');
         });
 
         // Banners
@@ -364,10 +364,10 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::post('/store', [BannerController::class, 'store'])->name('admin.banner.store');
             Route::get('/create', [BannerController::class, 'create'])->name('admin.banner.create');
             Route::get('/{banner}/edit', [BannerController::class, 'edit'])->name('admin.banner.edit');
-            Route::get('/{banner}/delete', [BannerController::class, 'delete'])->name('admin.banner.delete');
+            Route::post('/{banner}/delete', [BannerController::class, 'delete'])->name('admin.banner.delete');
             Route::get('/trash', [BannerController::class, 'trash'])->name('admin.banner.trash');
-            Route::get('/{banner}/status', [BannerController::class, 'status'])->name('admin.banner.status');
-            Route::get('/{banner}/restore', [BannerController::class, 'restore'])->name('admin.banner.restore');
+            Route::post('/{banner}/status', [BannerController::class, 'status'])->name('admin.banner.status');
+            Route::post('/{banner}/restore', [BannerController::class, 'restore'])->name('admin.banner.restore');
         });
 
         // Blogs
@@ -379,10 +379,10 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::post('/store', [BlogController::class, 'store'])->name('admin.blog.store');
             Route::delete('/{blog}/destroy', [BlogController::class, 'destroy'])->name('admin.blog.destroy');
             Route::get('/{blog}/edit', [BlogController::class, 'edit'])->name('admin.blog.edit');
-            Route::get('/{blog}/delete', [BlogController::class, 'delete'])->name('admin.blog.delete');
+            Route::post('/{blog}/delete', [BlogController::class, 'delete'])->name('admin.blog.delete');
             Route::get('/trash', [BlogController::class, 'trash'])->name('admin.blog.trash');
-            Route::get('/{blog}/status', [BlogController::class, 'status'])->name('admin.blog.status');
-            Route::get('/{blog}/restore', [BlogController::class, 'restore'])->name('admin.blog.restore');
+            Route::post('/{blog}/status', [BlogController::class, 'status'])->name('admin.blog.status');
+            Route::post('/{blog}/restore', [BlogController::class, 'restore'])->name('admin.blog.restore');
         });
 
         // Topics
@@ -394,10 +394,10 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::delete('/{topic}/destroy', [TopicController::class, 'destroy'])->name('admin.topic.destroy');
             Route::get('/create', [TopicController::class, 'create'])->name('admin.topic.create');
             Route::get('/{topic}/edit', [TopicController::class, 'edit'])->name('admin.topic.edit');
-            Route::get('/{topic}/delete', [TopicController::class, 'delete'])->name('admin.topic.delete');
+            Route::post('/{topic}/delete', [TopicController::class, 'delete'])->name('admin.topic.delete');
             Route::get('/trash', [TopicController::class, 'trash'])->name('admin.topic.trash');
-            Route::get('/{topic}/status', [TopicController::class, 'status'])->name('admin.topic.status');
-            Route::get('/{topic}/restore', [TopicController::class, 'restore'])->name('admin.topic.restore');
+            Route::post('/{topic}/status', [TopicController::class, 'status'])->name('admin.topic.status');
+            Route::post('/{topic}/restore', [TopicController::class, 'restore'])->name('admin.topic.restore');
         });
 
         // Images
@@ -410,9 +410,9 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::post('/store', [ImageController::class, 'store'])->name('admin.image.store');
             Route::delete('/{image}/destroy', [ImageController::class, 'destroy'])->name('admin.image.destroy');
             Route::get('/trash', [ImageController::class, 'trash'])->name('admin.image.trash');
-            Route::get('/{image}/status', [ImageController::class, 'status'])->name('admin.image.status');
-            Route::get('/{image}/delete', [ImageController::class, 'delete'])->name('admin.image.delete');
-            Route::get('/{image}/restore', [ImageController::class, 'restore'])->name('admin.image.restore');
+            Route::post('/{image}/status', [ImageController::class, 'status'])->name('admin.image.status');
+            Route::post('/{image}/delete', [ImageController::class, 'delete'])->name('admin.image.delete');
+            Route::post('/{image}/restore', [ImageController::class, 'restore'])->name('admin.image.restore');
         });
 
         // Contacts
@@ -424,10 +424,10 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::post('/store', [ContactController::class, 'store'])->name('admin.contact.store');
             Route::delete('/{contact}/destroy', [ContactController::class, 'destroy'])->name('admin.contact.destroy');
             Route::get('/{contact}/edit', [ContactController::class, 'edit'])->name('admin.contact.edit');
-            Route::get('/{contact}/delete', [ContactController::class, 'delete'])->name('admin.contact.delete');
+            Route::post('/{contact}/delete', [ContactController::class, 'delete'])->name('admin.contact.delete');
             Route::get('/trash', [ContactController::class, 'trash'])->name('admin.contact.trash');
-            Route::get('/{contact}/status', [ContactController::class, 'status'])->name('admin.contact.status');
-            Route::get('/{contact}/restore', [ContactController::class, 'restore'])->name('admin.contact.restore');
+            Route::post('/{contact}/status', [ContactController::class, 'status'])->name('admin.contact.status');
+            Route::post('/{contact}/restore', [ContactController::class, 'restore'])->name('admin.contact.restore');
         });
 
         // Users
@@ -460,10 +460,10 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::post('/store', [KeywordController::class, 'store'])->name('admin.keyword.store');
             Route::delete('/{keyword}/destroy', [KeywordController::class, 'destroy'])->name('admin.keyword.destroy');
             Route::get('/{keyword}/edit', [KeywordController::class, 'edit'])->name('admin.keyword.edit');
-            Route::get('/{keyword}/delete', [KeywordController::class, 'delete'])->name('admin.keyword.delete');
+            Route::post('/{keyword}/delete', [KeywordController::class, 'delete'])->name('admin.keyword.delete');
             Route::get('/trash', [KeywordController::class, 'trash'])->name('admin.keyword.trash');
-            Route::get('/{keyword}/status', [KeywordController::class, 'status'])->name('admin.keyword.status');
-            Route::get('/{keyword}/restore', [KeywordController::class, 'restore'])->name('admin.keyword.restore');
+            Route::post('/{keyword}/status', [KeywordController::class, 'status'])->name('admin.keyword.status');
+            Route::post('/{keyword}/restore', [KeywordController::class, 'restore'])->name('admin.keyword.restore');
         });
 
         // Menus
@@ -475,10 +475,10 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::put('/{menu}/update', [MenuController::class, 'update'])->name('admin.menu.update');
             Route::post('/store', [MenuController::class, 'store'])->name('admin.menu.store');
             Route::delete('/{menu}/destroy', [MenuController::class, 'destroy'])->name('admin.menu.destroy');
-            Route::get('/{menu}/delete', [MenuController::class, 'delete'])->name('admin.menu.delete');
+            Route::post('/{menu}/delete', [MenuController::class, 'delete'])->name('admin.menu.delete');
             Route::get('/trash', [MenuController::class, 'trash'])->name('admin.menu.trash');
-            Route::get('/{menu}/status', [MenuController::class, 'status'])->name('admin.menu.status');
-            Route::get('/{menu}/restore', [MenuController::class, 'restore'])->name('admin.menu.restore');
+            Route::post('/{menu}/status', [MenuController::class, 'status'])->name('admin.menu.status');
+            Route::post('/{menu}/restore', [MenuController::class, 'restore'])->name('admin.menu.restore');
         });
 
         // Tables
@@ -488,10 +488,10 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
             Route::post('/store', [TableController::class, 'store'])->name('admin.table.store');
             Route::get('/{id}/edit', [TableController::class, 'edit'])->name('admin.table.edit');
             Route::post('/{id}/update', [TableController::class, 'update'])->name('admin.table.update');
-            Route::get('/{id}/status', [TableController::class, 'status'])->name('admin.table.status');
-            Route::get('/{id}/delete', [TableController::class, 'delete'])->name('admin.table.delete');
+            Route::post('/{id}/status', [TableController::class, 'status'])->name('admin.table.status');
+            Route::post('/{id}/delete', [TableController::class, 'delete'])->name('admin.table.delete');
             Route::get('/trash', [TableController::class, 'trash'])->name('admin.table.trash');
-            Route::get('/{id}/restore', [TableController::class, 'restore'])->name('admin.table.restore');
+            Route::post('/{id}/restore', [TableController::class, 'restore'])->name('admin.table.restore');
             Route::delete('/{id}/destroy', [TableController::class, 'destroy'])->name('admin.table.destroy');
             // Download QR
             Route::get('/{id}/qr', [TableController::class, 'downloadQr'])->name('admin.table.qr');

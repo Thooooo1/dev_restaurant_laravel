@@ -754,13 +754,7 @@ class ChatbotService
             }
         }
 
-        $statusText = match ((int)$order->status) {
-            0 => 'Đang chờ xử lý / Chuẩn bị món tại bếp',
-            1 => 'Đang trên đường giao tới bạn',
-            2 => 'Đã giao hàng thành công',
-            3 => 'Đã hủy đơn',
-            default => 'Đang xử lý'
-        };
+        $statusText = \App\Enums\OrderStatus::getLabel((int)$order->status, !empty($order->table_id));
 
         return [
             'found' => true,
@@ -1210,9 +1204,59 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             || str_contains($lastBotMsg, 'tên và số điện thoại')
             || str_contains($lastBotMsg, 'để em hoàn tất giữ bàn'));
         $userConfirmed = $this->matchAny($lower, ['ok', 'đồng ý', 'dong y', 'chốt nhé', 'chot nhe', 'đặt đi', 'dat di', 'xác nhận', 'xac nhan', 'đúng rồi', 'dung roi', 'đặt luôn']);
+        $explicitConfirm = $this->matchAny($lower, [
+            'xác nhận đặt bàn', 'xac nhan dat ban', 'xác nhận giữ bàn', 'xac nhan giu ban',
+            'đồng ý đặt bàn', 'dong y dat ban', 'chốt đặt bàn', 'chot dat ban',
+            'đặt luôn nhé', 'dat luon nhe', 'đồng ý', 'dong y', 'xác nhận', 'xac nhan', 'chốt nhé', 'chot nhe'
+        ]);
 
-        // CHỐNG SPAM BOOKING: Chỉ xác nhận tạo booking khi người dùng có ý định đặt bàn rõ ràng hoặc đang phản hồi câu hỏi giữ bàn của bot
-        $isBookingConfirm = ($hasBookingKeywords && $extractedPhone) || ($botAskedForBooking && ($extractedPhone || $userConfirmed));
+        // CHỐNG SPAM BOOKING:
+        // 1. Nếu bot đã hỏi giữ bàn và khách cung cấp SĐT hoặc xác nhận -> Chốt đơn
+        // 2. Nếu khách nói đặt bàn kèm SĐT VÀ có câu xác nhận rõ ràng -> Chốt đơn
+        // 3. Nếu khách chỉ nói đặt bàn kèm SĐT nhưng chưa xác nhận -> Hỏi lại xác nhận trước khi tạo đơn
+        $isBookingConfirm = ($botAskedForBooking && ($extractedPhone || $userConfirmed))
+            || ($hasBookingKeywords && $extractedPhone && $explicitConfirm);
+
+        // Trường hợp khách nhắn đặt bàn kèm SĐT lần đầu nhưng chưa có từ khóa xác nhận: Hỏi lại xác nhận
+        if ($hasBookingKeywords && $extractedPhone && !$isBookingConfirm) {
+            $people = 4;
+            if (preg_match('/([1-9][0-9]?)\s*(?:người|khách|bàn|pax)/iu', $userMsg . ' ' . $lastBotMsg, $m)) {
+                $people = (int)$m[1];
+            }
+
+            $date = Carbon::today()->toDateString();
+            if (str_contains($lower, 'mai') || str_contains($lastBotMsg, 'ngày mai')) {
+                $date = Carbon::tomorrow()->toDateString();
+            }
+
+            $time = '19:00';
+            if (preg_match('/([0-2]?[0-9])\s*(?:h|:|giờ)([0-5][0-9])?/iu', $userMsg . ' ' . $lastBotMsg, $tm)) {
+                $h = str_pad($tm[1], 2, '0', STR_PAD_LEFT);
+                $min = !empty($tm[2]) ? str_pad($tm[2], 2, '0', STR_PAD_LEFT) : '00';
+                $time = "{$h}:{$min}";
+            }
+
+            $availResult = $this->toolCheckTableAvailability([
+                'number_of_people' => $people,
+                'booking_date' => $date,
+                'booking_time' => $time
+            ]);
+
+            return [
+                'reply' => "{$availResult['message']}\n\n" .
+                           "Dạ em đã ghi nhận thông tin đặt bàn của quý khách:\n" .
+                           "• Số điện thoại: {$extractedPhone}\n" .
+                           "• Số lượng: {$people} khách\n" .
+                           "• Thời gian: {$time} ngày {$date}\n\n" .
+                           "Quý khách vui lòng bấm 'Xác nhận đặt bàn' bên dưới hoặc nhắn 'Đồng ý' để em hoàn tất giữ bàn nhé ạ!",
+                'products' => [],
+                'quick_replies' => [
+                    ['title' => 'Xác nhận đặt bàn', 'payload' => 'Xác nhận đặt bàn'],
+                    ['title' => 'Đổi giờ đặt bàn', 'payload' => 'Tôi muốn đổi giờ'],
+                    ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn']
+                ]
+            ];
+        }
 
         if ($isBookingConfirm) {
             $people = 4;

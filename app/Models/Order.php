@@ -27,6 +27,11 @@ class Order extends Model
         'total_price',
     ];
 
+    public function getStatusLabelAttribute(): string
+    {
+        return \App\Enums\OrderStatus::getLabel((int)$this->status, (bool)$this->table_id);
+    }
+
     public function orderDetails()
     {
         return $this->hasMany(Orderdetail::class, 'order_id');

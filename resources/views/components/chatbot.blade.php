@@ -368,31 +368,37 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (msg.products && msg.products.length > 0) {
                     productsHtml = `
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3 pt-2.5 border-t border-stone-100">
-                            ${msg.products.map(p => `
+                            ${msg.products.map(p => {
+                                const pUrl = escapeHtml(p.url || '#');
+                                const pImg = escapeHtml(p.image || '');
+                                const pName = escapeHtml(p.name || '');
+                                const pPrice = escapeHtml(p.price || '');
+                                const pId = parseInt(p.id, 10) || 0;
+                                return `
                                 <div class="bg-stone-50/80 rounded-xl border border-stone-200/90 overflow-hidden shadow-2xs hover:shadow-xs transition group flex flex-col justify-between">
                                     <div>
-                                        <a href="${p.url}" target="_blank" class="block overflow-hidden h-24 bg-stone-100">
-                                            <img src="${p.image}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                        <a href="${pUrl}" target="_blank" class="block overflow-hidden h-24 bg-stone-100">
+                                            <img src="${pImg}" alt="${pName}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                                         </a>
                                         <div class="p-2.5 pb-1">
-                                            <a href="${p.url}" target="_blank" class="font-bold text-xs text-stone-800 hover:text-[#C25E00] line-clamp-1 block" title="${escapeHtml(p.name)}">
-                                                ${escapeHtml(p.name)}
+                                            <a href="${pUrl}" target="_blank" class="font-bold text-xs text-stone-800 hover:text-[#C25E00] line-clamp-1 block" title="${pName}">
+                                                ${pName}
                                             </a>
-                                            <div class="text-[#C25E00] font-extrabold text-xs mt-0.5">${p.price}</div>
+                                            <div class="text-[#C25E00] font-extrabold text-xs mt-0.5">${pPrice}</div>
                                         </div>
                                     </div>
                                     <div class="p-2.5 pt-1.5 flex gap-1.5">
-                                        <a href="${p.url}" target="_blank" class="flex-1 bg-white hover:bg-stone-100 text-stone-700 text-center text-[11px] font-semibold py-1.5 rounded-full border border-stone-200 transition">
+                                        <a href="${pUrl}" target="_blank" class="flex-1 bg-white hover:bg-stone-100 text-stone-700 text-center text-[11px] font-semibold py-1.5 rounded-full border border-stone-200 transition">
                                             Chi tiết
                                         </a>
                                         <button type="button" 
-                                                onclick="chatbotAddToCart(${p.id}, this)"
+                                                onclick="chatbotAddToCart(${pId}, this)"
                                                 class="flex-1 bg-[#C25E00] hover:bg-[#A34E00] text-white text-center text-[11px] font-bold py-1.5 rounded-full transition flex items-center justify-center gap-1 cursor-pointer shadow-2xs">
                                             <i class="fas fa-plus text-[9px]"></i> Thêm
                                         </button>
                                     </div>
                                 </div>
-                            `).join('')}
+                            `}).join('')}
                         </div>
                     `;
                 }
