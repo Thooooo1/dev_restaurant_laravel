@@ -110,8 +110,8 @@
                         <!-- Nội dung chuyển khoản (BẮT BUỘC ĐỂ ĐỐI SOÁT WEBHOOK) -->
                         <div class="p-3.5 bg-amber-50/70 border border-amber-300 rounded-xl flex items-center justify-between">
                             <div>
-                                <span class="text-[10px] font-bold text-amber-800 uppercase block">Nội dung chuyển khoản (bắt buộc)</span>
-                                <span class="text-base font-black text-[#C25E00] tracking-wider font-mono" id="memoText">{{ $memo }}</span>
+                                <span class="text-[10px] font-bold text-gray-900 uppercase block">Nội dung chuyển khoản (bắt buộc)</span>
+                                <span class="text-lg font-black text-black tracking-wider font-mono" id="memoText">{{ $memo }}</span>
                             </div>
                             <button type="button" onclick="copyText('{{ $memo }}', 'Đã sao chép nội dung chuyển khoản!')" class="px-3 py-1.5 bg-[#C25E00] hover:bg-[#A34E00] text-white rounded-lg text-xs font-bold transition-colors shadow-xs cursor-pointer">
                                 Sao chép

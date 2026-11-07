@@ -118,8 +118,8 @@
                     <!-- Nội Dung Chuyển Khoản -->
                     <div class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 flex items-center justify-between">
                         <div>
-                            <span class="text-amber-800 block text-[10px] font-bold">Nội dung chuyển khoản (bắt buộc):</span>
-                            <span class="font-mono font-black text-amber-900 text-sm tracking-widest" id="bankMemo">{{ $memo }}</span>
+                            <span class="text-gray-900 block text-[10px] font-bold uppercase">Nội dung chuyển khoản (bắt buộc):</span>
+                            <span class="font-mono font-black text-black text-sm tracking-widest" id="bankMemo">{{ $memo }}</span>
                         </div>
                         <button type="button" onclick="copyToClipboard('{{ $memo }}', 'Đã chép nội dung chuyển khoản!')" class="px-3 py-1 bg-amber-200 hover:bg-amber-300 text-amber-900 rounded text-xs font-bold transition-colors">
                             Chép
