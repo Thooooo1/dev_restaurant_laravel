@@ -67,7 +67,7 @@ class Order extends Model
             ];
         }
 
-        if ($method === '2' || strtolower($method) === 'vietqr' || strtolower($method) === 'bank' || str_contains(strtolower($method), 'chuyển khoản')) {
+        if ($method === '2' || strtolower($method) === 'vietqr' || strtolower($method) === 'bank' || str_contains(strtolower($method), 'chuyển khoản') || strtolower($method) === 'momo') {
             return [
                 'code' => 'vietqr',
                 'name' => 'Chuyển khoản VietQR',
@@ -90,19 +90,6 @@ class Order extends Model
                 'text' => 'text-purple-700',
                 'border' => 'border-purple-200',
                 'desc' => 'Thanh toán quẹt thẻ ATM nội địa / Visa / MasterCard qua máy POS',
-            ];
-        }
-
-        if (strtolower($method) === 'momo') {
-            return [
-                'code' => 'momo',
-                'name' => 'Ví Điện Tử MoMo',
-                'icon' => 'fa-wallet',
-                'color' => '#D4380D',
-                'bg' => 'bg-pink-50',
-                'text' => 'text-pink-700',
-                'border' => 'border-pink-200',
-                'desc' => 'Thanh toán qua ví điện tử MoMo',
             ];
         }
 

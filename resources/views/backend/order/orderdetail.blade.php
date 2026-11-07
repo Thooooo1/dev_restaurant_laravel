@@ -273,10 +273,10 @@
                             </p>
                         </div>
                     @else
-                        <!-- MoMo hoặc khác -->
-                        <div class="p-4 bg-pink-50/70 border border-pink-200 rounded-lg text-xs space-y-2">
-                            <div class="flex items-center gap-2 text-pink-900 font-bold">
-                                <i class="fa-solid fa-wallet text-base text-pink-600"></i>
+                        <!-- Phương thức thanh toán khác -->
+                        <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg text-xs space-y-2">
+                            <div class="flex items-center gap-2 text-gray-800 font-bold">
+                                <i class="fa-solid fa-receipt text-base text-gray-600"></i>
                                 <span>{{ $paymentInfo['name'] }}</span>
                             </div>
                             <p class="text-gray-600 text-[11px]">

@@ -82,8 +82,8 @@ class ChatbotService
         ],
         'payment_methods' => [
             'title' => 'Phương thức thanh toán',
-            'keywords' => ['thanh toán', 'chuyển khoản', 'tiền mặt', 'cod', 'momo', 'quẹt thẻ', 'vietqr', 'hóa đơn vat'],
-            'content' => 'Quý khách có thể thanh toán bằng Tiền mặt khi nhận hàng (COD), quẹt thẻ ngân hàng tại quầy (Visa, Mastercard, ATM), quét mã VietQR tự động hoặc ví điện tử MoMo. Nhà hàng hỗ trợ xuất hóa đơn VAT điện tử.'
+            'keywords' => ['thanh toán', 'chuyển khoản', 'tiền mặt', 'cod', 'quẹt thẻ', 'vietqr', 'hóa đơn vat'],
+            'content' => 'Quý khách có thể thanh toán bằng Tiền mặt khi nhận hàng (COD), quẹt thẻ ngân hàng tại quầy (Visa, Mastercard, ATM) hoặc quét mã VietQR tự động. Nhà hàng hỗ trợ xuất hóa đơn VAT điện tử.'
         ],
     ];
 

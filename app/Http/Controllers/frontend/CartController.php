@@ -842,7 +842,7 @@ class CartController extends Controller
 
         if (!session('table_id')) {
             $request->validate([
-                'payment_method' => 'required|in:Momo,COD,VietQR',
+                'payment_method' => 'required|in:COD,VietQR',
             ], [
                 'payment_method.required' => 'Vui lòng chọn phương thức thanh toán',
                 'payment_method.in' => 'Phương thức thanh toán không hợp lệ',
