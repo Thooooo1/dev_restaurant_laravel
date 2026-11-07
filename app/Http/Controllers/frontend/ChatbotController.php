@@ -49,6 +49,7 @@ class ChatbotController extends Controller
             'user' => $user ? [
                 'id' => $user->id,
                 'name' => $user->fullname ?? $user->username,
+                'roles' => $user->roles ?? 'customer',
                 'phone' => $user->phone ?? null,
                 'email' => $user->email ?? null,
             ] : null,

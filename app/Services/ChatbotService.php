@@ -763,7 +763,7 @@ class ChatbotService
             'phone' => $this->maskPhone($order->phone),
             'total_price' => number_format($order->total_price ?? 0, 0, ',', '.') . '₫',
             'status' => $statusText,
-            'order_style' => $order->order_style ?? 'Giao tận nơi',
+            'order_style' => $order->order_style_name,
             'created_at' => $order->created_at ? $order->created_at->format('H:i - d/m/Y') : ''
         ];
     }

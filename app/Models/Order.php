@@ -123,7 +123,13 @@ class Order extends Model
         if ($this->table_id) {
             return 'Dùng bữa tại bàn';
         }
-        return (int)$this->orderStyle === 2 ? 'Giao hàng tận nơi' : 'Mang về';
+        if (trim($this->address ?? '') === 'Tại quán' || trim($this->name ?? '') === 'Khách POS') {
+            return 'Tại quầy (POS)';
+        }
+        if ((int)$this->orderStyle === 3) {
+            return 'Mang về';
+        }
+        return 'Giao hàng tận nơi';
     }
 
     /**
