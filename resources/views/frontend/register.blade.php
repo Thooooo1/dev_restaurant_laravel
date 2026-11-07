@@ -11,6 +11,7 @@
                 <!-- FORM ĐĂNG KÝ -->
                 <form action="{{ route('site.doregister') }}" method="POST" class="space-y-4">
                     @csrf
+                    <input type="hidden" name="redirect" value="{{ $redirect ?? request()->query('redirect') ?? '' }}">
                     
                     <!-- 1. HỌ VÀ TÊN -->
                     <div>

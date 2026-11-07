@@ -26,7 +26,7 @@ class AuthController extends Controller
         $rawInput = trim($request->phone ?? $request->email ?? $request->username ?? '');
         $phone = preg_replace('/[^0-9]/', '', $rawInput);
         $password = $request->password;
-        $redirectUrl = $request->input('redirect');
+        $redirectUrl = $request->input('redirect') ?: session()->pull('url.intended');
 
         if (empty($rawInput)) {
              return redirect()->route('site.login')->with('error', 'Vui lòng nhập email, số điện thoại hoặc tên đăng nhập!')->withInput();
@@ -236,6 +236,11 @@ class AuthController extends Controller
         // Đồng bộ giỏ hàng khách vãng lai (guest) vào tài khoản vừa tạo
         \App\Http\Controllers\frontend\CartController::mergeGuestCartToUser($user->id, $oldSessionId);
         $request->session()->regenerate();
+
+        $redirectUrl = $request->input('redirect') ?: session()->pull('url.intended');
+        if ($redirectUrl) {
+            return redirect($redirectUrl)->with('success', 'Đăng ký thành viên thành công! Chào mừng ' . $user->fullname . ' đến với CIVILIZE.');
+        }
 
         return redirect()->route('site.home')->with('success', 'Đăng ký thành viên thành công! Chào mừng ' . $user->fullname . ' đến với CIVILIZE.');
     }

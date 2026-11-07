@@ -53,7 +53,7 @@
                 <!-- 4. CHUYỂN SANG ĐĂNG KÝ -->
                 <div class="mt-6 pt-5 border-t border-stone-100 text-center text-xs sm:text-sm text-stone-600">
                     <span>Chưa có tài khoản CIVILIZE? </span>
-                    <a href="{{ route('site.register') }}" class="font-bold text-[#C25E00] hover:underline">
+                    <a href="{{ route('site.register', ['redirect' => $redirect ?? request()->query('redirect') ?? '']) }}" class="font-bold text-[#C25E00] hover:underline">
                         Đăng ký ngay
                     </a>
                 </div>

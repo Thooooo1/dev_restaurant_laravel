@@ -821,6 +821,13 @@ class CartController extends Controller
 
     public function checkoutForm()
     {
+        // Bắt buộc đăng nhập khi đặt hàng giao về (khách ngồi tại bàn quét QR vẫn đặt món bình thường)
+        if (!session('table_id') && !Auth::check()) {
+            session(['url.intended' => route('site.checkoutForm')]);
+            return redirect()->route('site.login', ['redirect' => route('site.checkoutForm')])
+                ->with('warning', 'Quý khách vui lòng đăng nhập tài khoản để tiến hành đặt hàng giao về.');
+        }
+
         $cartKey = $this->getCartKey();
         $cart = session()->get($cartKey, []);
 
@@ -833,6 +840,13 @@ class CartController extends Controller
 
     public function checkout(Request $request)
     {
+        // Bắt buộc đăng nhập khi đặt hàng giao về
+        if (!session('table_id') && !Auth::check()) {
+            session(['url.intended' => route('site.checkoutForm')]);
+            return redirect()->route('site.login', ['redirect' => route('site.checkoutForm')])
+                ->with('warning', 'Quý khách vui lòng đăng nhập tài khoản để tiến hành đặt hàng giao về.');
+        }
+
         $cartKey = $this->getCartKey();
         $cart = session()->get($cartKey, []);
 

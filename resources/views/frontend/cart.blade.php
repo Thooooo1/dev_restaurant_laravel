@@ -272,6 +272,14 @@
                                             class="w-full py-4 rounded-none sm:rounded-sm bg-stone-900 hover:bg-[#C25E00] text-white font-bold text-xs uppercase tracking-[0.2em] shadow-xs hover:shadow-md transition-all flex items-center justify-center cursor-pointer">
                                         <span>Gửi Thực Đơn Cho Bếp</span>
                                     </button>
+                                @elseif (!Auth::check() && !session('table_id'))
+                                    <a href="{{ route('site.login', ['redirect' => route('site.checkoutForm')]) }}" 
+                                       class="w-full py-3.5 rounded-none sm:rounded-sm bg-[#C25E00] hover:bg-[#A34E00] text-white font-bold text-sm tracking-wide shadow-xs hover:shadow-md transition-all flex items-center justify-center text-center cursor-pointer">
+                                        <span>Đăng Nhập Để Đặt Hàng</span>
+                                    </a>
+                                    <p class="text-[11px] text-stone-500 text-center mt-2 font-medium">
+                                        Quý khách vui lòng đăng nhập để tiến hành đặt giao hàng tận nơi.
+                                    </p>
                                 @else
                                     <a href="{{ route('site.checkoutForm') }}" 
                                        class="w-full py-3.5 rounded-none sm:rounded-sm bg-[#C25E00] hover:bg-[#A34E00] text-white font-bold text-sm tracking-wide shadow-xs hover:shadow-md transition-all flex items-center justify-center text-center cursor-pointer">
