@@ -3,9 +3,6 @@
         <div class="container mx-auto px-4 max-w-4xl">
             <!-- Header Bar -->
             <div class="text-center mb-8">
-                <span class="inline-flex items-center px-3 py-1 bg-orange-100 text-[#C25E00] text-xs font-bold uppercase tracking-widest rounded-full mb-2">
-                    Thanh toán chuyển khoản tự động
-                </span>
                 <h1 class="text-2xl sm:text-3xl font-black font-serif text-stone-900 tracking-tight">
                     Quét Mã VietQR Thanh Toán
                 </h1>
@@ -89,14 +86,14 @@
                 <div class="md:col-span-5 space-y-4">
                     <!-- Chi tiết thanh toán -->
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-stone-200/90 space-y-4">
-                        <!-- Card Tổng tiền nổi bật (như ảnh thiết kế) -->
-                        <div class="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-sm flex items-center justify-between">
+                        <!-- Card Tổng tiền: Nền trắng chữ đen, giá tiền màu cam -->
+                        <div class="p-4 bg-white rounded-xl border border-stone-200 shadow-xs flex items-center justify-between">
                             <div>
-                                <span class="text-[11px] uppercase tracking-wider text-blue-100 font-medium block">Tổng thanh toán</span>
-                                <span class="text-xs text-blue-200">Đơn hàng #{{ $order->id }}</span>
+                                <span class="text-xs uppercase tracking-wider text-black font-bold block">Tổng thanh toán</span>
+                                <span class="text-xs text-stone-600 font-medium">Đơn hàng #{{ $order->id }}</span>
                             </div>
                             <div class="text-right">
-                                <span class="text-2xl font-black font-mono tracking-tight">
+                                <span class="text-2xl sm:text-3xl font-black font-serif text-[#C25E00] tracking-tight">
                                     {{ number_format($order->total_price, 0, ',', '.') }}đ
                                 </span>
                             </div>
