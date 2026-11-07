@@ -1014,7 +1014,6 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
 
             // KIỂM TRA XEM GEMINI CÓ GỌI TOOL (HỖ TRỢ NHIỀU TOOL MỖI LƯỢT)
             if (!empty($functionCalls)) {
-                $modelParts = [];
                 $responseParts = [];
                 $toolOutputs = [];
                 $allDishes = [];
@@ -1032,18 +1031,6 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                         $allDishes = array_merge($allDishes, $toolResult['dishes']);
                     }
 
-                    $cleanArgs = $toolArgs;
-                    if (empty($cleanArgs)) {
-                        $cleanArgs = new \stdClass();
-                    }
-
-                    $modelParts[] = [
-                        'functionCall' => [
-                            'name' => $toolName,
-                            'args' => $cleanArgs
-                        ]
-                    ];
-
                     $responseParts[] = [
                         'functionResponse' => [
                             'name' => $toolName,
@@ -1052,10 +1039,18 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                     ];
                 }
 
-                $contents[] = [
-                    'role' => 'model',
-                    'parts' => $modelParts
-                ];
+                // Bảo toàn nguyên vẹn candidate content từ model (bao gồm thoughtSignature, thought tokens, call id)
+                $candidateContent = $candidate['content'];
+                if (!empty($candidateContent['parts'])) {
+                    foreach ($candidateContent['parts'] as &$part) {
+                        if (isset($part['functionCall']) && empty($part['functionCall']['args'])) {
+                            $part['functionCall']['args'] = new \stdClass();
+                        }
+                    }
+                    unset($part);
+                }
+
+                $contents[] = $candidateContent;
                 $contents[] = [
                     'role' => 'user',
                     'parts' => $responseParts
@@ -1120,6 +1115,21 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                     $fallbackReply = "Dạ nhà hàng CIVILIZE bên em có rất nhiều món ăn đặc sắc và các món lẩu, nướng thơm ngon được đông đảo thực khách yêu thích. Em xin gửi anh/chị tham khảo danh sách bên dưới nhé ạ!";
                 } elseif ($primaryToolName === 'check_table_availability') {
                     $fallbackReply = ($firstResult['message'] ?? 'Dạ nhà hàng hiện vẫn còn bàn phục vụ quý khách ạ.') . "\n\nĐể em giữ vị trí bàn đẹp nhất cho đoàn mình, anh chị cho em xin Họ tên và Số điện thoại nhé ạ!";
+                } elseif ($primaryToolName === 'lookup_order_status') {
+                    if (!empty($firstResult['found'])) {
+                        $fallbackReply = "Dạ thông tin đơn hàng của mình:\n\n" .
+                                         "• Mã đơn: #{$firstResult['order_id']}\n" .
+                                         "• Khách hàng: {$firstResult['customer_name']}\n" .
+                                         "• Trạng thái: {$firstResult['status']}\n" .
+                                         "• Tổng tiền: {$firstResult['total_price']}\n" .
+                                         "• Thời gian đặt: {$firstResult['created_at']}";
+                    } else {
+                        $fallbackReply = $firstResult['message'] ?? 'Dạ để tra cứu thông tin đơn hàng, anh/chị vui lòng cung cấp Mã đơn hàng (#...) và Số điện thoại nhận hàng giúp em nhé ạ!';
+                    }
+                } elseif ($primaryToolName === 'confirm_and_create_booking') {
+                    $fallbackReply = $firstResult['message'] ?? 'Dạ em đã ghi nhận thông tin đặt bàn của anh/chị rồi ạ!';
+                } elseif (!empty($firstResult['message'])) {
+                    $fallbackReply = $firstResult['message'];
                 }
 
                 return [
@@ -1368,6 +1378,45 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                     ['title' => 'Tôi muốn đặt bàn', 'payload' => 'Tôi muốn đặt bàn'],
                     ['title' => 'Tra cứu đơn hàng', 'payload' => 'Tra cứu đơn hàng'],
                     ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn']
+                ]
+            ];
+        }
+
+        // Tình huống 2.2: Yêu cầu tra cứu đơn hàng tổng quát (không kèm SĐT trong tin nhắn)
+        $hasOrderLookupIntent = $this->matchAny($lower, [
+            'kiểm tra đơn', 'kiem tra don', 'tra cứu đơn', 'tra cuu don', 'xem đơn', 'xem don',
+            'tình trạng đơn', 'tinh trang don', 'đơn hàng của tôi', 'don hang cua toi',
+            'check đơn', 'check don', 'kiểm tra đơn hàng', 'tra cứu đơn hàng'
+        ]);
+
+        if ($hasOrderLookupIntent && empty($hasSpecificFoodConsult)) {
+            $orderId = null;
+            if (preg_match('/#?([0-9]+)/', $userMsg, $om)) {
+                $orderId = (int)$om[1];
+            }
+
+            $orderResult = $this->toolLookupOrderStatus([
+                'order_id' => $orderId,
+                'phone' => $extractedPhone
+            ], $context);
+
+            if (!empty($orderResult['found'])) {
+                $reply = "Dạ thông tin đơn hàng #{$orderResult['order_id']} của anh/chị:\n\n" .
+                         "• Khách hàng: {$orderResult['customer_name']}\n" .
+                         "• Trạng thái: {$orderResult['status']}\n" .
+                         "• Tổng tiền: {$orderResult['total_price']}\n" .
+                         "• Thời gian đặt: {$orderResult['created_at']}";
+            } else {
+                $reply = $orderResult['message'] ?? 'Dạ để tra cứu thông tin đơn hàng, anh/chị vui lòng cung cấp Mã đơn hàng (#...) và Số điện thoại nhận hàng đã dùng khi đặt đơn giúp em nhé ạ!';
+            }
+
+            return [
+                'reply' => $reply,
+                'products' => [],
+                'quick_replies' => [
+                    ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn'],
+                    ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
+                    ['title' => 'Hotline quán', 'payload' => 'Hotline của quán']
                 ]
             ];
         }
@@ -1650,6 +1699,12 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 return [
                     ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn món ăn'],
                     ['title' => 'Chỉ đường Google Maps', 'payload' => 'Chỉ đường tới quán']
+                ];
+            case 'lookup_order_status':
+                return [
+                    ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn'],
+                    ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
+                    ['title' => 'Hotline quán', 'payload' => 'Hotline của quán']
                 ];
             default:
                 return [
