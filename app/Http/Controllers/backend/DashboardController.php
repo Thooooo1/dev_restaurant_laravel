@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Booking;
 use App\Models\Table;
 use App\Models\Product;
+use App\Enums\OrderStatus;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -169,14 +170,14 @@ class DashboardController extends Controller
         $lockedTableIds = Table::whereNotNull('locked_order_id')->pluck('id')->toArray();
         $occupiedTables = count(array_unique(array_merge($activeTableIds, $lockedTableIds)));
         $totalActiveDishes = Product::where('status', 1)->count();
-        $totalAllTimeRevenue = Order::whereNull('deleted_at')->whereIn('status', [1, 2])->sum('total_price');
+        $totalAllTimeRevenue = Order::whereNull('deleted_at')->whereIn('status', [OrderStatus::PROCESSING, OrderStatus::COMPLETED])->sum('total_price');
 
         // === 4. THỐNG KÊ TRẠNG THÁI ĐƠN HÀNG (BYTEBITE POS STYLE PILLS) ===
         $totalOrdersCount = Order::whereNull('deleted_at')->count();
-        $pendingOrdersCount = Order::whereNull('deleted_at')->where('status', 0)->count();
-        $paidOrdersCount = Order::whereNull('deleted_at')->where('status', 1)->count();
-        $completedOrdersCount = Order::whereNull('deleted_at')->where('status', 2)->count();
-        $cancelledOrdersCount = Order::whereNull('deleted_at')->where('status', 3)->count();
+        $pendingOrdersCount = Order::whereNull('deleted_at')->where('status', OrderStatus::PENDING)->count();
+        $paidOrdersCount = Order::whereNull('deleted_at')->where('status', OrderStatus::PROCESSING)->count();
+        $completedOrdersCount = Order::whereNull('deleted_at')->where('status', OrderStatus::COMPLETED)->count();
+        $cancelledOrdersCount = Order::whereNull('deleted_at')->where('status', OrderStatus::CANCELLED)->count();
 
         // Thống kê trạng thái Đặt bàn
         $totalBookingsCount = Booking::count();

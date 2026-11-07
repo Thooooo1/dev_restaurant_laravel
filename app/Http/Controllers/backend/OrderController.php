@@ -61,7 +61,7 @@ class OrderController extends Controller
         $order->save();
 
         // Release merged tables if order is completed or cancelled
-        if (!in_array($order->status, [0, 1])) {
+        if (!in_array((int)$order->status, [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])) {
              \App\Models\Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
         }
 

@@ -482,8 +482,12 @@
                                 </a>
 
                                 <div class="border-t border-stone-100 my-1.5"></div>
+                                <form id="logout-form" action="{{ route('site.logout') }}" method="POST" class="hidden">
+                                    @csrf
+                                </form>
                                 <a href="{{ route('site.logout') }}"
-                                   class="flex items-center px-5 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors">
+                                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                                   class="flex items-center px-5 py-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer">
                                     <span>Đăng xuất</span>
                                 </a>
                             </div>
@@ -546,7 +550,7 @@
                     @else
                         <a href="{{ route('site.profile') }}" class="text-xs text-stone-600 px-3 py-1.5">Tài khoản của tôi</a>
                         <a href="{{ route('site.orders') }}" class="text-xs text-stone-600 px-3 py-1.5">Đơn hàng của tôi</a>
-                        <a href="{{ route('site.logout') }}" class="text-xs text-rose-600 px-3 py-1.5">Đăng xuất</a>
+                        <a href="{{ route('site.logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="text-xs text-rose-600 px-3 py-1.5 cursor-pointer">Đăng xuất</a>
                     @endif
                 </div>
             </div>

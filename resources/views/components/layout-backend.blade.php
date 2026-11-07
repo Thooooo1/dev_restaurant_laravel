@@ -1275,9 +1275,30 @@
             if (!href || href === '#' || href.startsWith('javascript:')) return;
 
             // Kiểm tra các thao tác thay đổi dữ liệu trong trang quản trị
-            if (/\/admin\/.*?\/(status|delete|restore)/.test(href)) {
+            if (/\/admin\/.*?\/(status|delete|restore|destroy|logout)/.test(href)) {
                 e.preventDefault();
                 e.stopPropagation();
+
+                // Kiểm tra hộp thoại xác nhận trước khi thực hiện
+                const isDelete = href.includes('/delete') || href.includes('/destroy');
+                const onclickAttr = link.getAttribute('onclick') || '';
+                let confirmMsg = link.getAttribute('data-confirm');
+
+                if (!confirmMsg && onclickAttr.includes('confirm(')) {
+                    const match = onclickAttr.match(/confirm\s*\(\s*['"](.*?)['"]\s*\)/);
+                    if (match && match[1]) {
+                        confirmMsg = match[1];
+                    }
+                }
+
+                if (!confirmMsg && isDelete) {
+                    confirmMsg = 'Bạn có chắc chắn muốn xóa bản ghi này vào thùng rác không?';
+                }
+
+                if (confirmMsg && !window.confirm(confirmMsg)) {
+                    return false;
+                }
+
                 window.submitAdminAction(href);
             }
         }, true);

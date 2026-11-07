@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\User;
 use App\Models\OrderItemLog;
+use App\Enums\OrderStatus;
 use App\Http\Requests\StoreTableOrderRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,7 +30,7 @@ class TableOrderController extends Controller
 
         // Lấy danh sách order đang active (chưa thanh toán) để hiển thị trạng thái bàn
         $orders = Order::whereNull('deleted_at')
-            ->whereIn('status', [0, 1]) // Đang chờ xử lý hoặc đang phục vụ
+            ->whereIn('status', [OrderStatus::PENDING, OrderStatus::PROCESSING]) // Đang chờ xử lý hoặc đang phục vụ
             ->whereNotNull('table_id')
             ->with(['table', 'orderDetails.product', 'user'])
             ->get();
@@ -878,7 +879,7 @@ class TableOrderController extends Controller
             $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
 
             // Chống thanh toán 2 lần & chỉ cho phép thanh toán hóa đơn đang mở (status 0 hoặc 1)
-            if (!in_array((int)$order->status, [0, 1])) {
+            if (!in_array((int)$order->status, [OrderStatus::PENDING, OrderStatus::PROCESSING])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Hóa đơn này không ở trạng thái hợp lệ để thanh toán hoặc đã hoàn tất trước đó.'
@@ -890,7 +891,7 @@ class TableOrderController extends Controller
                 ->where('status', '!=', 'cancelled')
                 ->sum('amount');
 
-            $order->status = 2; // Đã thanh toán
+            $order->status = OrderStatus::COMPLETED; // Đã thanh toán / Hoàn tất dùng bữa
             $order->payment_method = $request->payment_method;
             $order->total_price = $actualTotal;
             $order->has_new_items = false;

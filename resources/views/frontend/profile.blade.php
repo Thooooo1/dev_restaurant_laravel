@@ -91,9 +91,12 @@
         </div>
       </form>
 
+      <form id="profile-logout-form" action="{{ route('site.logout') }}" method="POST" class="hidden">
+        @csrf
+      </form>
       <p class="text-center text-xs text-stone-500 pt-4 border-t border-stone-100">
         Bạn muốn đăng xuất khỏi tài khoản? 
-        <a href="{{ route('site.logout') }}" class="text-rose-600 font-bold hover:underline ml-1">Đăng xuất ngay</a>
+        <a href="{{ route('site.logout') }}" onclick="event.preventDefault(); document.getElementById('profile-logout-form').submit();" class="text-rose-600 font-bold hover:underline ml-1 cursor-pointer">Đăng xuất ngay</a>
       </p>
     </div>
   </div>

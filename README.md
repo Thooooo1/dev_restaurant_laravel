@@ -20,7 +20,7 @@
 
 ### 2. Phân Hệ Quản Trị & Điểm Bán Hàng (Admin & POS)
 * **Màn hình POS gọi món tại bàn:** Bố cục sơ đồ bàn theo tầng, hỗ trợ gộp bàn, chuyển bàn và tách bàn linh hoạt.
-* **Màn hình Bếp (Kitchen Order Ticket - KOT):** Nhận thông báo món mới theo thời gian thực (realtime notification), cập nhật trạng thái chế biến (*chờ bếp nhận -> đang nấu -> đã lên bàn*).
+* **Màn hình Bếp (Kitchen Order Ticket - KOT):** Nhận thông báo món mới tự động đồng bộ (polling mỗi 5 giây), cập nhật trạng thái chế biến (*chờ bếp nhận -> đang nấu -> đã lên bàn*).
 * **Báo cáo & Thống kê doanh thu:** Xuất báo cáo dữ liệu định dạng Microsoft Excel, thống kê doanh thu theo ngày/tháng/năm.
 * **Quản trị người dùng & Phân quyền:** Phân tầng 2 lớp (*Admin cấp cao* và *Nhân viên phục vụ/thu ngân*).
 
@@ -46,7 +46,7 @@
 
 ## 🧪 Kiểm Thử Tự Động (Automated Testing)
 
-Dự án tích hợp sẵn bộ kiểm thử chức năng (Feature Tests & Unit Tests) với **100% Test Case đạt chuẩn (30 passed / 93 assertions)**:
+Dự án tích hợp sẵn bộ kiểm thử chức năng (Feature Tests & Unit Tests) với **100% Test Case đạt chuẩn (31 passed / 95 assertions)**:
 
 ```bash
 php artisan test
@@ -54,7 +54,7 @@ php artisan test
 
 **Các nhóm kiểm thử chính:**
 * **Chatbot Security Audit:** Chống rò rỉ đơn hàng, chặn rò rỉ thông tin cá nhân khách (PII masking), chống đầu độc hồ sơ AI (profile poisoning), chặn auto-create booking khi thiếu xác nhận rõ ràng, xác thực lịch đặt bàn và kiểm soát bộ nhớ hội thoại.
-* **Security & Payment:** Phân quyền nghiêm ngặt giữa Admin/Nhân viên/Khách hàng, bảo vệ Webhook thanh toán VietQR (chặn token mặc định, chặn giả mạo simulator ở production, chặn số tiền thiếu hoặc thanh toán lặp), chuyển toàn bộ 33 route admin sang POST CSRF (chặn hoàn toàn GET 405), chặn xóa giỏ hàng bằng GET 405.
+* **Security & Payment:** Phân quyền nghiêm ngặt giữa Admin/Nhân viên/Khách hàng, bảo vệ Webhook thanh toán VietQR (chặn token mặc định, chặn giả mạo simulator ở production, chặn số tiền thiếu hoặc thanh toán lặp), chuyển toàn bộ 33 route admin sang POST CSRF (chặn hoàn toàn GET 405), chặn xóa giỏ hàng bằng GET 405, chặn đăng xuất bằng GET 405.
 * **Order & Inventory:** Kiểm tra trừ tồn kho với DB Transaction và Pessimistic Locking (`lockForUpdate`), tự động tính phí giao hàng và miễn phí theo ngưỡng.
 * **Notification Segregation:** Phân tách thông báo bảo mật giữa 3 vai trò Admin, Nhân viên và Khách hàng.
 * **Excel Reports:** Kiểm thử xuất dữ liệu chuẩn định dạng cho 7 phân hệ báo cáo.

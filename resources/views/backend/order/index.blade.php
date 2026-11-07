@@ -77,22 +77,9 @@
                                 {{ date('H:i d/m/Y', strtotime($order->created_at)) }}
                             </td>
                             <td class="text-center">
-                                @switch($order->status)
-                                    @case(0)
-                                        <span class="polaris-badge polaris-badge-warning text-[11px]">Chờ xử lý</span>
-                                        @break
-                                    @case(1)
-                                        <span class="polaris-badge polaris-badge-processing text-[11px]">Đang giao</span>
-                                        @break
-                                    @case(2)
-                                        <span class="polaris-badge polaris-badge-success text-[11px]">Đã giao hàng</span>
-                                        @break
-                                    @case(3)
-                                        <span class="polaris-badge polaris-badge-error text-[11px]">Đã hủy</span>
-                                        @break
-                                    @default
-                                        <span class="polaris-badge polaris-badge-default text-[11px]">Mới</span>
-                                @endswitch
+                                <span class="polaris-badge {{ \App\Enums\OrderStatus::getBadgeClass((int)$order->status) }} text-[11px]">
+                                    {{ $order->status_label }}
+                                </span>
                             </td>
                             <td class="text-center">
                                 <div class="flex items-center justify-center gap-1.5">

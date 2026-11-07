@@ -678,4 +678,16 @@ class SecurityAndPaymentTest extends TestCase
         $response = $this->get('/delcart/1');
         $response->assertStatus(405);
     }
+
+    /**
+     * 19. Test Chan hoan toan phuong thuc GET doi voi route dang xuat site va admin
+     */
+    public function test_get_method_on_logout_returns_405(): void
+    {
+        $resSiteLogout = $this->get('/dang-xuat');
+        $resSiteLogout->assertStatus(405);
+
+        $resAdminLogout = $this->get('/admin/logout');
+        $resAdminLogout->assertStatus(405);
+    }
 }

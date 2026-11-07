@@ -180,7 +180,7 @@ Route::post('/dang-ky', [ThanhVienController::class, 'doregister'])->middleware(
 Route::get('/dang-nhap', [ThanhVienController::class, 'login'])->name('site.login');
 Route::post('/check-phone', [ThanhVienController::class, 'checkPhone'])->middleware('throttle:20,1')->name('site.check_phone');
 Route::post('/dang-nhap', [ThanhVienController::class, 'dologin'])->middleware('throttle:15,1')->name('site.dologin');
-Route::match(['get', 'post'], '/dang-xuat', [ThanhVienController::class, 'logout'])->name('site.logout');
+Route::post('/dang-xuat', [ThanhVienController::class, 'logout'])->name('site.logout');
 Route::get('/thong-tin', [ThanhVienController::class, 'profile'])->name('site.profile');
 Route::put('/thong-tin', [ThanhVienController::class, 'updateProfile'])->name('site.updateProfile');
 
@@ -207,7 +207,7 @@ Route::middleware('throttle:30,1')->group(function () {
 // Admin Auth
 Route::get('/admin/login', [AuthController::class, 'login'])->name('admin.login');
 Route::post('/admin/login', [AuthController::class, 'dologin'])->name('admin.dologin');
-Route::get('/admin/logout', [AuthController::class, 'logout'])->name('admin.logout');
+Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.logout');
 
 // Admin Dashboard (Protected)
 Route::prefix('admin')->middleware('login-admin')->group(function () {
