@@ -1275,7 +1275,7 @@
             if (!href || href === '#' || href.startsWith('javascript:')) return;
 
             // Kiểm tra các thao tác thay đổi dữ liệu trong trang quản trị
-            if (/\/admin\/.*?\/(status|delete|restore|destroy|logout)/.test(href)) {
+            if (/\/admin\/(.*?\/)?(status|delete|restore|destroy|logout)/.test(href)) {
                 e.preventDefault();
                 e.stopPropagation();
 

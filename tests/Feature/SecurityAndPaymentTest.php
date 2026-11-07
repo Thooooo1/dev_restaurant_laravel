@@ -681,15 +681,29 @@ class SecurityAndPaymentTest extends TestCase
     }
 
     /**
-     * 19. Test Chan hoan toan phuong thuc GET doi voi route dang xuat site va admin
+     * 19. Test Xu ly dang xuat site va admin an toan qua ca GET va POST khong gay loi 405
      */
-    public function test_get_method_on_logout_returns_405(): void
+    public function test_logout_handles_both_get_and_post_gracefully(): void
     {
-        $resSiteLogout = $this->get('/dang-xuat');
-        $resSiteLogout->assertStatus(405);
+        // 1. GET /dang-xuat chuyen huong ve trang dang nhap (302), khong bi loi 405 Method Not Allowed
+        $resSiteLogoutGet = $this->get('/dang-xuat');
+        $resSiteLogoutGet->assertStatus(302);
+        $resSiteLogoutGet->assertRedirect(route('site.login'));
 
-        $resAdminLogout = $this->get('/admin/logout');
-        $resAdminLogout->assertStatus(405);
+        // 2. POST /dang-xuat chuyen huong ve trang dang nhap (302)
+        $resSiteLogoutPost = $this->post('/dang-xuat');
+        $resSiteLogoutPost->assertStatus(302);
+        $resSiteLogoutPost->assertRedirect(route('site.login'));
+
+        // 3. GET /admin/logout chuyen huong ve trang dang nhap admin (302), khong bi loi 405
+        $resAdminLogoutGet = $this->get('/admin/logout');
+        $resAdminLogoutGet->assertStatus(302);
+        $resAdminLogoutGet->assertRedirect(route('admin.login'));
+
+        // 4. POST /admin/logout chuyen huong ve trang dang nhap admin (302)
+        $resAdminLogoutPost = $this->post('/admin/logout');
+        $resAdminLogoutPost->assertStatus(302);
+        $resAdminLogoutPost->assertRedirect(route('admin.login'));
     }
 
     /**

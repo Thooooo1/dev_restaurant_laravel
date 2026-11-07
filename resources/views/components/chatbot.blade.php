@@ -484,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function () {
         sendBtn.disabled = true;
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 18000);
 
         fetch('{{ route("chatbot.message", [], false) }}', {
             method: 'POST',
