@@ -901,8 +901,8 @@ class ChatbotService
         $apiKey = config('services.gemini.api_key') ?: env('GEMINI_API_KEY');
         $result = null;
 
-        // Chỉ thử Gemini khi API Key có dạng hợp lệ (bắt đầu bằng AIza) và trên môi trường cho phép
-        if (!empty($apiKey) && str_starts_with($apiKey, 'AIza')) {
+        // Chỉ thử Gemini khi API Key tồn tại và hợp lệ
+        if (!empty($apiKey) && strlen(trim($apiKey)) >= 20) {
             $result = $this->generateWithGeminiAgent($cleanMsg, $recentMessages, $customerProfile, $context);
         }
 
@@ -924,7 +924,7 @@ class ChatbotService
     protected function generateWithGeminiAgent(string $userMessage, $recentMessages, ?CustomerAiProfile $profile, array $context): ?array
     {
         $apiKey = config('services.gemini.api_key') ?: env('GEMINI_API_KEY');
-        $model = config('services.gemini.model', 'gemini-1.5-pro');
+        $model = config('services.gemini.model') ?: env('GEMINI_MODEL', 'gemini-2.5-flash');
 
         try {
             $hotline = $this->getSetting('hotline', '0338 990 538');
@@ -992,6 +992,12 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 if ($profile->total_visits) $systemInstruction .= "\n• Số lần đã ghé quán: {$profile->total_visits} lần";
             }
 
+            // Nạp tri thức chính sách nhà hàng (Unstructured Knowledge Base) vào System Instruction
+            $systemInstruction .= "\n\nCHÍNH SÁCH VÀ TIỆN ÍCH NHÀ HÀNG (BẮT BUỘC DÙNG KHI KHÁCH HỎI):";
+            foreach ($this->knowledgeBase as $chunk) {
+                $systemInstruction .= "\n• {$chunk['title']}: {$chunk['content']}";
+            }
+
             // Xây dựng lịch sử hội thoại nhiều lượt (Multi-turn Context)
             $contents = [];
             foreach ($recentMessages as $msg) {
@@ -1036,7 +1042,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             while ($currentTurn < $maxTurns) {
                 $currentTurn++;
 
-                $response = Http::withHeaders($headers)->timeout(5)->post($url, [
+                $response = Http::withHeaders($headers)->timeout(8)->post($url, [
                     'systemInstruction' => [
                         'parts' => [['text' => $systemInstruction]]
                     ],
