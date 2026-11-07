@@ -901,11 +901,12 @@ class ChatbotService
         $apiKey = config('services.gemini.api_key') ?: env('GEMINI_API_KEY');
         $result = null;
 
-        if (!empty($apiKey)) {
+        // Chỉ thử Gemini khi API Key có dạng hợp lệ (bắt đầu bằng AIza) và trên môi trường cho phép
+        if (!empty($apiKey) && str_starts_with($apiKey, 'AIza')) {
             $result = $this->generateWithGeminiAgent($cleanMsg, $recentMessages, $customerProfile, $context);
         }
 
-        // Nếu không có API Key hoặc Gemini bị lỗi timeout/rate limit, dùng Native Deterministic Engine
+        // Nếu không có API Key hợp lệ hoặc Gemini bị lỗi timeout/rate limit, dùng Native Deterministic Engine siêu tốc
         if (!$result) {
             $result = $this->generateWithNativeDeterministicEngine($cleanMsg, $recentMessages, $customerProfile, $context);
         }
@@ -1035,7 +1036,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             while ($currentTurn < $maxTurns) {
                 $currentTurn++;
 
-                $response = Http::withHeaders($headers)->timeout(20)->post($url, [
+                $response = Http::withHeaders($headers)->timeout(5)->post($url, [
                     'systemInstruction' => [
                         'parts' => [['text' => $systemInstruction]]
                     ],
@@ -1441,26 +1442,77 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             ];
         }
 
-        // Tình huống 3: Tư vấn món theo ngân sách, sở thích hoặc khẩu phần (Reasoning)
-        // Ưu tiên chạy trước nếu khách rõ ràng đang hỏi chọn món/tư vấn set ăn/ngân sách
+        // Tình huống 3: Tư vấn món theo từ khóa, sở thích, khẩu phần hoặc ngân sách
+        $foodKeywords = [
+            'lẩu', 'lau', 'nướng', 'nuong', 'món', 'mon', 'thực đơn', 'thuc don', 'menu',
+            'ăn gì', 'an gi', 'món gì', 'mon gi', 'món nào', 'mon nao', 'gợi ý món', 'goi y mon',
+            'hôm nay có gì', 'hôm nay có món', 'đặc sản', 'dac san', 'bestseller', 'bán chạy',
+            'gà', 'bò', 'heo', 'lợn', 'hải sản', 'tôm', 'cá', 'mực', 'sườn', 'chân giò', 'dạ dày',
+            'khai vị', 'rau', 'xào', 'chiên', 'đồ uống', 'uống', 'bia', 'nước', 'rượu',
+            'tư vấn', 'tu van', 'set'
+        ];
+        $isAskingFood = $this->matchAny($lower, $foodKeywords) 
+            || (str_contains($lower, 'có ') && str_contains($lower, 'không'))
+            || (str_contains($lower, 'co ') && str_contains($lower, 'khong'));
+
         preg_match('/(?:ngân sách|tầm|khoảng|giá)\s*([0-9]+)\s*(?:k|nghìn|ngan|tr|triệu|đ)/iu', $userMsg, $bMatch);
         $hasBudget = !empty($bMatch[1]);
-        $hasSpecificFoodConsult = $this->matchAny($lower, ['tư vấn', 'tu van', 'set', 'ăn gì', 'an gi', 'món gì', 'mon gi', 'món nào', 'gợi ý món', 'thực đơn lẩu', 'thực đơn nướng', 'hôm nay có gì', 'hôm nay có món', 'đặc sản', 'bestseller']) 
-            || ($this->matchAny($lower, ['lẩu', 'nướng', 'món']) && ($hasBudget || $this->matchAny($lower, ['thanh mát', 'không cay', 'cho trẻ em', 'ăn nhậu'])));
 
-        if ($hasSpecificFoodConsult || $hasBudget) {
-            $keyword = '';
-            if (str_contains($lower, 'lẩu')) $keyword = 'lẩu';
-            elseif (str_contains($lower, 'nướng')) $keyword = 'nướng';
-            elseif (str_contains($lower, 'bò')) $keyword = 'bò';
-            elseif (str_contains($lower, 'gà')) $keyword = 'gà';
-            elseif (str_contains($lower, 'cá')) $keyword = 'cá';
-            elseif (str_contains($lower, 'tôm')) $keyword = 'tôm';
-            elseif (str_contains($lower, 'khai vị')) $keyword = 'khai vị';
-            elseif (str_contains($lower, 'uống') || str_contains($lower, 'nước') || str_contains($lower, 'cafe')) $keyword = 'đồ uống';
+        if ($isAskingFood || $hasBudget) {
+            $dishes = collect();
+            $intro = '';
 
-            $dishesResult = $this->toolSearchMenuDishes(['keyword' => $keyword]);
-            $dishes = $dishesResult['dishes'] ?? [];
+            // Tình huống 3.1: Khách hỏi món kết hợp không có trong thực đơn (Ví dụ: Lẩu gà)
+            if (str_contains($lower, 'lẩu') && str_contains($lower, 'gà')) {
+                $exact = Product::where('status', 1)->where('name', 'LIKE', '%lẩu%')->where('name', 'LIKE', '%gà%')->get();
+                if ($exact->isEmpty()) {
+                    $lauItems = Product::where('status', 1)->where('name', 'LIKE', '%lẩu%')->get();
+                    $gaItems = Product::where('status', 1)->where('name', 'LIKE', '%gà%')->get();
+                    $dishes = $lauItems->concat($gaItems)->take(6);
+                    $intro = "Dạ hiện tại nhà hàng CIVILIZE chưa phục vụ món **Lẩu gà** ạ. Tuy nhiên, nhà hàng có các món **Lẩu đặc sản** cực kỳ đậm đà và các món **Gà** thơm ngon nức tiếng dưới đây để anh/chị tham khảo thưởng thức nhé ạ:\n\n";
+                } else {
+                    $dishes = $exact;
+                    $intro = "Dạ nhà hàng CIVILIZE có các món lẩu gà thơm ngon dưới đây để anh/chị thưởng thức ạ:\n\n";
+                }
+            } elseif (str_contains($lower, 'lẩu') || str_contains($lower, 'lau')) {
+                $dishes = Product::where('status', 1)->where('name', 'LIKE', '%lẩu%')->get();
+                $intro = "Dạ nhà hàng CIVILIZE có các món **Lẩu đặc sản** chuẩn vị, nước dùng thanh ngọt tự nhiên ninh từ xương và nguyên liệu tươi sạch mỗi ngày dưới đây ạ. Anh/chị tham khảo thưởng thức nhé ạ! (Ưu đãi giảm 10% áp dụng khi thực khách gọi món qua mã QR tại bàn):\n\n";
+            } elseif (str_contains($lower, 'nướng') || str_contains($lower, 'nuong') || str_contains($lower, 'bbq')) {
+                $dishes = Product::where('status', 1)->where('name', 'LIKE', '%nướng%')->get();
+                $intro = "Dạ nhà hàng CIVILIZE có các món **Đồ nướng than hoa** thơm lừng, tẩm ướp đậm vị sốt đặc biệt dưới đây ạ. Anh/chị tham khảo thưởng thức nhé ạ! (Ưu đãi giảm 10% áp dụng khi thực khách gọi món qua mã QR tại bàn):\n\n";
+            } elseif (str_contains($lower, 'bò') || str_contains($lower, 'bo')) {
+                $dishes = Product::where('status', 1)->where('name', 'LIKE', '%bò%')->get();
+                $intro = "Dạ nhà hàng có các món **Bò đặc sản** mềm ngọt, thơm ngon chuẩn vị dưới đây ạ:\n\n";
+            } elseif (str_contains($lower, 'gà') || str_contains($lower, 'ga')) {
+                $dishes = Product::where('status', 1)->where('name', 'LIKE', '%gà%')->get();
+                $intro = "Dạ nhà hàng có các món **Gà thơm ngon** đậm đà dưới đây để anh/chị tham khảo ạ:\n\n";
+            } elseif (str_contains($lower, 'cá') || str_contains($lower, 'tôm') || str_contains($lower, 'mực') || str_contains($lower, 'hải sản')) {
+                $dishes = Product::where('status', 1)->where(function($q) {
+                    $q->where('name', 'LIKE', '%cá%')
+                      ->orWhere('name', 'LIKE', '%tôm%')
+                      ->orWhere('name', 'LIKE', '%mực%')
+                      ->orWhere('name', 'LIKE', '%hải sản%');
+                })->get();
+                $intro = "Dạ nhà hàng CIVILIZE có các món **Hải sản tươi ngon** chế biến đậm vị dưới đây ạ:\n\n";
+            } elseif (str_contains($lower, 'uống') || str_contains($lower, 'nước') || str_contains($lower, 'bia') || str_contains($lower, 'cafe') || str_contains($lower, 'rượu')) {
+                $dishes = Product::where('status', 1)->whereIn('category_id', [18, 19])->limit(6)->get();
+                if ($dishes->isEmpty()) {
+                    $dishes = Product::where('status', 1)->where(function($q) {
+                        $q->where('name', 'LIKE', '%bia%')->orWhere('name', 'LIKE', '%nước%')->orWhere('name', 'LIKE', '%rượu%');
+                    })->limit(6)->get();
+                }
+                $intro = "Dạ nhà hàng có các loại **Đồ uống & Rượu vang** ướp lạnh sẵn sàng phục vụ anh/chị dưới đây ạ:\n\n";
+            } else {
+                // Mặc định hoặc hỏi chung chung / gợi ý món ngon hôm nay
+                $dishes = Product::where('status', 1)
+                    ->whereIn('id', [52, 53, 91, 57, 51, 84, 54, 78])
+                    ->limit(6)
+                    ->get();
+                if ($dishes->isEmpty()) {
+                    $dishes = Product::where('status', 1)->limit(6)->get();
+                }
+                $intro = "Dạ em xin gợi ý các món ăn đặc sắc và được yêu thích nhất tại CIVILIZE Restaurant hôm nay ạ. Món nào cũng được chế biến tươi sạch và hương vị đậm đà, anh/chị tham khảo nhé ạ! (Ưu đãi giảm 10% áp dụng khi thực khách gọi món qua mã QR tại bàn):\n\n";
+            }
 
             $people = null;
             if (preg_match('/([1-9][0-9]?)\s*(?:người|khách|pax)/iu', $userMsg . ' ' . $lastUserMsg, $pm)) {
@@ -1472,16 +1524,15 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 if (!empty($bMatch[1])) {
                     $intro = "Dạ với ngân sách tầm {$bMatch[0]} cho đoàn {$people} người, em xin tư vấn set thực đơn no nê, cân đối trọn vị và hoàn toàn không vượt quá ngân sách của mình ạ:\n\n";
                 }
-            } else {
-                $intro = "Dạ nhà hàng CIVILIZE bên em hôm nay có rất nhiều món ăn đặc sắc và các món lẩu, nướng thơm ngon được đông đảo thực khách yêu thích. Em xin gợi ý một số món tiêu biểu để anh/chị tham khảo nhé ạ:\n\n";
             }
 
             return [
-                'reply' => $intro . "Anh chị có thể tham khảo danh sách món ăn thực tế bên dưới hoặc bấm đặt bàn giữ chỗ trước để được đón tiếp chu đáo nhất nhé ạ! (Ưu đãi giảm 10% áp dụng khi thực khách gọi món qua mã QR tại bàn)",
-                'products' => $this->formatDishesForCard($dishes),
+                'reply' => $intro . "Anh chị có thể bấm 'Thêm' ngay dưới từng món để đặt món giao tận nơi hoặc bấm Đặt bàn giữ chỗ trước để được đón tiếp chu đáo nhất nhé ạ!",
+                'products' => $this->formatDishesForCard($this->formatDishesForTool($dishes)),
                 'quick_replies' => [
                     ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
-                    ['title' => 'Đổi sang món lẩu', 'payload' => 'Cho tôi xem món lẩu'],
+                    ['title' => 'Xem thực đơn lẩu', 'payload' => 'Cho tôi xem món lẩu'],
+                    ['title' => 'Xem món nướng', 'payload' => 'Có món nướng gì ngon?'],
                     ['title' => 'Địa chỉ nhà hàng', 'payload' => 'Địa chỉ của quán']
                 ]
             ];
@@ -1493,6 +1544,22 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             || ($this->matchAny($lower, ['người', 'khách']) && preg_match('/(?:[0-2]?[0-9]\s*(?:h|:|giờ)|tối nay|trưa nay|ngày mai)/iu', $userMsg));
 
         if ($hasBookingIntent) {
+            $hasExplicitDetails = preg_match('/(?:[1-9][0-9]?)\s*(?:người|khách|pax)/iu', $userMsg . ' ' . $lastUserMsg)
+                || preg_match('/(?:[0-2]?[0-9])\s*(?:h|:|giờ)/iu', $userMsg . ' ' . $lastUserMsg)
+                || str_contains($lower, 'tối nay') || str_contains($lower, 'trưa nay') || str_contains($lower, 'mai');
+
+            if (!$hasExplicitDetails) {
+                return [
+                    'reply' => "Dạ em rất sẵn lòng hỗ trợ anh/chị đặt bàn trước tại CIVILIZE Restaurant để nhận ưu đãi giảm 10% khi dùng bữa tại quán ạ!\n\nĐể em kiểm tra và chuẩn bị bàn có vị trí đẹp nhất cho mình, anh/chị cho em xin các thông tin sau nhé:\n1. **Số lượng khách** đi ăn (ví dụ: 2 người, 4 người,...)\n2. **Thời gian** dùng bữa (ngày và giờ cụ thể, ví dụ: tối nay lúc 19:00 hoặc trưa mai 12:00)\n3. **Họ tên & Số điện thoại** liên hệ\n\nAnh/chị cứ nhắn thông tin để em hỗ trợ giữ bàn ngay cho mình nhé ạ!",
+                    'products' => [],
+                    'quick_replies' => [
+                        ['title' => 'Tối nay 19:00 (4 người)', 'payload' => 'Tôi muốn đặt bàn 4 người lúc 19:00 tối nay'],
+                        ['title' => 'Trưa mai 12:00 (6 người)', 'payload' => 'Tôi muốn đặt bàn 6 người lúc 12:00 trưa mai'],
+                        ['title' => 'Xem thực đơn trước', 'payload' => 'Xem thực đơn']
+                    ]
+                ];
+            }
+
             $prevPeople = 0;
             if (preg_match('/([1-9][0-9]?)\s*(?:người|khách|pax)/iu', $lastUserMsg, $lpm)) {
                 $prevPeople = (int)$lpm[1];

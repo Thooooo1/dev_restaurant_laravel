@@ -30,6 +30,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/payment/*',
             'payment/*',
             'checkout/ipn',
+            'tu-van/*',
+            'tu-van',
+            'chatbot/*',
+            'chatbot',
         ]);
         $middleware->alias([
             'login-admin' => LoginAdmin::class,
