@@ -67,7 +67,10 @@ class ListProductGrid extends Component
                   ->orderBy('product.id', 'asc');
         }
         
-        $products = $query->with(['category', 'brand'])->withCount('reviews')->paginate(12);
+        $totalCount = (clone $query)->count();
+        // Chia toàn bộ thực đơn tối đa 2 trang (Trang 1 và Trang 2) cho khách hàng dễ theo dõi
+        $perPage = max(16, (int) ceil($totalCount / 2));
+        $products = $query->with(['category', 'brand'])->withCount('reviews')->paginate($perPage);
         $products->appends(request()->all());
         $viewMode = request()->get('view', 'grid');
         return view('components.list-product-grid', compact('products', 'viewMode'));

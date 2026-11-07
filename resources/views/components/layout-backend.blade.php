@@ -692,10 +692,13 @@
 
                             <div class="border-t border-[#F0F0F0] my-1"></div>
 
-                            <a href="{{ route('admin.logout') }}" class="flex items-center gap-2 px-4 py-2 text-[#FF4D4F] hover:bg-[#FFF1F0] transition-colors font-medium">
-                                <i class="fa-solid fa-arrow-right-from-bracket text-xs w-4"></i>
-                                <span>Đăng xuất</span>
-                            </a>
+                            <form action="{{ route('admin.logout') }}" method="POST" class="m-0 p-0">
+                                @csrf
+                                <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-[#FF4D4F] hover:bg-[#FFF1F0] transition-colors font-medium bg-transparent border-0 text-left cursor-pointer text-sm">
+                                    <i class="fa-solid fa-arrow-right-from-bracket text-xs w-4"></i>
+                                    <span>Đăng xuất</span>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

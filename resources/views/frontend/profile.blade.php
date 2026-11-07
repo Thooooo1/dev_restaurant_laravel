@@ -91,13 +91,15 @@
         </div>
       </form>
 
-      <form id="profile-logout-form" action="{{ route('site.logout') }}" method="POST" class="hidden">
-        @csrf
-      </form>
-      <p class="text-center text-xs text-stone-500 pt-4 border-t border-stone-100">
-        Bạn muốn đăng xuất khỏi tài khoản? 
-        <a href="{{ route('site.logout') }}" onclick="event.preventDefault(); document.getElementById('profile-logout-form').submit();" class="text-rose-600 font-bold hover:underline ml-1 cursor-pointer">Đăng xuất ngay</a>
-      </p>
+      <div class="text-center text-xs text-stone-500 pt-4 border-t border-stone-100 flex items-center justify-center gap-1">
+        <span>Bạn muốn đăng xuất khỏi tài khoản?</span>
+        <form action="{{ route('site.logout') }}" method="POST" class="inline m-0 p-0">
+          @csrf
+          <button type="submit" class="text-rose-600 font-bold hover:underline cursor-pointer bg-transparent border-0 p-0 text-xs">
+            Đăng xuất ngay
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 
