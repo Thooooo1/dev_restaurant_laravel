@@ -8,10 +8,12 @@ use Illuminate\Contracts\View\View;
 class OrderExport
 {
     protected $status;
+    protected $onlyDelivery;
 
-    public function __construct($status = null)
+    public function __construct($status = null, $onlyDelivery = false)
     {
         $this->status = $status;
+        $this->onlyDelivery = $onlyDelivery;
     }
 
     public function view(): View
@@ -19,6 +21,13 @@ class OrderExport
         $query = Order::query()
             ->whereNull('deleted_at')
             ->with(['table.floor', 'user', 'orderDetails.product']);
+
+        if ($this->onlyDelivery) {
+            $query->where(function ($q) {
+                $q->whereNull('table_id')
+                  ->orWhere('table_id', 0);
+            });
+        }
 
         if ($this->status !== null && $this->status != 5 && $this->status !== '') {
             $query->where('status', (int)$this->status);

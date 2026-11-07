@@ -13,7 +13,12 @@ class OrderController extends Controller
         $statusFilter = $request->query('status', 5);
         $perPage = 6;
 
+        // Chỉ hiển thị đơn hàng giao tận nơi & mang đi (loại trừ các đơn ăn trực tiếp tại bàn)
         $orders = Order::whereNull('deleted_at')
+            ->where(function ($query) {
+                $query->whereNull('table_id')
+                      ->orWhere('table_id', 0);
+            })
             ->when($statusFilter != 5, function ($query) use ($statusFilter) {
                 return $query->where('status', $statusFilter);
             })
@@ -26,7 +31,7 @@ class OrderController extends Controller
     public function export(Request $request)
     {
         $status = $request->query('status');
-        return \App\Services\ExcelExporter::download(new \App\Exports\OrderExport($status), 'danh-sach-don-hang.xls');
+        return \App\Services\ExcelExporter::download(new \App\Exports\OrderExport($status, true), 'danh-sach-don-hang.xls');
     }
 
     public function edit($id)

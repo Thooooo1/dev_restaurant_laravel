@@ -107,7 +107,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="py-8 text-center text-xs text-[rgba(0,0,0,0.45)]">Không có đơn hàng nào phù hợp với bộ lọc</td>
+                            <td colspan="8" class="py-8 text-center text-xs text-[rgba(0,0,0,0.45)]">Không có đơn hàng nào phù hợp với bộ lọc</td>
                         </tr>
                     @endforelse
                 </tbody>

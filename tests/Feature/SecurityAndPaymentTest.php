@@ -352,4 +352,53 @@ class SecurityAndPaymentTest extends TestCase
         // Dọn dẹp
         $testNoti->delete();
     }
+
+    /**
+     * 11. Test Trang Đơn hàng Giao tận nơi & Mang đi chỉ hiển thị đơn giao, loại trừ đơn ăn tại bàn
+     */
+    public function test_delivery_order_list_excludes_dine_in_table_orders(): void
+    {
+        $admin = User::where('roles', 'admin')->where('status', 1)->first();
+
+        // Tạo 1 đơn ăn tại bàn
+        $tableOrder = Order::create([
+            'user_id' => $admin->id ?? 1,
+            'table_id' => 14,
+            'name' => 'Bàn 18 (Ăn tại quán)',
+            'email' => 'ban18@gmail.com',
+            'phone' => '0912345678',
+            'address' => 'Bàn 18',
+            'orderStyle' => 0,
+            'total_price' => 500000,
+            'status' => 2,
+            'created_by' => 1,
+        ]);
+
+        // Tạo 1 đơn giao tận nơi
+        $deliveryOrder = Order::create([
+            'user_id' => $admin->id ?? 1,
+            'table_id' => null,
+            'name' => 'Khách Giao Tận Nơi Test',
+            'email' => 'giaotannoi@gmail.com',
+            'phone' => '0987654321',
+            'address' => '123 Đường Test, Quận 1',
+            'orderStyle' => 2,
+            'total_price' => 350000,
+            'status' => 0,
+            'created_by' => 1,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.order.index'));
+        $response->assertStatus(200);
+
+        // Đơn giao hàng phải có trong danh sách
+        $response->assertSee('Khách Giao Tận Nơi Test');
+
+        // Đơn ăn tại bàn tuyệt đối không được xuất hiện trong danh sách Đơn hàng Giao tận nơi & Mang đi
+        $response->assertDontSee('Bàn 18 (Ăn tại quán)');
+
+        // Dọn dẹp
+        $tableOrder->delete();
+        $deliveryOrder->delete();
+    }
 }
