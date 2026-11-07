@@ -230,4 +230,27 @@ class ChatbotSecurityAuditTest extends TestCase
 
         ChatbotMessage::where('session_id', $sessionId)->delete();
     }
+
+    /**
+     * Test 8: Cac endpoint tu van (/tu-van/goi-y, /tu-van/lam-moi) phan hoi dung dinh dang JSON va tranh WAF block
+     */
+    public function test_chatbot_routes_respond_correctly_on_tu_van_path()
+    {
+        // 1. Goi y hoi dap
+        $responseSug = $this->getJson(route('chatbot.suggestions'));
+        $responseSug->assertStatus(200);
+        $dataSug = $responseSug->json();
+        $this->assertTrue($dataSug['success']);
+        $this->assertIsArray($dataSug['quick_replies']);
+        $this->assertNotEmpty($dataSug['quick_replies']);
+        $this->assertNotEmpty($dataSug['greeting']);
+
+        // 2. Lam moi phien hoi thoai
+        $responseClear = $this->postJson(route('chatbot.clear'), [
+            'session_id' => 'test_clear_' . uniqid()
+        ]);
+        $responseClear->assertStatus(200);
+        $dataClear = $responseClear->json();
+        $this->assertTrue($dataClear['success']);
+    }
 }

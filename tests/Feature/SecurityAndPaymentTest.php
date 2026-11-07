@@ -13,6 +13,7 @@ use App\Models\Booking;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class SecurityAndPaymentTest extends TestCase
 {
@@ -689,5 +690,98 @@ class SecurityAndPaymentTest extends TestCase
 
         $resAdminLogout = $this->get('/admin/logout');
         $resAdminLogout->assertStatus(405);
+    }
+
+    /**
+     * 20. Test Doanh thu Dashboard dong bo don hoan tat trong ngay va phan loai kenh ban
+     */
+    public function test_dashboard_revenue_counts_today_completed_orders_and_differentiates_channels(): void
+    {
+        $admin = User::where('roles', 'admin')->where('status', 1)->first();
+        if (!$admin) {
+            $admin = User::create([
+                'username' => 'test_admin_dash_' . uniqid(),
+                'fullname' => 'Admin Dashboard Test',
+                'password' => Hash::make('123456'),
+                'phone' => '093' . rand(1000000, 9999999),
+                'gender' => 1,
+                'roles' => 'admin',
+                'admin_lever' => 1,
+                'status' => 1,
+            ]);
+        }
+
+        $employee = User::where('roles', 'employee')->where('status', 1)->first();
+        if (!$employee) {
+            $employee = User::create([
+                'username' => 'test_emp_dash_' . uniqid(),
+                'fullname' => 'Employee Dashboard Test',
+                'password' => Hash::make('123456'),
+                'phone' => '094' . rand(1000000, 9999999),
+                'gender' => 1,
+                'roles' => 'employee',
+                'admin_lever' => 2,
+                'status' => 1,
+            ]);
+        }
+
+        // Nhan vien truy cap /admin phai bi chuyen huong sang POS ban hang tai ban
+        $resEmp = $this->actingAs($employee)->get(route('admin.dashboard'));
+        $resEmp->assertRedirect(route('admin.table-order.index'));
+
+        // Tao 1 ban test neu chua co
+        $table = Table::first();
+        $tableId = $table ? $table->id : 1;
+
+        // Tao don 1: Tao tu hom qua nhung hoan tat/thanh toan hom nay (status = 2, updated_at = today)
+        $orderYesterdayPaidToday = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Khach POS Tai Ban',
+            'phone' => '0912999888',
+            'email' => 'postest@example.com',
+            'address' => 'Ban 1',
+            'table_id' => $tableId,
+            'total_price' => 500000,
+            'created_by' => $admin->id,
+            'payment_method' => 'VietQR',
+            'status' => 2,
+            'created_at' => Carbon::yesterday(),
+            'updated_at' => Carbon::now(),
+        ]);
+
+        // Tao don 2: Don giao hang mang ve phat sinh hom nay (status = 1, table_id = null)
+        $orderTodayDelivery = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Khach Giao Hang',
+            'phone' => '0912999777',
+            'email' => 'deliverytest@example.com',
+            'address' => '123 Pho Hue',
+            'table_id' => null,
+            'total_price' => 200000,
+            'created_by' => $admin->id,
+            'payment_method' => 1,
+            'status' => 1,
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
+        ]);
+
+        $resAdmin = $this->actingAs($admin)->get(route('admin.dashboard'));
+        $resAdmin->assertStatus(200);
+        $resAdmin->assertViewHas('revenue');
+        $resAdmin->assertViewHas('dineInCount');
+        $resAdmin->assertViewHas('takeawayCount');
+        $resAdmin->assertViewHas('transferRevenue');
+        $resAdmin->assertViewHas('cashRevenue');
+
+        $viewData = $resAdmin->original->getData();
+        $this->assertGreaterThanOrEqual(700000, (int)$viewData['revenue']);
+        $this->assertGreaterThanOrEqual(500000, (int)$viewData['transferRevenue']);
+        $this->assertGreaterThanOrEqual(200000, (int)$viewData['cashRevenue']);
+        $this->assertGreaterThanOrEqual(1, (int)$viewData['dineInCount']);
+        $this->assertGreaterThanOrEqual(1, (int)$viewData['takeawayCount']);
+
+        // Don dep du lieu test
+        $orderYesterdayPaidToday->forceDelete();
+        $orderTodayDelivery->forceDelete();
     }
 }
