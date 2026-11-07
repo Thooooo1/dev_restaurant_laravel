@@ -93,30 +93,14 @@
                             <td class="text-left" style="text-align: left !important;">
                                 <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $product->name }}</div>
                                 @if ($product->new_p == 1)
-                                    <span class="polaris-badge polaris-badge-processing text-[10px] mt-0.5">Món mới</span>
+                                    <span class="text-[10px] text-gray-400 font-medium block">Món mới</span>
                                 @endif
                             </td>
                             <td class="text-left text-xs text-[rgba(0,0,0,0.65)]" style="text-align: left !important;">
                                 {{ $product->category->name ?? '---' }}
                             </td>
-                            <td class="text-left" style="text-align: left !important;">
-                                @if ($product->kitchen_area === 'Quầy pha chế')
-                                    <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                                        {{ $product->kitchen_area }}
-                                    </span>
-                                @elseif ($product->kitchen_area === 'Bếp nướng')
-                                    <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                                        {{ $product->kitchen_area }}
-                                    </span>
-                                @elseif ($product->kitchen_area === 'Bếp nóng')
-                                    <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200">
-                                        {{ $product->kitchen_area }}
-                                    </span>
-                                @else
-                                    <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        {{ $product->kitchen_area }}
-                                    </span>
-                                @endif
+                            <td class="text-left text-xs text-[rgba(0,0,0,0.65)]" style="text-align: left !important;">
+                                {{ $product->kitchen_area ?: '---' }}
                             </td>
                             <td class="text-right font-mono text-xs text-[rgba(0,0,0,0.55)]" style="text-align: right !important;">
                                 {{ number_format($product->price_buy, 0, ',', '.') }} ₫
@@ -128,12 +112,8 @@
                                 <span class="font-semibold">{{ number_format($product->qty, 0, ',', '.') }}</span>
                                 <span class="text-[11px] text-gray-400 font-sans ml-0.5">{{ $product->unit }}</span>
                             </td>
-                            <td class="text-center" style="text-align: center !important;">
-                                @if ($product->status == 1)
-                                    <span class="polaris-badge polaris-badge-success text-[11px]">Đang bán</span>
-                                @else
-                                    <span class="polaris-badge polaris-badge-default text-[11px]">Tạm dừng</span>
-                                @endif
+                            <td class="text-center whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]" style="text-align: center !important;">
+                                {{ $product->status == 1 ? 'Đang bán' : 'Tạm dừng' }}
                             </td>
                             <td class="text-center" style="text-align: center !important;">
                                 <div class="flex items-center justify-center gap-1">
