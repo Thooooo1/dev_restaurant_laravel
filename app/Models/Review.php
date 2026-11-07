@@ -12,6 +12,7 @@ class Review extends Model
     protected $primaryKey = 'review_id'; 
     public $incrementing = true; 
     protected $keyType = 'int';
+    protected $guarded = [];
     public function product()
     {
         return $this->belongsTo(Product::class);

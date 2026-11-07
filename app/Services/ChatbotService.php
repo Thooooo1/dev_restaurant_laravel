@@ -755,10 +755,10 @@ class ChatbotService
         }
 
         $statusText = match ((int)$order->status) {
-            1 => 'Đang chuẩn bị món tại bếp',
-            2 => 'Đang trên đường giao tới bạn',
-            3 => 'Đã giao hàng thành công',
-            0 => 'Đã hủy đơn',
+            0 => 'Đang chờ xử lý / Chuẩn bị món tại bếp',
+            1 => 'Đang trên đường giao tới bạn',
+            2 => 'Đã giao hàng thành công',
+            3 => 'Đã hủy đơn',
             default => 'Đang xử lý'
         };
 

@@ -77,9 +77,9 @@ Route::get('/gioi-thieu', [GioithieuController::class, 'index'])->name('site.abo
 Route::get('/gio-hang', [GiohangController::class, 'index'])->name('site.cart');
 Route::post('/addcart/{id}', [GiohangController::class, 'addcart'])->name('site.addcart');
 Route::post('/updatecart', [GiohangController::class, 'updatecart'])->name('site.updatecart');
-Route::get('/delcart/{id}', [GiohangController::class, 'delcart'])->name('site.delcart');
+Route::match(['get', 'post', 'delete'], '/delcart/{id}', [GiohangController::class, 'delcart'])->name('site.delcart');
 Route::get('/thanh-toan', [GiohangController::class, 'checkoutForm'])->name('site.checkoutForm');
-Route::post('/thanh-toan', [GiohangController::class, 'checkout'])->name('site.checkout');
+Route::post('/thanh-toan', [GiohangController::class, 'checkout'])->middleware('throttle:15,1')->name('site.checkout');
 Route::get('/cam-on', [GiohangController::class, 'thanks'])->name('site.thanks');
 
 // Cart AJAX Endpoints for In-Menu Live Cart
@@ -151,13 +151,13 @@ Route::prefix('notifications')->group(function () {
     Route::post('/mark-all-read', [App\Http\Controllers\frontend\NotificationController::class, 'markAllAsRead'])->name('site.notifications.markAllRead');
 });
 
-// Booking
+// Booking (Throttled: 10 requests / minute)
 Route::get('/dat-ban', [DatBanController::class, 'index'])->name('site.booking');
-Route::post('/dat-ban', [DatBanController::class, 'store'])->name('site.booking.store');
+Route::post('/dat-ban', [DatBanController::class, 'store'])->middleware('throttle:10,1')->name('site.booking.store');
 
-// Reviews
-Route::post('/reviews', [DanhGiaController::class, 'store'])->name('reviews.store');
-Route::delete('/reviews/{review_id}', [DanhGiaController::class, 'delete'])->name('reviews.delete');
+// Reviews (Throttled & Authenticated)
+Route::post('/reviews', [DanhGiaController::class, 'store'])->middleware(['auth', 'throttle:15,1'])->name('reviews.store');
+Route::delete('/reviews/{review_id}', [DanhGiaController::class, 'delete'])->middleware('auth')->name('reviews.delete');
 
 // Favorites
 Route::get('/yeu-thich', [YeuThichController::class, 'index'])->name('site.favorites');
@@ -165,7 +165,7 @@ Route::post('/yeu-thich/{productId}', [YeuThichController::class, 'store'])->nam
 Route::delete('/yeu-thich/{productId}', [YeuThichController::class, 'destroy'])->name('site.favorites.remove');
 
 // Inquiry
-Route::post('/yeu-cau', [YeuCauController::class, 'store'])->name('inquiries.store');
+Route::post('/yeu-cau', [YeuCauController::class, 'store'])->middleware('throttle:10,1')->name('inquiries.store');
 
 // Policy Pages
 Route::get('/dieu-khoan-su-dung', [ChinhsachController::class, 'dksd'])->name('site.chinhsach.dksd');
@@ -176,20 +176,20 @@ Route::get('/chinh-sach-lien-he', [ChinhsachController::class, 'cslh'])->name('s
 
 // Authentication
 Route::get('/dang-ky', [ThanhVienController::class, 'register'])->name('site.register');
-Route::post('/dang-ky', [ThanhVienController::class, 'doregister'])->name('site.doregister');
+Route::post('/dang-ky', [ThanhVienController::class, 'doregister'])->middleware('throttle:10,1')->name('site.doregister');
 Route::get('/dang-nhap', [ThanhVienController::class, 'login'])->name('site.login');
-Route::post('/check-phone', [ThanhVienController::class, 'checkPhone'])->name('site.check_phone');
-Route::post('/dang-nhap', [ThanhVienController::class, 'dologin'])->name('site.dologin');
-Route::get('/dang-xuat', [ThanhVienController::class, 'logout'])->name('site.logout');
+Route::post('/check-phone', [ThanhVienController::class, 'checkPhone'])->middleware('throttle:20,1')->name('site.check_phone');
+Route::post('/dang-nhap', [ThanhVienController::class, 'dologin'])->middleware('throttle:15,1')->name('site.dologin');
+Route::match(['get', 'post'], '/dang-xuat', [ThanhVienController::class, 'logout'])->name('site.logout');
 Route::get('/thong-tin', [ThanhVienController::class, 'profile'])->name('site.profile');
 Route::put('/thong-tin', [ThanhVienController::class, 'updateProfile'])->name('site.updateProfile');
 
-// Password Reset
+// Password Reset (Strict Throttling to prevent SMS/Email Flooding)
 Route::get('/quen-mat-khau', [ThanhVienController::class, 'forgotPassword'])->name('site.forgot_password');
-Route::post('/quen-mat-khau', [ThanhVienController::class, 'sendOtp'])->name('site.send_otp');
-Route::post('/xac-nhan-otp', [ThanhVienController::class, 'verifyOtp'])->name('site.verify_otp');
+Route::post('/quen-mat-khau', [ThanhVienController::class, 'sendOtp'])->middleware('throttle:5,1')->name('site.send_otp');
+Route::post('/xac-nhan-otp', [ThanhVienController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('site.verify_otp');
 Route::get('/dat-lai-mat-khau', [ThanhVienController::class, 'showResetPasswordForm'])->name('site.show_reset_password');
-Route::post('/dat-lai-mat-khau', [ThanhVienController::class, 'resetPassword'])->name('site.reset_password');
+Route::post('/dat-lai-mat-khau', [ThanhVienController::class, 'resetPassword'])->middleware('throttle:10,1')->name('site.reset_password');
 
 // Chatbot Routes (Throttled: 30 requests / minute)
 Route::middleware('throttle:30,1')->group(function () {

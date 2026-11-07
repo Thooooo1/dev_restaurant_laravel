@@ -8,6 +8,8 @@ use App\Models\Order;
 use App\Models\Table;
 use App\Models\Orderdetail;
 use App\Models\Product;
+use App\Models\Review;
+use App\Models\Booking;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Auth;
@@ -400,5 +402,236 @@ class SecurityAndPaymentTest extends TestCase
         // Dọn dẹp
         $tableOrder->delete();
         $deliveryOrder->delete();
+    }
+
+    /**
+     * 12. Test Xoa danh gia yeu cau quyen so huu, ke khac xoa se bi 403 Forbidden
+     */
+    public function test_unauthorized_review_delete_returns_403(): void
+    {
+        $userA = User::create([
+            'username' => 'user_rev_a_' . uniqid(),
+            'fullname' => 'Khach A',
+            'password' => Hash::make('123456'),
+            'phone' => '093' . rand(1000000, 9999999),
+            'gender' => 1,
+            'roles' => 'customer',
+            'status' => 1,
+        ]);
+
+        $userB = User::create([
+            'username' => 'user_rev_b_' . uniqid(),
+            'fullname' => 'Khach B',
+            'password' => Hash::make('123456'),
+            'phone' => '093' . rand(1000000, 9999999),
+            'gender' => 1,
+            'roles' => 'customer',
+            'status' => 1,
+        ]);
+
+        $product = Product::first();
+        if (!$product) {
+            $this->markTestSkipped('No product available');
+        }
+
+        $review = Review::create([
+            'product_id' => $product->id,
+            'user_id' => $userA->id,
+            'rating' => 5,
+            'comment' => 'Mon ngon tuyet voi test',
+        ]);
+
+        // User B khong phai chu so huu cung khong phai admin -> 403
+        $response = $this->actingAs($userB)->delete(route('reviews.delete', $review->review_id));
+        $response->assertStatus(403);
+
+        // User A la chu so huu -> Xoa thanh cong (302)
+        $responseOwner = $this->actingAs($userA)->delete(route('reviews.delete', $review->review_id));
+        $responseOwner->assertStatus(302);
+
+        $this->assertSoftDeleted('reviews', ['review_id' => $review->review_id]);
+
+        $userA->forceDelete();
+        $userB->forceDelete();
+    }
+
+    /**
+     * 13. Test Danh gia mon an bat buoc rating tu 1 den 5 sao
+     */
+    public function test_review_validation_rejects_invalid_rating(): void
+    {
+        $user = User::create([
+            'username' => 'rev_val_' . uniqid(),
+            'fullname' => 'Khach Test Review',
+            'password' => Hash::make('123456'),
+            'phone' => '093' . rand(1000000, 9999999),
+            'gender' => 1,
+            'roles' => 'customer',
+            'status' => 1,
+        ]);
+
+        $product = Product::first();
+
+        // Rating = 6 vuot qua 5 sao
+        $response = $this->actingAs($user)->post(route('reviews.store'), [
+            'product_id' => $product->id,
+            'rating' => 6,
+            'comment' => 'Rating sai',
+        ]);
+
+        $response->assertSessionHasErrors(['rating']);
+
+        // Rating = 0 duoi 1 sao
+        $responseZero = $this->actingAs($user)->post(route('reviews.store'), [
+            'product_id' => $product->id,
+            'rating' => 0,
+            'comment' => 'Rating khong',
+        ]);
+
+        $responseZero->assertSessionHasErrors(['rating']);
+
+        $user->forceDelete();
+    }
+
+    /**
+     * 14. Test Dat ban chan ngay trong qua khu va dinh dang SDT khong hop le
+     */
+    public function test_booking_rejects_past_date(): void
+    {
+        $response = $this->post(route('site.booking.store'), [
+            'name' => 'Nguyen Van Test',
+            'email' => 'testbooking@gmail.com',
+            'phone' => '0912345678',
+            'number_of_people' => 4,
+            'booking_date' => now()->subDay()->format('Y-m-d'),
+            'booking_time' => '18:00',
+        ]);
+
+        $response->assertSessionHasErrors(['booking_date']);
+    }
+
+    /**
+     * 15. Test Checkout giao hang chan ban vuot ton kho (Stock Insufficient)
+     */
+    public function test_checkout_rejects_insufficient_stock(): void
+    {
+        $user = User::create([
+            'username' => 'stock_user_' . uniqid(),
+            'fullname' => 'Khach Mua Hang',
+            'password' => Hash::make('123456'),
+            'phone' => '098' . rand(1000000, 9999999),
+            'gender' => 1,
+            'roles' => 'customer',
+            'status' => 1,
+        ]);
+
+        // Tao san pham thu nghiem voi ton kho = 1
+        $product = new Product();
+        $product->category_id = 1;
+        $product->brand_id = 1;
+        $product->name = 'Mon Test Ton Kho ' . uniqid();
+        $product->slug = 'mon-test-ton-kho-' . uniqid();
+        $product->price_buy = 100000;
+        $product->price_sale = 0;
+        $product->qty = 1;
+        $product->image = 'default.jpg';
+        $product->description = 'Chi tiet';
+        $product->content = 'Noi dung chi tiet';
+        $product->status = 1;
+        $product->created_by = 1;
+        $product->save();
+
+        // Dat so luong 5 trong gio hang (vuot qua ton kho 1)
+        $cartKey = 'cart_' . $user->id;
+        $cartData = [
+            $product->id => [
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'id' => $product->id,
+                'price' => 100000,
+                'qty' => 5,
+                'discount' => 0,
+            ],
+        ];
+
+        $response = $this->actingAs($user)
+            ->withSession([$cartKey => $cartData])
+            ->post(route('site.checkout'), [
+                'name' => 'Nguyen Van A',
+                'phone' => '0981234567',
+                'address' => '123 Pho Hue, Hai Ba Trung, Ha Noi',
+                'payment_method' => 'COD',
+            ]);
+
+        $response->assertSessionHas('error');
+
+        // Don dep
+        $product->forceDelete();
+        $user->forceDelete();
+    }
+
+    /**
+     * 16. Test Checkout giao hang tu dong tinh phi ship 25.000d khi tong don duoi 500.000d
+     */
+    public function test_checkout_applies_shipping_fee(): void
+    {
+        $user = User::create([
+            'username' => 'ship_user_' . uniqid(),
+            'fullname' => 'Khach Ship Hang',
+            'password' => Hash::make('123456'),
+            'phone' => '098' . rand(1000000, 9999999),
+            'gender' => 1,
+            'roles' => 'customer',
+            'status' => 1,
+        ]);
+
+        $product = new Product();
+        $product->category_id = 1;
+        $product->brand_id = 1;
+        $product->name = 'Mon Test Ship ' . uniqid();
+        $product->slug = 'mon-test-ship-' . uniqid();
+        $product->price_buy = 100000;
+        $product->price_sale = 0;
+        $product->qty = 10;
+        $product->image = 'default.jpg';
+        $product->description = 'Chi tiet';
+        $product->content = 'Noi dung chi tiet';
+        $product->status = 1;
+        $product->created_by = 1;
+        $product->save();
+
+        $cartKey = 'cart_' . $user->id;
+        $cartData = [
+            $product->id => [
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'id' => $product->id,
+                'price' => 100000,
+                'qty' => 1,
+                'discount' => 0,
+            ],
+        ];
+
+        $response = $this->actingAs($user)
+            ->withSession([$cartKey => $cartData])
+            ->post(route('site.checkout'), [
+                'name' => 'Nguyen Van Ship',
+                'phone' => '0981234567',
+                'address' => '123 Pho Hue, Hai Ba Trung, Ha Noi',
+                'payment_method' => 'COD',
+            ]);
+
+        $response->assertStatus(302);
+
+        // Don hang tao ra phai co tong tien = 100.000 (mon) + 25.000 (phi ship) = 125.000d
+        $order = Order::where('user_id', $user->id)->latest('id')->first();
+        $this->assertNotNull($order);
+        $this->assertEquals(125000, (int)$order->total_price);
+
+        // Don dep
+        Orderdetail::where('order_id', $order->id)->delete();
+        $order->delete();
+        $product->forceDelete();
+        $user->forceDelete();
     }
 }

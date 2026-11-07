@@ -12,6 +12,7 @@ return [
 
     /*
     | Khóa xác thực Webhook ngân hàng
+    | Bắt buộc phải cấu hình trong file .env, không để giá trị mặc định trong repo công khai.
     */
-    'webhook_token' => env('PAYMENT_WEBHOOK_TOKEN', 'civilize_webhook_key_2026'),
+    'webhook_token' => env('PAYMENT_WEBHOOK_TOKEN'),
 ];

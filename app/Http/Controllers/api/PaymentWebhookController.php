@@ -32,7 +32,15 @@ class PaymentWebhookController extends Controller
         $isProduction = config('payment.mode', 'demo') === 'production';
         $expectedToken = config('payment.webhook_token', env('PAYMENT_WEBHOOK_TOKEN'));
 
-        if ($isProduction && !empty($expectedToken)) {
+        if ($isProduction) {
+            if (empty($expectedToken)) {
+                Log::error('Webhook bị từ chối: PAYMENT_WEBHOOK_TOKEN chưa được cấu hình trong môi trường Production.');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized: Token xác thực chưa được cấu hình trên máy chủ.'
+                ], 401);
+            }
+
             $authHeader = $request->header('Authorization', '');
             $secureToken = $request->header('secure-token') ?? $request->header('X-Token') ?? $request->input('token');
 

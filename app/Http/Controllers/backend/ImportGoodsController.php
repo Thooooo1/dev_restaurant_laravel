@@ -149,9 +149,15 @@ class ImportGoodsController extends Controller
                 'status' => 1,
             ]);
 
-            // Gán foreign key và lưu các mặt hàng
+            // Gán foreign key, đồng bộ tồn kho sản phẩm và lưu các mặt hàng
             foreach ($itemsData as &$it) {
                 $it['import_receipt_id'] = $receipt->id;
+
+                // Đồng bộ tăng tồn kho cho món ăn / sản phẩm tương ứng nếu có
+                $matchedProduct = \App\Models\Product::where('name', $it['name'])->first();
+                if ($matchedProduct) {
+                    $matchedProduct->increment('qty', (int)$it['quantity']);
+                }
             }
             ImportGoods::insert($itemsData);
 

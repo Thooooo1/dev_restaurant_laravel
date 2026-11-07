@@ -842,102 +842,128 @@ class CartController extends Controller
 
         if (!session('table_id')) {
             $request->validate([
+                'name' => 'required|string|max:100',
+                'phone' => ['required', 'regex:/^0[35789][0-9]{8}$/'],
+                'address' => 'required|string|max:255',
+                'email' => 'nullable|email|max:100',
+                'note' => 'nullable|string|max:500',
                 'payment_method' => 'required|in:COD,VietQR',
             ], [
-                'payment_method.required' => 'Vui lòng chọn phương thức thanh toán',
-                'payment_method.in' => 'Phương thức thanh toán không hợp lệ',
+                'name.required' => 'Vui lòng nhập họ và tên người nhận hàng.',
+                'phone.required' => 'Vui lòng nhập số điện thoại nhận hàng.',
+                'phone.regex' => 'Số điện thoại không đúng định dạng di động Việt Nam (10 số, bắt đầu bằng 03, 05, 07, 08, 09).',
+                'address.required' => 'Vui lòng cung cấp địa chỉ giao hàng chi tiết.',
+                'payment_method.required' => 'Vui lòng chọn phương thức thanh toán.',
+                'payment_method.in' => 'Phương thức thanh toán không hợp lệ.',
             ]);
 
             $distanceService = new \App\Services\DistanceService();
             $distanceCheck = $distanceService->isWithinDeliveryRange($request->address);
             
             if (!$distanceCheck['success']) {
-                return redirect()->back()->with('error', $distanceCheck['message']);
+                return redirect()->back()->withInput()->with('error', $distanceCheck['message']);
             }
         }
-
-        $userId = Auth::id() ?? 0;
-        $order = new Order();
-        $order->user_id = $userId;
-        $order->name = $request->name;
-        $order->email = Auth::user()->email ?? ($request->email ?? '');
-        $order->phone = $request->phone;
-        $order->note = $request->note;
-        $order->payment_method = $request->payment_method;
-        $order->address = $request->address;
-        $order->created_by = $userId ?: 1;
-        $order->status = 0;
-        $order->orderStyle = session('table_id') ? 0 : 1;
-
-        if (session('table_id')) {
-            $order->table_id = session('table_id');
-            if ($request->payment_method == 'TaiBan') {
-                $order->payment_method = 'TaiBan';
-            }
-        }
-
-        $order->save();
-
-        foreach ($cart as $productId => $details) {
-            $orderDetail = new Orderdetail();
-            $orderDetail->order_id = $order->id;
-            $orderDetail->product_id = $productId;
-            $orderDetail->qty = $details['qty'];
-            $orderDetail->price = $details['price'];
-            $orderDetail->discount = $details['discount'] ?? 0;
-            $orderDetail->amount = $details['price'] * $details['qty'];
-
-            if (isset($details['discount'])) {
-                $orderDetail->amount -= $details['discount'] * $details['qty'];
-            }
-
-            $orderDetail->save();
-
-            $product = Product::find($productId);
-            if ($product) {
-                $product->qty = max(0, $product->qty - $details['qty']);
-                $product->save();
-            }
-        }
-
-        $totalAmount = 0;
-        foreach ($cart as $details) {
-            $price = $details['price'];
-            $quantity = $details['qty'];
-            $discount = $details['discount'] ?? 0;
-            $totalAmount += ($price - $discount) * $quantity;
-        }
-        $totalAmount = (int) round($totalAmount);
-        $order->total_price = $totalAmount;
-        $order->save();
 
         try {
-            \App\Services\NotificationService::notifyNewOrder($order);
-        } catch (\Exception $e) {
-            \Log::error('Lỗi gửi notification new order: ' . $e->getMessage());
-        }
+            $order = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $cart) {
+                // 1. Khóa và kiểm tra tồn kho (Tránh Race Condition và bán vượt tồn)
+                $lockedProducts = [];
+                foreach ($cart as $productId => $details) {
+                    $product = Product::where('id', $productId)->lockForUpdate()->first();
+                    if (!$product) {
+                        throw new \Exception("Món ăn ID #{$productId} không tồn tại hoặc đã ngừng kinh doanh.");
+                    }
+                    if ($product->qty < $details['qty']) {
+                        throw new \Exception("Món '{$product->name}' hiện chỉ còn {$product->qty} phần trong kho, không đủ số lượng bạn đặt ({$details['qty']} phần).");
+                    }
+                    $lockedProducts[$productId] = $product;
+                }
 
-        if ($request->payment_method == 'VietQR') {
-            self::clearCartSession();
-            return redirect()->route('site.vietqr.pay', $order->id);
-        }
+                // 2. Tính toán tổng tiền món ăn
+                $subtotal = 0;
+                foreach ($cart as $details) {
+                    $price = $details['price'];
+                    $quantity = $details['qty'];
+                    $discount = $details['discount'] ?? 0;
+                    $subtotal += ($price - $discount) * $quantity;
+                }
+                $subtotal = (int) round($subtotal);
 
-        if ($request->payment_method == 'Momo') {
-            $momoService = new MomoService();
-            $orderInfo = 'Thanh toán đơn hàng #' . $order->id;
-            $momoResponse = $momoService->createPayment($order->id, $totalAmount, $orderInfo);
-            
-            if (!empty($momoResponse['payUrl'])) {
-                self::clearCartSession();
-                return redirect($momoResponse['payUrl']);
+                // 3. Tính phí giao hàng tự động từ cài đặt
+                $shippingFee = 0;
+                if (!session('table_id')) {
+                    $settings = (new \App\Http\Controllers\backend\SettingController())->getSettings();
+                    $freeThreshold = (int)($settings['shipping_free_threshold'] ?? 500000);
+                    $baseFee = (int)($settings['shipping_base_fee'] ?? 25000);
+                    if ($subtotal < $freeThreshold) {
+                        $shippingFee = $baseFee;
+                    }
+                }
+                $finalTotal = $subtotal + $shippingFee;
+
+                $userId = Auth::id() ?? 0;
+                $newOrder = new Order();
+                $newOrder->user_id = $userId;
+                $newOrder->name = strip_tags(trim($request->name ?? (Auth::user()->fullname ?? Auth::user()->username ?? 'Khách gọi món')));
+                $newOrder->email = filter_var($request->email ?? (Auth::user()->email ?? ''), FILTER_SANITIZE_EMAIL);
+                $newOrder->phone = preg_replace('/[^0-9]/', '', $request->phone ?? (Auth::user()->phone ?? ''));
+                $newOrder->note = strip_tags(trim($request->note ?? ''));
+                $newOrder->payment_method = $request->payment_method;
+                $newOrder->address = strip_tags(trim($request->address ?? (session('table_name') ?: 'Tại quán')));
+                $newOrder->created_by = $userId ?: 1;
+                $newOrder->status = 0; // 0: Chờ xử lý / Tiếp nhận
+                $newOrder->orderStyle = session('table_id') ? 0 : 1;
+                $newOrder->total_price = $finalTotal;
+
+                if (session('table_id')) {
+                    $newOrder->table_id = session('table_id');
+                    if ($request->payment_method == 'TaiBan') {
+                        $newOrder->payment_method = 'TaiBan';
+                    }
+                }
+
+                $newOrder->save();
+
+                // 4. Lưu chi tiết đơn hàng và trừ kho an toàn
+                foreach ($cart as $productId => $details) {
+                    $orderDetail = new Orderdetail();
+                    $orderDetail->order_id = $newOrder->id;
+                    $orderDetail->product_id = $productId;
+                    $orderDetail->qty = $details['qty'];
+                    $orderDetail->price = $details['price'];
+                    $orderDetail->discount = $details['discount'] ?? 0;
+                    $orderDetail->amount = ($details['price'] - ($details['discount'] ?? 0)) * $details['qty'];
+                    $orderDetail->save();
+
+                    // Trừ tồn kho sản phẩm đã lock
+                    $lockedProduct = $lockedProducts[$productId];
+                    $lockedProduct->qty = max(0, $lockedProduct->qty - $details['qty']);
+                    $lockedProduct->save();
+                }
+
+                return $newOrder;
+            });
+
+            // Bắn thông báo đơn hàng mới
+            try {
+                \App\Services\NotificationService::notifyNewOrder($order);
+            } catch (\Exception $e) {
+                \Log::error('Lỗi gửi notification new order: ' . $e->getMessage());
             }
-            
-            $errorMsg = $momoResponse['message'] ?? 'Có lỗi xảy ra khi tạo thanh toán Momo';
-            return redirect()->back()->with('error', $errorMsg);
-        }
 
-        self::clearCartSession();
-        return redirect()->route('site.thanks')->with('success', 'Đặt hàng thành công!');
+            if ($request->payment_method == 'VietQR') {
+                self::clearCartSession();
+                return redirect()->route('site.vietqr.pay', $order->id);
+            }
+
+            self::clearCartSession();
+            return redirect()->route('site.thanks')->with('success', 'Đặt hàng thành công!');
+
+        } catch (\Throwable $e) {
+            \Log::error('Lỗi trong quá trình thanh toán checkout: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
     public function vietqrPay($orderId, \App\Services\VietQRService $vietQRService)

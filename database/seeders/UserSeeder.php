@@ -15,19 +15,19 @@ class UserSeeder extends Seeder
     {
         DB::table('user')->insert([
             'username' => 'admin',
-            'password' => Hash::make('admin123456'), // Hash mật khẩu
+            'password' => Hash::make(env('SEEDER_ADMIN_PASSWORD', 'CivilizeAdmin@2026!')), // Hash mật khẩu mạnh
             'fullname' => 'Administrator',
-            'gender' => 'Male', // Có thể tùy chỉnh 'Male' hoặc 'Female'
-            'thumbnail' => 'path/to/thumbnail.jpg', // Thêm ảnh nếu cần
-            'email' => 'admin@gmail.com',
-            'phone' => '123456789',
-            'address' => '123 Admin Street',
-            'roles' => 'admin', // Quyền 'admin'
-            'status' => 1, // Trạng thái 'active'
-            'created_by' => 1, // ID của người tạo
-            'updated_by' => null, // Có thể là null
-            'deleted_at' => null, // Nếu có soft delete
-            'google_id' => null, // Google ID nếu có
+            'gender' => 'Male',
+            'thumbnail' => 'images/users/default.png',
+            'email' => 'admin@civilize.vn',
+            'phone' => '0988123456',
+            'address' => 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội',
+            'roles' => 'admin',
+            'status' => 1,
+            'created_by' => 1,
+            'updated_by' => null,
+            'deleted_at' => null,
+            'google_id' => null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

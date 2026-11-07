@@ -14,8 +14,8 @@
 ### 1. Phân Hệ Khách Hàng (Customer Experience)
 * **Quét mã QR tại bàn (Dine-in QR Ordering):** Khách hàng quét mã QR trên bàn để xem thực đơn và gọi món trực tiếp vào bếp mà không cần cài đặt ứng dụng.
 * **Đặt bàn trực tuyến (Table Reservation):** Lựa chọn số lượng khách, ngày giờ, phòng VIP và ghi chú bữa tiệc.
-* **Giao hàng tận nơi (Online Delivery):** Tính toán khoảng cách giao hàng, phí ship tự động và giỏ hàng thông minh.
-* **Cổng thanh toán điện tử:** Tích hợp chuyển khoản tự động **VietQR** (đối soát biến động số dư qua Webhook) và ví điện tử **MoMo**.
+* **Giao hàng tận nơi (Online Delivery):** Tính toán khoảng cách giao hàng, phí ship tự động (dưới 500k áp dụng 25k, trên 500k miễn phí vận chuyển trong bán kính 15km) và giỏ hàng thông minh.
+* **Cổng thanh toán điện tử:** Tích hợp chuyển khoản tự động **VietQR** (đối soát biến động số dư tự động qua Webhook) và thanh toán Tiền mặt khi nhận hàng (COD).
 * **Trợ lý ảo ẩm thực (AI Chatbot):** Tích hợp Google Gemini AI hỗ trợ tư vấn món ăn, giải đáp thực đơn 24/7.
 
 ### 2. Phân Hệ Quản Trị & Điểm Bán Hàng (Admin & POS)
@@ -35,8 +35,8 @@
   * Mọi hành động thêm số lượng, giảm số lượng hoặc hủy món đều được ghi vết chi tiết (người thực hiện, thời gian, lý do, số lượng cũ/mới, trạng thái bếp).
   * **Hủy mềm (Soft cancellation):** Khi món đã gửi bếp chế biến, hệ thống hủy mềm và bảo toàn lịch sử thay vì xóa cứng khỏi cơ sở dữ liệu.
 * **Kiến trúc thanh toán đa môi trường (`PAYMENT_MODE`):**
-  * `PAYMENT_MODE=demo`: Kích hoạt **Payment Mock Simulator** (Webhook giả lập và MoMo Sandbox) giúp hội đồng chấm thi kiểm thử toàn bộ luồng thanh toán mà không phát sinh giao dịch tiền mặt.
-  * `PAYMENT_MODE=production`: Tự động vô hiệu hóa toàn bộ endpoint giả lập (HTTP 404), bắt buộc xác thực token webhook qua HTTP Header (`Authorization: Apikey` / `secure-token`) và đối soát số tiền chuyển khoản $\ge$ tổng hóa đơn.
+  * `PAYMENT_MODE=demo`: Kích hoạt **Payment Mock Simulator** (Webhook giả lập VietQR) giúp hội đồng chấm thi kiểm thử toàn bộ luồng thanh toán mà không phát sinh giao dịch tiền mặt.
+  * `PAYMENT_MODE=production`: Tự động vô hiệu hóa toàn bộ endpoint giả lập (HTTP 404), bắt buộc xác thực token webhook qua HTTP Header (`Authorization: Apikey` / `secure-token`) và đối soát số tiền chuyển khoản >= tổng hóa đơn.
 * **Phòng chống các lỗ hổng Web phổ biến:**
   * Toàn bộ thao tác thay đổi trạng thái quản trị chuyển sang phương thức `POST` có mã bảo vệ `@csrf`.
   * Tái tạo Session ID (`$request->session()->regenerate()`) khi đăng nhập để chống tấn công *Session Fixation*.
@@ -67,9 +67,9 @@ php artisan test
 ## ⚙️ Hướng Dẫn Cài Đặt & Khởi Chạy
 
 ### 1. Yêu Cầu Môi Trường
-* **PHP:** $\ge 8.2$
-* **MySQL:** $\ge 8.0$ (hoặc MariaDB $\ge 10.4$)
-* **Composer:** $\ge 2.0$
+* **PHP:** >= 8.2
+* **MySQL:** >= 8.0 (hoặc MariaDB >= 10.4)
+* **Composer:** >= 2.0
 
 ### 2. Các Bước Cài Đặt
 ```bash

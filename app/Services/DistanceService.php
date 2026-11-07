@@ -36,9 +36,8 @@ class DistanceService
             foreach ($addressesToTry as $tryAddress) {
                 if (empty($tryAddress)) continue;
 
-                $response = Http::withoutVerifying()
-                    ->timeout(3) // Timeout 3s tối đa tránh treo trang web
-                    ->withHeaders(['User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'])
+                $response = Http::timeout(3) // Timeout 3s tối đa tránh treo trang web
+                    ->withHeaders(['User-Agent' => 'CIVILIZE-Restaurant-Delivery/1.0 (contact@civilize.vn)'])
                     ->get('https://nominatim.openstreetmap.org/search', [
                         'q' => $tryAddress,
                         'format' => 'json',
@@ -140,10 +139,10 @@ class DistanceService
      */
     private function getDrivingDistance($lat1, $lng1, $lat2, $lng2)
     {
-        $url = "http://router.project-osrm.org/route/v1/driving/{$lng1},{$lat1};{$lng2},{$lat2}?overview=false";
+        $url = "https://router.project-osrm.org/route/v1/driving/{$lng1},{$lat1};{$lng2},{$lat2}?overview=false";
 
         try {
-            $response = Http::withoutVerifying()->timeout(3)->get($url);
+            $response = Http::timeout(3)->get($url);
 
             if ($response->successful() && isset($response->json()['routes'][0]['distance'])) {
                 // Khoảng cách trả về bằng mét, đổi sang km
