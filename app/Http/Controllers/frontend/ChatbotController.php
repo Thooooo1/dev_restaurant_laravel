@@ -26,12 +26,19 @@ class ChatbotController extends Controller
         if (empty($payload) && !empty($request->getContent())) {
             $payload = json_decode($request->getContent(), true) ?: [];
         }
-        $message = $payload['message'] ?? $request->input('message');
-        if (empty($message)) {
+        $message = trim($payload['message'] ?? $request->input('message', ''));
+        if ($message === '') {
             return response()->json([
                 'success' => false,
                 'error' => 'Vui lòng nhập tin nhắn.'
             ], 400);
+        }
+
+        if (mb_strlen($message) > 1000) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Tin nhắn quá dài (tối đa 1.000 ký tự).'
+            ], 422);
         }
 
         $sessionId = $payload['session_id'] ?? $request->input('session_id') ?: session()->getId();
@@ -58,24 +65,23 @@ class ChatbotController extends Controller
                 'reply' => $response['reply'] ?? '',
                 'products' => $response['products'] ?? [],
                 'quick_replies' => $response['quick_replies'] ?? [],
-                'tool_calls' => $response['tool_calls'] ?? null,
-                'tool_output' => $response['tool_output'] ?? null,
             ]);
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('ChatbotController Error: ' . $e->getMessage(), [
-                'exception' => $e,
-            ]);
+            \Illuminate\Support\Facades\Log::error('ChatbotController Error: ' . $e->getMessage());
+
+            $hotline = '0338 990 538';
+            try {
+                if (class_exists(\App\Http\Controllers\backend\SettingController::class)) {
+                    $settings = (new \App\Http\Controllers\backend\SettingController())->getSettings();
+                    $hotline = $settings['hotline'] ?? $hotline;
+                }
+            } catch (\Throwable $ignored) {}
 
             return response()->json([
-                'success' => true,
+                'success' => false,
                 'session_id' => $sessionId,
-                'reply' => "Dạ em chào anh/chị ạ! Hôm nay nhà hàng CIVILIZE có các món đặc sản như Lẩu bắp bò nhúng dấm, Bò la hũ nướng tảng và Sườn nướng BBQ rất ngon miệng. Anh/chị có thể đặt bàn trước ngay trên web để nhận ưu đãi 10% hoặc gọi Hotline 0338 990 538 nhé ạ!",
-                'products' => [],
-                'quick_replies' => [
-                    ['title' => 'Đặt bàn trước', 'payload' => 'Tôi muốn đặt bàn'],
-                    ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn', 'url' => route('site.product')],
-                ],
-            ]);
+                'error' => "Hệ thống đang bận. Quý khách vui lòng thử lại sau giây lát hoặc liên hệ hotline {$hotline} để được hỗ trợ trực tiếp.",
+            ], 500);
         }
     }
 

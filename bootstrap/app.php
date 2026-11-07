@@ -16,7 +16,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
         $middleware->validateCsrfTokens(except: [
-            'chatbot/*',
             'api/webhook/*',
             'api/webhook',
             'webhook/*',

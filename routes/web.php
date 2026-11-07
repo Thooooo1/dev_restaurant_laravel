@@ -191,10 +191,12 @@ Route::post('/xac-nhan-otp', [ThanhVienController::class, 'verifyOtp'])->name('s
 Route::get('/dat-lai-mat-khau', [ThanhVienController::class, 'showResetPasswordForm'])->name('site.show_reset_password');
 Route::post('/dat-lai-mat-khau', [ThanhVienController::class, 'resetPassword'])->name('site.reset_password');
 
-// Chatbot Routes
-Route::post('/chatbot/message', [ChatbotController::class, 'sendMessage'])->name('chatbot.message');
-Route::get('/chatbot/suggestions', [ChatbotController::class, 'getSuggestions'])->name('chatbot.suggestions');
-Route::post('/chatbot/clear', [ChatbotController::class, 'clearSession'])->name('chatbot.clear');
+// Chatbot Routes (Throttled: 30 requests / minute)
+Route::middleware('throttle:30,1')->group(function () {
+    Route::post('/chatbot/message', [ChatbotController::class, 'sendMessage'])->name('chatbot.message');
+    Route::get('/chatbot/suggestions', [ChatbotController::class, 'getSuggestions'])->name('chatbot.suggestions');
+    Route::post('/chatbot/clear', [ChatbotController::class, 'clearSession'])->name('chatbot.clear');
+});
 
 
 

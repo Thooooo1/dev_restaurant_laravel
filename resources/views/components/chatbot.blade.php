@@ -402,13 +402,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (msg.quickReplies && msg.quickReplies.length > 0) {
                     quickRepliesHtml = `
                         <div class="flex flex-wrap gap-1.5 mt-3 pt-2.5 border-t border-stone-100">
-                            ${msg.quickReplies.map(chip => `
-                                <button type="button" 
-                                        onclick="window.chatbotSendQuickReply('${escapeHtml(chip.payload || chip.title)}', '${chip.url || ''}')"
-                                        class="inline-flex items-center gap-1 px-3 py-1.5 bg-stone-100/90 hover:bg-orange-50 text-stone-700 hover:text-[#C25E00] border border-stone-200 hover:border-orange-300 rounded-full text-xs font-medium transition active:scale-95 cursor-pointer shadow-2xs shrink-0">
-                                    <span>${chip.title}</span>
-                                </button>
-                            `).join('')}
+                            ${msg.quickReplies.map(chip => {
+                                const titleEscaped = escapeHtml(chip.title || '');
+                                const payloadEncoded = encodeURIComponent(chip.payload || chip.title || '');
+                                const urlEncoded = chip.url ? encodeURIComponent(chip.url) : '';
+                                return `
+                                    <button type="button" 
+                                            data-payload="${payloadEncoded}"
+                                            data-url="${urlEncoded}"
+                                            onclick="window.chatbotHandleChipClick(this)"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-stone-100/90 hover:bg-orange-50 text-stone-700 hover:text-[#C25E00] border border-stone-200 hover:border-orange-300 rounded-full text-xs font-medium transition active:scale-95 cursor-pointer shadow-2xs shrink-0">
+                                        <span>${titleEscaped}</span>
+                                    </button>
+                                `;
+                            }).join('')}
                         </div>
                     `;
                 }
@@ -451,6 +458,13 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             sendMessage(payload);
         }
+    };
+
+    window.chatbotHandleChipClick = function(btn) {
+        if (!btn) return;
+        const payload = decodeURIComponent(btn.getAttribute('data-payload') || '');
+        const url = decodeURIComponent(btn.getAttribute('data-url') || '');
+        window.chatbotSendQuickReply(payload, url);
     };
 
     function sendMessage(text) {

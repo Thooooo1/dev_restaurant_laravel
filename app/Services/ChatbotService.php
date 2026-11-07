@@ -27,23 +27,28 @@ use Carbon\Carbon;
 class ChatbotService
 {
     /**
+     * Runtime settings loaded dynamically
+     */
+    protected array $settings = [];
+
+    /**
      * Unstructured Knowledge Base Chunks (Policies, Amenities, Facilities)
      */
     protected array $knowledgeBase = [
         'general_info' => [
             'title' => 'Tổng quan nhà hàng',
             'keywords' => ['nhà hàng civilize', 'về civilize', 'giới thiệu', 'thương hiệu', 'phong cách ẩm thực', 'sứ mệnh'],
-            'content' => 'CIVILIZE Restaurant là nhà hàng ẩm thực Việt & Á đương đại tại số 120 Phúc Hòa, Phúc Thọ, Hà Nội. Tôn chỉ hoạt động luôn đặt chữ Tâm và chữ Tín lên hàng đầu, mang đến không gian ấm cúng, sang trọng cùng những món ăn tinh hoa được chế biến tỉ mỉ từ nguyên liệu tươi sạch mỗi ngày.'
+            'content' => 'CIVILIZE Restaurant là nhà hàng ẩm thực Việt & Á đương đại tại Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội. Tôn chỉ hoạt động luôn đặt chữ Tâm và chữ Tín lên hàng đầu, mang đến không gian ấm cúng, sang trọng cùng những món ăn tinh hoa được chế biến tỉ mỉ từ nguyên liệu tươi sạch mỗi ngày.'
         ],
         'location_and_hours' => [
             'title' => 'Địa chỉ & Giờ mở cửa',
             'keywords' => ['địa chỉ', 'ở đâu', 'chỗ nào', 'vị trí', 'đường đi', 'tìm quán', 'giờ mở cửa', 'mấy giờ', 'mở cửa', 'đóng cửa', 'thời gian phục vụ'],
-            'content' => 'Nhà hàng CIVILIZE mở cửa phục vụ từ 07:00 sáng đến 22:30 tối tất cả các ngày trong tuần (kể cả Thứ 7, Chủ Nhật và các ngày Lễ, Tết). Địa chỉ chính xác tại: 120 Phúc Hòa, Huyện Phúc Thọ, TP. Hà Nội.'
+            'content' => 'Nhà hàng CIVILIZE mở cửa phục vụ: 09:00 - 23:00 tất cả các ngày trong tuần (kể cả Thứ 7, Chủ Nhật và các ngày Lễ, Tết). Địa chỉ chính xác tại: Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội.'
         ],
         'hotline_and_contact' => [
             'title' => 'Hotline & Liên hệ',
             'keywords' => ['hotline', 'số điện thoại', 'sđt', 'liên hệ', 'gọi điện', 'điện thoại', 'chăm sóc khách hàng'],
-            'content' => 'Hotline hỗ trợ và đặt bàn nhanh 24/7 của CIVILIZE Restaurant là: 0338 990 538. Quý khách có thể gọi trực tiếp bất cứ lúc nào để được hỗ trợ vị trí đẹp hoặc giải đáp thắc mắc.'
+            'content' => 'Hotline hỗ trợ và đặt bàn của CIVILIZE Restaurant là: 0338 990 538. Quý khách có thể gọi trực tiếp bất cứ lúc nào để được hỗ trợ vị trí đẹp hoặc giải đáp thắc mắc.'
         ],
         'parking_facilities' => [
             'title' => 'Bãi đỗ xe máy & Ô tô',
@@ -53,7 +58,7 @@ class ChatbotService
         'reservation_policy' => [
             'title' => 'Chính sách đặt bàn & Ưu đãi',
             'keywords' => ['ưu đãi đặt bàn', 'giảm giá đặt bàn', 'khuyến mãi', 'chiết khấu đặt bàn', 'giữ bàn bao lâu'],
-            'content' => 'Khi đặt bàn trước qua chatbot hoặc website, quý khách được GIẢM NGAY 10% trên tổng hóa đơn món ăn. Nhà hàng sẽ giữ bàn tối đa 15-30 phút so với giờ hẹn để đảm bảo chất lượng phục vụ tốt nhất.'
+            'content' => 'Quý khách có thể đặt bàn trực tuyến dễ dàng qua website hoặc chatbot. Nhà hàng sẽ giữ bàn tối đa 15-30 phút so với giờ hẹn. Đặc biệt, khi dùng bữa tại nhà hàng và gọi món qua mã QR tại bàn, quý khách sẽ được giảm ngay 10% trên tổng hóa đơn món ăn.'
         ],
         'vip_rooms' => [
             'title' => 'Phòng VIP & Không gian riêng tư',
@@ -78,7 +83,7 @@ class ChatbotService
         'delivery_and_shipping' => [
             'title' => 'Giao hàng tận nơi & Phí ship',
             'keywords' => ['giao hàng', 'ship', 'mang về', 'phí ship', 'freeship', 'bao lâu'],
-            'content' => 'Nhà hàng phục vụ giao món tận nơi siêu tốc trong vòng 30–45 phút với hộp giữ nhiệt chuyên dụng. MIỄN PHÍ vận chuyển toàn bộ cho đơn hàng từ 599.000₫ trong bán kính 5km.'
+            'content' => 'Nhà hàng phục vụ giao món tận nơi siêu tốc trong vòng 30–45 phút với hộp giữ nhiệt chuyên dụng. MIỄN PHÍ vận chuyển toàn bộ cho đơn hàng từ 500.000₫ trong bán kính 15km.'
         ],
         'payment_methods' => [
             'title' => 'Phương thức thanh toán',
@@ -86,6 +91,70 @@ class ChatbotService
             'content' => 'Quý khách có thể thanh toán bằng Tiền mặt khi nhận hàng (COD), quẹt thẻ ngân hàng tại quầy (Visa, Mastercard, ATM) hoặc quét mã VietQR tự động. Nhà hàng hỗ trợ xuất hóa đơn VAT điện tử.'
         ],
     ];
+
+    public function __construct()
+    {
+        try {
+            if (class_exists(\App\Http\Controllers\backend\SettingController::class)) {
+                $this->settings = (new \App\Http\Controllers\backend\SettingController())->getSettings();
+            }
+        } catch (\Throwable $e) {
+            $this->settings = [];
+        }
+        $this->syncDynamicKnowledge();
+    }
+
+    public function getSetting(string $key, $default = null)
+    {
+        return $this->settings[$key] ?? $default;
+    }
+
+    protected function syncDynamicKnowledge(): void
+    {
+        $hotline = $this->getSetting('hotline', '0338 990 538');
+        $address = $this->getSetting('address', 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội');
+        $hours = $this->getSetting('opening_hours', '09:00 - 23:00 tất cả các ngày trong tuần');
+        $freeShipThreshold = number_format((float)$this->getSetting('shipping_free_threshold', 500000), 0, ',', '.') . '₫';
+        $maxKm = $this->getSetting('max_delivery_distance_km', 15);
+
+        $this->knowledgeBase['general_info']['content'] = "CIVILIZE Restaurant là nhà hàng ẩm thực Việt & Á đương đại tại {$address}. Tôn chỉ hoạt động luôn đặt chữ Tâm và chữ Tín lên hàng đầu, mang đến không gian ấm cúng, sang trọng cùng những món ăn tinh hoa được chế biến tỉ mỉ từ nguyên liệu tươi sạch mỗi ngày.";
+        $this->knowledgeBase['location_and_hours']['content'] = "Nhà hàng CIVILIZE mở cửa phục vụ: {$hours}. Địa chỉ chính xác tại: {$address}.";
+        $this->knowledgeBase['hotline_and_contact']['content'] = "Hotline hỗ trợ và đặt bàn của CIVILIZE Restaurant là: {$hotline}. Quý khách có thể gọi trực tiếp bất cứ lúc nào để được hỗ trợ vị trí đẹp và giải đáp thắc mắc.";
+        $this->knowledgeBase['reservation_policy']['content'] = "Quý khách có thể đặt bàn trực tuyến dễ dàng qua website hoặc chatbot. Nhà hàng sẽ giữ bàn tối đa 15-30 phút so với giờ hẹn. Đặc biệt, khi dùng bữa tại nhà hàng và gọi món qua mã QR tại bàn, quý khách sẽ được giảm ngay 10% trên tổng hóa đơn món ăn.";
+        $this->knowledgeBase['delivery_and_shipping']['content'] = "Nhà hàng phục vụ giao món tận nơi siêu tốc trong vòng 30–45 phút với hộp giữ nhiệt chuyên dụng. MIỄN PHÍ vận chuyển toàn bộ cho đơn hàng từ {$freeShipThreshold} trong bán kính {$maxKm}km.";
+    }
+
+    /**
+     * Mask customer name for privacy (e.g. Nguyễn Văn An -> Ng*** V** An)
+     */
+    protected function maskName(?string $name): string
+    {
+        if (empty($name)) return 'Khách hàng';
+        $words = explode(' ', trim($name));
+        $masked = [];
+        foreach ($words as $w) {
+            $len = mb_strlen($w, 'UTF-8');
+            if ($len <= 2) {
+                $masked[] = mb_substr($w, 0, 1, 'UTF-8') . '*';
+            } else {
+                $masked[] = mb_substr($w, 0, 1, 'UTF-8') . str_repeat('*', min(3, $len - 1));
+            }
+        }
+        return implode(' ', $masked);
+    }
+
+    /**
+     * Mask phone number for privacy (e.g. 0988123456 -> 098****456)
+     */
+    protected function maskPhone(?string $phone): string
+    {
+        if (empty($phone)) return '***';
+        $clean = preg_replace('/[^0-9]/', '', $phone);
+        if (strlen($clean) >= 9) {
+            return substr($clean, 0, 3) . '****' . substr($clean, -3);
+        }
+        return substr($clean, 0, 2) . '****';
+    }
 
     /**
      * Tool Definitions for Gemini 1.5 Flash Function Calling
@@ -506,7 +575,7 @@ class ChatbotService
             'current_booked_count' => $overlappingBookings,
             'status' => ($availableCount > 0) ? 'con_ban' : 'sap_het_ban',
             'message' => ($availableCount > 0)
-                ? "Dạ ngày {$date} lúc {$time} nhà hàng vẫn còn bàn đẹp phù hợp cho {$people} khách ạ. Khi đặt trước anh chị được GIẢM NGAY 10% tổng hóa đơn món ăn."
+                ? "Dạ ngày {$date} lúc {$time} nhà hàng vẫn còn bàn đẹp phù hợp cho {$people} khách ạ. Nhà hàng sẽ giữ bàn ưu tiên cho đoàn mình nếu anh/chị chốt giữ chỗ sớm nhé ạ!"
                 : "Dạ khung giờ {$time} ngày {$date} đang có khá nhiều khách đặt chỗ. Em vẫn có thể hỗ trợ sắp xếp bàn ưu tiên cho mình nếu anh chị chốt giữ bàn sớm nhé ạ!"
         ];
     }
@@ -516,18 +585,88 @@ class ChatbotService
      */
     protected function toolConfirmAndCreateBooking(array $args, array $context = []): array
     {
-        $name = trim($args['name'] ?? '');
-        $phone = trim($args['phone'] ?? '');
+        $name = trim(strip_tags($args['name'] ?? ''));
+        $phone = preg_replace('/[^0-9]/', '', trim($args['phone'] ?? ''));
         $people = (int)($args['number_of_people'] ?? 2);
         $date = trim($args['booking_date'] ?? Carbon::today()->toDateString());
         $time = trim($args['booking_time'] ?? '19:00');
-        $note = trim($args['note'] ?? 'Đặt bàn qua Chatbot AI CIVILIZE');
+        $note = trim(strip_tags($args['note'] ?? 'Đặt bàn qua Chatbot AI CIVILIZE'));
 
-        if (empty($name) || empty($phone)) {
+        // 1. Kiểm tra Tên
+        if (empty($name) || mb_strlen($name, 'UTF-8') < 2 || mb_strlen($name, 'UTF-8') > 50) {
             return [
                 'success' => false,
-                'error' => 'Vui lòng cung cấp đầy đủ Họ tên và Số điện thoại để hoàn tất đặt bàn.'
+                'error' => 'Họ và tên người đặt bàn không hợp lệ (vui lòng nhập từ 2 đến 50 ký tự).'
             ];
+        }
+
+        // 2. Kiểm tra Số điện thoại (10 chữ số di động Việt Nam: 03, 05, 07, 08, 09)
+        if (!preg_match('/^0[35789][0-9]{8}$/', $phone)) {
+            return [
+                'success' => false,
+                'error' => 'Số điện thoại không đúng định dạng. Vui lòng cung cấp số di động gồm 10 chữ số (bắt đầu bằng 03, 05, 07, 08, 09).'
+            ];
+        }
+
+        // 3. Kiểm tra Ngày đặt bàn
+        try {
+            $bookingDate = Carbon::parse($date)->startOfDay();
+            $today = Carbon::today();
+            if ($bookingDate->lt($today)) {
+                return [
+                    'success' => false,
+                    'error' => 'Ngày đặt bàn không thể ở trong quá khứ. Vui lòng chọn ngày từ hôm nay trở đi.'
+                ];
+            }
+            if ($bookingDate->gt($today->copy()->addDays(60))) {
+                return [
+                    'success' => false,
+                    'error' => 'Nhà hàng chỉ nhận đặt bàn trước tối đa 60 ngày.'
+                ];
+            }
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'error' => 'Định dạng ngày đặt bàn không hợp lệ (YYYY-MM-DD).'
+            ];
+        }
+
+        // 4. Kiểm tra Giờ đặt bàn
+        if (!preg_match('/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/', $time)) {
+            return [
+                'success' => false,
+                'error' => 'Định dạng giờ đặt bàn không hợp lệ (HH:MM).'
+            ];
+        }
+        $timeParts = explode(':', $time);
+        $timeMinutes = (int)$timeParts[0] * 60 + (int)$timeParts[1];
+        if ($timeMinutes < 540 || $timeMinutes > 1290) { // 09:00 -> 21:30
+            return [
+                'success' => false,
+                'error' => 'Giờ đặt bàn ngoài khung giờ tiếp nhận (nhà hàng phục vụ nhận bàn từ 09:00 đến 21:30).'
+            ];
+        }
+
+        if ($bookingDate->isToday()) {
+            $nowMinutes = Carbon::now()->hour * 60 + Carbon::now()->minute;
+            if ($timeMinutes < $nowMinutes + 15) {
+                return [
+                    'success' => false,
+                    'error' => 'Quý khách vui lòng đặt bàn trước giờ đến ít nhất 15-30 phút để nhà hàng kịp chuẩn bị bàn chu đáo.'
+                ];
+            }
+        }
+
+        // 5. Kiểm tra Số lượng khách
+        if ($people < 1 || $people > 50) {
+            return [
+                'success' => false,
+                'error' => 'Số lượng khách phải từ 1 đến 50 người. Với đoàn trên 50 người, quý khách vui lòng liên hệ trực tiếp hotline để được hỗ trợ sắp xếp khu tiệc riêng.'
+            ];
+        }
+
+        if (mb_strlen($note, 'UTF-8') > 255) {
+            $note = mb_substr($note, 0, 255, 'UTF-8');
         }
 
         // Tạo đơn đặt bàn thật trong DB
@@ -536,65 +675,83 @@ class ChatbotService
             'email' => $context['user']['email'] ?? "{$phone}@civilize.local",
             'phone' => $phone,
             'number_of_people' => $people,
-            'booking_date' => $date,
+            'booking_date' => $bookingDate->toDateString(),
             'booking_time' => $time,
             'note' => $note,
             'status' => 1 // 1: Chờ xác nhận / Đã tiếp nhận
         ]);
 
-        // Cập nhật Long-term Memory cho khách
-        $this->updateCustomerProfile($phone, [
-            'customer_name' => $name,
-            'user_id' => $context['user']['id'] ?? null,
-            'total_visits_increment' => true
-        ]);
+        // Cập nhật Long-term Memory cho khách CHỈ KHI ĐÃ ĐĂNG NHẬP
+        if (!empty($context['user']['id'])) {
+            $this->updateCustomerProfile($context['user']['id'], $phone, [
+                'customer_name' => $name,
+                'total_visits_increment' => true
+            ]);
+        }
 
         return [
             'success' => true,
             'booking_id' => $booking->id,
             'name' => $name,
-            'phone' => $phone,
+            'phone' => $this->maskPhone($phone),
             'people' => $people,
-            'date' => $date,
+            'date' => $bookingDate->format('d/m/Y'),
             'time' => $time,
-            'discount' => '10% trên tổng hóa đơn món ăn',
             'message' => "ĐÃ TẠO ĐƠN ĐẶT BÀN THÀNH CÔNG (Mã: #{$booking->id}). Nhà hàng sẽ gọi điện thoại xác nhận trong ít phút."
         ];
     }
 
     /**
-     * TOOL 4: Lookup Order Status from MySQL
+     * TOOL 4: Lookup Order Status from MySQL (Strict Access Control & Data Masking)
      */
     protected function toolLookupOrderStatus(array $args, array $context = []): array
     {
-        $phone = trim($args['phone'] ?? '');
+        $phone = preg_replace('/[^0-9]/', '', trim($args['phone'] ?? ''));
         $orderId = !empty($args['order_id']) ? (int)$args['order_id'] : null;
+        $userId = $context['user']['id'] ?? null;
+        $hotline = $this->getSetting('hotline', '0338 990 538');
 
-        if (empty($phone) && empty($orderId) && !empty($context['user']['phone'])) {
-            $phone = $context['user']['phone'];
+        // Nếu khách gõ chuỗi dạng #553
+        if (!$orderId && !empty($args['order_code']) && preg_match('/#?([0-9]+)/', $args['order_code'], $m)) {
+            $orderId = (int)$m[1];
         }
 
-        if (empty($phone) && empty($orderId)) {
-            return [
-                'found' => false,
-                'message' => 'Dạ anh chị vui lòng cho em xin Số điện thoại đặt hàng hoặc Mã đơn hàng để em tra cứu ngay ạ!'
-            ];
-        }
+        // Trường hợp 1: Khách đã đăng nhập -> Chỉ cho phép tra cứu đơn của chính tài khoản mình
+        if (!empty($userId)) {
+            $query = Order::where('user_id', $userId);
+            if ($orderId) {
+                $query->where('id', $orderId);
+            }
+            $order = $query->orderBy('created_at', 'desc')->first();
 
-        $query = Order::query();
-        if ($orderId) {
-            $query->where('id', $orderId);
-        } elseif ($phone) {
-            $query->where('phone', $phone);
-        }
+            if (!$order) {
+                $msg = $orderId 
+                    ? "Dạ em kiểm tra không tìm thấy đơn hàng #{$orderId} trong lịch sử mua hàng của tài khoản anh/chị ạ."
+                    : "Dạ tài khoản của anh/chị hiện chưa có đơn hàng nào trên hệ thống ạ.";
+                return [
+                    'found' => false,
+                    'message' => $msg
+                ];
+            }
+        } else {
+            // Trường hợp 2: Khách vãng lai (Chưa đăng nhập) -> BẮT BUỘC cung cấp CẢ Mã đơn hàng VÀ Số điện thoại
+            if (empty($orderId) || empty($phone)) {
+                return [
+                    'found' => false,
+                    'message' => 'Vì lý do bảo mật thông tin đơn hàng, khi chưa đăng nhập quý khách vui lòng cung cấp đồng thời Mã đơn hàng (#...) và Số điện thoại nhận hàng đã dùng khi đặt đơn ạ!'
+                ];
+            }
 
-        $order = $query->orderBy('created_at', 'desc')->first();
+            $order = Order::where('id', $orderId)
+                ->where('phone', $phone)
+                ->first();
 
-        if (!$order) {
-            return [
-                'found' => false,
-                'message' => "Dạ em kiểm tra trên hệ thống chưa thấy đơn hàng nào khớp với thông tin cung cấp. Anh chị vui lòng kiểm tra lại số điện thoại hoặc gọi hotline 0338 990 538 để được hỗ trợ kiểm tra trực tiếp nhé ạ."
-            ];
+            if (!$order) {
+                return [
+                    'found' => false,
+                    'message' => "Dạ thông tin đơn hàng #{$orderId} và số điện thoại cung cấp không khớp với dữ liệu trên hệ thống. Anh/chị vui lòng kiểm tra lại hoặc liên hệ hotline {$hotline} để được hỗ trợ kiểm tra trực tiếp nhé ạ."
+                ];
+            }
         }
 
         $statusText = match ((int)$order->status) {
@@ -608,12 +765,12 @@ class ChatbotService
         return [
             'found' => true,
             'order_id' => $order->id,
-            'customer_name' => $order->name,
-            'phone' => $order->phone,
+            'customer_name' => $this->maskName($order->name),
+            'phone' => $this->maskPhone($order->phone),
             'total_price' => number_format($order->total_price ?? 0, 0, ',', '.') . '₫',
             'status' => $statusText,
             'order_style' => $order->order_style ?? 'Giao tận nơi',
-            'created_at' => $order->created_at->format('H:i - d/m/Y')
+            'created_at' => $order->created_at ? $order->created_at->format('H:i - d/m/Y') : ''
         ];
     }
 
@@ -705,14 +862,16 @@ class ChatbotService
         $sessionId = $context['session_id'] ?? session()->getId();
         $user = $context['user'] ?? null;
 
-        // 1. Tải Short-Term Memory (10 lượt hội thoại gần nhất của session này)
+        // 1. Tải Short-Term Memory (10 lượt hội thoại gần nhất của session này, theo thứ tự thời gian)
         $recentMessages = collect([]);
         try {
             if (\Illuminate\Support\Facades\Schema::hasTable('chatbot_messages')) {
                 $recentMessages = ChatbotMessage::where('session_id', $sessionId)
-                    ->orderBy('id', 'asc')
+                    ->orderBy('id', 'desc')
                     ->limit(10)
-                    ->get();
+                    ->get()
+                    ->reverse()
+                    ->values();
             }
         } catch (\Throwable $e) {
             Log::warning('Chatbot memory load failed: ' . $e->getMessage());
@@ -761,29 +920,31 @@ class ChatbotService
         $model = config('services.gemini.model', 'gemini-1.5-pro');
 
         try {
+            $hotline = $this->getSetting('hotline', '0338 990 538');
+            $address = $this->getSetting('address', 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội');
+            $hours = $this->getSetting('opening_hours', '09:00 - 23:00');
+
             // Build System Instruction với Strict Business Guardrails
-            $systemInstruction = "Bạn là Nhân viên hỗ trợ trực tuyến của Nhà hàng CIVILIZE (120 Phúc Hòa, Phúc Thọ, Hà Nội - Hotline: 0338 990 538).
+            $systemInstruction = "Bạn là Nhân viên hỗ trợ trực tuyến của Nhà hàng CIVILIZE ({$address} - Hotline: {$hotline} - Giờ mở cửa: {$hours}).
 
 NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
 1. TÔN TRỌNG DỮ LIỆU THỰC TẾ: Bạn KHÔNG được tự bịa ra món ăn, giá tiền hoặc tình trạng bàn. Hãy dùng công cụ 'search_menu_dishes' để lấy danh sách món và giá thật, dùng 'check_table_availability' để kiểm tra bàn trống.
 2. CÂU HỎI MỞ / GỢI Ý MÓN / ĐẶC SẢN ('hôm nay có gì', 'hôm nay có món gì ngon', 'tư vấn món', 'đặc sản quán'):
    - Hãy đón tiếp khách niềm nở, chuyên nghiệp, giới thiệu 2-3 món signature nổi bật của nhà hàng (như Lẩu Thái, Lẩu bắp bò nhúng dấm, Sườn nướng BBQ) kèm mô tả hương vị hấp dẫn và giá tiền.
    - TUYỆT ĐỐI KHÔNG BAO GIỜ nói câu máy móc kiểu 'Không tìm thấy món đúng với từ khóa...'.
-   - Luôn nhắc khách: Đặt bàn trước sẽ được GIẢM NGAY 10% trên tổng hóa đơn món ăn!
 3. NẾU KHÁCH HỎI MÓN KHÔNG CÓ TRONG THỰC ĐƠN (ví dụ Pizza, Sushi, Bún bò Huế...): Lịch sự giải thích nhà hàng chuyên về ẩm thực Việt & Á (lẩu, nướng, mâm cơm gia đình, hải sản tươi sạch), sau đó dùng công cụ để gợi ý các món đặc sản có trong thực đơn.
 4. QUY TRÌNH ĐẶT BÀN 2 BƯỚC:
    - Bước 1: Khi khách ngỏ ý đặt bàn -> Bắt buộc gọi 'check_table_availability'. Nếu còn bàn, tóm tắt thông tin và hỏi xin Họ Tên + SĐT để xác nhận giữ chỗ.
    - Bước 2: CHỈ ĐƯỢC gọi 'confirm_and_create_booking' khi khách ĐÃ ĐỒNG Ý xác nhận và cung cấp đầy đủ Tên, SĐT, Ngày, Giờ, Số khách. Tuyệt đối không tự ý đặt bàn khi khách mới chỉ hỏi bâng quơ.
-5. TƯ VẤN KHẨU PHẦN & NGÂN SÁCH: Biết suy luận tính toán tổng tiền món ăn không vượt quá ngân sách khách yêu cầu. Nhắc khách đặt trước được GIẢM NGAY 10% tổng hóa đơn món ăn.
+5. TƯ VẤN KHẨU PHẦN & NGÂN SÁCH: Biết suy luận tính toán tổng tiền món ăn không vượt quá ngân sách khách yêu cầu. Nhắc khách ưu đãi giảm 10% áp dụng khi thực khách gọi món trực tiếp qua mã QR tại bàn nhà hàng.
 6. PHONG CÁCH GIAO TIẾP: Xưng em, gọi khách là 'anh/chị'. Ấm áp, lịch thiệp, chu đáo, tinh tế chuẩn tác phong nhà hàng ẩm thực Việt Nam.";
 
             if (!empty($context['user'])) {
                 $u = $context['user'];
                 $systemInstruction .= "\n\nTHÔNG TIN KHÁCH HÀNG ĐANG ĐĂNG NHẬP:";
                 if (!empty($u['name'])) $systemInstruction .= "\n• Họ và tên: {$u['name']}";
-                if (!empty($u['phone'])) $systemInstruction .= "\n• Số điện thoại: {$u['phone']}";
-                if (!empty($u['email'])) $systemInstruction .= "\n• Email: {$u['email']}";
-                $systemInstruction .= "\n(LƯU Ý: Khách đã đăng nhập. Bạn hãy chào hỏi thân thiết xưng hô theo tên khách (ví dụ: anh/chị {$u['name']}). Khi khách yêu cầu kiểm tra đơn hàng hoặc đặt bàn, bạn hãy chủ động sử dụng tên và số điện thoại này của khách để tra cứu hoặc hoàn tất đặt bàn mà không bắt khách phải gõ lại nếu khách không yêu cầu đổi).";
+                if (!empty($u['phone'])) $systemInstruction .= "\n• Số điện thoại: {$this->maskPhone($u['phone'])}";
+                $systemInstruction .= "\n(LƯU Ý: Khách đã đăng nhập. Bạn hãy chào hỏi thân thiết xưng hô theo tên khách (ví dụ: anh/chị {$u['name']}). Khi khách yêu cầu kiểm tra đơn hàng hoặc đặt bàn, bạn hãy hỗ trợ chu đáo).";
             }
 
             if ($profile) {
@@ -821,10 +982,14 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 ]
             ];
 
-            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-            $response = Http::withHeaders([
-                'Content-Type' => 'application/json'
-            ])->timeout(18)->post($url, [
+            // Header x-goog-api-key an toàn, loại bỏ query string key khỏi URL
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent";
+            $headers = [
+                'Content-Type' => 'application/json',
+                'x-goog-api-key' => $apiKey
+            ];
+
+            $response = Http::withHeaders($headers)->timeout(18)->post($url, [
                 'systemInstruction' => [
                     'parts' => [['text' => $systemInstruction]]
                 ],
@@ -837,7 +1002,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             ]);
 
             if (!$response->successful()) {
-                Log::warning('Gemini API call returned non-200: ' . $response->body());
+                Log::warning('Gemini API call returned non-200: ' . preg_replace('/key=[a-zA-Z0-9_\-]+/', 'key=[REDACTED]', $response->body()));
                 return null;
             }
 
@@ -845,43 +1010,64 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             $candidate = $data['candidates'][0] ?? null;
             if (!$candidate) return null;
 
-            $part = $candidate['content']['parts'][0] ?? null;
+            $parts = $candidate['content']['parts'] ?? [];
+            $functionCalls = [];
+            foreach ($parts as $p) {
+                if (!empty($p['functionCall'])) {
+                    $functionCalls[] = $p['functionCall'];
+                }
+            }
 
-            // KIỂM TRA XEM GEMINI CÓ QUYẾT ĐỊNH GỌI TOOL KHÔNG
-            if (!empty($part['functionCall'])) {
-                $call = $part['functionCall'];
-                $toolName = $call['name'];
-                $toolArgs = $call['args'] ?? [];
+            // KIỂM TRA XEM GEMINI CÓ GỌI TOOL (HỖ TRỢ NHIỀU TOOL MỖI LƯỢT)
+            if (!empty($functionCalls)) {
+                $modelParts = [];
+                $responseParts = [];
+                $toolOutputs = [];
+                $allDishes = [];
+                $primaryToolName = $functionCalls[0]['name'] ?? '';
 
-                // Thực thi Tool nội bộ trong Laravel
-                $toolResult = $this->executeTool($toolName, $toolArgs, $context);
+                foreach ($functionCalls as $call) {
+                    $toolName = $call['name'];
+                    $toolArgs = $call['args'] ?? [];
 
-                // Gửi functionResponse ngược lại cho Gemini để sinh câu trả lời tự nhiên
-                // Đảm bảo functionCall.args là stdClass nếu rỗng để json_encode thành {} thay vì []
-                $modelPart = $part;
-                if (isset($modelPart['functionCall']['args']) && empty($modelPart['functionCall']['args'])) {
-                    $modelPart['functionCall']['args'] = new \stdClass();
+                    // Thực thi Tool nội bộ trong Laravel
+                    $toolResult = $this->executeTool($toolName, $toolArgs, $context);
+                    $toolOutputs[$toolName] = $toolResult;
+
+                    if ($toolName === 'search_menu_dishes' && !empty($toolResult['dishes'])) {
+                        $allDishes = array_merge($allDishes, $toolResult['dishes']);
+                    }
+
+                    $cleanArgs = $toolArgs;
+                    if (empty($cleanArgs)) {
+                        $cleanArgs = new \stdClass();
+                    }
+
+                    $modelParts[] = [
+                        'functionCall' => [
+                            'name' => $toolName,
+                            'args' => $cleanArgs
+                        ]
+                    ];
+
+                    $responseParts[] = [
+                        'functionResponse' => [
+                            'name' => $toolName,
+                            'response' => $toolResult
+                        ]
+                    ];
                 }
 
                 $contents[] = [
                     'role' => 'model',
-                    'parts' => [$modelPart]
+                    'parts' => $modelParts
                 ];
                 $contents[] = [
                     'role' => 'user',
-                    'parts' => [
-                        [
-                            'functionResponse' => [
-                                'name' => $toolName,
-                                'response' => $toolResult
-                            ]
-                        ]
-                    ]
+                    'parts' => $responseParts
                 ];
 
-                $secondResponse = Http::withHeaders([
-                    'Content-Type' => 'application/json'
-                ])->timeout(18)->post($url, [
+                $secondResponse = Http::withHeaders($headers)->timeout(18)->post($url, [
                     'systemInstruction' => [
                         'parts' => [['text' => $systemInstruction]]
                     ],
@@ -894,8 +1080,8 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 ]);
 
                 $products = [];
-                if ($toolName === 'search_menu_dishes' && !empty($toolResult['dishes'])) {
-                    $products = $this->formatDishesForCard($toolResult['dishes']);
+                if (!empty($allDishes)) {
+                    $products = $this->formatDishesForCard($allDishes);
                 }
 
                 if ($secondResponse->successful()) {
@@ -909,9 +1095,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                     }
 
                     if (!empty(trim($finalText))) {
-                        // Sắp xếp ưu tiên các món mà Gemini thực sự đã nhắc đến trong lời nhắn
-                        if ($toolName === 'search_menu_dishes' && !empty($toolResult['dishes'])) {
-                            $allDishes = $toolResult['dishes'];
+                        if (!empty($allDishes)) {
                             $lowerFinal = mb_strtolower($finalText, 'UTF-8');
                             usort($allDishes, function($a, $b) use ($lowerFinal) {
                                 $aMentioned = str_contains($lowerFinal, mb_strtolower($a['name'], 'UTF-8'));
@@ -922,32 +1106,34 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                             $products = $this->formatDishesForCard($allDishes);
                         }
 
+                        $firstResult = reset($toolOutputs);
                         return [
                             'reply' => trim($finalText),
                             'products' => $products,
-                            'tool_calls' => [$call],
-                            'tool_output' => $toolResult,
-                            'quick_replies' => $this->generateContextualQuickReplies($toolName, $toolResult)
+                            'tool_calls' => $functionCalls,
+                            'tool_output' => $toolOutputs,
+                            'quick_replies' => $this->generateContextualQuickReplies($primaryToolName, $firstResult ?: [])
                         ];
                     }
                 } else {
-                    Log::warning('Gemini 2nd Turn Error: ' . $secondResponse->body());
+                    Log::warning('Gemini 2nd Turn Error: ' . preg_replace('/key=[a-zA-Z0-9_\-]+/', 'key=[REDACTED]', $secondResponse->body()));
                 }
 
                 // Graceful fallback nếu 2nd turn không sinh được text
                 $fallbackReply = "Dạ em đã kiểm tra thông tin cho mình rồi ạ!";
-                if ($toolName === 'search_menu_dishes') {
-                    $fallbackReply = "Dạ nhà hàng CIVILIZE bên em có rất nhiều món ăn đặc sắc và các món lẩu, nướng thơm ngon được đông đảo thực khách yêu thích. Em xin gửi anh/chị tham khảo danh sách bên dưới nhé ạ! (Đặc biệt đặt bàn trước sẽ được GIẢM NGAY 10% tổng hóa đơn đó ạ!)";
-                } elseif ($toolName === 'check_table_availability') {
-                    $fallbackReply = ($toolResult['message'] ?? 'Dạ nhà hàng hiện vẫn còn bàn phục vụ quý khách ạ.') . "\n\nĐể em giữ vị trí bàn đẹp nhất và áp dụng ưu đãi GIẢM NGAY 10% cho đoàn mình, anh chị cho em xin Họ tên và Số điện thoại nhé ạ!";
+                $firstResult = reset($toolOutputs);
+                if ($primaryToolName === 'search_menu_dishes') {
+                    $fallbackReply = "Dạ nhà hàng CIVILIZE bên em có rất nhiều món ăn đặc sắc và các món lẩu, nướng thơm ngon được đông đảo thực khách yêu thích. Em xin gửi anh/chị tham khảo danh sách bên dưới nhé ạ!";
+                } elseif ($primaryToolName === 'check_table_availability') {
+                    $fallbackReply = ($firstResult['message'] ?? 'Dạ nhà hàng hiện vẫn còn bàn phục vụ quý khách ạ.') . "\n\nĐể em giữ vị trí bàn đẹp nhất cho đoàn mình, anh chị cho em xin Họ tên và Số điện thoại nhé ạ!";
                 }
 
                 return [
                     'reply' => $fallbackReply,
                     'products' => $products,
-                    'tool_calls' => [$call],
-                    'tool_output' => $toolResult,
-                    'quick_replies' => $this->generateContextualQuickReplies($toolName, $toolResult)
+                    'tool_calls' => $functionCalls,
+                    'tool_output' => $toolOutputs,
+                    'quick_replies' => $this->generateContextualQuickReplies($primaryToolName, $firstResult ?: [])
                 ];
             }
 
@@ -965,14 +1151,14 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                     'products' => [],
                     'quick_replies' => [
                         ['title' => 'Gợi ý món ngon hôm nay', 'payload' => 'Gợi ý món ngon hôm nay'],
-                        ['title' => 'Đặt bàn trước nhận 10%', 'payload' => 'Tôi muốn đặt bàn'],
+                        ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
                         ['title' => 'Địa chỉ & Giờ mở cửa', 'payload' => 'Địa chỉ quán ở đâu?']
                     ]
                 ];
             }
 
         } catch (\Exception $e) {
-            Log::error('Gemini Agent Error: ' . $e->getMessage());
+            Log::error('Gemini Agent Error: ' . preg_replace('/key=[a-zA-Z0-9_\-]+/', 'key=[REDACTED]', $e->getMessage()));
         }
 
         return null;
@@ -1009,17 +1195,24 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 'quick_replies' => [
                     ['title' => 'Xem thực đơn lẩu', 'payload' => 'Cho tôi xem thực đơn lẩu'],
                     ['title' => 'Xem món nướng', 'payload' => 'Có món nướng gì ngon?'],
-                    ['title' => 'Đặt bàn nhận ưu đãi 10%', 'payload' => 'Tôi muốn đặt bàn']
+                    ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn']
                 ]
             ];
         }
 
-        // Tình huống 2: Khách xác nhận đặt bàn hoặc cung cấp thông tin (SĐT + Tên)
-        preg_match('/(0[3|5|7|8|9][0-9]{8})/u', $userMsg, $phoneMatch);
+        // Tình huống 2: Khách cung cấp thông tin hoặc xác nhận đặt bàn
+        preg_match('/(0[35789][0-9]{8})/u', $userMsg, $phoneMatch);
         $extractedPhone = $phoneMatch[1] ?? null;
 
-        // Nếu lượt trước bot đang hỏi SĐT/Tên để chốt bàn, hoặc câu hiện tại có đủ Tên + SĐT + Số người
-        $isBookingConfirm = $extractedPhone || (str_contains($lastBotMsg, 'xác nhận giữ bàn') && $this->matchAny($lower, ['ok', 'đồng ý', 'chốt nhé', 'đặt đi', 'xác nhận']));
+        $hasBookingKeywords = $this->matchAny($lower, ['đặt bàn', 'dat ban', 'giữ bàn', 'giu ban', 'book bàn', 'book ban', 'chốt bàn', 'đặt chỗ', 'dat cho']);
+        $botAskedForBooking = (str_contains($lastBotMsg, 'xác nhận giữ bàn') 
+            || str_contains($lastBotMsg, 'họ tên và số điện thoại') 
+            || str_contains($lastBotMsg, 'tên và số điện thoại')
+            || str_contains($lastBotMsg, 'để em hoàn tất giữ bàn'));
+        $userConfirmed = $this->matchAny($lower, ['ok', 'đồng ý', 'dong y', 'chốt nhé', 'chot nhe', 'đặt đi', 'dat di', 'xác nhận', 'xac nhan', 'đúng rồi', 'dung roi', 'đặt luôn']);
+
+        // CHỐNG SPAM BOOKING: Chỉ xác nhận tạo booking khi người dùng có ý định đặt bàn rõ ràng hoặc đang phản hồi câu hỏi giữ bàn của bot
+        $isBookingConfirm = ($hasBookingKeywords && $extractedPhone) || ($botAskedForBooking && ($extractedPhone || $userConfirmed));
 
         if ($isBookingConfirm) {
             $people = 4;
@@ -1045,7 +1238,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             }
 
             if ($extractedPhone) {
-                // Tạo đơn đặt bàn thật
+                // Tạo đơn đặt bàn với validation đầy đủ
                 $bookingResult = $this->toolConfirmAndCreateBooking([
                     'name' => $customerName,
                     'phone' => $extractedPhone,
@@ -1055,13 +1248,23 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                     'note' => 'Đặt bàn qua Chatbot AI CIVILIZE'
                 ], $context);
 
+                if (!$bookingResult['success']) {
+                    return [
+                        'reply' => "Dạ " . ($bookingResult['error'] ?? 'thông tin đặt bàn chưa chính xác, anh/chị vui lòng kiểm tra lại ạ.') . "\n\nAnh/chị vui lòng cung cấp lại thông tin hợp lệ để em hoàn tất giữ bàn nhé ạ!",
+                        'products' => [],
+                        'quick_replies' => [
+                            ['title' => 'Đặt bàn lại', 'payload' => 'Tôi muốn đặt bàn'],
+                            ['title' => 'Hotline hỗ trợ', 'payload' => 'Hotline của quán']
+                        ]
+                    ];
+                }
+
                 return [
                     'reply' => "Dạ em đã hoàn tất đặt bàn cho mình rồi ạ!\n\n" .
                                "• Mã đặt bàn: #{$bookingResult['booking_id']}\n" .
-                               "• Khách hàng: {$customerName} ({$extractedPhone})\n" .
+                               "• Khách hàng: {$customerName} ({$bookingResult['phone']})\n" .
                                "• Số lượng: {$people} khách\n" .
-                               "• Thời gian: {$time} ngày " . Carbon::parse($date)->format('d/m/Y') . "\n" .
-                               "• Ưu đãi: GIẢM NGAY 10% trên tổng hóa đơn món ăn.\n\n" .
+                               "• Thời gian: {$time} ngày {$bookingResult['date']}\n\n" .
                                "Nhà hàng sẽ gọi điện thoại xác nhận chu đáo trước giờ hẹn. Rất hân hạnh được đón tiếp anh chị ạ!",
                     'products' => [],
                     'quick_replies' => [
@@ -1088,6 +1291,41 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                     ]
                 ];
             }
+        }
+
+        // Tình huống 2.1: Tin nhắn có SĐT nhưng KHÔNG có ý định đặt bàn (tránh tự động tạo booking)
+        if ($extractedPhone && !$isBookingConfirm && empty($bMatch[1]) && empty($hasSpecificFoodConsult)) {
+            if ($this->matchAny($lower, ['đơn', 'don', 'tra cứu', 'kiem tra', 'order'])) {
+                $orderId = null;
+                if (preg_match('/#?([0-9]+)/', $userMsg, $om)) {
+                    $orderId = (int)$om[1];
+                }
+                $orderResult = $this->toolLookupOrderStatus([
+                    'phone' => $extractedPhone,
+                    'order_id' => $orderId
+                ], $context);
+
+                return [
+                    'reply' => $orderResult['found'] 
+                        ? "Dạ thông tin đơn hàng của mình:\n\n• Mã đơn: #{$orderResult['order_id']}\n• Khách hàng: {$orderResult['customer_name']}\n• Tổng tiền: {$orderResult['total_price']}\n• Trạng thái: {$orderResult['status']}\n• Thời gian: {$orderResult['created_at']}"
+                        : $orderResult['message'],
+                    'products' => [],
+                    'quick_replies' => [
+                        ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn'],
+                        ['title' => 'Hotline quán', 'payload' => 'Hotline của quán']
+                    ]
+                ];
+            }
+
+            return [
+                'reply' => "Dạ em đã nhận được số điện thoại {$extractedPhone} của anh/chị. Anh/chị đang cần hỗ trợ tra cứu tiến độ đơn hàng hay muốn đặt bàn trước tại CIVILIZE ạ?",
+                'products' => [],
+                'quick_replies' => [
+                    ['title' => 'Tôi muốn đặt bàn', 'payload' => 'Tôi muốn đặt bàn'],
+                    ['title' => 'Tra cứu đơn hàng', 'payload' => 'Tra cứu đơn hàng'],
+                    ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn']
+                ]
+            ];
         }
 
         // Tình huống 3: Tư vấn món theo ngân sách, sở thích hoặc khẩu phần (Reasoning)
@@ -1126,10 +1364,10 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             }
 
             return [
-                'reply' => $intro . "Anh chị có thể tham khảo danh sách món ăn thực tế bên dưới hoặc bấm đặt bàn trước để được GIẢM NGAY 10% tổng hóa đơn nhé ạ!",
+                'reply' => $intro . "Anh chị có thể tham khảo danh sách món ăn thực tế bên dưới hoặc bấm đặt bàn giữ chỗ trước để được đón tiếp chu đáo nhất nhé ạ! (Ưu đãi giảm 10% áp dụng khi thực khách gọi món qua mã QR tại bàn)",
                 'products' => $this->formatDishesForCard($dishes),
                 'quick_replies' => [
-                    ['title' => 'Đặt bàn trước giảm 10%', 'payload' => 'Tôi muốn đặt bàn'],
+                    ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
                     ['title' => 'Đổi sang món lẩu', 'payload' => 'Cho tôi xem món lẩu'],
                     ['title' => 'Địa chỉ nhà hàng', 'payload' => 'Địa chỉ của quán']
                 ]
@@ -1184,7 +1422,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             return [
                 'reply' => "Dạ em kiểm tra bàn cho mình lúc {$time} ngày " . Carbon::parse($date)->format('d/m/Y') . " rồi ạ:\n\n" .
                            "• Tình trạng: {$avail['message']}\n\n" .
-                           "Để em hoàn tất giữ bàn vị trí đẹp nhất và kích hoạt ưu đãi GIẢM NGAY 10% cho đoàn mình, anh chị cho em xin Họ tên và Số điện thoại liên hệ nhé ạ!",
+                           "Để em hoàn tất giữ bàn vị trí đẹp nhất cho đoàn mình, anh chị cho em xin Họ tên và Số điện thoại liên hệ nhé ạ!",
                 'products' => [],
                 'quick_replies' => [
                     ['title' => 'Tư vấn món trước', 'payload' => 'Gợi ý món ngon trước'],
@@ -1202,7 +1440,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                         'reply' => "Dạ về {$chunk['title']} tại CIVILIZE Restaurant:\n\n{$chunk['content']}",
                         'products' => [],
                         'quick_replies' => [
-                            ['title' => 'Đặt bàn trước giảm 10%', 'payload' => 'Tôi muốn đặt bàn'],
+                            ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
                             ['title' => 'Gợi ý món ngon', 'payload' => 'Gợi ý món ngon hôm nay'],
                             ['title' => 'Hotline nhà hàng', 'payload' => 'Hotline của quán']
                         ]
@@ -1213,29 +1451,40 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
 
         // Mặc định: Lời chào thân thiện và gợi ý tác vụ
         return [
-            'reply' => "Dạ em chào anh/chị ạ! Em là nhân viên tư vấn của CIVILIZE Restaurant. Em luôn sẵn sàng hỗ trợ gợi ý món ngon hợp khẩu vị, kiểm tra bàn trống, đặt bàn giữ chỗ nhận ưu đãi 10% hoặc giải đáp các thắc mắc của quán. Hôm nay em có thể hỗ trợ gì cho mình ạ?",
+            'reply' => "Dạ em chào anh/chị ạ! Em là nhân viên tư vấn của CIVILIZE Restaurant. Em luôn sẵn sàng hỗ trợ gợi ý món ngon hợp khẩu vị, kiểm tra bàn trống, đặt bàn giữ chỗ hoặc giải đáp các thắc mắc của quán. Hôm nay em có thể hỗ trợ gì cho mình ạ?",
             'products' => [],
             'quick_replies' => [
                 ['title' => 'Gợi ý món ngon hôm nay', 'payload' => 'Gợi ý món ngon hôm nay'],
-                ['title' => 'Đặt bàn nhận ưu đãi 10%', 'payload' => 'Tôi muốn đặt bàn'],
+                ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
                 ['title' => 'Địa chỉ & Giờ mở cửa', 'payload' => 'Địa chỉ quán ở đâu?']
             ]
         ];
     }
 
     /**
-     * Helpers: Short-term memory saver
+     * Helpers: Short-term memory saver with PII masking
      */
     protected function saveMessageToMemory(string $sessionId, ?int $userId, string $role, string $content, ?array $toolCalls = null, ?array $toolOutput = null): void
     {
         try {
+            // Khử dữ liệu cá nhân nhạy cảm trong toolOutput trước khi lưu vào DB
+            $sanitizedOutput = $toolOutput;
+            if (is_array($sanitizedOutput)) {
+                if (isset($sanitizedOutput['phone'])) {
+                    $sanitizedOutput['phone'] = $this->maskPhone($sanitizedOutput['phone']);
+                }
+                if (isset($sanitizedOutput['customer_name'])) {
+                    $sanitizedOutput['customer_name'] = $this->maskName($sanitizedOutput['customer_name']);
+                }
+            }
+
             ChatbotMessage::create([
                 'session_id' => $sessionId,
                 'user_id' => $userId,
                 'role' => $role,
                 'content' => $content,
                 'tool_calls' => $toolCalls,
-                'tool_output' => $toolOutput
+                'tool_output' => $sanitizedOutput
             ]);
         } catch (\Exception $e) {
             Log::warning('Failed to save chatbot message memory: ' . $e->getMessage());
@@ -1243,15 +1492,26 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
     }
 
     /**
-     * Helpers: Long-term profile updater
+     * Helpers: Long-term profile updater (Protected against poisoning)
      */
-    protected function updateCustomerProfile(string $phone, array $data): void
+    protected function updateCustomerProfile(?int $userId, ?string $phone, array $data): void
     {
+        // Chống đầu độc hồ sơ: Chỉ cập nhật khi user đã đăng nhập xác thực
+        if (empty($userId)) {
+            return;
+        }
+
         try {
-            $profile = CustomerAiProfile::firstOrNew(['phone' => $phone]);
-            if (!empty($data['customer_name'])) $profile->customer_name = $data['customer_name'];
-            if (!empty($data['user_id'])) $profile->user_id = $data['user_id'];
-            if (!empty($data['total_visits_increment'])) $profile->total_visits = ($profile->total_visits ?? 0) + 1;
+            $profile = CustomerAiProfile::firstOrNew(['user_id' => $userId]);
+            if ($phone && preg_match('/^0[35789][0-9]{8}$/', $phone)) {
+                $profile->phone = $phone;
+            }
+            if (!empty($data['customer_name'])) {
+                $profile->customer_name = strip_tags(trim($data['customer_name']));
+            }
+            if (!empty($data['total_visits_increment'])) {
+                $profile->total_visits = ($profile->total_visits ?? 0) + 1;
+            }
             $profile->save();
         } catch (\Exception $e) {
             Log::warning('Failed to update customer profile: ' . $e->getMessage());
@@ -1333,7 +1593,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
         switch ($toolName) {
             case 'search_menu_dishes':
                 return [
-                    ['title' => 'Đặt bàn trước giảm 10%', 'payload' => 'Tôi muốn đặt bàn'],
+                    ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
                     ['title' => 'Xem thực đơn lẩu', 'payload' => 'Cho tôi xem món lẩu'],
                     ['title' => 'Địa chỉ của quán', 'payload' => 'Địa chỉ quán ở đâu?']
                 ];
@@ -1350,7 +1610,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             default:
                 return [
                     ['title' => 'Gợi ý món ngon hôm nay', 'payload' => 'Gợi ý món ngon hôm nay'],
-                    ['title' => 'Đặt bàn trước nhận 10%', 'payload' => 'Tôi muốn đặt bàn'],
+                    ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
                     ['title' => 'Địa chỉ & Giờ mở cửa', 'payload' => 'Địa chỉ quán ở đâu?']
                 ];
         }
