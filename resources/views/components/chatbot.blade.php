@@ -483,8 +483,12 @@ document.addEventListener('DOMContentLoaded', function () {
         showTyping(true);
         sendBtn.disabled = true;
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
         fetch('{{ route("chatbot.message", [], false) }}', {
             method: 'POST',
+            signal: controller.signal,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -496,6 +500,7 @@ document.addEventListener('DOMContentLoaded', function () {
             })
         })
         .then(async res => {
+            clearTimeout(timeoutId);
             const isJson = res.headers.get('content-type')?.includes('application/json');
             const data = isJson ? await res.json() : null;
             showTyping(false);
@@ -504,14 +509,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 addBotMessage(data.reply, data.products || [], data.quick_replies || []);
             } else {
                 const fallbackReply = data?.reply || data?.error || 'Dạ em chào anh/chị ạ! Hôm nay nhà hàng CIVILIZE có các món đặc sản như Lẩu bắp bò nhúng dấm, Bò la hũ nướng tảng và Sườn nướng BBQ rất ngon miệng. Anh/chị có thể gọi Hotline 0338 990 538 để được phục vụ nhanh nhất nhé ạ!';
-                addBotMessage(fallbackReply, data?.products || [], data?.quick_replies || []);
+                addBotMessage(fallbackReply, data?.products || [], data?.quick_replies || [
+                    { title: 'Xem thực đơn', payload: 'Xem thực đơn' },
+                    { title: 'Tôi muốn đặt bàn', payload: 'Tôi muốn đặt bàn' },
+                    { title: 'Hotline nhà hàng', payload: 'Hotline của quán' }
+                ]);
             }
         })
         .catch((err) => {
+            clearTimeout(timeoutId);
             console.error('Chatbot request error:', err);
             showTyping(false);
             sendBtn.disabled = false;
-            addBotMessage('Dạ kết nối mạng đang chậm một chút, anh chị vui lòng nhắn lại hoặc gọi trực tiếp Hotline 0338 990 538 để được hỗ trợ ngay nhé ạ!');
+            addBotMessage(
+                'Dạ em xin lỗi kết nối mạng đang bị gián đoạn một chút ạ. Anh/chị có thể nhấn nút "Thử gửi lại" bên dưới hoặc gọi trực tiếp Hotline 0338 990 538 để được phục vụ ngay nhé ạ!',
+                [],
+                [
+                    { title: 'Thử gửi lại', payload: clean },
+                    { title: 'Gợi ý món ngon hôm nay', payload: 'Gợi ý món ngon hôm nay' },
+                    { title: 'Tôi muốn đặt bàn', payload: 'Tôi muốn đặt bàn' },
+                    { title: 'Hotline nhà hàng', payload: 'Hotline của quán' }
+                ]
+            );
         });
     }
 
@@ -549,7 +568,9 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(() => {
             btnEl.disabled = false;
             btnEl.innerHTML = originalHtml;
-            window.location.href = `/addcart/${productId}`;
+            if (typeof toastr !== 'undefined') {
+                toastr.error('Chưa thể thêm món lúc này, vui lòng thử lại sau.');
+            }
         });
     };
 });

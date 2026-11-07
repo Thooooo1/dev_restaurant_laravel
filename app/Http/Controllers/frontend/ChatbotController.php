@@ -79,10 +79,17 @@ class ChatbotController extends Controller
             } catch (\Throwable $ignored) {}
 
             return response()->json([
-                'success' => false,
+                'success' => true,
                 'session_id' => $sessionId,
-                'error' => "Hệ thống đang bận. Quý khách vui lòng thử lại sau giây lát hoặc liên hệ hotline {$hotline} để được hỗ trợ trực tiếp.",
-            ], 500);
+                'reply' => "Dạ em chào anh/chị! Hiện tại hệ thống đang kết nối dữ liệu món mới. Em xin gửi các gợi ý món ăn đặc sắc và hỗ trợ đặt bàn giữ chỗ trước tại CIVILIZE Restaurant (Hotline: {$hotline}) nhé ạ!",
+                'products' => [],
+                'quick_replies' => [
+                    ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn'],
+                    ['title' => 'Tôi muốn đặt bàn', 'payload' => 'Tôi muốn đặt bàn'],
+                    ['title' => 'Địa chỉ & Giờ mở cửa', 'payload' => 'Địa chỉ quán ở đâu?'],
+                    ['title' => 'Hotline nhà hàng', 'payload' => 'Hotline của quán']
+                ],
+            ]);
         }
     }
 

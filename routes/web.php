@@ -191,9 +191,9 @@ Route::post('/xac-nhan-otp', [ThanhVienController::class, 'verifyOtp'])->middlew
 Route::get('/dat-lai-mat-khau', [ThanhVienController::class, 'showResetPasswordForm'])->name('site.show_reset_password');
 Route::post('/dat-lai-mat-khau', [ThanhVienController::class, 'resetPassword'])->middleware('throttle:10,1')->name('site.reset_password');
 
-// Chatbot / Virtual Assistant Routes (Throttled: 30 requests / minute)
+// Chatbot / Virtual Assistant Routes (Throttled: 120 requests / minute)
 // Note: InfinityFree WAF blocks /chatbot and /chat URLs with 403 redirect. Using /tu-van avoids this block completely.
-Route::middleware('throttle:30,1')->group(function () {
+Route::middleware('throttle:120,1')->group(function () {
     Route::post('/tu-van/tin-nhan', [ChatbotController::class, 'sendMessage'])->name('chatbot.message');
     Route::get('/tu-van/goi-y', [ChatbotController::class, 'getSuggestions'])->name('chatbot.suggestions');
     Route::post('/tu-van/lam-moi', [ChatbotController::class, 'clearSession'])->name('chatbot.clear');

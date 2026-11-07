@@ -1211,6 +1211,42 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             }
         }
 
+        // Lời chào hỏi ban đầu
+        $isGreeting = $this->matchAny($lower, [
+            'xin chào', 'chào bạn', 'chào em', 'chào quán', 'chào ad', 'chào nhà hàng',
+            'chao ban', 'chao em', 'chao quan', 'chao ad',
+            'hello', 'hi bạn', 'hi em', 'hi quán', 'alo', 'ad ơi', 'quán ơi', 'em ơi', 'shop ơi'
+        ]) || in_array($lower, ['chào', 'hi', 'hello', 'alo', '2', 'chao']);
+
+        if ($isGreeting && mb_strlen($lower) <= 25) {
+            $name = $context['user']['name'] ?? '';
+            $greet = $name ? "Dạ em chào anh/chị {$name}! " : "Dạ em chào anh/chị ạ! ";
+            return [
+                'reply' => $greet . "Chào mừng anh/chị đến với CIVILIZE Restaurant. Em là trợ lý tư vấn món và hỗ trợ đặt bàn của nhà hàng ạ.\n\nHôm nay nhà hàng có rất nhiều món lẩu ninh ngọt tự nhiên và đồ nướng than hoa thơm lừng. Em có thể hỗ trợ gì cho mình hôm nay ạ?",
+                'products' => [],
+                'quick_replies' => [
+                    ['title' => 'Gợi ý món ngon hôm nay', 'payload' => 'Gợi ý món ngon hôm nay'],
+                    ['title' => 'Tôi muốn đặt bàn', 'payload' => 'Tôi muốn đặt bàn'],
+                    ['title' => 'Xem thực đơn lẩu', 'payload' => 'Cho tôi xem món lẩu'],
+                    ['title' => 'Xem món nướng', 'payload' => 'Có món nướng gì ngon?']
+                ]
+            ];
+        }
+
+        // Lời cảm ơn / Kết thúc trò chuyện
+        $isThank = $this->matchAny($lower, ['cảm ơn', 'cam on', 'thanks', 'thank you', 'cảm ơn em', 'ok cảm ơn', 'tuyệt vời', 'tạm biệt', 'bye']);
+        if ($isThank && mb_strlen($lower) <= 30) {
+            return [
+                'reply' => "Dạ không có gì ạ! Rất hân hạnh được hỗ trợ anh/chị. Nếu cần tư vấn thêm món ăn hoặc đặt bàn giữ chỗ nhận ưu đãi giảm 10%, anh/chị cứ nhắn lại cho em hoặc gọi trực tiếp Hotline 0338 990 538 nhé ạ. Chúc anh/chị một ngày vui vẻ và bữa ăn thật ngon miệng ạ!",
+                'products' => [],
+                'quick_replies' => [
+                    ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn'],
+                    ['title' => 'Tôi muốn đặt bàn', 'payload' => 'Tôi muốn đặt bàn'],
+                    ['title' => 'Hotline quán', 'payload' => 'Hotline của quán']
+                ]
+            ];
+        }
+
         // Tình huống 1: Hỏi món ăn không có trong thực đơn (Ví dụ: Pizza, Sushi, bún chả)
         if ($this->matchAny($lower, ['pizza', 'sushi', 'bún bò huế', 'bún chả', 'phở bò', 'bánh mì pate', 'hamburger', 'mì ý', 'steak bò úc'])) {
             $fallbackDishes = Product::where('status', 1)->whereIn('category_id', [8, 12, 1])->limit(3)->get();
@@ -1223,6 +1259,23 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                     ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn']
                 ]
             ];
+        }
+
+        // Tình huống 1.5: Tra cứu chính sách nhà hàng (Bãi xe, Giao hàng, Giờ mở cửa, Phòng VIP, Rượu ngoài, Ưu đãi...)
+        foreach ($this->knowledgeBase as $key => $chunk) {
+            foreach ($chunk['keywords'] as $kw) {
+                if (str_contains($lower, $kw) || str_contains($normalized, $this->removeAccents($kw))) {
+                    return [
+                        'reply' => "Dạ về {$chunk['title']} tại CIVILIZE Restaurant:\n\n{$chunk['content']}",
+                        'products' => [],
+                        'quick_replies' => [
+                            ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
+                            ['title' => 'Gợi ý món ngon', 'payload' => 'Gợi ý món ngon hôm nay'],
+                            ['title' => 'Hotline nhà hàng', 'payload' => 'Hotline của quán']
+                        ]
+                    ];
+                }
+            }
         }
 
         // Tình huống 2: Khách cung cấp thông tin hoặc xác nhận đặt bàn
@@ -1461,6 +1514,74 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
         if ($isAskingFood || $hasBudget) {
             $dishes = collect();
             $intro = '';
+
+            // Kiểm tra trước: Khách có hỏi đích danh 1 món cụ thể nào trong thực đơn không?
+            $cleanFoodQuery = preg_replace('/^(dạ|em|cho|mình|quán|nhà hàng|civilize|ad|ơi|alo|xin|hỏi|có|cho mình|xem|muốn)\s+/iu', '', $lower);
+            $cleanFoodQuery = preg_replace('/\s+(không|ko|k|ạ|nhỉ|nhé|nào|thế|bao nhiêu|giá|giá tiền|thế nào|được không|vậy)\b.*$/iu', '', $cleanFoodQuery);
+            $cleanFoodQuery = trim($cleanFoodQuery);
+
+            $allProducts = Product::where('status', 1)->get();
+            $matchedDishes = collect();
+
+            if (mb_strlen($cleanFoodQuery) >= 3 && !in_array($cleanFoodQuery, ['món gì', 'món nào', 'thực đơn', 'menu', 'món ngon'])) {
+                // Thử khớp cả cụm tên món
+                $matchedDishes = $allProducts->filter(function($p) use ($cleanFoodQuery) {
+                    $pLower = mb_strtolower($p->name, 'UTF-8');
+                    return str_contains($pLower, $cleanFoodQuery) || str_contains($cleanFoodQuery, $pLower);
+                });
+
+                // Nếu không khớp cả cụm, thử tách từ khóa quan trọng
+                if ($matchedDishes->isEmpty()) {
+                    $tokens = array_values(array_filter(explode(' ', $cleanFoodQuery), fn($t) => mb_strlen($t) >= 2 && !in_array($t, ['món', 'cho', 'xem', 'các', 'những', 'của', 'với', 'loại'])));
+                    if (count($tokens) >= 2) {
+                        $matchedDishes = $allProducts->filter(function($p) use ($tokens) {
+                            $pLower = mb_strtolower($p->name, 'UTF-8');
+                            foreach ($tokens as $token) {
+                                if (!str_contains($pLower, $token)) return false;
+                            }
+                            return true;
+                        });
+                    }
+
+                    // Nếu vẫn chưa khớp, thử tìm theo thương hiệu hoặc từ khóa đặc sản cụ thể
+                    if ($matchedDishes->isEmpty() && !empty($tokens)) {
+                        foreach ($tokens as $tok) {
+                            if (in_array($tok, ['tiger', 'haniken', 'heineken', 'pepsi', 'cocacola', 'coca', 'nầm', 'mực', 'tôm', 'cá', 'dạ dày', 'lòng bò', 'trâu khô', 'bánh mì', 'cafe', 'bạc xỉu'])) {
+                                $m = $allProducts->filter(fn($p) => str_contains(mb_strtolower($p->name, 'UTF-8'), $tok));
+                                if ($m->isNotEmpty()) {
+                                    $matchedDishes = $m;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if ($matchedDishes->count() === 1) {
+                $d = $matchedDishes->first();
+                $priceFormatted = number_format($d->price_sale ?: $d->price_buy, 0, ',', '.') . '₫';
+                return [
+                    'reply' => "Dạ món **{$d->name}** tại CIVILIZE Restaurant hiện có giá niêm yết là **{$priceFormatted}** ạ!\n\nMón ăn được tuyển chọn từ nguyên liệu tươi sạch mỗi ngày, chế biến thơm ngon chuẩn vị. Em xin gửi thông tin món bên dưới để anh/chị tham khảo thưởng thức nhé ạ! (Ưu đãi giảm 10% khi gọi món qua mã QR tại bàn):",
+                    'products' => $this->formatDishesForCard($this->formatDishesForTool($matchedDishes)),
+                    'quick_replies' => [
+                        ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
+                        ['title' => 'Xem thực đơn lẩu', 'payload' => 'Cho tôi xem món lẩu'],
+                        ['title' => 'Xem món nướng', 'payload' => 'Có món nướng gì ngon?'],
+                        ['title' => 'Địa chỉ nhà hàng', 'payload' => 'Địa chỉ của quán']
+                    ]
+                ];
+            } elseif ($matchedDishes->count() > 1 && $matchedDishes->count() <= 6) {
+                return [
+                    'reply' => "Dạ nhà hàng CIVILIZE có các món đặc sắc phù hợp với yêu cầu của anh/chị dưới đây ạ. Anh/chị có thể bấm 'Thêm' ngay dưới từng món để đặt món giao tận nơi hoặc bấm Đặt bàn giữ chỗ trước để được phục vụ chu đáo nhất nhé ạ! (Ưu đãi giảm 10% áp dụng khi thực khách gọi món qua mã QR tại bàn):",
+                    'products' => $this->formatDishesForCard($this->formatDishesForTool($matchedDishes)),
+                    'quick_replies' => [
+                        ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
+                        ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn'],
+                        ['title' => 'Địa chỉ nhà hàng', 'payload' => 'Địa chỉ của quán']
+                    ]
+                ];
+            }
 
             // Tình huống 3.1: Khách hỏi món kết hợp không có trong thực đơn (Ví dụ: Lẩu gà)
             if (str_contains($lower, 'lẩu') && str_contains($lower, 'gà')) {
