@@ -428,24 +428,27 @@
     </div>
 
     <!-- Modal Thông báo Đơn Mới (Realtime Toast Popup) -->
-    <div class="fixed top-4 right-4 z-[60] hidden" id="newOrderModal">
-        <div class="bg-white rounded-xl shadow-2xl w-84 border-l-4 border-rose-500 overflow-hidden border border-gray-200">
+    <div class="fixed top-4 right-4 z-[60] hidden transition-all duration-300" id="newOrderModal">
+        <div class="bg-white rounded-xl shadow-2xl w-84 border-l-4 border-[#F47716] overflow-hidden border border-gray-200">
             <div class="p-4">
-                <div class="flex items-center gap-3 mb-2.5">
-                    <div class="w-9 h-9 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center font-bold text-sm shrink-0">
-                        <i class="fa-solid fa-bell text-rose-600"></i>
-                    </div>
+                <div class="flex items-start justify-between gap-2 mb-2.5">
                     <div class="flex-1 min-w-0">
-                        <h3 class="text-sm font-bold text-gray-900">Khách Vừa Đặt Món!</h3>
-                        <p class="text-xs text-gray-500 font-semibold truncate" id="newOrderTable"></p>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-block w-2 h-2 rounded-full bg-[#F47716] animate-pulse"></span>
+                            <h3 class="text-sm font-bold text-gray-900 tracking-tight">Khách vừa đặt món</h3>
+                        </div>
+                        <p class="text-xs text-gray-600 font-semibold truncate mt-0.5" id="newOrderTable"></p>
                     </div>
+                    <button type="button" onclick="closeNewOrderModal()" class="text-gray-400 hover:text-gray-600 p-1 text-sm rounded cursor-pointer leading-none" title="Đóng">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
                 <div class="text-xs text-gray-700 mb-3 bg-gray-50 p-2.5 rounded-lg font-mono" id="newOrderContent"></div>
                 <div class="flex gap-2 text-xs">
-                    <button type="button" onclick="closeNewOrderModal()" class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                    <button type="button" onclick="closeNewOrderModal()" class="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-100 transition-colors cursor-pointer">
                         Đóng
                     </button>
-                    <button type="button" id="viewNewOrderBtn" class="flex-1 px-3 py-2 rounded-lg bg-[#F47716] hover:bg-[#d9650d] text-white font-bold transition-all text-center">
+                    <button type="button" id="viewNewOrderBtn" class="flex-1 px-3 py-2 rounded-lg bg-[#F47716] hover:bg-[#d9650d] text-white font-bold transition-all text-center cursor-pointer shadow-xs">
                         Xem & In
                     </button>
                 </div>
@@ -456,10 +459,25 @@
     <script>
         let currentTableId = null;
         let processedOrderIds = new Set();
+        try {
+            const saved = sessionStorage.getItem('pos_processed_orders');
+            if (saved) {
+                JSON.parse(saved).forEach(id => processedOrderIds.add(id));
+            }
+        } catch(e) {}
         let currentNewOrderTableId = null;
+        let currentNewOrderOrderId = null;
+        let newOrderAutoCloseTimer = null;
         let currentFloorFilter = 'all';
         let currentStatusFilter = 'all';
         let currentSearchQuery = '';
+
+        function markOrderAsProcessed(id) {
+            processedOrderIds.add(id);
+            try {
+                sessionStorage.setItem('pos_processed_orders', JSON.stringify(Array.from(processedOrderIds)));
+            } catch(e) {}
+        }
         
         function openModal(modalId) {
             const modal = document.getElementById(modalId);
@@ -538,16 +556,53 @@
         }
 
         function openNewOrderModal(order) {
-            $('#newOrderTable').text('Bàn: ' + order.table.name);
-            let total = order.order_details.reduce((sum, item) => sum + item.amount, 0);
-            let contentHtml = `<div class="mt-0.5">Tổng tiền: <strong>${total.toLocaleString('vi-VN')}₫</strong></div>`;
+            currentNewOrderOrderId = order.id;
+            currentNewOrderTableId = order.table ? order.table.id : order.table_id;
+
+            const tableName = order.table ? order.table.name : ('Bàn #' + (order.table_id || ''));
+            $('#newOrderTable').text('Bàn: ' + tableName);
+
+            let total = 0;
+            if (order.orderDetails && order.orderDetails.length > 0) {
+                total = order.orderDetails.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+            } else if (order.order_details && order.order_details.length > 0) {
+                total = order.order_details.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+            } else {
+                total = parseFloat(order.total_price) || 0;
+            }
+
+            let contentHtml = `<div class="mt-0.5">Tổng tiền: <strong>${Math.round(total).toLocaleString('vi-VN')}₫</strong></div>`;
             $('#newOrderContent').html(contentHtml);
-            currentNewOrderTableId = order.table.id;
             $('#newOrderModal').removeClass('hidden');
+
+            // Tự động đóng sau 6 giây để không hiển thị mãi trên màn hình
+            if (newOrderAutoCloseTimer) clearTimeout(newOrderAutoCloseTimer);
+            newOrderAutoCloseTimer = setTimeout(function() {
+                closeNewOrderModal();
+            }, 6000);
         }
 
         function closeNewOrderModal() {
+            if (newOrderAutoCloseTimer) {
+                clearTimeout(newOrderAutoCloseTimer);
+                newOrderAutoCloseTimer = null;
+            }
+
             $('#newOrderModal').addClass('hidden');
+
+            // Cập nhật lên máy chủ để xóa cờ has_new_items, tránh lặp lại thông báo khi tải lại trang
+            if (currentNewOrderOrderId) {
+                const orderIdToClear = currentNewOrderOrderId;
+                currentNewOrderOrderId = null;
+                $.ajax({
+                    url: '{{ route("admin.table-order.clearNewItems") }}',
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        order_id: orderIdToClear
+                    }
+                });
+            }
         }
 
         window.resolveTableServiceCall = function(callId, tableId) {
@@ -568,10 +623,32 @@
 
         $(document).ready(function() {
             $('#viewNewOrderBtn').click(function() {
+                if (currentNewOrderOrderId) {
+                    $.ajax({
+                        url: '{{ route("admin.table-order.clearNewItems") }}',
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            order_id: currentNewOrderOrderId
+                        }
+                    });
+                }
                 if (currentNewOrderTableId) {
                     window.location.href = '{{ route("admin.table-order.order", ":id") }}'.replace(':id', currentNewOrderTableId);
                 }
             });
+
+            // Tạm dừng tự đóng khi rê chuột vào thông báo
+            $('#newOrderModal').hover(
+                function() {
+                    if (newOrderAutoCloseTimer) clearTimeout(newOrderAutoCloseTimer);
+                },
+                function() {
+                    if (!$('#newOrderModal').hasClass('hidden')) {
+                        newOrderAutoCloseTimer = setTimeout(closeNewOrderModal, 3000);
+                    }
+                }
+            );
 
             // Poll for new orders every 4 seconds
             setInterval(function() {
@@ -583,7 +660,7 @@
                             if (response.new_orders && response.new_orders.length > 0) {
                                 response.new_orders.forEach(order => {
                                     if (!processedOrderIds.has(order.id)) {
-                                        processedOrderIds.add(order.id);
+                                        markOrderAsProcessed(order.id);
                                         openNewOrderModal(order);
                                     }
                                 });

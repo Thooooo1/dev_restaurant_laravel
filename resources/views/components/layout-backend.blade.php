@@ -803,12 +803,12 @@
             toast.id = 'live-toast-' + call.id;
 
             toast.innerHTML = `
-                <div class="w-9 h-9 rounded-full bg-orange-100 text-[#F47716] flex items-center justify-center shrink-0 text-base shadow-xs animate-bounce">
-                    <i class="fa-solid fa-bell"></i>
-                </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between gap-2">
-                        <span class="text-xs font-bold text-gray-900 truncate">${call.full_table_name}</span>
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="inline-block w-2 h-2 rounded-full bg-[#F47716] animate-pulse shrink-0"></span>
+                            <span class="text-xs font-bold text-gray-900 truncate">${call.full_table_name}</span>
+                        </div>
                         <span class="text-[10px] text-gray-400 whitespace-nowrap">${call.time_ago}</span>
                     </div>
                     <p class="text-xs font-semibold text-[#F47716] mt-0.5">${call.type_label}</p>

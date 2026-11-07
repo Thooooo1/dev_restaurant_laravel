@@ -893,6 +893,7 @@ class TableOrderController extends Controller
             $order->status = 2; // Đã thanh toán
             $order->payment_method = $request->payment_method;
             $order->total_price = $actualTotal;
+            $order->has_new_items = false;
             $order->save();
 
             // Clear table lock cho các bàn liên kết

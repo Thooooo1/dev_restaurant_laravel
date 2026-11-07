@@ -142,6 +142,7 @@ class PaymentWebhookController extends Controller
             $order->status = 2; // 2: Completed (Đã thanh toán tại bàn)
             $order->payment_method = 2; // 2: Chuyển khoản VietQR
             $order->total_price = $order->total_price > 0 ? $order->total_price : $amount;
+            $order->has_new_items = false;
             $order->save();
 
             // Giải phóng bàn đã thanh toán
