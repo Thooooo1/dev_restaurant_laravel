@@ -102,9 +102,7 @@
                         <!-- Phương thức thanh toán -->
                         <div class="p-3 bg-gray-50 rounded-xl border border-gray-200/80 flex items-center justify-between text-xs">
                             <span class="text-gray-500">Phương thức thanh toán:</span>
-                            <span class="font-bold text-gray-800 flex items-center gap-1.5">
-                                <i class="fa-solid fa-qrcode text-blue-600"></i> VietQR (Napas 247)
-                            </span>
+                            <span class="font-bold text-gray-800">VietQR (Napas 247)</span>
                         </div>
 
                         <!-- Nội dung chuyển khoản (BẮT BUỘC ĐỂ ĐỐI SOÁT WEBHOOK) -->

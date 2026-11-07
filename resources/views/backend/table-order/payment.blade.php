@@ -227,9 +227,7 @@
                             <div class="bg-gray-50 p-4 rounded-xl border border-gray-200/80 text-xs space-y-2.5">
                                 <div class="flex items-center justify-between">
                                     <span class="text-gray-500">Phương thức:</span>
-                                    <span class="font-bold text-gray-800 flex items-center gap-1">
-                                        <i class="fa-solid fa-qrcode text-blue-600"></i> VietQR (Napas 247)
-                                    </span>
+                                    <span class="font-bold text-gray-800">VietQR (Napas 247)</span>
                                 </div>
                                 <div class="flex items-center justify-between pt-1 border-t border-gray-100">
                                     <span class="text-gray-500">Nội dung CK:</span>
