@@ -70,7 +70,7 @@
                             <td class="font-mono text-xs font-semibold text-[rgba(0,0,0,0.85)]">
                                 {{ date('H:i', strtotime($booking->booking_time)) }}
                             </td>
-                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)]">
                                 @switch($booking->status)
                                     @case(1) Chờ xử lý @break
                                     @case(2) Đã xác nhận @break

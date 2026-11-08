@@ -161,7 +161,7 @@
                                             $genderStr = 'Nữ';
                                         }
                                     @endphp
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium {{ $genderStr === 'Nam' ? 'bg-blue-50 text-blue-700' : ($genderStr === 'Nữ' ? 'bg-pink-50 text-pink-700' : 'bg-gray-100 text-gray-500') }}">
+                                    <span class="text-xs text-[rgba(0,0,0,0.65)]">
                                         {{ $genderStr }}
                                     </span>
                                 </td>

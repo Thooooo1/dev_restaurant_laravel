@@ -96,23 +96,23 @@
                                     <span class="text-[10px] text-gray-400 font-medium block">Món mới</span>
                                 @endif
                             </td>
-                            <td class="text-left text-xs text-[rgba(0,0,0,0.65)]" style="text-align: left !important;">
+                            <td class="text-left text-xs text-[rgba(0,0,0,0.85)]" style="text-align: left !important;">
                                 {{ $product->category->name ?? '---' }}
                             </td>
-                            <td class="text-left text-xs text-[rgba(0,0,0,0.65)]" style="text-align: left !important;">
+                            <td class="text-left text-xs text-[rgba(0,0,0,0.85)]" style="text-align: left !important;">
                                 {{ $product->kitchen_area ?: '---' }}
                             </td>
-                            <td class="text-right font-mono text-xs text-[rgba(0,0,0,0.55)]" style="text-align: right !important;">
+                            <td class="text-right font-mono text-xs text-[rgba(0,0,0,0.85)]" style="text-align: right !important;">
                                 {{ number_format($product->price_buy, 0, ',', '.') }} ₫
                             </td>
-                            <td class="text-right font-mono font-semibold text-xs text-[#F47716]" style="text-align: right !important;">
+                            <td class="text-right font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)]" style="text-align: right !important;">
                                 {{ number_format($product->price_sale, 0, ',', '.') }} ₫
                             </td>
                             <td class="text-right font-mono text-xs text-[rgba(0,0,0,0.85)]" style="text-align: right !important;">
                                 <span class="font-semibold">{{ number_format($product->qty, 0, ',', '.') }}</span>
-                                <span class="text-[11px] text-gray-400 font-sans ml-0.5">{{ $product->unit }}</span>
+                                <span class="text-[11px] text-gray-500 font-sans ml-0.5">{{ $product->unit }}</span>
                             </td>
-                            <td class="text-center whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]" style="text-align: center !important;">
+                            <td class="text-center whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)]" style="text-align: center !important;">
                                 {{ $product->status == 1 ? 'Đang bán' : 'Tạm dừng' }}
                             </td>
                             <td class="text-center" style="text-align: center !important;">

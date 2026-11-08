@@ -47,17 +47,12 @@
                         <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $inquiry->phone }}</td>
                         <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600 max-w-[200px] truncate">{{ Str::limit($inquiry->message, 50) }}</td>
                         <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ date('H:i d/m/Y', strtotime($inquiry->created_at)) }}</td>
-                        <td class="px-4 py-3 whitespace-nowrap">
+                        <td class="px-4 py-3 whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">
                             @switch($inquiry->status)
-                                @case(1)
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-medium">Chờ xử lý</span>
-                                    @break
-                                @case(2)
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium">Đã liên hệ</span>
-                                    @break
-                                @case(3)
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-600 rounded-full text-xs font-medium">Hoàn thành</span>
-                                    @break
+                                @case(1) Chờ xử lý @break
+                                @case(2) Đã liên hệ @break
+                                @case(3) Hoàn thành @break
+                                @default Không xác định
                             @endswitch
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap text-center">

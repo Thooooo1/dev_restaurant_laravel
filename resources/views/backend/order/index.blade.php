@@ -65,13 +65,13 @@
                             <td class="text-xs text-[rgba(0,0,0,0.65)] max-w-[200px] truncate" title="{{ $order->address }}">
                                 {{ $order->address }}
                             </td>
-                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">
-                                {{ $order->payment_method == 2 ? 'Chuyển khoản' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)]">
+                                {{ $order->payment_method == 2 ? 'Chuyển khoản VietQR' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}
                             </td>
-                            <td class="font-mono text-xs text-[rgba(0,0,0,0.45)] whitespace-nowrap">
+                            <td class="font-mono text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap">
                                 {{ date('H:i d/m/Y', strtotime($order->created_at)) }}
                             </td>
-                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)]">
                                 {{ $order->status_label }}
                             </td>
                             <td class="text-center">

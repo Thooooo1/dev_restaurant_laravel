@@ -222,43 +222,26 @@
             border-color: #F47716 !important;
         }
 
-        /* 3.1. SHOPIFY POLARIS & ANT DESIGN BADGES */
+        /* 3.1. SHOPIFY POLARIS & ANT DESIGN BADGES - Chuẩn văn bản đen tối giản, không màu sắc */
         .polaris-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
+            display: inline-block;
+            padding: 0 !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
             line-height: 1.4;
-            border: 1px solid transparent;
+            border: none !important;
+            background: transparent !important;
+            color: rgba(0, 0, 0, 0.85) !important;
             white-space: nowrap;
         }
-        .polaris-badge-success {
-            background-color: #F6FFED;
-            border-color: #B7EB8F;
-            color: #389E0D;
-        }
-        .polaris-badge-warning {
-            background-color: #FFFBE6;
-            border-color: #FFE58F;
-            color: #D46B08;
-        }
-        .polaris-badge-processing {
-            background-color: #E6F7FF;
-            border-color: #91D5FF;
-            color: #096DD9;
-        }
-        .polaris-badge-error {
-            background-color: #FFF1F0;
-            border-color: #FFA39E;
-            color: #CF1322;
-        }
+        .polaris-badge-success,
+        .polaris-badge-warning,
+        .polaris-badge-processing,
+        .polaris-badge-error,
         .polaris-badge-default {
-            background-color: #FAFAFA;
-            border-color: #D9D9D9;
-            color: rgba(0, 0, 0, 0.65);
+            background-color: transparent !important;
+            border: none !important;
+            color: rgba(0, 0, 0, 0.85) !important;
         }
 
         /* 3.2. SHOPIFY POLARIS FORM INPUTS */
