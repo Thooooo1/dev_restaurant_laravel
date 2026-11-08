@@ -143,9 +143,9 @@
                     <span class="text-sm font-normal text-[rgba(0,0,0,0.45)] ml-0.5">lượt</span>
                 </div>
                 <div class="mt-3 pt-2.5 border-t border-[#F0F0F0] text-xs text-[rgba(0,0,0,0.65)] flex items-center justify-between font-normal">
-                    <span>Đã xác nhận: <strong class="text-[#52C41A] font-semibold">{{ $confirmedBookings }}</strong></span>
+                    <span>Đã xác nhận: <strong class="text-[rgba(0,0,0,0.85)] font-semibold">{{ $confirmedBookings }}</strong></span>
                     <span class="text-gray-300">|</span>
-                    <span>Chờ xử lý: <strong class="text-[#FAAD14] font-semibold">{{ $pendingBookings }}</strong></span>
+                    <span>Chờ xử lý: <strong class="text-[rgba(0,0,0,0.85)] font-semibold">{{ $pendingBookings }}</strong></span>
                 </div>
             </div>
         </div>
@@ -188,20 +188,16 @@
                 <span class="text-[#F47716] border-b-2 border-[#F47716] pb-1 cursor-pointer font-semibold">
                     Tất cả ({{ $totalOrdersCount }})
                 </span>
-                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors flex items-center gap-1.5">
-                    <span class="ant-badge-status-dot ant-badge-status-warning"></span>
+                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors">
                     Chờ xác nhận ({{ $pendingOrdersCount }})
                 </span>
-                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors flex items-center gap-1.5">
-                    <span class="ant-badge-status-dot ant-badge-status-success"></span>
+                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors">
                     Đã thanh toán ({{ $paidOrdersCount }})
                 </span>
-                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors flex items-center gap-1.5">
-                    <span class="ant-badge-status-dot ant-badge-status-processing"></span>
+                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors">
                     Hoàn tất ({{ $completedOrdersCount }})
                 </span>
-                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors flex items-center gap-1.5">
-                    <span class="ant-badge-status-dot ant-badge-status-error"></span>
+                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors">
                     Đã hủy ({{ $cancelledOrdersCount }})
                 </span>
             </div>
@@ -243,23 +239,15 @@
                             <td class="text-right font-semibold text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap font-mono">
                                 {{ number_format($ro->total_price, 0, ',', '.') }} ₫
                             </td>
-                            <td class="whitespace-nowrap text-xs">
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
                                 @if($ro->status == 1)
-                                    <span class="text-[#52C41A] font-medium flex items-center">
-                                        <span class="ant-badge-status-dot ant-badge-status-success"></span> Đã thanh toán
-                                    </span>
+                                    Đã thanh toán
                                 @elseif($ro->status == 2)
-                                    <span class="text-[#1890FF] font-medium flex items-center">
-                                        <span class="ant-badge-status-dot ant-badge-status-processing"></span> Hoàn tất
-                                    </span>
+                                    Hoàn tất
                                 @elseif($ro->status == 3)
-                                    <span class="text-[#FF4D4F] font-medium flex items-center">
-                                        <span class="ant-badge-status-dot ant-badge-status-error"></span> Đã hủy
-                                    </span>
+                                    Đã hủy
                                 @else
-                                    <span class="text-[#FAAD14] font-medium flex items-center">
-                                        <span class="ant-badge-status-dot ant-badge-status-warning"></span> Chờ xác nhận
-                                    </span>
+                                    Chờ xác nhận
                                 @endif
                             </td>
                             <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">
@@ -302,16 +290,13 @@
                 <span class="text-[#F47716] border-b-2 border-[#F47716] pb-1 cursor-pointer font-semibold">
                     Tất cả ({{ $totalBookingsCount }})
                 </span>
-                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors flex items-center gap-1.5">
-                    <span class="ant-badge-status-dot ant-badge-status-warning"></span>
+                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors">
                     Chờ xác nhận ({{ $totalPendingBookings }})
                 </span>
-                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors flex items-center gap-1.5">
-                    <span class="ant-badge-status-dot ant-badge-status-success"></span>
+                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors">
                     Đã xác nhận ({{ $totalConfirmedBookings }})
                 </span>
-                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors flex items-center gap-1.5">
-                    <span class="ant-badge-status-dot ant-badge-status-error"></span>
+                <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors">
                     Đã hủy ({{ $totalCancelledBookings }})
                 </span>
             </div>
@@ -352,19 +337,13 @@
                             <td class="text-xs text-[rgba(0,0,0,0.65)] whitespace-nowrap">
                                 Website
                             </td>
-                            <td class="whitespace-nowrap text-xs">
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
                                 @if($rb->status == 2)
-                                    <span class="text-[#52C41A] font-medium flex items-center">
-                                        <span class="ant-badge-status-dot ant-badge-status-success"></span> Đã xác nhận
-                                    </span>
+                                    Đã xác nhận
                                 @elseif($rb->status == 0)
-                                    <span class="text-[#FF4D4F] font-medium flex items-center">
-                                        <span class="ant-badge-status-dot ant-badge-status-error"></span> Đã hủy
-                                    </span>
+                                    Đã hủy
                                 @else
-                                    <span class="text-[#FAAD14] font-medium flex items-center">
-                                        <span class="ant-badge-status-dot ant-badge-status-warning"></span> Chờ xác nhận
-                                    </span>
+                                    Chờ xác nhận
                                 @endif
                             </td>
                             <td class="text-center whitespace-nowrap">

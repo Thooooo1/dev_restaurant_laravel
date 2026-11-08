@@ -389,6 +389,35 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #bfbfbf;
         }
+        /* Sidebar Nav Links: Kill all Bootstrap blue links and force clean monochrome */
+        #sidebar a,
+        #sidebar a span {
+            color: #1f2937 !important;
+            text-decoration: none !important;
+        }
+        #sidebar a:hover,
+        #sidebar a:focus,
+        #sidebar a:visited,
+        #sidebar a:active {
+            color: #111827 !important;
+            text-decoration: none !important;
+        }
+        #sidebar a i {
+            color: #4b5563 !important;
+        }
+        #sidebar a[class*="bg-[#F3F4F6]"],
+        #sidebar a[class*="bg-gray-100"] {
+            background-color: #F3F4F6 !important;
+        }
+        #sidebar a[class*="bg-[#F3F4F6]"] span,
+        #sidebar a[class*="bg-gray-100"] span {
+            color: #111827 !important;
+            font-weight: 700 !important;
+        }
+        #sidebar a[class*="bg-[#F3F4F6]"] i,
+        #sidebar a[class*="bg-gray-100"] i {
+            color: #111827 !important;
+        }
     </style>
 </head>
 <body class="bg-[#F0F2F5] text-slate-800 min-h-screen">
@@ -414,53 +443,60 @@
                         <!-- 1. Tổng quan -->
                         @if(Auth::user()->isAdmin())
                             <a href="{{ route('admin.dashboard') }}" 
-                               class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                                <i class="fa-solid fa-chart-pie w-4 text-center text-sm {{ request()->routeIs('admin.dashboard') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                                <span>Tổng quan</span>
+                               class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.dashboard') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                               style="color: {{ request()->routeIs('admin.dashboard') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                                <i class="fa-solid fa-chart-pie w-4 text-center text-sm" style="color: {{ request()->routeIs('admin.dashboard') ? '#111827' : '#4b5563' }} !important;"></i>
+                                <span style="color: {{ request()->routeIs('admin.dashboard') ? '#111827' : '#1f2937' }} !important;">Tổng quan</span>
                             </a>
                         @endif
 
                         <!-- 2. Bán hàng (POS) -->
                         <a href="{{ route('admin.table-order.index') }}" 
-                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ (request()->routeIs('admin.table-order.*') || request()->routeIs('admin.table.*')) ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-cash-register w-4 text-center text-sm {{ (request()->routeIs('admin.table-order.*') || request()->routeIs('admin.table.*')) ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                            <span>Bán hàng (POS)</span>
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ (request()->routeIs('admin.table-order.*') || request()->routeIs('admin.table.*')) ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                           style="color: {{ (request()->routeIs('admin.table-order.*') || request()->routeIs('admin.table.*')) ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                            <i class="fa-solid fa-cash-register w-4 text-center text-sm" style="color: {{ (request()->routeIs('admin.table-order.*') || request()->routeIs('admin.table.*')) ? '#111827' : '#4b5563' }} !important;"></i>
+                            <span style="color: {{ (request()->routeIs('admin.table-order.*') || request()->routeIs('admin.table.*')) ? '#111827' : '#1f2937' }} !important;">Bán hàng (POS)</span>
                         </a>
 
                         <!-- 3. Đơn hàng giao -->
                         <a href="{{ url('admin/order/') }}" 
-                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-truck-ramp-box w-4 text-center text-sm {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                            <span>Đơn hàng giao</span>
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                           style="color: {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                            <i class="fa-solid fa-truck-ramp-box w-4 text-center text-sm" style="color: {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? '#111827' : '#4b5563' }} !important;"></i>
+                            <span style="color: {{ (request()->is('admin/order*') && !request()->is('admin/order-history*')) ? '#111827' : '#1f2937' }} !important;">Đơn hàng giao</span>
                         </a>
 
                         <!-- 4. Đặt bàn -->
                         <a href="{{ url('admin/booking/') }}" 
-                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/booking*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-calendar-check w-4 text-center text-sm {{ request()->is('admin/booking*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                            <span>Đặt bàn</span>
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/booking*') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                           style="color: {{ request()->is('admin/booking*') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                            <i class="fa-solid fa-calendar-check w-4 text-center text-sm" style="color: {{ request()->is('admin/booking*') ? '#111827' : '#4b5563' }} !important;"></i>
+                            <span style="color: {{ request()->is('admin/booking*') ? '#111827' : '#1f2937' }} !important;">Đặt bàn</span>
                         </a>
 
                         @if(Auth::user()->isAdmin())
-                            <!-- 5. Thực đơn & Món ăn -->
+                            <!-- 5. Thực đơn & giá -->
                             <a href="{{ url('admin/product/') }}" 
-                               class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/product*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                                <i class="fa-solid fa-utensils w-4 text-center text-sm {{ request()->is('admin/product*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                                <span>Thực đơn & Món ăn</span>
+                               class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/product*') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                               style="color: {{ request()->is('admin/product*') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                                <i class="fa-solid fa-utensils w-4 text-center text-sm" style="color: {{ request()->is('admin/product*') ? '#111827' : '#4b5563' }} !important;"></i>
+                                <span style="color: {{ request()->is('admin/product*') ? '#111827' : '#1f2937' }} !important;">Thực đơn & giá</span>
                             </a>
 
                             <!-- 6. Quản lý nhập kho -->
                             <a href="{{ route('admin.import-goods.index') }}" 
-                               class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.import-goods.*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                                <i class="fa-solid fa-boxes-packing w-4 text-center text-sm {{ request()->routeIs('admin.import-goods.*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                                <span>Quản lý nhập kho</span>
+                               class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.import-goods.*') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                               style="color: {{ request()->routeIs('admin.import-goods.*') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                                <i class="fa-solid fa-boxes-packing w-4 text-center text-sm" style="color: {{ request()->routeIs('admin.import-goods.*') ? '#111827' : '#4b5563' }} !important;"></i>
+                                <span style="color: {{ request()->routeIs('admin.import-goods.*') ? '#111827' : '#1f2937' }} !important;">Quản lý nhập kho</span>
                             </a>
 
                             <!-- 7. Báo cáo & Doanh thu -->
                             <a href="{{ route('admin.order-history.index') }}" 
-                               class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.order-history.*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                                <i class="fa-solid fa-file-invoice-dollar w-4 text-center text-sm {{ request()->routeIs('admin.order-history.*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                                <span>Báo cáo & Doanh thu</span>
+                               class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.order-history.*') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                               style="color: {{ request()->routeIs('admin.order-history.*') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                                <i class="fa-solid fa-file-invoice-dollar w-4 text-center text-sm" style="color: {{ request()->routeIs('admin.order-history.*') ? '#111827' : '#4b5563' }} !important;"></i>
+                                <span style="color: {{ request()->routeIs('admin.order-history.*') ? '#111827' : '#1f2937' }} !important;">Báo cáo & Doanh thu</span>
                             </a>
                         @endif
                     </div>
@@ -474,22 +510,25 @@
                     </div>
                     <div class="space-y-0.5">
                         <a href="{{ route('admin.user.employees') }}" 
-                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.user.employees') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-users-gear w-4 text-center text-sm {{ request()->routeIs('admin.user.employees') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                            <span>Quản lý nhân viên</span>
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.user.employees') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                           style="color: {{ request()->routeIs('admin.user.employees') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                            <i class="fa-solid fa-users-gear w-4 text-center text-sm" style="color: {{ request()->routeIs('admin.user.employees') ? '#111827' : '#4b5563' }} !important;"></i>
+                            <span style="color: {{ request()->routeIs('admin.user.employees') ? '#111827' : '#1f2937' }} !important;">Quản lý nhân viên</span>
                         </a>
 
                         <a href="{{ route('admin.user.customers') }}" 
-                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.user.customers') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-users w-4 text-center text-sm {{ request()->routeIs('admin.user.customers') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                            <span>Quản lý khách hàng</span>
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.user.customers') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                           style="color: {{ request()->routeIs('admin.user.customers') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                            <i class="fa-solid fa-users w-4 text-center text-sm" style="color: {{ request()->routeIs('admin.user.customers') ? '#111827' : '#4b5563' }} !important;"></i>
+                            <span style="color: {{ request()->routeIs('admin.user.customers') ? '#111827' : '#1f2937' }} !important;">Quản lý khách hàng</span>
                         </a>
 
                         <!-- Cài đặt hệ thống (Dành riêng cho Admin) -->
                         <a href="{{ route('admin.setting.index') }}" 
-                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.setting.*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-gear w-4 text-center text-sm {{ request()->routeIs('admin.setting.*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                            <span>Cài đặt hệ thống</span>
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->routeIs('admin.setting.*') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                           style="color: {{ request()->routeIs('admin.setting.*') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                            <i class="fa-solid fa-gear w-4 text-center text-sm" style="color: {{ request()->routeIs('admin.setting.*') ? '#111827' : '#4b5563' }} !important;"></i>
+                            <span style="color: {{ request()->routeIs('admin.setting.*') ? '#111827' : '#1f2937' }} !important;">Cài đặt hệ thống</span>
                         </a>
                     </div>
                 </div>
@@ -502,29 +541,39 @@
                         Dữ liệu & Nội dung
                     </div>
                     <div class="space-y-0.5">
-                        <a href="{{ url('admin/category/') }}" class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/category*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-list-ul w-4 text-center text-sm text-[rgba(0,0,0,0.65)]"></i>
-                            <span>Danh mục món</span>
+                        <a href="{{ url('admin/category/') }}" 
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/category*') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                           style="color: {{ request()->is('admin/category*') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                            <i class="fa-solid fa-list-ul w-4 text-center text-sm" style="color: {{ request()->is('admin/category*') ? '#111827' : '#4b5563' }} !important;"></i>
+                            <span style="color: {{ request()->is('admin/category*') ? '#111827' : '#1f2937' }} !important;">Danh mục món</span>
                         </a>
 
-                        <a href="{{ url('admin/brand/') }}" class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/brand*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-tags w-4 text-center text-sm text-[rgba(0,0,0,0.65)]"></i>
-                            <span>Thương hiệu & Ẩm thực</span>
+                        <a href="{{ url('admin/brand/') }}" 
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/brand*') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                           style="color: {{ request()->is('admin/brand*') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                            <i class="fa-solid fa-tags w-4 text-center text-sm" style="color: {{ request()->is('admin/brand*') ? '#111827' : '#4b5563' }} !important;"></i>
+                            <span style="color: {{ request()->is('admin/brand*') ? '#111827' : '#1f2937' }} !important;">Thương hiệu & Ẩm thực</span>
                         </a>
 
-                        <a href="{{ url('admin/banner/') }}" class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/banner*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-images w-4 text-center text-sm text-[rgba(0,0,0,0.65)]"></i>
-                            <span>Banner</span>
+                        <a href="{{ url('admin/banner/') }}" 
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/banner*') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                           style="color: {{ request()->is('admin/banner*') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                            <i class="fa-solid fa-images w-4 text-center text-sm" style="color: {{ request()->is('admin/banner*') ? '#111827' : '#4b5563' }} !important;"></i>
+                            <span style="color: {{ request()->is('admin/banner*') ? '#111827' : '#1f2937' }} !important;">Banner</span>
                         </a>
 
-                        <a href="{{ url('admin/contact/') }}" class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/contact*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-envelope w-4 text-center text-sm text-[rgba(0,0,0,0.65)]"></i>
-                            <span>Hộp thư liên hệ</span>
+                        <a href="{{ url('admin/contact/') }}" 
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/contact*') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                           style="color: {{ request()->is('admin/contact*') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                            <i class="fa-solid fa-envelope w-4 text-center text-sm" style="color: {{ request()->is('admin/contact*') ? '#111827' : '#4b5563' }} !important;"></i>
+                            <span style="color: {{ request()->is('admin/contact*') ? '#111827' : '#1f2937' }} !important;">Hộp thư liên hệ</span>
                         </a>
 
-                        <a href="{{ url('admin/inquiries/') }}" class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/inquiries*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
-                            <i class="fa-solid fa-comments w-4 text-center text-sm text-[rgba(0,0,0,0.65)]"></i>
-                            <span>Khách tư vấn</span>
+                        <a href="{{ url('admin/inquiries/') }}" 
+                           class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/inquiries*') ? 'bg-[#F3F4F6] text-gray-900 font-semibold' : 'text-gray-800 hover:bg-[#F5F5F5] font-medium' }}"
+                           style="color: {{ request()->is('admin/inquiries*') ? '#111827' : '#1f2937' }} !important; text-decoration: none;">
+                            <i class="fa-solid fa-comments w-4 text-center text-sm" style="color: {{ request()->is('admin/inquiries*') ? '#111827' : '#4b5563' }} !important;"></i>
+                            <span style="color: {{ request()->is('admin/inquiries*') ? '#111827' : '#1f2937' }} !important;">Khách tư vấn</span>
                         </a>
                     </div>
                 </div>
