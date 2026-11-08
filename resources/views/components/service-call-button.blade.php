@@ -31,18 +31,18 @@
 <div id="serviceCallModal" class="fixed inset-0 z-[999999] hidden bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 transition-all duration-200" style="z-index: 999999 !important;">
     <div class="bg-white rounded-xl sm:rounded-2xl max-w-lg w-full max-h-[90dvh] flex flex-col shadow-2xl border border-stone-200/80 overflow-hidden transform scale-95 transition-all duration-200" id="serviceCallModalBox">
         
-        <!-- Header: Tinh tế chuẩn ẩm thực CIVILIZE (Màu cam thương hiệu đồng bộ) -->
-        <div class="bg-[#C25E00] px-5 py-4 text-white relative border-b border-[#A34E00] shrink-0">
-            <button type="button" id="closeServiceCallBtn" class="absolute top-3.5 right-3.5 text-white/80 hover:text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/15 transition-colors cursor-pointer" aria-label="Đóng">
+        <!-- Header: Nền trắng chữ đen trang nhã -->
+        <div class="bg-white px-5 py-4 text-stone-900 relative border-b border-stone-200 shrink-0">
+            <button type="button" id="closeServiceCallBtn" class="absolute top-3.5 right-3.5 text-stone-400 hover:text-stone-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-stone-100 transition-colors cursor-pointer" aria-label="Đóng">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
             <div>
-                <h3 class="text-base font-bold tracking-tight text-white uppercase">Gọi Nhân Viên Phục Vụ</h3>
+                <h3 class="text-base font-bold tracking-tight text-stone-900 uppercase">Gọi Nhân Viên Phục Vụ</h3>
                 <div class="flex items-center gap-2 mt-0.5">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-semibold bg-white/20 text-white border border-white/30 backdrop-blur-xs" id="modalTableBadge">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-semibold bg-stone-100 text-stone-700 border border-stone-200" id="modalTableBadge">
                         <span id="modalTableSubtitleText">{{ $currentTableName ? ('Vị trí: ' . $currentTableName) : 'Chọn số bàn của bạn' }}</span>
                     </span>
-                    <span class="text-[11px] text-white/85 hidden sm:inline">• Trực bàn sẵn sàng</span>
+                    <span class="text-[11px] text-stone-500 hidden sm:inline">• Trực bàn sẵn sàng</span>
                 </div>
             </div>
         </div>
