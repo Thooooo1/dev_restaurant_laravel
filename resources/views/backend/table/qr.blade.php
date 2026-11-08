@@ -125,7 +125,7 @@
                         <!-- Footer Tổng thanh toán -->
                         <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
                             <span class="font-bold text-base text-gray-900">Tổng thanh toán</span>
-                            <span class="text-xl font-bold text-emerald-600 font-mono">
+                            <span class="text-xl font-bold text-[#C25E00] font-mono">
                                 {{ number_format($finalTotal, 0, ',', '.') }}đ
                             </span>
                         </div>

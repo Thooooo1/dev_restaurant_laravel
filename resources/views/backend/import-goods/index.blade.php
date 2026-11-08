@@ -55,7 +55,7 @@
 
         <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-xs">
             <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tổng Chi Phí Nhập Kho</div>
-            <div class="text-2xl font-black text-emerald-600 mt-1">{{ number_format($totalAmount, 0, ',', '.') }}₫</div>
+            <div class="text-2xl font-black text-[#C25E00] mt-1">{{ number_format($totalAmount, 0, ',', '.') }}₫</div>
             <div class="text-xs text-slate-500 mt-1">tổng giá trị hàng hóa</div>
         </div>
 
