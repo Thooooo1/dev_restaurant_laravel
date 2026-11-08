@@ -1282,8 +1282,10 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
         // Đọc lịch sử xem lượt trước khách có đang đặt bàn hay hỏi món gì không
         $lastUserMsg = '';
         $lastBotMsg = '';
+        $allRecentText = '';
         if ($recentMessages && $recentMessages->count() >= 1) {
             foreach ($recentMessages as $rm) {
+                $allRecentText .= ' ' . ($rm->content ?? '');
                 if ($rm->role === 'user') {
                     $lastUserMsg = mb_strtolower($rm->content ?? '', 'UTF-8');
                 } elseif ($rm->role === 'assistant') {
@@ -1291,6 +1293,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 }
             }
         }
+        $allRecentLower = mb_strtolower($allRecentText, 'UTF-8');
 
         // Lời chào hỏi ban đầu
         $isGreeting = $this->matchAny($lower, [
@@ -1740,54 +1743,116 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             ];
         }
 
-        // Tình huống 4: Hỏi về bàn / Đặt bàn / Kiểm tra chỗ ngồi
-        $hasBookingIntent = $this->matchAny($lower, ['đặt bàn', 'dat ban', 'còn bàn', 'book bàn', 'giữ bàn', 'phòng vip', 'còn chỗ', 'con cho', 'hết bàn'])
+        // Tình huống 4: Hỏi về bàn / Đặt bàn / Kiểm tra chỗ ngồi & Hội thoại đặt bàn nhiều lượt
+        $isContinuingBooking = $this->matchAny($lastBotMsg, [
+            'đặt bàn', 'giữ chỗ', 'bàn trống', 'số lượng khách', 'vị trí', 'phòng vip', 
+            'dự định đi đoàn', 'bao nhiêu người', 'ngày dùng bữa', 'giờ dùng bữa', 'hoàn tất giữ bàn'
+        ]) || $this->matchAny($lastUserMsg, ['đặt bàn', 'dat ban', 'còn bàn', 'book bàn', 'tư vấn đặt bàn']);
+
+        $partyMatchFound = preg_match('/(?:(?:khách|đoàn|đi|cho|tầm|khoảng|có)?\s*([1-9][0-9]?)\s*(?:người|khách|pax|bạn|cháu|ng)|([1-9][0-9]?)\s*(?:người|khách|pax))/iu', $userMsg, $partyMatch);
+
+        $hasPhone = preg_match('/(0[35789][0-9]{8})/iu', $userMsg, $phMatch);
+
+        $hasBookingIntent = $isContinuingBooking
+            || $partyMatchFound
+            || ($hasPhone && $isContinuingBooking)
+            || $this->matchAny($lower, ['đặt bàn', 'dat ban', 'còn bàn', 'book bàn', 'giữ bàn', 'phòng vip', 'còn chỗ', 'con cho', 'hết bàn'])
             || (str_contains($lower, 'bàn') && preg_match('/(?:[0-9]+|người|khách|tối|trưa|mai)/iu', $userMsg))
             || ($this->matchAny($lower, ['người', 'khách']) && preg_match('/(?:[0-2]?[0-9]\s*(?:h|:|giờ)|tối nay|trưa nay|ngày mai)/iu', $userMsg));
 
         if ($hasBookingIntent) {
-            $hasExplicitDetails = preg_match('/(?:[1-9][0-9]?)\s*(?:người|khách|pax)/iu', $userMsg . ' ' . $lastUserMsg)
-                || preg_match('/(?:[0-2]?[0-9])\s*(?:h|:|giờ)/iu', $userMsg . ' ' . $lastUserMsg)
-                || str_contains($lower, 'tối nay') || str_contains($lower, 'trưa nay') || str_contains($lower, 'mai');
+            // 1. Trích xuất số lượng khách
+            $people = 0;
+            if ($partyMatchFound) {
+                $people = (int)(!empty($partyMatch[1]) ? $partyMatch[1] : $partyMatch[2]);
+            } elseif (preg_match('/(?:(?:khách|đoàn|đi|cho|tầm|khoảng)?\s*([1-9][0-9]?)\s*(?:người|khách|pax|bạn|cháu|ng)|([1-9][0-9]?)\s*(?:người|khách|pax))/iu', $allRecentLower, $pm)) {
+                $people = (int)(!empty($pm[1]) ? $pm[1] : $pm[2]);
+            }
+            if ($people <= 0) $people = 4;
 
-            if (!$hasExplicitDetails) {
+            // 2. Trích xuất ngày & giờ
+            $hasTime = preg_match('/([0-2]?[0-9])\s*(?:h|:|giờ)([0-5][0-9])?/iu', $userMsg . ' ' . $allRecentLower, $tm);
+            $hasDate = str_contains($lower, 'tối nay') || str_contains($lower, 'trưa nay') || str_contains($lower, 'mai') 
+                || str_contains($allRecentLower, 'tối nay') || str_contains($allRecentLower, 'trưa nay') || str_contains($allRecentLower, 'mai')
+                || preg_match('/\d{1,2}[\/\-]\d{1,2}/', $userMsg . ' ' . $allRecentLower);
+
+            // BƯỚC A: Khách gửi số điện thoại xác nhận đặt bàn
+            if ($hasPhone) {
+                $phone = $phMatch[1];
+                $name = $context['user']['name'] ?? 'Quý khách';
+                $cleaned = trim(preg_replace('/(0[35789][0-9]{8})/iu', '', $userMsg));
+                if (mb_strlen($cleaned) >= 2 && mb_strlen($cleaned) <= 30 && !preg_match('/(đặt|bàn|giờ|ngày|khách|người)/iu', $cleaned)) {
+                    $name = $cleaned;
+                }
+
+                $date = Carbon::today()->toDateString();
+                if (str_contains($lower, 'mai') || str_contains($allRecentLower, 'mai')) {
+                    $date = Carbon::tomorrow()->toDateString();
+                }
+                $time = '19:00';
+                if ($hasTime) {
+                    $rawHour = (int)$tm[1];
+                    if (($this->matchAny($lower, ['tối', 'chiều']) || str_contains($allRecentLower, 'tối')) && $rawHour >= 1 && $rawHour <= 11) {
+                        $rawHour += 12;
+                    }
+                    $h = str_pad($rawHour, 2, '0', STR_PAD_LEFT);
+                    $min = !empty($tm[2]) ? str_pad($tm[2], 2, '0', STR_PAD_LEFT) : '00';
+                    $time = "{$h}:{$min}";
+                }
+
+                $this->toolConfirmAndCreateBooking([
+                    'name' => $name,
+                    'phone' => $phone,
+                    'number_of_people' => $people,
+                    'booking_date' => $date,
+                    'booking_time' => $time,
+                    'note' => 'Đặt qua Trợ lý Chatbot AI'
+                ], $context);
+
                 return [
-                    'reply' => "Dạ em rất sẵn lòng hỗ trợ anh/chị đặt bàn trước tại CIVILIZE Restaurant để nhận ưu đãi giảm 10% khi dùng bữa tại quán ạ!\n\nĐể em kiểm tra và chuẩn bị bàn có vị trí đẹp nhất cho mình, anh/chị cho em xin các thông tin sau nhé:\n1. **Số lượng khách** đi ăn (ví dụ: 2 người, 4 người,...)\n2. **Thời gian** dùng bữa (ngày và giờ cụ thể, ví dụ: tối nay lúc 19:00 hoặc trưa mai 12:00)\n3. **Họ tên & Số điện thoại** liên hệ\n\nAnh/chị cứ nhắn thông tin để em hỗ trợ giữ bàn ngay cho mình nhé ạ!",
+                    'reply' => "Dạ em đã ghi nhận thông tin đặt bàn cho anh/chị thành công rồi ạ!\n\n" .
+                               "• Khách hàng: {$name}\n" .
+                               "• Số điện thoại: {$this->maskPhone($phone)}\n" .
+                               "• Số lượng khách: {$people} người\n" .
+                               "• Thời gian: {$time} ngày " . Carbon::parse($date)->format('d/m/Y') . "\n\n" .
+                               "Nhà hàng CIVILIZE sẽ liên hệ với anh/chị ngay để xác nhận và chuẩn bị vị trí bàn đẹp nhất. Khi đến quán, anh/chị nhớ gọi món qua mã QR tại bàn để được giảm ngay 10% tổng hóa đơn nhé ạ!",
                     'products' => [],
                     'quick_replies' => [
-                        ['title' => 'Tối nay 19:00 (4 người)', 'payload' => 'Tôi muốn đặt bàn 4 người lúc 19:00 tối nay'],
-                        ['title' => 'Trưa mai 12:00 (6 người)', 'payload' => 'Tôi muốn đặt bàn 6 người lúc 12:00 trưa mai'],
-                        ['title' => 'Xem thực đơn trước', 'payload' => 'Xem thực đơn']
+                        ['title' => 'Xem thực đơn', 'payload' => 'Xem thực đơn'],
+                        ['title' => 'Gợi ý món ngon', 'payload' => 'Gợi ý món ngon hôm nay'],
+                        ['title' => 'Hotline nhà hàng', 'payload' => 'Hotline của quán']
                     ]
                 ];
             }
 
-            $prevPeople = 0;
-            if (preg_match('/([1-9][0-9]?)\s*(?:người|khách|pax)/iu', $lastUserMsg, $lpm)) {
-                $prevPeople = (int)$lpm[1];
+            // BƯỚC B: Khách mới chỉ cung cấp số lượng người (chưa có ngày giờ cụ thể)
+            if (!$hasTime && !str_contains($lower, 'tối nay') && !str_contains($lower, 'trưa nay') && !str_contains($lower, 'mai')) {
+                $vipHint = ($people >= 8) 
+                    ? "\n\nVới đoàn {$people} người, nhà hàng có khu bàn tiệc rộng rãi hoặc hệ thống **phòng VIP riêng tư** (có điều hòa riêng, không gian yên tĩnh, không phụ thu đặt phòng) rất thích hợp để họp mặt hoặc liên hoan thoải mái ạ." 
+                    : "";
+
+                $todayFormatted = Carbon::now('Asia/Ho_Chi_Minh')->format('d/m/Y');
+                return [
+                    'reply' => "Dạ vâng, đoàn mình {$people} người là số lượng rất đẹp để thưởng thức ẩm thực tại CIVILIZE ạ!{$vipHint}\n\nĐể em kiểm tra bàn trống và giữ chỗ vị trí đẹp nhất cho mình, anh/chị dự định đến dùng bữa vào **ngày nào** và **mấy giờ** ạ?\n*(Ví dụ: Trưa nay lúc 12:00 hay Tối nay lúc 19:00 - ngày {$todayFormatted}, hoặc Ngày mai...)*",
+                    'products' => [],
+                    'quick_replies' => [
+                        ['title' => "Tối nay 19:00 ({$people} người)", 'payload' => "Tôi muốn đặt bàn {$people} người lúc 19:00 tối nay"],
+                        ['title' => "Trưa mai 12:00 ({$people} người)", 'payload' => "Tôi muốn đặt bàn {$people} người lúc 12:00 trưa mai"],
+                        ['title' => 'Tư vấn món trước', 'payload' => 'Gợi ý món ngon trước']
+                    ]
+                ];
             }
 
-            $people = 4;
-            if (preg_match('/([1-9][0-9]?)\s*(?:người|khách|pax)/iu', $userMsg, $pm)) {
-                $currentPeople = (int)$pm[1];
-                if ($this->matchAny($lower, ['thêm', 'nữa', 'cộng thêm', 'gia đình anh', 'bạn anh']) && $prevPeople > 0) {
-                    $people = $prevPeople + $currentPeople;
-                } else {
-                    $people = $currentPeople;
-                }
-            } elseif ($prevPeople > 0) {
-                $people = $prevPeople;
-            }
-
+            // BƯỚC C: Khách đã có cả số người và ngày giờ -> Kiểm tra bàn thực tế
             $date = Carbon::today()->toDateString();
-            if (str_contains($lower, 'mai') || str_contains($lastUserMsg, 'mai')) {
+            if (str_contains($lower, 'mai') || str_contains($allRecentLower, 'mai')) {
                 $date = Carbon::tomorrow()->toDateString();
             }
 
             $time = '19:00';
-            if (preg_match('/([0-2]?[0-9])\s*(?:h|:|giờ)([0-5][0-9])?/iu', $userMsg . ' ' . $lastUserMsg, $tm)) {
+            if ($hasTime) {
                 $rawHour = (int)$tm[1];
-                if (($this->matchAny($lower, ['tối', 'chiều']) || str_contains($lastUserMsg, 'tối')) && $rawHour >= 1 && $rawHour <= 11) {
+                if (($this->matchAny($lower, ['tối', 'chiều']) || str_contains($allRecentLower, 'tối')) && $rawHour >= 1 && $rawHour <= 11) {
                     $rawHour += 12;
                 }
                 $h = str_pad($rawHour, 2, '0', STR_PAD_LEFT);
@@ -1801,10 +1866,12 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 'booking_time' => $time
             ]);
 
+            $vipInfo = ($people >= 8) ? " Đoàn {$people} người bên em có thể sắp xếp sảnh tiệc hoặc phòng VIP riêng tư cho mình ạ." : "";
+
             return [
-                'reply' => "Dạ em kiểm tra bàn cho mình lúc {$time} ngày " . Carbon::parse($date)->format('d/m/Y') . " rồi ạ:\n\n" .
-                           "• Tình trạng: {$avail['message']}\n\n" .
-                           "Để em hoàn tất giữ bàn vị trí đẹp nhất cho đoàn mình, anh chị cho em xin Họ tên và Số điện thoại liên hệ nhé ạ!",
+                'reply' => "Dạ em kiểm tra bàn cho đoàn {$people} người lúc {$time} ngày " . Carbon::parse($date)->format('d/m/Y') . " rồi ạ:\n\n" .
+                           "• Tình trạng: {$avail['message']}.{$vipInfo}\n\n" .
+                           "Để em hoàn tất giữ bàn vị trí đẹp nhất cho đoàn mình, anh/chị cho em xin **Họ tên** và **Số điện thoại** liên hệ nhé ạ!",
                 'products' => [],
                 'quick_replies' => [
                     ['title' => 'Tư vấn món trước', 'payload' => 'Gợi ý món ngon trước'],
@@ -1831,7 +1898,20 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             }
         }
 
-        // Mặc định: Lời chào thân thiện và gợi ý tác vụ
+        // Nếu đã có lịch sử trò chuyện (không phải lượt đầu tiên) -> Không bao giờ lặp lại câu chào mở đầu
+        if ($recentMessages && $recentMessages->count() >= 1) {
+            return [
+                'reply' => "Dạ em đã ghi nhận thông tin của anh/chị ạ! Để em hỗ trợ chu đáo nhất, anh/chị có thể cho em biết thêm chi tiết về số lượng người, thời gian dùng bữa hoặc món ăn mình muốn thưởng thức nhé ạ!",
+                'products' => [],
+                'quick_replies' => [
+                    ['title' => 'Gợi ý món ngon hôm nay', 'payload' => 'Gợi ý món ngon hôm nay'],
+                    ['title' => 'Đặt bàn giữ chỗ', 'payload' => 'Tôi muốn đặt bàn'],
+                    ['title' => 'Hotline nhà hàng', 'payload' => 'Hotline của quán']
+                ]
+            ];
+        }
+
+        // Mặc định: Lời chào thân thiện khi mới bắt đầu cuộc trò chuyện
         return [
             'reply' => "Dạ em chào anh/chị ạ! Em là nhân viên tư vấn của CIVILIZE Restaurant. Em luôn sẵn sàng hỗ trợ gợi ý món ngon hợp khẩu vị, kiểm tra bàn trống, đặt bàn giữ chỗ hoặc giải đáp các thắc mắc của quán. Hôm nay em có thể hỗ trợ gì cho mình ạ?",
             'products' => [],
