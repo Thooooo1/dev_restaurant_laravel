@@ -97,19 +97,13 @@
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-800 font-medium">{{ $user->fullname }}</td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600 font-mono">{{ $user->username }}</td>
-                                <td class="px-4 py-3 whitespace-nowrap text-center">
+                                <td class="px-4 py-3 whitespace-nowrap text-center text-xs text-[rgba(0,0,0,0.85)] font-medium">
                                     @if($user->roles === 'admin')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-[#C25E00] border border-orange-200">
-                                            Quản trị viên
-                                        </span>
+                                        Quản trị viên
                                     @elseif($user->roles == 'employee')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
-                                            Nhân viên
-                                        </span>
+                                        Nhân viên
                                     @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                                            Thành viên
-                                        </span>
+                                        Thành viên
                                     @endif
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $user->email ?: '---' }}</td>
@@ -152,7 +146,7 @@
                                 <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-600">
                                     {{ $user->email ?: '---' }}
                                 </td>
-                                <td class="px-4 py-3 whitespace-nowrap text-center text-xs">
+                                <td class="px-4 py-3 whitespace-nowrap text-center text-xs text-[rgba(0,0,0,0.85)] font-medium">
                                     @php
                                         $genderStr = '---';
                                         if (in_array((string)$user->gender, ['1', 'Nam', 'nam'], true)) {
@@ -161,9 +155,7 @@
                                             $genderStr = 'Nữ';
                                         }
                                     @endphp
-                                    <span class="text-xs text-[rgba(0,0,0,0.65)]">
-                                        {{ $genderStr }}
-                                    </span>
+                                    {{ $genderStr }}
                                 </td>
                                 <td class="px-4 py-3 text-xs text-slate-600 max-w-xs truncate" title="{{ $user->address }}">
                                     {{ $user->address ?: '---' }}

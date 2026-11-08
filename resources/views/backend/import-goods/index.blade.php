@@ -182,10 +182,8 @@
                         </td>
 
                         <!-- Trạng thái -->
-                        <td class="px-4 py-3.5 whitespace-nowrap text-center">
-                            <span class="inline-block px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-700">
-                                Đã nhập kho
-                            </span>
+                        <td class="px-4 py-3.5 whitespace-nowrap text-center text-xs text-[rgba(0,0,0,0.85)] font-medium">
+                            Đã nhập kho
                         </td>
 
                         <!-- Thao Tác (Có icon chuẩn chức năng) -->

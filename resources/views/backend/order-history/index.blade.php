@@ -103,7 +103,7 @@
                             <td class="text-right font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)]">
                                 {{ number_format($order->total_price, 0, ',', '.') }} ₫
                             </td>
-                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)]">
                                 {{ $order->payment_method == 2 ? 'Chuyển khoản' : ($order->payment_method == 1 ? 'Tiền mặt' : 'Khác') }}
                             </td>
                             <td class="text-center">

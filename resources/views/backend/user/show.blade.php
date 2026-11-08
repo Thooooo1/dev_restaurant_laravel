@@ -79,15 +79,15 @@
                     <!-- Role Badge -->
                     <div class="mt-3 flex items-center justify-center gap-2">
                         @if($isAdmin)
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-[#C25E00] border border-orange-200">
+                            <span class="text-xs font-bold text-gray-900">
                                 Quản trị viên
                             </span>
                         @elseif($isEmployee)
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                            <span class="text-xs font-bold text-gray-900">
                                 Nhân viên
                             </span>
                         @else
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                            <span class="text-xs font-bold text-gray-900">
                                 Thành viên / Khách hàng
                             </span>
                         @endif
