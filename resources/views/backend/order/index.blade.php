@@ -65,23 +65,36 @@
                             <td class="text-xs text-[rgba(0,0,0,0.65)] max-w-[200px] truncate" title="{{ $order->address }}">
                                 {{ $order->address }}
                             </td>
-                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)]">
-                                {{ $order->payment_method == 2 ? 'Chuyển khoản VietQR' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}
+                            <td class="whitespace-nowrap">
+                                <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900 inline-block" style="color: #111827 !important;">
+                                    {{ $order->payment_method == 2 ? 'Chuyển khoản VietQR' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}
+                                </span>
                             </td>
                             <td class="font-mono text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap">
                                 {{ date('H:i d/m/Y', strtotime($order->created_at)) }}
                             </td>
-                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)]">
-                                {{ $order->status_label }}
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
+                                @switch((int)$order->status)
+                                    @case(1)
+                                        Đang vận chuyển
+                                        @break
+                                    @case(2)
+                                        Đã giao hàng
+                                        @break
+                                    @case(3)
+                                        Đã hủy
+                                        @break
+                                    @default
+                                        Đang chờ xử lý
+                                @endswitch
                             </td>
-                            <td class="text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('admin.order.orderdetail', $order->id) }}" class="text-[#F47716] hover:underline text-xs font-medium" title="Chi tiết đơn hàng">
-                                        Chi tiết
+                            <td class="text-center whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <a href="{{ route('admin.order.orderdetail', $order->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100" title="Chi tiết đơn hàng">
+                                        <i class="fa-regular fa-eye"></i>
                                     </a>
-                                    <span class="text-gray-300">|</span>
-                                    <a href="{{ route('admin.order.edit', $order->id) }}" class="text-gray-500 hover:text-gray-800 text-xs font-medium" title="Cập nhật trạng thái">
-                                        Sửa
+                                    <a href="{{ route('admin.order.edit', $order->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-orange-50 text-orange-600 rounded-lg text-sm transition-all hover:bg-orange-100" title="Cập nhật trạng thái">
+                                        <i class="fa-regular fa-pen-to-square"></i>
                                     </a>
                                 </div>
                             </td>

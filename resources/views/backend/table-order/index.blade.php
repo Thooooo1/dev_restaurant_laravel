@@ -36,7 +36,7 @@
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tổng số bàn</span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-semibold text-gray-900" style="color: #111827 !important;">
+            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                 {{ count($floors) }} tầng
             </span>
         </div>
@@ -50,7 +50,7 @@
                 </span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['occupied'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                 {{ $posStats['total'] > 0 ? round(($posStats['occupied'] / $posStats['total']) * 100) : 0 }}%
             </span>
         </div>
@@ -64,7 +64,7 @@
                 </span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                 Sẵn có
             </span>
         </div>
@@ -75,7 +75,7 @@
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tạm tính trên bàn</span>
                 <span class="text-2xl font-black text-[rgba(0,0,0,0.85)] mt-0.5 block tracking-tight">{{ number_format($posStats['serving_revenue'] ?? 0) }}₫</span>
             </div>
-            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                 {{ $posStats['occupied'] }} đơn
             </span>
         </div>
@@ -204,19 +204,19 @@
                                     <!-- Status Pill Badge & Actions -->
                                     <div class="flex items-center gap-1.5">
                                         @if($hasNewItems)
-                                            <span class="text-xs font-semibold text-[rgba(0,0,0,0.85)]">
+                                            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                                                 Món mới
                                             </span>
                                         @elseif($isOccupied)
-                                            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+                                            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                                                 Có khách
                                             </span>
                                         @elseif($isLocked)
-                                            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+                                            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                                                 Đã ghép
                                             </span>
                                         @else
-                                            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+                                            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                                                 Trống
                                             </span>
                                         @endif

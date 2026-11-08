@@ -28,7 +28,7 @@
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tổng số bàn</span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-semibold text-gray-900" style="color: #111827 !important;">
+            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                 {{ count($floors) }} tầng
             </span>
         </div>
@@ -42,7 +42,7 @@
                 </span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['serving'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                 {{ $stats['total'] > 0 ? round(($stats['serving'] / $stats['total']) * 100) : 0 }}%
             </span>
         </div>
@@ -56,7 +56,7 @@
                 </span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                 Sẵn có
             </span>
         </div>
@@ -67,7 +67,7 @@
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tạm tính trên bàn</span>
                 <span class="text-2xl font-black text-[rgba(0,0,0,0.85)] mt-0.5 block tracking-tight">{{ number_format($stats['serving_revenue'] ?? 0) }}₫</span>
             </div>
-            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
                 {{ $stats['serving'] }} đơn
             </span>
         </div>
@@ -180,9 +180,9 @@
                             <td class="py-3.5 px-3">
                                 @if ($hasActive)
                                     <div>
-                                        <div class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+                                        <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900 inline-block" style="color: #111827 !important;">
                                             Đang có khách
-                                        </div>
+                                        </span>
                                         <div class="mt-1.5 flex items-center gap-2 text-[11px] text-gray-500">
                                             <span class="font-mono font-semibold text-gray-700">Đơn #{{ $activeOrder->id }}</span>
                                             <span>•</span>
@@ -194,7 +194,7 @@
                                     </div>
                                 @else
                                     <div>
-                                        <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+                                        <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900 inline-block" style="color: #111827 !important;">
                                             Bàn trống
                                         </span>
                                         <p class="text-[11px] text-gray-400 mt-1">Sẵn sàng đón khách</p>

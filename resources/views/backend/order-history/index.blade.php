@@ -103,8 +103,10 @@
                             <td class="text-right font-mono font-semibold text-xs text-[rgba(0,0,0,0.85)]">
                                 {{ number_format($order->total_price, 0, ',', '.') }} ₫
                             </td>
-                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)]">
-                                {{ $order->payment_method == 2 ? 'Chuyển khoản' : ($order->payment_method == 1 ? 'Tiền mặt' : 'Khác') }}
+                            <td class="whitespace-nowrap">
+                                <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900 inline-block" style="color: #111827 !important;">
+                                    {{ $order->payment_method == 2 ? 'Chuyển khoản' : ($order->payment_method == 1 ? 'Tiền mặt' : 'Khác') }}
+                                </span>
                             </td>
                             <td class="text-center">
                                 <button type="button" class="text-[#F47716] hover:underline text-xs font-medium" onclick="openOrderDetail({{ $order->id }})" title="Xem hóa đơn">

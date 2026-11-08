@@ -70,7 +70,7 @@
                             <td class="font-mono text-xs font-semibold text-[rgba(0,0,0,0.85)]">
                                 {{ date('H:i', strtotime($booking->booking_time)) }}
                             </td>
-                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)]">
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
                                 @switch($booking->status)
                                     @case(1) Chờ xử lý @break
                                     @case(2) Đã xác nhận @break
@@ -79,14 +79,13 @@
                                     @default Mới
                                 @endswitch
                             </td>
-                            <td class="text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('admin.booking.detail', $booking->id) }}" class="text-[#F47716] hover:underline text-xs font-medium" title="Xem chi tiết">
-                                        Chi tiết
+                            <td class="text-center whitespace-nowrap">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <a href="{{ route('admin.booking.detail', $booking->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100" title="Chi tiết đặt bàn">
+                                        <i class="fa-regular fa-eye"></i>
                                     </a>
-                                    <span class="text-gray-300">|</span>
-                                    <a href="{{ route('admin.booking.edit', $booking->id) }}" class="text-gray-500 hover:text-gray-800 text-xs font-medium" title="Cập nhật trạng thái">
-                                        Sửa
+                                    <a href="{{ route('admin.booking.edit', $booking->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-orange-50 text-orange-600 rounded-lg text-sm transition-all hover:bg-orange-100" title="Cập nhật trạng thái">
+                                        <i class="fa-regular fa-pen-to-square"></i>
                                     </a>
                                 </div>
                             </td>
