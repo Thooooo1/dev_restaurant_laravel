@@ -1,76 +1,94 @@
 <x-layout-backend>
-    <!-- Page header -->
-    <div class="mb-4">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-            <div>
-                <h1 class="text-xl font-bold text-slate-800">Hộp thư liên hệ</h1>
-            </div>
-            <div class="flex items-center gap-2">
-                <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-red-500/25 hover:from-red-600 hover:to-red-700" href="{{ url('admin/contact/trash') }}">
-                    <i class="fa-solid fa-trash"></i> Thùng rác
-                </a>
-            </div>
+    <!-- Page Header (Ant Design Pro Style) -->
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Hộp thư liên hệ</h1>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+            <a href="{{ url('admin/contact/trash') }}" class="ant-btn ant-btn-sm text-gray-500 hover:text-red-600 font-medium bg-white border border-gray-200">
+                <i class="fa-solid fa-trash text-xs"></i>
+                <span>Thùng rác</span>
+            </a>
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <!-- Data Table (Ant Design Pro / Shopify Polaris Style) -->
+    <div class="ant-card shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <div class="table-responsive"><table class="w-full">
-                <thead class="bg-slate-50 border-b border-slate-200">
+            <table class="w-full">
+                <thead>
                     <tr>
-                        <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">#</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Họ tên</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Điện thoại</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Email</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Tiêu đề</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-slate-500 uppercase tracking-wider">Nội dung</th>
-                        <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider" style="width:200px;">Chức năng</th>
-                        <th class="px-4 py-3 text-center text-sm font-semibold text-slate-500 uppercase tracking-wider" style="width:30px;">ID</th>
+                        <th class="w-12 text-center" style="text-align: center !important;">ID</th>
+                        <th class="text-left" style="text-align: left !important;">Họ tên khách</th>
+                        <th class="text-left" style="text-align: left !important;">Điện thoại</th>
+                        <th class="text-left" style="text-align: left !important;">Email</th>
+                        <th class="text-left" style="text-align: left !important;">Tiêu đề</th>
+                        <th class="text-left" style="text-align: left !important;">Nội dung tin nhắn</th>
+                        <th class="text-center w-24" style="text-align: center !important;">Trạng thái</th>
+                        <th class="text-center w-28" style="text-align: center !important;">Thao tác</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
-                    @foreach ($contacts as $contact)
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-4 py-3 text-center">
-                                <input type="checkbox" id="checkId" value="1" name="checkId[]" class="rounded border-slate-300 text-orange-500 focus:ring-orange-500">
+                <tbody>
+                    @forelse ($contacts as $contact)
+                        <tr>
+                            <td class="text-center font-mono text-xs text-[rgba(0,0,0,0.45)]" style="text-align: center !important;">
+                                #{{ $contact->id }}
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-800 font-medium">{{ $contact->name }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $contact->phone }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $contact->email }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600">{{ $contact->title }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-sm text-slate-600 max-w-[200px] truncate">{{ $contact->content }}</td>
-                            <td class="px-4 py-3 whitespace-nowrap text-center">
+                            <td class="text-left" style="text-align: left !important;">
+                                <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $contact->name }}</div>
+                            </td>
+                            <td class="text-left font-mono text-xs text-[rgba(0,0,0,0.65)]" style="text-align: left !important;">
+                                {{ $contact->phone }}
+                            </td>
+                            <td class="text-left text-xs text-[rgba(0,0,0,0.45)]" style="text-align: left !important;">
+                                {{ $contact->email ?: '---' }}
+                            </td>
+                            <td class="text-left text-xs text-[rgba(0,0,0,0.85)] font-medium max-w-[150px] truncate" style="text-align: left !important;" title="{{ $contact->title }}">
+                                {{ $contact->title ?: 'Không tiêu đề' }}
+                            </td>
+                            <td class="text-left text-xs text-[rgba(0,0,0,0.65)] max-w-[220px] truncate" style="text-align: left !important;" title="{{ $contact->content }}">
+                                {{ $contact->content ?: '---' }}
+                            </td>
+                            <td class="text-center whitespace-nowrap" style="text-align: center !important;">
                                 @if ($contact->status == 1)
-                                    <a href="{{ route('admin.contact.status', ['contact' => $contact->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-green-50 text-green-600 rounded-lg text-sm transition-all hover:bg-green-100">
-                                        <i class="fa-solid fa-toggle-on"></i>
+                                    <a href="{{ route('admin.contact.status', ['contact' => $contact->id]) }}" class="text-gray-700 hover:text-black text-xs font-medium" title="Đã duyệt - bấm để chuyển trạng thái">
+                                        <i class="fa-solid fa-toggle-on text-base text-gray-800"></i>
                                     </a>
                                 @else
-                                    <a href="{{ route('admin.contact.status', ['contact' => $contact->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-slate-100 text-slate-600 rounded-lg text-sm transition-all hover:bg-slate-200">
-                                        <i class="fa-solid fa-toggle-off"></i>
+                                    <a href="{{ route('admin.contact.status', ['contact' => $contact->id]) }}" class="text-gray-400 hover:text-gray-600 text-xs font-medium" title="Chờ xử lý - bấm để chuyển trạng thái">
+                                        <i class="fa-solid fa-toggle-off text-base text-gray-400"></i>
                                     </a>
                                 @endif
-                                <a href="{{ route('admin.contact.show', ['contact' => $contact->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100 ml-1">
-                                    <i class="fa-regular fa-eye"></i>
-                                </a>
-                                <a href="{{ route('admin.contact.edit', ['contact' => $contact->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-orange-50 text-orange-600 rounded-lg text-sm transition-all hover:bg-orange-100 ml-1">
-                                    <i class="fa-regular fa-pen-to-square"></i>
-                                </a>
-                                <a href="{{ route('admin.contact.delete', ['contact' => $contact->id]) }}" class="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-lg text-sm transition-all hover:bg-red-100 ml-1">
-                                    <i class="fa-solid fa-trash"></i>
-                                </a>
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap text-center text-sm text-slate-600">
-                                {{ $contact->id }}
+                            <td class="text-center whitespace-nowrap" style="text-align: center !important;">
+                                <div class="flex items-center justify-center gap-1.5">
+                                    <a href="{{ route('admin.contact.show', ['contact' => $contact->id]) }}" class="w-7 h-7 rounded border border-gray-200 hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors" title="Xem chi tiết">
+                                        <i class="fa-regular fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('admin.contact.edit', ['contact' => $contact->id]) }}" class="w-7 h-7 rounded border border-gray-200 hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors" title="Chỉnh sửa">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                    </a>
+                                    <a href="{{ route('admin.contact.delete', ['contact' => $contact->id]) }}" class="w-7 h-7 rounded border border-gray-200 hover:bg-red-50 text-gray-600 hover:text-red-600 flex items-center justify-center text-xs transition-colors" title="Xóa vào thùng rác">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="8" class="py-8 text-center text-xs text-[rgba(0,0,0,0.45)]">
+                                Chưa có thư liên hệ nào
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
 
-        <div class="px-4 py-3 border-t border-slate-200 flex justify-center">
-            {{-- {{ $contacts->links() }} --}}
-        </div>
+        @if(method_exists($contacts, 'links'))
+            <div class="px-4 py-3 border-t border-[#F0F0F0] flex justify-center">
+                {{ $contacts->links() }}
+            </div>
+        @endif
     </div>
 </x-layout-backend>
