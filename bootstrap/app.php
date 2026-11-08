@@ -44,10 +44,31 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     
     ->withExceptions(function (Exceptions $exceptions) {
-        // Catch 419 Page Expired (CSRF TokenMismatchException)
+        // Catch 419 Page Expired (CSRF TokenMismatchException directly)
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, Request $request) {
+            if ($request->expectsJson() || $request->is('api/*') || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Phiên làm việc đã hết hạn. Vui lòng làm mới trang.',
+                    'csrf_token' => csrf_token()
+                ], 419);
+            }
+
+            if ($request->is('admin*')) {
+                return redirect()->route('admin.login')
+                    ->withInput($request->except('_token', 'password'))
+                    ->with('error', 'Phiên làm việc đã hết hạn do để trang quá lâu. Hệ thống đã tự động làm mới mã bảo mật, vui lòng đăng nhập lại.');
+            }
+
+            return redirect()->back()
+                ->withInput($request->except('_token', 'password'))
+                ->with('error', 'Phiên làm việc đã hết hạn. Hệ thống đã tự động làm mới, vui lòng thử lại.');
+        });
+
+        // Catch 419 Page Expired via HttpException
         $exceptions->render(function (HttpException $e, Request $request) {
             if ($e->getStatusCode() === 419) {
-                if ($request->expectsJson() || $request->is('api/*')) {
+                if ($request->expectsJson() || $request->is('api/*') || $request->ajax()) {
                     return response()->json([
                         'success' => false,
                         'error' => 'Phiên làm việc đã hết hạn. Vui lòng làm mới trang.',

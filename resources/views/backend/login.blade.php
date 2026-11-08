@@ -109,6 +109,23 @@
         document.getElementById('adminPasswordInput')?.addEventListener('focus', function() {
             refreshCsrfToken();
         }, { once: true });
+
+        // 5. Dam bao CSRF token luon moi tinh ngay truoc khi submit form dang nhap
+        let isSubmitting = false;
+        document.getElementById('adminLoginForm')?.addEventListener('submit', async function(e) {
+            if (isSubmitting) return;
+            e.preventDefault();
+            isSubmitting = true;
+            const btn = document.getElementById('adminLoginBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Đang kiểm tra đăng nhập...';
+            }
+            try {
+                await refreshCsrfToken();
+            } catch (err) {}
+            this.submit();
+        });
     </script>
 </body>
 </html>

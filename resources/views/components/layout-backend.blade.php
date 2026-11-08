@@ -554,7 +554,7 @@
                         <a href="{{ url('admin/banner/') }}" 
                            class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/banner*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
                             <i class="fa-solid fa-images w-4 text-center text-sm {{ request()->is('admin/banner*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                            <span>Banner</span>
+                            <span>Banner quảng cáo</span>
                         </a>
 
                         <a href="{{ url('admin/contact/') }}" 

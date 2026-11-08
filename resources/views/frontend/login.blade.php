@@ -9,7 +9,7 @@
                 </div>
 
                 <!-- FORM ĐĂNG NHẬP TRỰC TIẾP -->
-                <form action="{{ route('site.dologin') }}" method="POST" class="space-y-4">
+                <form action="{{ route('site.dologin') }}" method="POST" class="space-y-4" id="frontendLoginForm">
                     @csrf
                     <input type="hidden" name="redirect" value="{{ $redirect ?? request()->query('redirect') ?? '' }}">
                     
@@ -88,5 +88,17 @@
         document.getElementById('password')?.addEventListener('focus', function() {
             refreshCsrfToken();
         }, { once: true });
+
+        // Dam bao CSRF token luon moi tinh ngay truoc khi submit
+        let isSubmitting = false;
+        document.getElementById('frontendLoginForm')?.addEventListener('submit', async function(e) {
+            if (isSubmitting) return;
+            e.preventDefault();
+            isSubmitting = true;
+            try {
+                await refreshCsrfToken();
+            } catch (err) {}
+            this.submit();
+        });
     </script>
 </x-layout-frontend>

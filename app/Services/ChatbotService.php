@@ -1054,13 +1054,12 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             ];
 
             // Danh sách model ưu tiên tự động fallback khi gặp lỗi rate limit (429) hoặc model không tồn tại (404)
-            $configuredModel = config('services.gemini.model') ?: env('GEMINI_MODEL', 'gemini-3.5-flash-lite');
+            $configuredModel = config('services.gemini.model') ?: env('GEMINI_MODEL', 'gemini-2.5-flash');
             $candidateModels = array_values(array_unique(array_filter([
                 $configuredModel,
-                'gemini-3.5-flash-lite',
                 'gemini-2.5-flash',
-                'gemini-3.5-flash',
-                'gemini-3-flash-preview',
+                'gemini-2.0-flash',
+                'gemini-1.5-flash',
             ])));
 
             $headers = [

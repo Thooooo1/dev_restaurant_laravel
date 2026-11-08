@@ -206,13 +206,13 @@
                     <thead>
                         <tr>
                             <th>MÃ ĐƠN</th>
-                            <th>KHÁCH HÀNG</th>
-                            <th>HÌNH THỨC</th>
-                            <th class="text-right">TỔNG TIỀN</th>
+                            <th>Khách hàng</th>
+                            <th>Hình thức</th>
+                            <th class="text-right">Tổng tiền</th>
                             <th>TRẠNG THÁI</th>
                             <th>THANH TOÁN</th>
-                            <th>THỜI GIAN</th>
-                            <th class="text-center">THAO TÁC</th>
+                            <th>Thời gian đặt</th>
+                            <th class="text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -239,13 +239,13 @@
                             </td>
                             <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
                                 @if($ro->status == 1)
-                                    Đã thanh toán
+                                    {{ ($ro->orderStyle == 1 || !empty($ro->table_id)) ? 'Đã thanh toán' : 'Đang vận chuyển' }}
                                 @elseif($ro->status == 2)
-                                    Hoàn tất
+                                    {{ ($ro->orderStyle == 1 || !empty($ro->table_id)) ? 'Hoàn tất' : 'Đã giao hàng' }}
                                 @elseif($ro->status == 3)
                                     Đã hủy
                                 @else
-                                    Chờ xác nhận
+                                    {{ ($ro->orderStyle == 1 || !empty($ro->table_id)) ? 'Chờ phục vụ' : 'Đang chờ xử lý' }}
                                 @endif
                             </td>
                             <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">
@@ -289,7 +289,7 @@
                     Tất cả ({{ $totalBookingsCount }})
                 </span>
                 <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors">
-                    Chờ xác nhận ({{ $totalPendingBookings }})
+                    Chờ xử lý ({{ $totalPendingBookings }})
                 </span>
                 <span class="text-[rgba(0,0,0,0.65)] hover:text-[#F47716] pb-1 cursor-pointer transition-colors">
                     Đã xác nhận ({{ $totalConfirmedBookings }})
@@ -305,12 +305,12 @@
                     <thead>
                         <tr>
                             <th>MÃ ĐẶT</th>
-                            <th>KHÁCH HÀNG</th>
-                            <th class="text-center">SỐ KHÁCH</th>
-                            <th>NGÀY & GIỜ HẸN</th>
-                            <th>NGUỒN ĐẶT</th>
+                            <th>Khách hàng</th>
+                            <th class="text-center">Số khách</th>
+                            <th>Ngày & Giờ hẹn</th>
+                            <th>Nguồn đặt</th>
                             <th>TRẠNG THÁI</th>
-                            <th class="text-center">THAO TÁC</th>
+                            <th class="text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -336,13 +336,20 @@
                                 Website
                             </td>
                             <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
-                                @if($rb->status == 2)
-                                    Đã xác nhận
-                                @elseif($rb->status == 0)
-                                    Đã hủy
-                                @else
-                                    Chờ xác nhận
-                                @endif
+                                @switch($rb->status)
+                                    @case(2)
+                                        Đã xác nhận
+                                        @break
+                                    @case(3)
+                                        Hoàn tất
+                                        @break
+                                    @case(4)
+                                    @case(0)
+                                        Đã hủy
+                                        @break
+                                    @default
+                                        Chờ xử lý
+                                @endswitch
                             </td>
                             <td class="text-center whitespace-nowrap">
                                 <a href="{{ route('admin.booking.detail', $rb->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100" title="Chi tiết đặt bàn">
@@ -440,20 +447,6 @@
                     }
                 });
             }
-
-            // Tự động làm mới khi quay lại tab Dashboard từ màn hình khác
-            let lastFocusTime = Date.now();
-            window.addEventListener('focus', function() {
-                if (Date.now() - lastFocusTime > 5000) {
-                    lastFocusTime = Date.now();
-                    window.location.reload();
-                }
-            });
-
-            // Tự động làm mới dữ liệu định kỳ mỗi 30 giây
-            setInterval(function() {
-                window.location.reload();
-            }, 30000);
         });
     </script>
 </x-layout-backend>
