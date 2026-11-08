@@ -692,7 +692,7 @@
                             <div class="leading-relaxed">
                                 <span class="text-stone-400 text-xs font-medium">Địa chỉ:</span>
                                 <a href="https://maps.google.com/?q=21.1097,105.5620" target="_blank" rel="noopener noreferrer" class="text-stone-300 hover:text-amber-400 transition-colors ml-1">
-                                    120 Phúc Hòa, Phúc Thọ, <span class="whitespace-nowrap">Hà Nội</span>
+                                    {{ $restaurantSettings['address'] ?? '120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội' }}
                                 </a>
                             </div>
                         </li>
@@ -701,8 +701,8 @@
                             <i class="fas fa-phone text-amber-500 shrink-0 text-sm"></i>
                             <div>
                                 <span class="text-stone-400 text-xs font-medium">Hotline:</span>
-                                <a href="tel:0338990538" class="text-white hover:text-amber-400 font-semibold ml-1 transition-colors">
-                                    0338 990 538
+                                <a href="tel:{{ preg_replace('/[^0-9]/', '', $restaurantSettings['hotline'] ?? '0338990538') }}" class="text-white hover:text-amber-400 font-semibold ml-1 transition-colors">
+                                    {{ $restaurantSettings['hotline'] ?? '0338 990 538' }}
                                 </a>
                             </div>
                         </li>
@@ -711,8 +711,8 @@
                             <i class="fas fa-envelope text-amber-500 shrink-0 text-sm"></i>
                             <div>
                                 <span class="text-stone-400 text-xs font-medium">Email:</span>
-                                <a href="mailto:tnguyenanh189@gmail.com" class="text-stone-300 hover:text-amber-400 ml-1 transition-colors">
-                                    tnguyenanh189@gmail.com
+                                <a href="mailto:{{ $restaurantSettings['email'] ?? 'tnguyenanh189@gmail.com' }}" class="text-stone-300 hover:text-amber-400 ml-1 transition-colors">
+                                    {{ $restaurantSettings['email'] ?? 'tnguyenanh189@gmail.com' }}
                                 </a>
                             </div>
                         </li>
@@ -721,7 +721,7 @@
                             <i class="fas fa-clock text-amber-500 shrink-0 text-sm"></i>
                             <div>
                                 <span class="text-stone-400 text-xs font-medium">Giờ mở cửa:</span>
-                                <span class="text-stone-300 ml-1">07:00 – 22:30 hàng ngày</span>
+                                <span class="text-stone-300 ml-1">{{ $restaurantSettings['opening_hours'] ?? '09:00 – 23:00 tất cả các ngày trong tuần' }}</span>
                             </div>
                         </li>
                     </ul>

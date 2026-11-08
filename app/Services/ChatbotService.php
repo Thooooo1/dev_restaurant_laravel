@@ -38,12 +38,12 @@ class ChatbotService
         'general_info' => [
             'title' => 'Tổng quan nhà hàng',
             'keywords' => ['nhà hàng civilize', 'về civilize', 'giới thiệu', 'thương hiệu', 'phong cách ẩm thực', 'sứ mệnh'],
-            'content' => 'CIVILIZE Restaurant là nhà hàng ẩm thực Việt & Á đương đại tại Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội. Tôn chỉ hoạt động luôn đặt chữ Tâm và chữ Tín lên hàng đầu, mang đến không gian ấm cúng, sang trọng cùng những món ăn tinh hoa được chế biến tỉ mỉ từ nguyên liệu tươi sạch mỗi ngày.'
+            'content' => 'CIVILIZE Restaurant là nhà hàng ẩm thực Việt & Á đương đại tại 120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội. Tôn chỉ hoạt động luôn đặt chữ Tâm và chữ Tín lên hàng đầu, mang đến không gian ấm cúng, sang trọng cùng những món ăn tinh hoa được chế biến tỉ mỉ từ nguyên liệu tươi sạch mỗi ngày.'
         ],
         'location_and_hours' => [
             'title' => 'Địa chỉ & Giờ mở cửa',
             'keywords' => ['địa chỉ', 'ở đâu', 'chỗ nào', 'vị trí', 'đường đi', 'tìm quán', 'giờ mở cửa', 'mấy giờ', 'mở cửa', 'đóng cửa', 'thời gian phục vụ'],
-            'content' => 'Nhà hàng CIVILIZE mở cửa phục vụ: 09:00 - 23:00 tất cả các ngày trong tuần (kể cả Thứ 7, Chủ Nhật và các ngày Lễ, Tết). Địa chỉ chính xác tại: Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội.'
+            'content' => 'Nhà hàng CIVILIZE mở cửa phục vụ: 09:00 – 23:00 tất cả các ngày trong tuần (kể cả Thứ 7, Chủ Nhật và các ngày Lễ, Tết). Địa chỉ chính xác tại: 120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội.'
         ],
         'hotline_and_contact' => [
             'title' => 'Hotline & Liên hệ',
@@ -112,8 +112,8 @@ class ChatbotService
     protected function syncDynamicKnowledge(): void
     {
         $hotline = $this->getSetting('hotline', '0338 990 538');
-        $address = $this->getSetting('address', 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội');
-        $hours = $this->getSetting('opening_hours', '09:00 - 23:00 tất cả các ngày trong tuần');
+        $address = $this->getSetting('address', '120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội');
+        $hours = $this->getSetting('opening_hours', '09:00 – 23:00 tất cả các ngày trong tuần');
         $freeShipThreshold = number_format((float)$this->getSetting('shipping_free_threshold', 500000), 0, ',', '.') . '₫';
         $maxKm = $this->getSetting('max_delivery_distance_km', 15);
 
@@ -954,8 +954,8 @@ class ChatbotService
 
         try {
             $hotline = $this->getSetting('hotline', '0338 990 538');
-            $address = $this->getSetting('address', 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội');
-            $hours = $this->getSetting('opening_hours', '09:00 - 23:00');
+            $address = $this->getSetting('address', '120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội');
+            $hours = $this->getSetting('opening_hours', '09:00 – 23:00 tất cả các ngày trong tuần');
 
             // Tính toán thời gian thực tế hệ thống theo múi giờ Việt Nam
             $now = Carbon::now('Asia/Ho_Chi_Minh');
@@ -1054,13 +1054,14 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             ];
 
             // Danh sách model ưu tiên tự động fallback khi gặp lỗi rate limit (429) hoặc model không tồn tại (404)
-            $configuredModel = config('services.gemini.model') ?: env('GEMINI_MODEL', 'gemini-3.5-flash');
-            $candidateModels = array_values(array_unique([
+            $configuredModel = config('services.gemini.model') ?: env('GEMINI_MODEL', 'gemini-3.5-flash-lite');
+            $candidateModels = array_values(array_unique(array_filter([
                 $configuredModel,
+                'gemini-3.5-flash-lite',
+                'gemini-2.5-flash',
                 'gemini-3.5-flash',
                 'gemini-3-flash-preview',
-                'gemini-3.1-flash-lite-preview'
-            ]));
+            ])));
 
             $headers = [
                 'Content-Type' => 'application/json',
@@ -1083,7 +1084,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 // Thử các model trong danh sách ưu tiên nếu gặp lỗi 429 hoặc 404
                 foreach ($candidateModels as $m) {
                     $url = "https://generativelanguage.googleapis.com/v1beta/models/{$m}:generateContent";
-                    $res = Http::withHeaders($headers)->timeout(6)->post($url, [
+                    $res = Http::withHeaders($headers)->timeout(12)->post($url, [
                         'systemInstruction' => [
                             'parts' => [['text' => $systemInstruction]]
                         ],

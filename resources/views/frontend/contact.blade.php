@@ -63,29 +63,29 @@
                                     <!-- Địa chỉ -->
                                     <div class="flex items-start gap-3.5">
                                         <i class="fas fa-house text-[#C25E00] text-sm mt-1 shrink-0"></i>
-                                        <span class="leading-relaxed font-medium">120 Phúc Hòa, Huyện Phúc Thọ, TP. Hà Nội</span>
+                                        <span class="leading-relaxed font-medium">{{ $restaurantSettings['address'] ?? '120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội' }}</span>
                                     </div>
 
                                     <!-- Email -->
                                     <div class="flex items-center gap-3.5">
                                         <i class="fas fa-envelope text-[#C25E00] text-sm shrink-0"></i>
-                                        <a href="mailto:civilize.ketoan@gmail.com" class="font-medium hover:text-[#C25E00] transition-colors" id="dept-email-display">
-                                            civilize.ketoan@gmail.com
+                                        <a href="mailto:{{ $restaurantSettings['email'] ?? 'tnguyenanh189@gmail.com' }}" class="font-medium hover:text-[#C25E00] transition-colors" id="dept-email-display">
+                                            {{ $restaurantSettings['email'] ?? 'tnguyenanh189@gmail.com' }}
                                         </a>
                                     </div>
 
                                     <!-- Hotline -->
                                     <div class="flex items-center gap-3.5">
                                         <i class="fas fa-phone text-[#C25E00] text-sm shrink-0"></i>
-                                        <a href="tel:0338990538" class="font-bold text-stone-900 hover:text-[#C25E00] transition-colors" id="dept-phone-display">
-                                            0338 990 538 nhánh 1
+                                        <a href="tel:{{ preg_replace('/[^0-9]/', '', $restaurantSettings['hotline'] ?? '0338990538') }}" class="font-bold text-stone-900 hover:text-[#C25E00] transition-colors" id="dept-phone-display">
+                                            {{ $restaurantSettings['hotline'] ?? '0338 990 538' }}
                                         </a>
                                     </div>
 
                                     <!-- Thời gian phục vụ -->
                                     <div class="flex items-center gap-3.5">
                                         <i class="fas fa-clock text-[#C25E00] text-sm shrink-0"></i>
-                                        <span class="font-medium text-stone-600">08:00 – 23:00 hàng ngày (kể cả Lễ, Tết)</span>
+                                        <span class="font-medium text-stone-600">{{ $restaurantSettings['opening_hours'] ?? '09:00 – 23:00 tất cả các ngày trong tuần' }}</span>
                                     </div>
                                 </div>
                             </div>
