@@ -9,13 +9,11 @@
                     </h1>
 
                     @if ($activeOrder)
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-orange-50 text-[#F47716] border border-orange-100">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[#F47716]"></span>
+                        <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
                             Đang có khách
                         </span>
                     @else
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span>
+                        <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
                             Bàn trống
                         </span>
                     @endif
@@ -84,13 +82,11 @@
                                 @php
                                     $st = $item->status;
                                     $stText = 'Chờ bếp';
-                                    $stColor = 'text-amber-600';
+                                    $stColor = 'text-[rgba(0,0,0,0.85)]';
                                     if ($st == 'cooking' || $st == '1') {
                                         $stText = 'Đang nấu';
-                                        $stColor = 'text-blue-600';
                                     } elseif ($st == 'completed' || $st == '2') {
                                         $stText = 'Đã lên bàn';
-                                        $stColor = 'text-emerald-600';
                                     }
                                     $itemAmount = $item->amount > 0 ? $item->amount : ($item->price * $item->qty);
                                 @endphp
@@ -125,7 +121,7 @@
                         <!-- Footer Tổng thanh toán -->
                         <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
                             <span class="font-bold text-base text-gray-900">Tổng thanh toán</span>
-                            <span class="text-xl font-bold text-[#C25E00] font-mono">
+                            <span class="text-xl font-bold text-gray-900 font-mono">
                                 {{ number_format($finalTotal, 0, ',', '.') }}đ
                             </span>
                         </div>

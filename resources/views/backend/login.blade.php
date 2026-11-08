@@ -42,7 +42,7 @@
             <h1 class="text-2xl sm:text-3xl font-black font-serif text-stone-900 tracking-tight">Hệ Thống Quản Trị</h1>
         </div>
 
-        <form action="{{ route('admin.dologin') }}" method="POST" class="space-y-4">
+        <form action="{{ route('admin.dologin') }}" method="POST" class="space-y-4" id="adminLoginForm">
             @csrf
             <div>
                 <input type="text" 
@@ -66,6 +66,7 @@
 
             <div class="pt-2">
                 <button type="submit" 
+                        id="adminLoginBtn"
                         class="w-full bg-[#C25E00] hover:bg-[#a85000] text-white py-3.5 px-4 rounded-xl sm:rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all cursor-pointer shadow-md hover:shadow-lg active:scale-[0.99]">
                     Đăng nhập hệ thống
                 </button>
@@ -74,27 +75,40 @@
     </div>
 
     <script>
-        // Tu dong lam moi CSRF token de ngan chan loi 419 Page Expired
         function refreshCsrfToken() {
-            fetch('{{ route("refresh-csrf") }}', {
+            return fetch('{{ route("refresh-csrf") }}', {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(res => res.json())
             .then(data => {
                 if (data && data.token) {
                     document.querySelectorAll('input[name="_token"]').forEach(el => el.value = data.token);
+                    return data.token;
                 }
             })
             .catch(() => {});
         }
 
+        // 1. Khi tab duoc phuc hoi sau khi bat may hoac back/forward cache (pageshow)
+        window.addEventListener('pageshow', function(event) {
+            refreshCsrfToken();
+        });
+
+        // 2. Khi nguoi dung chuyen ve tab hoac click vao man hinh (focus / visibilitychange)
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'visible') {
                 refreshCsrfToken();
             }
         });
         window.addEventListener('focus', refreshCsrfToken);
+
+        // 3. Heartbeat giu session luon song moi 10 phut
         setInterval(refreshCsrfToken, 10 * 60 * 1000);
+
+        // 4. Khi nguoi dung focus vao o nhap mat khau
+        document.getElementById('adminPasswordInput')?.addEventListener('focus', function() {
+            refreshCsrfToken();
+        }, { once: true });
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
     <div class="mb-4">
         <div class="flex items-center justify-between flex-wrap gap-4">
             <div>
-                <h1 class="text-xl font-bold text-slate-800">Quản lý yêu cầu</h1>
+                <h1 class="text-xl font-bold text-slate-800">Khách tư vấn</h1>
             </div>
         </div>
     </div>

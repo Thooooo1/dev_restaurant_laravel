@@ -23,12 +23,12 @@
                     </h1>
                     
                     <!-- Trạng thái đơn -->
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                    <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
                         {{ $statusConfig['label'] }}
                     </span>
 
                     <!-- Loại đơn -->
-                    <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+                    <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
                         {{ $isTableOrder ? ('Ăn tại bàn: ' . ($order->table ? $order->table->name : 'Bàn #' . $order->table_id)) : 'Đơn giao hàng' }}
                     </span>
                 </div>

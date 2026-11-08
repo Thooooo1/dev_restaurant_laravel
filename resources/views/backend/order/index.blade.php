@@ -3,7 +3,7 @@
     <!-- Page Header (Ant Design Pro Style) -->
     <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Đơn hàng Giao tận nơi & Mang đi</h1>
+            <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Đơn hàng giao</h1>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
             <a href="{{ route('admin.order.export', request()->all()) }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">

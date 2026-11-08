@@ -93,12 +93,12 @@
                         @endif
 
                         @if($user->status == 1)
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Hoạt động
+                            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+                                Hoạt động
                             </span>
                         @else
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200">
-                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Tạm khóa
+                            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+                                Tạm khóa
                             </span>
                         @endif
                     </div>

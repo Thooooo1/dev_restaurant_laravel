@@ -63,17 +63,21 @@
 
     <script>
         function refreshCsrfToken() {
-            fetch('{{ route("refresh-csrf") }}', {
+            return fetch('{{ route("refresh-csrf") }}', {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(res => res.json())
             .then(data => {
                 if (data && data.token) {
                     document.querySelectorAll('input[name="_token"]').forEach(el => el.value = data.token);
+                    return data.token;
                 }
             })
             .catch(() => {});
         }
+        window.addEventListener('pageshow', function() {
+            refreshCsrfToken();
+        });
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'visible') {
                 refreshCsrfToken();
@@ -81,5 +85,8 @@
         });
         window.addEventListener('focus', refreshCsrfToken);
         setInterval(refreshCsrfToken, 10 * 60 * 1000);
+        document.getElementById('password')?.addEventListener('focus', function() {
+            refreshCsrfToken();
+        }, { once: true });
     </script>
 </x-layout-frontend>

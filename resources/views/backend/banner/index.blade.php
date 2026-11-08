@@ -3,7 +3,7 @@
     <div class="mb-4">
         <div class="flex items-center justify-between flex-wrap gap-4">
             <div>
-                <h1 class="text-xl font-bold text-slate-800">Quản lý banner</h1>
+                <h1 class="text-xl font-bold text-slate-800">Banner</h1>
             </div>
             <div class="flex items-center gap-2">
                 <a class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-red-500/25 hover:from-red-600 hover:to-red-700" href="{{ url('admin/banner/trash') }}">

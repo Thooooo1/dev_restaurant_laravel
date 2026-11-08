@@ -9,7 +9,7 @@
     <div class="col-md-6">
         <p><strong>Khách hàng:</strong> {{ $order->customer_name }}</p>
         <p><strong>SĐT:</strong> {{ $order->customer_phone }}</p>
-        <p><strong>Tổng tiền:</strong> <span class="text-danger font-weight-bold">{{ number_format($order->orderDetails->sum('amount'), 0, ',', '.') }} VNĐ</span></p>
+        <p><strong>Tổng tiền:</strong> <span class="font-weight-bold text-dark">{{ number_format($order->orderDetails->sum('amount'), 0, ',', '.') }} VNĐ</span></p>
     </div>
 </div>
 

@@ -442,11 +442,11 @@
                         </a>
 
                         @if(Auth::user()->isAdmin())
-                            <!-- 5. Thực đơn & giá -->
+                            <!-- 5. Thực đơn & Món ăn -->
                             <a href="{{ url('admin/product/') }}" 
                                class="flex items-center gap-3 px-3 py-2 rounded text-[13.5px] transition-colors {{ request()->is('admin/product*') ? 'bg-[#FFF2E8] text-[#F47716] font-semibold' : 'text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] font-medium' }}">
                                 <i class="fa-solid fa-utensils w-4 text-center text-sm {{ request()->is('admin/product*') ? 'text-[#F47716]' : 'text-[rgba(0,0,0,0.65)]' }}"></i>
-                                <span>Thực đơn & giá</span>
+                                <span>Thực đơn & Món ăn</span>
                             </a>
 
                             <!-- 6. Quản lý nhập kho -->

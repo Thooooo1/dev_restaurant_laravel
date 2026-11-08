@@ -3,7 +3,7 @@
     <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
             <div class="flex items-center gap-2">
-                <h1 class="text-xl font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Quản Lý Bán Hàng (POS)</h1>
+                <h1 class="text-xl font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Bán hàng (POS)</h1>
             </div>
         </div>
 
@@ -36,7 +36,7 @@
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tổng số bàn</span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-medium px-2.5 py-1 rounded-md bg-gray-100 text-gray-600">
+            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
                 {{ count($floors) }} tầng
             </span>
         </div>
@@ -45,12 +45,12 @@
         <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div>
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-[#F47716]"></span>
+                    <span class="w-2 h-2 rounded-full bg-gray-400"></span>
                     Đang có khách
                 </span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['occupied'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-orange-50 text-[#F47716] border border-orange-100">
+            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
                 {{ $posStats['total'] > 0 ? round(($posStats['occupied'] / $posStats['total']) * 100) : 0 }}%
             </span>
         </div>
@@ -59,12 +59,12 @@
         <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div>
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="w-2 h-2 rounded-full bg-gray-400"></span>
                     Bàn sẵn sàng
                 </span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-100">
+            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
                 Sẵn có
             </span>
         </div>
@@ -73,9 +73,9 @@
         <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div>
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tạm tính trên bàn</span>
-                <span class="text-2xl font-black text-[#F47716] mt-0.5 block tracking-tight">{{ number_format($posStats['serving_revenue'] ?? 0) }}₫</span>
+                <span class="text-2xl font-black text-[rgba(0,0,0,0.85)] mt-0.5 block tracking-tight">{{ number_format($posStats['serving_revenue'] ?? 0) }}₫</span>
             </div>
-            <span class="text-xs font-medium px-2.5 py-1 rounded-md bg-gray-100 text-gray-600">
+            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
                 {{ $posStats['occupied'] }} đơn
             </span>
         </div>
@@ -204,19 +204,19 @@
                                     <!-- Status Pill Badge & Actions -->
                                     <div class="flex items-center gap-1.5">
                                         @if($hasNewItems)
-                                            <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-rose-100 text-rose-700 border border-rose-200 animate-pulse">
+                                            <span class="text-xs font-semibold text-[rgba(0,0,0,0.85)]">
                                                 Món mới
                                             </span>
                                         @elseif($isOccupied)
-                                            <span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-orange-50 text-[#F47716] border border-orange-100">
+                                            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
                                                 Có khách
                                             </span>
                                         @elseif($isLocked)
-                                            <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
                                                 Đã ghép
                                             </span>
                                         @else
-                                            <span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
                                                 Trống
                                             </span>
                                         @endif
@@ -283,7 +283,7 @@
                                         <!-- Bàn trống -->
                                         <div class="text-center py-3 text-xs">
                                             <span class="block text-xs text-gray-400">Sẵn sàng đón khách</span>
-                                            <span class="text-xs text-emerald-600 font-bold block mt-1">Bàn sạch</span>
+                                            <span class="text-xs text-gray-700 font-medium block mt-1">Bàn sạch</span>
                                         </div>
                                     @endif
                                 </div>

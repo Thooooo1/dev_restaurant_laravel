@@ -3,7 +3,7 @@
     <!-- Page Header (Ant Design Pro Style) -->
     <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Quản lý Đặt bàn</h1>
+            <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Đặt bàn</h1>
         </div>
         <div class="flex items-center gap-2">
             <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary ant-btn-sm">

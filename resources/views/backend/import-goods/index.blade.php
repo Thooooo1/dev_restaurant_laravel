@@ -55,7 +55,7 @@
 
         <div class="bg-white p-4 sm:p-5 rounded-xl border border-slate-200 shadow-xs">
             <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tổng Chi Phí Nhập Kho</div>
-            <div class="text-2xl font-black text-[#C25E00] mt-1">{{ number_format($totalAmount, 0, ',', '.') }}₫</div>
+            <div class="text-2xl font-black text-slate-900 mt-1">{{ number_format($totalAmount, 0, ',', '.') }}₫</div>
             <div class="text-xs text-slate-500 mt-1">tổng giá trị hàng hóa</div>
         </div>
 
@@ -170,14 +170,12 @@
                         </td>
 
                         <!-- Số lượng mặt hàng -->
-                        <td class="px-4 py-3.5 whitespace-nowrap text-center">
-                            <span class="inline-block font-bold text-xs bg-orange-100 text-[#F47716] px-2.5 py-1 rounded-full">
-                                {{ $receipt->items->count() }} mặt hàng
-                            </span>
+                        <td class="px-4 py-3.5 whitespace-nowrap text-center text-xs text-[rgba(0,0,0,0.85)] font-medium">
+                            {{ $receipt->items->count() }} mặt hàng
                         </td>
 
                         <!-- Tổng tiền -->
-                        <td class="px-4 py-3.5 whitespace-nowrap text-right font-bold text-base text-[#F47716]">
+                        <td class="px-4 py-3.5 whitespace-nowrap text-right font-semibold text-sm text-[rgba(0,0,0,0.85)] font-mono">
                             {{ number_format($receipt->total_amount, 0, ',', '.') }}₫
                         </td>
 

@@ -3,7 +3,7 @@
     <div class="bg-white border-b border-[#F0F0F0] px-6 sm:px-8 py-5 shadow-2xs">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <h1 class="text-xl font-semibold text-[rgba(0,0,0,0.85)] tracking-tight">Báo cáo Hoạt động</h1>
+                <h1 class="text-xl font-semibold text-[rgba(0,0,0,0.85)] tracking-tight">Tổng quan</h1>
             </div>
             
             <div class="flex items-center gap-3">
