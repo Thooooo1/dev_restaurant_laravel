@@ -24,6 +24,12 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
 
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        } elseif (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] == 1)) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         // Tự động chuẩn hóa dữ liệu thực đơn và sản phẩm
         try {
             \Illuminate\Support\Facades\DB::table('product')

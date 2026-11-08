@@ -344,23 +344,54 @@
         var categoryTabsSection = document.getElementById('menuCategoryTabsSection');
         var activeFilterTagsWrapper = document.getElementById('menuActiveFilterTagsWrapper');
 
+        // Hàm chuyển đổi URL tuyệt đối sang đường dẫn tương đối an toàn
+        // Tuyệt đối không bị lỗi Mixed Content (http vs https) hay CORS
+        function getSafeRelativeUrl(rawUrl) {
+            if (!rawUrl) return '';
+            try {
+                var parsed = new URL(rawUrl, window.location.origin);
+                return parsed.pathname + parsed.search;
+            } catch (e) {
+                return rawUrl;
+            }
+        }
+
         // =========================================================
-        // HÀM TẢI MƯỢT DANH SÁCH MÓN ĂN QUA AJAX (KHÔNG LOAD CẢ TRANG)
+        // HÀM TẢI MƯỢT DANH SÁCH MÓN ĂN QUA AJAX (LƯỚT SANG, KHÔNG LOAD TRANG)
         // =========================================================
-        function loadProductsAjax(targetUrl) {
+        var isAjaxLoading = false;
+
+        function loadProductsAjax(targetUrl, direction) {
             var gridWrapper = document.getElementById('menuDefaultGridWrapper');
-            if (!gridWrapper) {
-                window.location.href = targetUrl;
-                return;
+            if (!gridWrapper) return;
+
+            if (isAjaxLoading) return;
+            isAjaxLoading = true;
+
+            var safeUrl = getSafeRelativeUrl(targetUrl);
+
+            // Hiệu ứng "lướt sang" (slide transition):
+            // direction: 'next' (lướt sang trái), 'prev' (lướt sang phải), hoặc 'fade'
+            var exitTransform = 'none';
+            var enterTransform = 'none';
+            if (direction === 'next') {
+                exitTransform = 'translateX(-28px)';
+                enterTransform = 'translateX(28px)';
+            } else if (direction === 'prev') {
+                exitTransform = 'translateX(28px)';
+                enterTransform = 'translateX(-28px)';
             }
 
-            // Hiệu ứng mờ nhẹ khi chuyển món
-            gridWrapper.style.transition = 'opacity 0.2s ease';
-            gridWrapper.style.opacity = '0.35';
+            gridWrapper.style.transition = 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease';
+            gridWrapper.style.opacity = '0.2';
+            if (exitTransform !== 'none') {
+                gridWrapper.style.transform = exitTransform;
+            }
 
-            fetch(targetUrl, {
+            fetch(safeUrl, {
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html,application/xhtml+xml,application/xml'
                 }
             })
             .then(function (res) {
@@ -384,60 +415,91 @@
                     curTagsWrapper.innerHTML = newTagsWrapper.innerHTML;
                 }
 
+                // Cuộn nhẹ nhàng đến đầu danh sách món ăn nếu người dùng đang ở quá xa phía dưới
+                var rect = gridWrapper.getBoundingClientRect();
+                if (rect.top < 60) {
+                    window.scrollTo({
+                        top: window.pageYOffset + rect.top - 80,
+                        behavior: 'smooth'
+                    });
+                }
+
+                // Thiết lập vị trí bắt đầu lướt vào cho trang mới
+                gridWrapper.style.transition = 'none';
+                gridWrapper.style.opacity = '0';
+                if (enterTransform !== 'none') {
+                    gridWrapper.style.transform = enterTransform;
+                }
+
+                // Buộc trình duyệt tính toán lại layout (reflow)
+                void gridWrapper.offsetWidth;
+
+                // Lướt sang mượt mà hoàn hảo
+                gridWrapper.style.transition = 'transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.28s ease';
                 gridWrapper.style.opacity = '1';
+                gridWrapper.style.transform = 'translateX(0)';
 
                 // Cập nhật URL trên thanh địa chỉ mà không reload trang
-                window.history.pushState({}, '', targetUrl);
+                window.history.pushState({}, '', safeUrl);
 
-                // Gán lại sự kiện AJAX cho các nút phân trang mới tải về
-                attachPaginationAjax();
+                isAjaxLoading = false;
             })
             .catch(function (err) {
                 console.warn('Loi tai AJAX thuc don:', err);
+                gridWrapper.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
                 gridWrapper.style.opacity = '1';
-                window.location.href = targetUrl;
+                gridWrapper.style.transform = 'none';
+                isAjaxLoading = false;
             });
         }
 
-        // Gán sự kiện click phân trang không load lại cả trang
-        function attachPaginationAjax() {
-            var gridWrapper = document.getElementById('menuDefaultGridWrapper');
-            if (!gridWrapper) return;
-            var links = gridWrapper.querySelectorAll('nav a[href]');
-            links.forEach(function (link) {
-                link.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    var href = this.getAttribute('href');
-                    if (href) {
-                        loadProductsAjax(href);
-                        var targetCol = document.getElementById('menuProductListColumn');
-                        if (targetCol) {
-                            targetCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }
-                });
+        // Bắt sự kiện click phân trang bằng Event Delegation để 100% không bao giờ reload trang
+        document.addEventListener('click', function (e) {
+            var pageLink = e.target.closest('#menuDefaultGridWrapper nav a[href], #menuDefaultGridWrapper a[href*="page="]');
+            if (!pageLink) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var href = pageLink.getAttribute('href');
+            if (!href) return;
+
+            // Xác định hướng lướt sang: Trang trước ('prev') hay Trang sau ('next')
+            var direction = 'next';
+            var linkText = (pageLink.textContent || '').trim().toLowerCase();
+            if (linkText.includes('trước') || pageLink.querySelector('.fa-chevron-left')) {
+                direction = 'prev';
+            } else {
+                var targetPage = parseInt(linkText, 10);
+                var activePageEl = document.querySelector('#menuDefaultGridWrapper nav span.bg-stone-900, #menuDefaultGridWrapper nav span[style*="background-color"]');
+                var curPage = activePageEl ? parseInt(activePageEl.textContent.trim(), 10) : 1;
+                if (!isNaN(targetPage) && !isNaN(curPage) && targetPage < curPage) {
+                    direction = 'prev';
+                }
+            }
+
+            loadProductsAjax(href, direction);
+        });
+
+        // Bắt sự kiện click tab danh mục bằng Event Delegation
+        document.addEventListener('click', function (e) {
+            var tab = e.target.closest('.category-filter-tab');
+            if (!tab) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            var href = tab.getAttribute('href');
+            if (!href) return;
+
+            var allTabs = document.querySelectorAll('.category-filter-tab');
+            allTabs.forEach(function (t) {
+                t.className = 'category-filter-tab px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 bg-white text-stone-700 hover:text-[#F47716] hover:bg-stone-50 border border-stone-200';
             });
-        }
+            tab.className = 'category-filter-tab px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 bg-[#F47716] text-white border border-[#F47716] shadow-2xs';
 
-        // Gán sự kiện click tab danh mục không load lại cả trang
-        function attachCategoryTabsAjax() {
-            var tabs = document.querySelectorAll('.category-filter-tab');
-            tabs.forEach(function (tab) {
-                tab.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    var href = this.getAttribute('href');
-                    if (!href) return;
-
-                    // Cập nhật tab active ngay trên giao diện
-                    tabs.forEach(function (t) {
-                        t.className = 'category-filter-tab px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 bg-white text-stone-700 hover:text-[#F47716] hover:bg-stone-50 border border-stone-200';
-                    });
-                    this.className = 'category-filter-tab px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 bg-[#F47716] text-white border border-[#F47716] shadow-2xs';
-
-                    loadProductsAjax(href);
-                });
-            });
-        }
+            loadProductsAjax(href, 'fade');
+        });
 
         // Sắp xếp các thẻ món ăn tìm kiếm tức thì (khi người dùng đang gõ tìm kiếm)
         function sortLiveSearchCards(sortVal) {
@@ -689,13 +751,9 @@
                 }
                 url.searchParams.delete('page');
 
-                loadProductsAjax(url.toString());
+                loadProductsAjax(url.toString(), 'fade');
             });
         }
-
-        // Gán AJAX cho phân trang và tab danh mục
-        attachPaginationAjax();
-        attachCategoryTabsAjax();
 
         // Hỗ trợ nút Back/Forward của trình duyệt không bị giật trang
         window.addEventListener('popstate', function () {
@@ -703,7 +761,7 @@
             var u = new URL(currentUrl);
             var sortP = u.searchParams.get('sort') || 'default';
             if (sortSelect) sortSelect.value = sortP;
-            loadProductsAjax(currentUrl);
+            loadProductsAjax(currentUrl, 'fade');
         });
 
         // Khởi động nếu trên URL đã có sẵn từ khóa tìm kiếm (?search=...)
