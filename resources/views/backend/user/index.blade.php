@@ -83,7 +83,7 @@
                             <th>Email</th>
                             <th class="text-center w-24">Giới tính</th>
                             <th>Địa chỉ</th>
-                            <th class="text-center w-24">Thao tác</th>
+                            <th class="text-center w-28">Thao tác</th>
                         </tr>
                     @endif
                 </thead>
@@ -125,17 +125,23 @@
                                     @endif
                                 </td>
                                 <td class="whitespace-nowrap text-center">
-                                    <div class="flex items-center justify-center gap-1.5">
-                                        <a href="{{ route('admin.user.show', ['user' => $user->id]) }}" class="w-7 h-7 rounded border border-gray-200 hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors" title="Xem chi tiết">
-                                            <i class="fa-regular fa-eye"></i>
+                                    <div class="flex items-center justify-center gap-1">
+                                        <a href="{{ route('admin.user.show', ['user' => $user->id]) }}" 
+                                           class="text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors p-1.5 rounded flex items-center justify-center" 
+                                           title="Xem chi tiết">
+                                            <i class="fa-regular fa-eye text-xs"></i>
                                         </a>
-                                        <a href="{{ route('admin.user.edit', ['user' => $user->id]) }}" class="w-7 h-7 rounded border border-gray-200 hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors" title="Chỉnh sửa">
-                                            <i class="fa-regular fa-pen-to-square"></i>
+                                        <a href="{{ route('admin.user.edit', ['user' => $user->id]) }}" 
+                                           class="text-gray-400 hover:text-[#F47716] hover:bg-orange-50 transition-colors p-1.5 rounded flex items-center justify-center" 
+                                           title="Chỉnh sửa">
+                                            <i class="fa-regular fa-pen-to-square text-xs"></i>
                                         </a>
                                         <form action="{{ route('admin.user.delete', ['user' => $user->id]) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa?')">
                                             @csrf
-                                            <button type="submit" class="w-7 h-7 rounded border border-gray-200 hover:bg-red-50 text-gray-600 hover:text-red-600 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Xóa nhân viên">
-                                                <i class="fa-solid fa-trash"></i>
+                                            <button type="submit" 
+                                                    class="text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors p-1.5 rounded flex items-center justify-center cursor-pointer" 
+                                                    title="Xóa nhân viên">
+                                                <i class="fa-solid fa-trash-can text-xs"></i>
                                             </button>
                                         </form>
                                     </div>
@@ -172,18 +178,23 @@
                                     {{ $user->address ?: '---' }}
                                 </td>
                                 <td class="whitespace-nowrap text-center">
-                                    <div class="flex items-center justify-center gap-1.5">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <a href="{{ route('admin.user.show', ['user' => $user->id]) }}" 
+                                           class="text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors p-1.5 rounded flex items-center justify-center" 
+                                           title="Xem chi tiết">
+                                            <i class="fa-regular fa-eye text-xs"></i>
+                                        </a>
                                         <a href="{{ route('admin.user.edit', ['user' => $user->id]) }}" 
-                                           class="w-7 h-7 rounded border border-gray-200 hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors" 
+                                           class="text-gray-400 hover:text-[#F47716] hover:bg-orange-50 transition-colors p-1.5 rounded flex items-center justify-center" 
                                            title="Chỉnh sửa thông tin">
-                                            <i class="fa-regular fa-pen-to-square"></i>
+                                            <i class="fa-regular fa-pen-to-square text-xs"></i>
                                         </a>
                                         <form action="{{ route('admin.user.delete', ['user' => $user->id]) }}" method="POST" class="inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa khách hàng {{ $user->fullname }}?')">
                                             @csrf
                                             <button type="submit" 
-                                                    class="w-7 h-7 rounded border border-gray-200 hover:bg-red-50 text-gray-600 hover:text-red-600 flex items-center justify-center text-xs transition-colors cursor-pointer" 
+                                                    class="text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors p-1.5 rounded flex items-center justify-center cursor-pointer" 
                                                     title="Xóa khách hàng">
-                                                <i class="fa-solid fa-trash"></i>
+                                                <i class="fa-solid fa-trash-can text-xs"></i>
                                             </button>
                                         </form>
                                     </div>

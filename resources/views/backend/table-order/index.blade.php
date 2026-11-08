@@ -28,21 +28,21 @@
         </div>
     </div>
 
-    <!-- Stat Overview Mini Cards (Shopify Polaris / Ant Design Style) -->
+    <!-- Stat Overview Mini Cards (Shopify Polaris / Ant Design Style - Tinh gọn, không lồng khung) -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-5">
         <!-- Tổng số bàn -->
-        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
+        <div class="bg-white p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div>
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tổng số bàn</span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+            <span class="text-xs font-semibold text-gray-500">
                 {{ count($floors) }} tầng
             </span>
         </div>
 
         <!-- Đang có khách -->
-        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
+        <div class="bg-white p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div>
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-gray-400"></span>
@@ -50,13 +50,13 @@
                 </span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['occupied'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+            <span class="text-xs font-semibold text-gray-500">
                 {{ $posStats['total'] > 0 ? round(($posStats['occupied'] / $posStats['total']) * 100) : 0 }}%
             </span>
         </div>
 
         <!-- Bàn còn trống -->
-        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
+        <div class="bg-white p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div>
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-gray-400"></span>
@@ -64,37 +64,37 @@
                 </span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+            <span class="text-xs font-semibold text-gray-500">
                 Sẵn có
             </span>
         </div>
 
         <!-- Doanh thu tạm tính trên bàn -->
-        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
+        <div class="bg-white p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div>
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tạm tính trên bàn</span>
                 <span class="text-2xl font-black text-[rgba(0,0,0,0.85)] mt-0.5 block tracking-tight">{{ number_format($posStats['serving_revenue'] ?? 0) }}₫</span>
             </div>
-            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+            <span class="text-xs font-semibold text-gray-500">
                 {{ $posStats['occupied'] }} đơn
             </span>
         </div>
     </div>
 
     <!-- Filter & Floor Control Bar (Sạch sẽ, trực quan, lọc tức thì không load lại trang) -->
-    <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-3 mb-5 flex flex-wrap items-center justify-between gap-3 text-xs">
+    <div class="bg-white rounded-lg border border-gray-200 shadow-2xs p-3 mb-5 flex flex-wrap items-center justify-between gap-3 text-xs">
         <!-- Floor Tabs -->
         <div class="flex items-center gap-1.5 flex-wrap" id="floorTabGroup">
             <button type="button" 
                     onclick="filterFloor('all')" 
-                    class="floor-filter-btn px-3.5 py-1.5 rounded-lg font-bold bg-stone-900 text-white transition-all cursor-pointer shadow-2xs" 
+                    class="floor-filter-btn px-3 py-1.5 rounded-md font-bold bg-stone-900 text-white transition-all cursor-pointer shadow-2xs" 
                     data-floor="all">
                 Tất cả các tầng ({{ $posStats['total'] }})
             </button>
             @foreach($floors as $floor)
                 <button type="button" 
                         onclick="filterFloor({{ $floor->id }})" 
-                        class="floor-filter-btn px-3.5 py-1.5 rounded-lg font-medium text-gray-600 hover:text-stone-900 hover:bg-gray-100 bg-white border border-gray-200 transition-all cursor-pointer" 
+                        class="floor-filter-btn px-3 py-1.5 rounded-md font-medium text-gray-600 hover:text-stone-900 hover:bg-gray-100 bg-white border border-gray-200 transition-all cursor-pointer" 
                         data-floor="{{ $floor->id }}">
                     {{ $floor->name }} ({{ $floor->tables->count() }})
                 </button>
@@ -103,21 +103,21 @@
 
         <!-- Status Filter Buttons & Search -->
         <div class="flex items-center gap-2 flex-wrap">
-            <div class="flex items-center bg-gray-100 p-0.5 rounded-lg">
-                <button type="button" onclick="filterStatus('all')" class="status-filter-btn px-2.5 py-1 rounded-md font-bold bg-white text-gray-900 shadow-2xs transition-all cursor-pointer" data-status="all">
+            <div class="flex items-center bg-gray-100 p-0.5 rounded-md">
+                <button type="button" onclick="filterStatus('all')" class="status-filter-btn px-2.5 py-1 rounded-sm font-bold bg-white text-gray-900 shadow-2xs transition-all cursor-pointer" data-status="all">
                     Tất cả
                 </button>
-                <button type="button" onclick="filterStatus('occupied')" class="status-filter-btn px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="occupied">
+                <button type="button" onclick="filterStatus('occupied')" class="status-filter-btn px-2.5 py-1 rounded-sm font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="occupied">
                     Có khách ({{ $posStats['occupied'] }})
                 </button>
-                <button type="button" onclick="filterStatus('empty')" class="status-filter-btn px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="empty">
+                <button type="button" onclick="filterStatus('empty')" class="status-filter-btn px-2.5 py-1 rounded-sm font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="empty">
                     Bàn trống ({{ $posStats['empty'] }})
                 </button>
             </div>
 
             <!-- Quick Table Search -->
             <input type="text" id="tableSearchInput" oninput="searchTables(this.value)" placeholder="Tìm tên bàn..." 
-                   class="px-3 py-1.5 rounded-lg border border-gray-200 focus:outline-none focus:border-[#F47716] text-xs bg-gray-50 focus:bg-white transition-colors w-36 sm:w-44">
+                   class="px-3 py-1.5 rounded-md border border-gray-200 focus:outline-none focus:border-[#F47716] text-xs bg-gray-50 focus:bg-white transition-colors w-36 sm:w-44">
         </div>
     </div>
 
@@ -127,9 +127,9 @@
             <div class="floor-section" data-floor-id="{{ $floor->id }}">
                 <!-- Floor Title Bar -->
                 <div class="flex items-center justify-between pb-2.5 mb-4 border-b border-gray-200">
-                    <div class="flex items-center gap-2.5">
-                        <h2 class="text-base font-black text-stone-900 uppercase tracking-wider">{{ $floor->name }}</h2>
-                        <span class="text-xs text-stone-500 font-bold bg-stone-100 px-2.5 py-0.5 rounded-full border border-stone-200">({{ $floor->tables->count() }} bàn)</span>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-base font-bold text-stone-900 uppercase tracking-wider">{{ $floor->name }}</h2>
+                        <span class="text-xs text-stone-400 font-medium">({{ $floor->tables->count() }} bàn)</span>
                     </div>
 
                     <div class="text-xs text-stone-500 font-medium">
@@ -175,48 +175,48 @@
                              data-status="{{ $isOccupied ? 'occupied' : 'empty' }}"
                              data-is-locked="{{ $isLocked ? 'true' : 'false' }}">
                              
-                            <!-- THẺ BÀN ĂN: Thiết kế chuẩn POS hiện đại, rộng rãi, lớn, dễ thao tác -->
-                            <div class="bg-white rounded-2xl border transition-all duration-200 flex flex-col justify-between min-h-[220px] relative overflow-hidden shadow-xs hover:shadow-lg hover:-translate-y-0.5
-                                @if($hasNewItems) border-rose-400 ring-2 ring-rose-300
+                            <!-- THẺ BÀN ĂN: Thiết kế chuẩn POS hiện đại, thanh thoát, không lồng ô bo viền -->
+                            <div class="bg-white rounded-lg border transition-all duration-200 flex flex-col justify-between min-h-[210px] relative overflow-hidden shadow-2xs hover:shadow-md hover:-translate-y-0.5
+                                @if($hasNewItems) border-rose-400 ring-1 ring-rose-300
                                 @elseif($isOccupied) border-orange-200 bg-orange-50/10
                                 @elseif($isLocked) border-indigo-200 bg-indigo-50/10
                                 @else border-gray-200 hover:border-gray-300 @endif">
 
                                 <!-- Top Color Accent Strip -->
-                                <div class="h-2 w-full 
+                                <div class="h-1.5 w-full 
                                     @if($hasNewItems) bg-rose-500 animate-pulse
                                     @elseif($isOccupied) bg-[#F47716]
                                     @elseif($isLocked) bg-indigo-500
                                     @else bg-emerald-500 @endif">
                                 </div>
 
-                                <!-- Header Thẻ Bàn: Tên bàn to rõ, số ghế và nhãn trạng thái -->
+                                <!-- Header Thẻ Bàn: Tên bàn to rõ, số ghế và nhãn trạng thái tinh gọn -->
                                 <div class="p-4 pb-3 border-b border-gray-100 flex items-start justify-between">
                                     <div>
                                         <h3 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight leading-tight">
                                             {{ $table->name }}
                                         </h3>
-                                        <span class="text-xs text-gray-500 font-medium block mt-1 whitespace-nowrap">
+                                        <span class="text-xs text-gray-400 font-medium block mt-1 whitespace-nowrap">
                                             {{ $totalSeats }} chỗ ngồi
                                         </span>
                                     </div>
 
-                                    <!-- Status Pill Badge & Actions -->
-                                    <div class="flex items-center gap-1.5">
+                                    <!-- Status Text & Actions (Thanh lịch, không lồng khung) -->
+                                    <div class="flex items-center gap-2">
                                         @if($hasNewItems)
-                                            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+                                            <span class="text-xs font-bold text-rose-600">
                                                 Món mới
                                             </span>
                                         @elseif($isOccupied)
-                                            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+                                            <span class="text-xs font-semibold text-gray-700">
                                                 Có khách
                                             </span>
                                         @elseif($isLocked)
-                                            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+                                            <span class="text-xs font-medium text-gray-500">
                                                 Đã ghép
                                             </span>
                                         @else
-                                            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+                                            <span class="text-xs font-normal text-gray-400">
                                                 Trống
                                             </span>
                                         @endif
