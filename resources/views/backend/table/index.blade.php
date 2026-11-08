@@ -4,7 +4,7 @@
     <div class="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
             <div class="flex items-center gap-2">
-                <h1 class="text-xl font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Quản lý Bàn & Phòng</h1>
+                <h1 class="text-xl font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Quản lý bàn ăn</h1>
             </div>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
@@ -28,7 +28,7 @@
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tổng số bàn</span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+            <span class="text-xs font-semibold text-gray-900" style="color: #111827 !important;">
                 {{ count($floors) }} tầng
             </span>
         </div>

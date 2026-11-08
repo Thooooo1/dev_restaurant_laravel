@@ -91,25 +91,28 @@
                 
                 {{-- Previous Page Link --}}
                 @if ($posts->onFirstPage())
-                    <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-stone-100 rounded-none sm:rounded-sm border border-stone-200 cursor-not-allowed">
-                        <i class="fas fa-chevron-left mr-1"></i> Trước
+                    <span class="px-3.5 py-2 text-xs font-bold text-stone-400 bg-stone-100 rounded-none sm:rounded-sm border border-stone-200 cursor-not-allowed" style="color: #9ca3af !important;">
+                        <i class="fas fa-chevron-left mr-1" style="color: #9ca3af !important;"></i> Trước
                     </span>
                 @else
                     <a href="{{ $posts->previousPageUrl() }}" 
-                       class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-50 hover:text-[#F47716] border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs">
-                        <i class="fas fa-chevron-left mr-1"></i> Trước
+                       class="px-3.5 py-2 text-xs font-bold text-stone-900 bg-white hover:bg-stone-100 border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs"
+                       style="color: #111827 !important; text-decoration: none;">
+                        <i class="fas fa-chevron-left mr-1" style="color: #111827 !important;"></i> Trước
                     </a>
                 @endif
 
                 {{-- Pagination Elements --}}
                 @foreach ($posts->getUrlRange(1, $posts->lastPage()) as $page => $url)
                     @if ($page == $posts->currentPage())
-                        <span class="w-9 h-9 flex items-center justify-center text-xs font-black bg-[#F47716] text-white rounded-none sm:rounded-sm shadow-2xs">
+                        <span class="w-9 h-9 flex items-center justify-center text-xs font-black bg-stone-900 text-white rounded-none sm:rounded-sm shadow-2xs"
+                              style="color: #ffffff !important; background-color: #111827 !important;">
                             {{ $page }}
                         </span>
                     @else
                         <a href="{{ $url }}" 
-                           class="w-9 h-9 flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-50 hover:text-[#F47716] border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs">
+                           class="w-9 h-9 flex items-center justify-center text-xs font-bold text-stone-900 bg-white hover:bg-stone-100 border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs"
+                           style="color: #111827 !important; text-decoration: none;">
                             {{ $page }}
                         </a>
                     @endif
@@ -118,12 +121,13 @@
                 {{-- Next Page Link --}}
                 @if ($posts->hasMorePages())
                     <a href="{{ $posts->nextPageUrl() }}" 
-                       class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-50 hover:text-[#F47716] border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs">
-                        Sau <i class="fas fa-chevron-right ml-1"></i>
+                       class="px-3.5 py-2 text-xs font-bold text-stone-900 bg-white hover:bg-stone-100 border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs"
+                       style="color: #111827 !important; text-decoration: none;">
+                        Sau <i class="fas fa-chevron-right ml-1" style="color: #111827 !important;"></i>
                     </a>
                 @else
-                    <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-stone-100 rounded-none sm:rounded-sm border border-stone-200 cursor-not-allowed">
-                        Sau <i class="fas fa-chevron-right ml-1"></i>
+                    <span class="px-3.5 py-2 text-xs font-bold text-stone-400 bg-stone-100 rounded-none sm:rounded-sm border border-stone-200 cursor-not-allowed" style="color: #9ca3af !important;">
+                        Sau <i class="fas fa-chevron-right ml-1" style="color: #9ca3af !important;"></i>
                     </span>
                 @endif
             </nav>

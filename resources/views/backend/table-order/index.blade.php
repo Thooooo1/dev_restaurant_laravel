@@ -36,7 +36,7 @@
                 <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tổng số bàn</span>
                 <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-medium text-[rgba(0,0,0,0.85)]">
+            <span class="text-xs font-semibold text-gray-900" style="color: #111827 !important;">
                 {{ count($floors) }} tầng
             </span>
         </div>

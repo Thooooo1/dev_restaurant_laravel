@@ -84,30 +84,33 @@
     <div class="flex justify-center items-center mt-10">
         <div class="flex items-center gap-1.5">
             @if ($products->onFirstPage())
-                <button class="px-3.5 py-2 bg-stone-100 text-stone-400 rounded-none sm:rounded-sm text-xs font-bold uppercase tracking-wider cursor-not-allowed" disabled>
+                <button class="px-3.5 py-2 bg-stone-100 text-stone-400 rounded-none sm:rounded-sm text-xs font-bold uppercase tracking-wider cursor-not-allowed" style="color: #9ca3af !important;" disabled>
                     Trước
                 </button>
             @else
                 <a href="{{ $products->previousPageUrl() }}&brand={{ request()->brand ?? 'all' }}&category={{ request()->category ?? 'all' }}&sort={{ request()->sort ?? 'default' }}"
-                    class="px-3.5 py-2 bg-white border border-stone-200 hover:border-[#C25E00] text-stone-700 hover:text-[#C25E00] rounded-none sm:rounded-sm text-xs font-bold uppercase tracking-wider transition-colors">
+                    class="px-3.5 py-2 bg-white border border-stone-200 hover:bg-stone-100 text-stone-900 rounded-none sm:rounded-sm text-xs font-bold uppercase tracking-wider transition-colors"
+                    style="color: #111827 !important; text-decoration: none;">
                     Trước
                 </a>
             @endif
 
             @foreach ($products->getUrlRange(1, $products->lastPage()) as $page => $url)
                 <a href="{{ $url }}&brand={{ request()->brand ?? 'all' }}&category={{ request()->category ?? 'all' }}&sort={{ request()->sort ?? 'default' }}"
-                    class="w-9 h-9 flex items-center justify-center text-xs font-bold {{ $products->currentPage() == $page ? 'bg-[#C25E00] text-white shadow-xs' : 'bg-white border border-stone-200 text-stone-700 hover:border-[#C25E00] hover:text-[#C25E00]' }} rounded-none sm:rounded-sm transition-colors">
+                    class="w-9 h-9 flex items-center justify-center text-xs font-bold {{ $products->currentPage() == $page ? 'bg-stone-900 text-white shadow-xs' : 'bg-white border border-stone-200 text-stone-900 hover:bg-stone-100' }} rounded-none sm:rounded-sm transition-colors"
+                    style="{{ $products->currentPage() == $page ? 'color: #ffffff !important; background-color: #111827 !important; border-color: #111827 !important;' : 'color: #111827 !important;' }} text-decoration: none;">
                     {{ $page }}
                 </a>
             @endforeach
 
             @if ($products->hasMorePages())
                 <a href="{{ $products->nextPageUrl() }}&brand={{ request()->brand ?? 'all' }}&category={{ request()->category ?? 'all' }}&sort={{ request()->sort ?? 'default' }}"
-                    class="px-3.5 py-2 bg-white border border-stone-200 hover:border-[#C25E00] text-stone-700 hover:text-[#C25E00] rounded-none sm:rounded-sm text-xs font-bold uppercase tracking-wider transition-colors">
+                    class="px-3.5 py-2 bg-white border border-stone-200 hover:bg-stone-100 text-stone-900 rounded-none sm:rounded-sm text-xs font-bold uppercase tracking-wider transition-colors"
+                    style="color: #111827 !important; text-decoration: none;">
                     Sau
                 </a>
             @else
-                <button class="px-3.5 py-2 bg-stone-100 text-stone-400 rounded-none sm:rounded-sm text-xs font-bold uppercase tracking-wider cursor-not-allowed" disabled>
+                <button class="px-3.5 py-2 bg-stone-100 text-stone-400 rounded-none sm:rounded-sm text-xs font-bold uppercase tracking-wider cursor-not-allowed" style="color: #9ca3af !important;" disabled>
                     Sau
                 </button>
             @endif

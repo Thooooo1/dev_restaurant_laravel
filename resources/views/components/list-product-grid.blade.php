@@ -287,14 +287,15 @@
             
             {{-- Nút Trang Trước --}}
             @if ($products->onFirstPage())
-                <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-white rounded-md border border-stone-200 cursor-not-allowed inline-flex items-center gap-1">
-                    <i class="fas fa-chevron-left text-[10px]"></i>
+                <span class="px-3.5 py-2 text-xs font-bold text-stone-400 bg-white rounded-md border border-stone-200 cursor-not-allowed inline-flex items-center gap-1" style="color: #9ca3af !important;">
+                    <i class="fas fa-chevron-left text-[10px]" style="color: #9ca3af !important;"></i>
                     <span>Trước</span>
                 </span>
             @else
                 <a href="{{ $products->previousPageUrl() }}" 
-                   class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer">
-                    <i class="fas fa-chevron-left text-[10px]"></i>
+                   class="px-3.5 py-2 text-xs font-bold text-stone-900 bg-white hover:bg-stone-100 border border-stone-200 rounded-md transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer"
+                   style="color: #111827 !important; text-decoration: none;">
+                    <i class="fas fa-chevron-left text-[10px]" style="color: #111827 !important;"></i>
                     <span>Trước</span>
                 </a>
             @endif
@@ -314,22 +315,25 @@
 
             @if ($startPage > 1)
                 <a href="{{ $products->url(1) }}" 
-                   class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs">
+                   class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-900 bg-white hover:bg-stone-100 border border-stone-200 rounded-md transition-colors shadow-2xs"
+                   style="color: #111827 !important; text-decoration: none;">
                     1
                 </a>
                 @if ($startPage > 2)
-                    <span class="w-6 text-center text-stone-400 text-xs font-bold select-none">...</span>
+                    <span class="w-6 text-center text-stone-400 text-xs font-bold select-none" style="color: #9ca3af !important;">...</span>
                 @endif
             @endif
 
             @for ($p = $startPage; $p <= $endPage; $p++)
                 @if ($p == $products->currentPage())
-                    <span class="w-9 h-9 inline-flex items-center justify-center text-xs font-black bg-stone-900 text-amber-400 border border-stone-800 rounded-md shadow-xs">
+                    <span class="w-9 h-9 inline-flex items-center justify-center text-xs font-black bg-stone-900 text-white border border-stone-900 rounded-md shadow-xs"
+                          style="color: #ffffff !important; background-color: #111827 !important; border-color: #111827 !important;">
                         {{ $p }}
                     </span>
                 @else
                     <a href="{{ $products->url($p) }}" 
-                       class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs">
+                       class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-900 bg-white hover:bg-stone-100 border border-stone-200 rounded-md transition-colors shadow-2xs"
+                       style="color: #111827 !important; text-decoration: none;">
                         {{ $p }}
                     </a>
                 @endif
@@ -337,10 +341,11 @@
 
             @if ($endPage < $products->lastPage())
                 @if ($endPage < $products->lastPage() - 1)
-                    <span class="w-6 text-center text-stone-400 text-xs font-bold select-none">...</span>
+                    <span class="w-6 text-center text-stone-400 text-xs font-bold select-none" style="color: #9ca3af !important;">...</span>
                 @endif
                 <a href="{{ $products->url($products->lastPage()) }}" 
-                   class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs">
+                   class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-900 bg-white hover:bg-stone-100 border border-stone-200 rounded-md transition-colors shadow-2xs"
+                   style="color: #111827 !important; text-decoration: none;">
                     {{ $products->lastPage() }}
                 </a>
             @endif
@@ -348,14 +353,15 @@
             {{-- Nút Trang Sau --}}
             @if ($products->hasMorePages())
                 <a href="{{ $products->nextPageUrl() }}" 
-                   class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer">
+                   class="px-3.5 py-2 text-xs font-bold text-stone-900 bg-white hover:bg-stone-100 border border-stone-200 rounded-md transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer"
+                   style="color: #111827 !important; text-decoration: none;">
                     <span>Sau</span>
-                    <i class="fas fa-chevron-right text-[10px]"></i>
+                    <i class="fas fa-chevron-right text-[10px]" style="color: #111827 !important;"></i>
                 </a>
             @else
-                <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-white rounded-md border border-stone-200 cursor-not-allowed inline-flex items-center gap-1">
+                <span class="px-3.5 py-2 text-xs font-bold text-stone-400 bg-white rounded-md border border-stone-200 cursor-not-allowed inline-flex items-center gap-1" style="color: #9ca3af !important;">
                     <span>Sau</span>
-                    <i class="fas fa-chevron-right text-[10px]"></i>
+                    <i class="fas fa-chevron-right text-[10px]" style="color: #9ca3af !important;"></i>
                 </span>
             @endif
 
