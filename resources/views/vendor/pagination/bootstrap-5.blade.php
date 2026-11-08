@@ -1,15 +1,15 @@
 @if ($paginator->hasPages())
     <nav role="navigation" aria-label="Pagination Navigation" class="flex items-center justify-center my-4">
-        <div class="inline-flex items-center gap-1.5 flex-wrap justify-center bg-stone-50 p-2 rounded-none sm:rounded-sm border border-stone-200 shadow-2xs">
+        <div class="inline-flex items-center gap-1.5 flex-wrap justify-center bg-stone-50 p-2 rounded-lg border border-stone-200 shadow-2xs">
             
             {{-- Previous Page Link --}}
             @if ($paginator->onFirstPage())
-                <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-white rounded-none sm:rounded-sm border border-stone-200 cursor-not-allowed inline-flex items-center gap-1">
+                <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-white rounded-md border border-stone-200 cursor-not-allowed inline-flex items-center gap-1">
                     <i class="fas fa-chevron-left text-[10px]"></i>
                     <span>Trước</span>
                 </span>
             @else
-                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-[#F47716] hover:text-white border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer">
+                <a href="{{ $paginator->previousPageUrl() }}" rel="prev" class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer">
                     <i class="fas fa-chevron-left text-[10px]"></i>
                     <span>Trước</span>
                 </a>
@@ -26,11 +26,11 @@
                 @if (is_array($element))
                     @foreach ($element as $page => $url)
                         @if ($page == $paginator->currentPage())
-                            <span class="w-9 h-9 inline-flex items-center justify-center text-xs font-black bg-[#F47716] text-white rounded-none sm:rounded-sm shadow-2xs">
+                            <span class="w-9 h-9 inline-flex items-center justify-center text-xs font-black bg-stone-900 text-amber-400 border border-stone-800 rounded-md shadow-xs">
                                 {{ $page }}
                             </span>
                         @else
-                            <a href="{{ $url }}" class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-100 hover:text-[#F47716] border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs">
+                            <a href="{{ $url }}" class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs">
                                 {{ $page }}
                             </a>
                         @endif
@@ -40,12 +40,12 @@
 
             {{-- Next Page Link --}}
             @if ($paginator->hasMorePages())
-                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-[#F47716] hover:text-white border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer">
+                <a href="{{ $paginator->nextPageUrl() }}" rel="next" class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer">
                     <span>Sau</span>
                     <i class="fas fa-chevron-right text-[10px]"></i>
                 </a>
             @else
-                <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-white rounded-none sm:rounded-sm border border-stone-200 cursor-not-allowed inline-flex items-center gap-1">
+                <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-white rounded-md border border-stone-200 cursor-not-allowed inline-flex items-center gap-1">
                     <span>Sau</span>
                     <i class="fas fa-chevron-right text-[10px]"></i>
                 </span>

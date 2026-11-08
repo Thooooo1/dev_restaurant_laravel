@@ -64,6 +64,17 @@ class ListFilterGrid extends Component
         $productCount = $productQuery->count();
         $totalAllProducts = Product::where('status', 1)->count();
         $viewMode = request()->get('view', 'grid');
+
+        $allProducts = Product::where('product.status', 1)
+            ->join('category', 'product.category_id', '=', 'category.id')
+            ->where('category.status', 1)
+            ->select('product.*', 'category.name as category_name')
+            ->with(['category', 'brand'])
+            ->withCount('reviews')
+            ->orderBy('category.sort_order', 'asc')
+            ->orderBy('product.new_p', 'desc')
+            ->orderBy('product.id', 'asc')
+            ->get();
         
         return view('components.list-filter-grid', compact(
             'brands', 
@@ -72,7 +83,8 @@ class ListFilterGrid extends Component
             'branditem', 
             'productCount',
             'totalAllProducts',
-            'viewMode'
+            'viewMode',
+            'allProducts'
         ));
     }
 }

@@ -59,6 +59,7 @@ Route::get('/', [TrangchuController::class, 'index'])->name('site.home');
 Route::get('/thuc-don', [SanPhamController::class, 'index'])->name('site.product');
 Route::get('/danh-sach', [SanPhamController::class, 'product_gridview'])->name('site.product.gridview');
 Route::get('/chi-tiet-san-pham/{slug}', [SanPhamController::class, 'product_detail'])->name('site.product.detail');
+Route::get('/tim-kiem-nhanh', [SanPhamController::class, 'quickSearch'])->name('site.product.quick_search');
 
 // Blog
 Route::get('/bai-viet', [BaivietController::class, 'index'])->name('site.blog');

@@ -283,23 +283,23 @@
 <!-- Phân trang Thực đơn: Đồng bộ thanh lịch, góc sắc nét, không bị vỡ giao diện -->
 @if ($products->hasPages())
     <div class="flex justify-center items-center mt-10 mb-6">
-        <nav class="inline-flex items-center gap-1.5 flex-wrap justify-center bg-stone-50 p-2 rounded-none sm:rounded-sm border border-stone-200 shadow-2xs">
+        <nav class="inline-flex items-center gap-1.5 flex-wrap justify-center bg-stone-50 p-2 rounded-lg border border-stone-200 shadow-2xs">
             
             {{-- Nút Trang Trước --}}
             @if ($products->onFirstPage())
-                <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-white rounded-none sm:rounded-sm border border-stone-200 cursor-not-allowed inline-flex items-center gap-1">
+                <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-white rounded-md border border-stone-200 cursor-not-allowed inline-flex items-center gap-1">
                     <i class="fas fa-chevron-left text-[10px]"></i>
                     <span>Trước</span>
                 </span>
             @else
                 <a href="{{ $products->previousPageUrl() }}" 
-                   class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-[#F47716] hover:text-white border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer">
+                   class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer">
                     <i class="fas fa-chevron-left text-[10px]"></i>
                     <span>Trước</span>
                 </a>
             @endif
 
-            {{-- Các số trang (Hiển thị thông minh) --}}
+            {{-- Các số trang (Hiển thị 2 số trang 1 và 2 đơn giản, thanh lịch) --}}
             @php
                 $startPage = max(1, $products->currentPage() - 2);
                 $endPage = min($products->lastPage(), $products->currentPage() + 2);
@@ -314,7 +314,7 @@
 
             @if ($startPage > 1)
                 <a href="{{ $products->url(1) }}" 
-                   class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-100 hover:text-[#F47716] border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs">
+                   class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs">
                     1
                 </a>
                 @if ($startPage > 2)
@@ -324,12 +324,12 @@
 
             @for ($p = $startPage; $p <= $endPage; $p++)
                 @if ($p == $products->currentPage())
-                    <span class="w-9 h-9 inline-flex items-center justify-center text-xs font-black bg-[#F47716] text-white rounded-none sm:rounded-sm shadow-2xs">
+                    <span class="w-9 h-9 inline-flex items-center justify-center text-xs font-black bg-stone-900 text-amber-400 border border-stone-800 rounded-md shadow-xs">
                         {{ $p }}
                     </span>
                 @else
                     <a href="{{ $products->url($p) }}" 
-                       class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-100 hover:text-[#F47716] border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs">
+                       class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs">
                         {{ $p }}
                     </a>
                 @endif
@@ -340,7 +340,7 @@
                     <span class="w-6 text-center text-stone-400 text-xs font-bold select-none">...</span>
                 @endif
                 <a href="{{ $products->url($products->lastPage()) }}" 
-                   class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-100 hover:text-[#F47716] border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs">
+                   class="w-9 h-9 inline-flex items-center justify-center text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs">
                     {{ $products->lastPage() }}
                 </a>
             @endif
@@ -348,12 +348,12 @@
             {{-- Nút Trang Sau --}}
             @if ($products->hasMorePages())
                 <a href="{{ $products->nextPageUrl() }}" 
-                   class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-[#F47716] hover:text-white border border-stone-200 rounded-none sm:rounded-sm transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer">
+                   class="px-3.5 py-2 text-xs font-bold text-stone-700 bg-white hover:bg-stone-900 hover:text-amber-400 border border-stone-200 rounded-md transition-colors shadow-2xs inline-flex items-center gap-1 cursor-pointer">
                     <span>Sau</span>
                     <i class="fas fa-chevron-right text-[10px]"></i>
                 </a>
             @else
-                <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-white rounded-none sm:rounded-sm border border-stone-200 cursor-not-allowed inline-flex items-center gap-1">
+                <span class="px-3.5 py-2 text-xs font-bold text-stone-300 bg-white rounded-md border border-stone-200 cursor-not-allowed inline-flex items-center gap-1">
                     <span>Sau</span>
                     <i class="fas fa-chevron-right text-[10px]"></i>
                 </span>
