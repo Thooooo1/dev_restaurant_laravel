@@ -1,53 +1,51 @@
-<x-layout-backend :no-padding="true">
-    <!-- Ant Design Pro PageContainer Header (Thanh tiêu đề trang chuẩn pro.ant.design) -->
-    <div class="bg-white border-b border-[#F0F0F0] px-6 sm:px-8 py-5 shadow-2xs">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <h1 class="text-xl font-semibold text-[rgba(0,0,0,0.85)] tracking-tight">Tổng quan</h1>
-            </div>
-            
-            <div class="flex items-center gap-3">
-                <!-- Ant Design Segmented Control (Radio Button style) -->
-                <div class="ant-segmented">
-                    <a href="{{ route('admin.dashboard', ['type' => 'today']) }}" 
-                       class="ant-segmented-item {{ $type === 'today' ? 'ant-segmented-item-active' : '' }}">
-                        Hôm nay
-                    </a>
-                    <a href="{{ route('admin.dashboard', ['type' => '7day']) }}" 
-                       class="ant-segmented-item {{ $type === '7day' ? 'ant-segmented-item-active' : '' }}">
-                        7 ngày qua
-                    </a>
-                    <a href="{{ route('admin.dashboard', ['type' => '30day']) }}" 
-                       class="ant-segmented-item {{ $type === '30day' ? 'ant-segmented-item-active' : '' }}">
-                        30 ngày qua
-                    </a>
-                    <a href="{{ route('admin.dashboard', ['type' => '12month']) }}" 
-                       class="ant-segmented-item {{ $type === '12month' ? 'ant-segmented-item-active' : '' }}">
-                        12 tháng qua
-                    </a>
-                </div>
-
-                <button type="button" onclick="window.location.reload()" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50" title="Tải lại số liệu mới nhất">
-                    <span>Làm mới</span>
-                </button>
-                <a href="{{ route('admin.order-history.export') }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
-                    <span>Xuất Excel doanh thu</span>
+<x-layout-backend>
+    <!-- Page Header (Đồng bộ font & cấu trúc chuẩn 100% như các trang khác) -->
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Tổng quan</h1>
+        </div>
+        
+        <div class="flex items-center gap-2 flex-wrap">
+            <!-- Ant Design Segmented Control (Radio Button style) -->
+            <div class="ant-segmented">
+                <a href="{{ route('admin.dashboard', ['type' => 'today']) }}" 
+                   class="ant-segmented-item {{ $type === 'today' ? 'ant-segmented-item-active' : '' }}">
+                    Hôm nay
                 </a>
-                <a href="{{ route('admin.dashboard.exportBestSelling', ['type' => $type ?? 'today']) }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
-                    <span>Xuất Excel món bán chạy</span>
+                <a href="{{ route('admin.dashboard', ['type' => '7day']) }}" 
+                   class="ant-segmented-item {{ $type === '7day' ? 'ant-segmented-item-active' : '' }}">
+                    7 ngày qua
                 </a>
-
-                <!-- Ant Design Primary Button: + Tạo đơn mới -->
-                <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider">
-                    <span>+ Tạo đơn mới</span>
+                <a href="{{ route('admin.dashboard', ['type' => '30day']) }}" 
+                   class="ant-segmented-item {{ $type === '30day' ? 'ant-segmented-item-active' : '' }}">
+                    30 ngày qua
+                </a>
+                <a href="{{ route('admin.dashboard', ['type' => '12month']) }}" 
+                   class="ant-segmented-item {{ $type === '12month' ? 'ant-segmented-item-active' : '' }}">
+                    12 tháng qua
                 </a>
             </div>
+
+            <button type="button" onclick="window.location.reload()" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50" title="Tải lại số liệu mới nhất">
+                <span>Làm mới</span>
+            </button>
+            <a href="{{ route('admin.order-history.export') }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                <span>Xuất Excel doanh thu</span>
+            </a>
+            <a href="{{ route('admin.dashboard.exportBestSelling', ['type' => $type ?? 'today']) }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                <span>Xuất Excel món bán chạy</span>
+            </a>
+
+            <!-- Ant Design Primary Button: + Tạo đơn mới -->
+            <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider">
+                <span>+ Tạo đơn mới</span>
+            </a>
         </div>
     </div>
 
-    <!-- Ant Design Pro Page Content Canvas (Nền #F0F2F5, padding 24px - 32px rộng rãi) -->
-    <div class="p-6 sm:p-8 space-y-6">
-        <!-- 4 Ant Design Pro Statistic Cards (ProCard / StatisticCard) -->
+    <!-- Main Content Canvas -->
+    <div class="space-y-6">
+        <!-- 4 Ant Design Pro Statistic Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- CARD 1: DOANH THU -->
             <div class="ant-card p-5">
@@ -63,7 +61,7 @@
                         </span>
                     @endif
                 </div>
-                <div class="text-[28px] font-semibold text-[rgba(0,0,0,0.85)] tracking-tight font-mono leading-tight my-1">
+                <div class="text-[28px] font-bold text-[rgba(0,0,0,0.85)] tracking-tight leading-tight my-1">
                     {{ number_format($revenue, 0, ',', '.') }}
                     <span class="text-sm font-normal text-[rgba(0,0,0,0.45)] ml-0.5">₫</span>
                 </div>
@@ -88,7 +86,7 @@
                         </span>
                     @endif
                 </div>
-                <div class="text-[28px] font-semibold text-[rgba(0,0,0,0.85)] tracking-tight font-mono leading-tight my-1">
+                <div class="text-[28px] font-bold text-[rgba(0,0,0,0.85)] tracking-tight leading-tight my-1">
                     {{ number_format($orderCount) }}
                     <span class="text-sm font-normal text-[rgba(0,0,0,0.45)] ml-0.5">đơn</span>
                 </div>
@@ -113,7 +111,7 @@
                         </span>
                     @endif
                 </div>
-                <div class="text-[28px] font-semibold text-[rgba(0,0,0,0.85)] tracking-tight font-mono leading-tight my-1">
+                <div class="text-[28px] font-bold text-[rgba(0,0,0,0.85)] tracking-tight leading-tight my-1">
                     {{ number_format($avgOrderValue, 0, ',', '.') }}
                     <span class="text-sm font-normal text-[rgba(0,0,0,0.45)] ml-0.5">₫</span>
                 </div>
@@ -138,7 +136,7 @@
                         </span>
                     @endif
                 </div>
-                <div class="text-[28px] font-semibold text-[rgba(0,0,0,0.85)] tracking-tight font-mono leading-tight my-1">
+                <div class="text-[28px] font-bold text-[rgba(0,0,0,0.85)] tracking-tight leading-tight my-1">
                     {{ number_format($bookingsCount) }}
                     <span class="text-sm font-normal text-[rgba(0,0,0,0.45)] ml-0.5">lượt</span>
                 </div>
@@ -220,13 +218,13 @@
                     <tbody>
                         @forelse($recentOrders as $ro)
                         <tr>
-                            <td class="font-mono font-medium text-[rgba(0,0,0,0.85)] whitespace-nowrap text-xs">
+                            <td class="font-semibold text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap">
                                 #{{ $ro->id }}
                             </td>
                             <td class="whitespace-nowrap">
                                 <div>
-                                    <div class="font-medium text-xs text-[rgba(0,0,0,0.85)]">{{ $ro->customer_name }}</div>
-                                    <div class="text-[11px] text-[rgba(0,0,0,0.45)]">{{ $ro->customer_phone }}</div>
+                                    <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $ro->customer_name }}</div>
+                                    <div class="text-xs text-[rgba(0,0,0,0.45)]">{{ $ro->customer_phone }}</div>
                                 </div>
                             </td>
                             <td class="text-xs text-[rgba(0,0,0,0.65)] whitespace-nowrap">
@@ -236,7 +234,7 @@
                                     <span>Giao hàng tận nơi</span>
                                 @endif
                             </td>
-                            <td class="text-right font-semibold text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap font-mono">
+                            <td class="text-right font-semibold text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap">
                                 {{ number_format($ro->total_price, 0, ',', '.') }} ₫
                             </td>
                             <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
@@ -255,11 +253,11 @@
                             </td>
                             <td class="text-xs text-[rgba(0,0,0,0.45)] whitespace-nowrap">
                                 <div>{{ $ro->created_at ? $ro->created_at->format('H:i') : '' }}</div>
-                                <div class="text-[11px]">{{ $ro->created_at ? $ro->created_at->format('d/m/Y') : '' }}</div>
+                                <div class="text-xs">{{ $ro->created_at ? $ro->created_at->format('d/m/Y') : '' }}</div>
                             </td>
                             <td class="text-center whitespace-nowrap">
-                                <a href="{{ route('admin.order.orderdetail', $ro->id) }}" class="text-[#F47716] hover:underline text-xs font-medium">
-                                    Chi tiết
+                                <a href="{{ route('admin.order.orderdetail', $ro->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100" title="Chi tiết đơn hàng">
+                                    <i class="fa-regular fa-eye"></i>
                                 </a>
                             </td>
                         </tr>
@@ -318,13 +316,13 @@
                     <tbody>
                         @forelse($recentBookings as $rb)
                         <tr>
-                            <td class="font-mono font-medium text-[rgba(0,0,0,0.85)] whitespace-nowrap text-xs">
+                            <td class="font-semibold text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap">
                                 #{{ $rb->id }}
                             </td>
                             <td class="whitespace-nowrap">
                                 <div>
-                                    <div class="font-medium text-xs text-[rgba(0,0,0,0.85)]">{{ $rb->name }}</div>
-                                    <div class="text-[11px] text-[rgba(0,0,0,0.45)]">{{ $rb->phone }}</div>
+                                    <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $rb->name }}</div>
+                                    <div class="text-xs text-[rgba(0,0,0,0.45)]">{{ $rb->phone }}</div>
                                 </div>
                             </td>
                             <td class="text-center font-medium text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap">
@@ -332,7 +330,7 @@
                             </td>
                             <td class="text-xs whitespace-nowrap">
                                 <div class="font-medium text-[rgba(0,0,0,0.85)]">{{ $rb->booking_time ?? '19:00' }}</div>
-                                <div class="text-[11px] text-[rgba(0,0,0,0.45)]">{{ !empty($rb->booking_date) ? \Carbon\Carbon::parse($rb->booking_date)->format('d/m/Y') : '' }}</div>
+                                <div class="text-xs text-[rgba(0,0,0,0.45)]">{{ !empty($rb->booking_date) ? \Carbon\Carbon::parse($rb->booking_date)->format('d/m/Y') : '' }}</div>
                             </td>
                             <td class="text-xs text-[rgba(0,0,0,0.65)] whitespace-nowrap">
                                 Website
@@ -347,8 +345,8 @@
                                 @endif
                             </td>
                             <td class="text-center whitespace-nowrap">
-                                <a href="{{ url('admin/booking') }}" class="text-[#F47716] hover:underline text-xs font-medium">
-                                    Chi tiết
+                                <a href="{{ route('admin.booking.detail', $rb->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100" title="Chi tiết đặt bàn">
+                                    <i class="fa-regular fa-eye"></i>
                                 </a>
                             </td>
                         </tr>
@@ -367,6 +365,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Đồng bộ font chữ Chart.js với toàn hệ thống (Plus Jakarta Sans / Inter)
+            if (window.Chart) {
+                Chart.defaults.font.family = "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
+            }
             const ctx = document.getElementById('revenueChart');
             if (ctx) {
                 new Chart(ctx, {

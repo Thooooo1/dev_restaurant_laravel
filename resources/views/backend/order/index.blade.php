@@ -65,10 +65,8 @@
                             <td class="text-xs text-[rgba(0,0,0,0.65)] max-w-[200px] truncate" title="{{ $order->address }}">
                                 {{ $order->address }}
                             </td>
-                            <td class="whitespace-nowrap">
-                                <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900 inline-block" style="color: #111827 !important;">
-                                    {{ $order->payment_method == 2 ? 'Chuyển khoản VietQR' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}
-                                </span>
+                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
+                                {{ $order->payment_method == 2 ? 'Chuyển khoản VietQR' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}
                             </td>
                             <td class="font-mono text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap">
                                 {{ date('H:i d/m/Y', strtotime($order->created_at)) }}
