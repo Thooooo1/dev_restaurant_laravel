@@ -83,14 +83,14 @@
         <div class="overflow-x-auto scroll-smooth py-1 -mx-2 px-2" style="-webkit-overflow-scrolling: touch; scrollbar-width: thin;">
             <div class="flex items-center gap-2 min-w-max pb-1">
                 <a href="{{ request()->fullUrlWithQuery(['category' => 'all', 'page' => null]) }}" 
-                   class="px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 {{ $categoryitem === 'all' ? 'bg-[#F47716] text-white border border-[#F47716] shadow-2xs' : 'bg-white text-stone-700 hover:text-[#F47716] hover:bg-stone-50 border border-stone-200' }}">
+                   class="category-filter-tab px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 {{ $categoryitem === 'all' ? 'bg-[#F47716] text-white border border-[#F47716] shadow-2xs' : 'bg-white text-stone-700 hover:text-[#F47716] hover:bg-stone-50 border border-stone-200' }}">
                     <span>Tất cả</span>
                 </a>
 
                 @foreach ($categories as $cat)
                     @if ($cat->products_count > 0)
                         <a href="{{ request()->fullUrlWithQuery(['category' => $cat->id, 'page' => null]) }}" 
-                           class="px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 {{ $categoryitem == $cat->id ? 'bg-[#F47716] text-white border border-[#F47716] shadow-2xs' : 'bg-white text-stone-700 hover:text-[#F47716] hover:bg-stone-50 border border-stone-200' }}">
+                           class="category-filter-tab px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 {{ $categoryitem == $cat->id ? 'bg-[#F47716] text-white border border-[#F47716] shadow-2xs' : 'bg-white text-stone-700 hover:text-[#F47716] hover:bg-stone-50 border border-stone-200' }}">
                             <span>{{ $cat->name }}</span>
                         </a>
                     @endif
@@ -99,30 +99,32 @@
         </div>
     </div>
 
-    <!-- Active Filter Tags (Hiện khi đang lọc danh mục hoặc giá từ server) -->
-    @if ($categoryitem !== 'all' || request('price_min') || request('price_max'))
-        <div id="menuActiveFilterTags" class="flex flex-wrap items-center gap-2 mb-5 text-xs">
-            <span class="text-stone-400 text-xs font-medium">Đang lọc:</span>
+    <!-- Active Filter Tags Container (Cập nhật mượt qua AJAX) -->
+    <div id="menuActiveFilterTagsWrapper">
+        @if ($categoryitem !== 'all' || request('price_min') || request('price_max'))
+            <div id="menuActiveFilterTags" class="flex flex-wrap items-center gap-2 mb-5 text-xs">
+                <span class="text-stone-400 text-xs font-medium">Đang lọc:</span>
 
-            @if ($categoryitem !== 'all')
-                @php
-                    $curCat = $categories->firstWhere('id', $categoryitem);
-                @endphp
-                @if ($curCat)
-                    <a href="{{ request()->fullUrlWithQuery(['category' => 'all', 'page' => null]) }}" 
-                       class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-orange-50 border border-orange-200 text-[#F47716] font-semibold hover:bg-orange-100 transition">
-                        <span>{{ $curCat->name }}</span>
-                        <span class="text-[10px]">✕</span>
-                    </a>
+                @if ($categoryitem !== 'all')
+                    @php
+                        $curCat = $categories->firstWhere('id', $categoryitem);
+                    @endphp
+                    @if ($curCat)
+                        <a href="{{ request()->fullUrlWithQuery(['category' => 'all', 'page' => null]) }}" 
+                           class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-orange-50 border border-orange-200 text-[#F47716] font-semibold hover:bg-orange-100 transition">
+                            <span>{{ $curCat->name }}</span>
+                            <span class="text-[10px]">✕</span>
+                        </a>
+                    @endif
                 @endif
-            @endif
 
-            <a href="{{ route('site.product.gridview') }}" 
-               class="text-stone-400 hover:text-[#F47716] ml-1 text-xs underline font-medium">
-                Xóa tất cả bộ lọc
-            </a>
-        </div>
-    @endif
+                <a href="{{ route('site.product.gridview') }}" 
+                   class="text-stone-400 hover:text-[#F47716] ml-1 text-xs underline font-medium">
+                    Xóa tất cả bộ lọc
+                </a>
+            </div>
+        @endif
+    </div>
 
     <!-- ======================================================== -->
     <!-- 4. MAIN ORDER GRID: Left Food Grid + Right My Order      -->
@@ -258,7 +260,7 @@
                 </div>
             </div>
 
-            <!-- 4.2 Khung Thực Đơn Mặc Định Phân Trang -->
+            <!-- 4.2 Khung Thực Đơn Mặc Định Phân Trang (Chỉ load phần này khi chọn sắp xếp hoặc danh mục) -->
             <div id="menuDefaultGridWrapper">
                 <x-list-product-grid :categoryitem="$categoryitem" :branditem="$branditem" />
             </div>
@@ -340,9 +342,137 @@
         var defaultGridWrapper = document.getElementById('menuDefaultGridWrapper');
         var categoryTitleSection = document.getElementById('menuCategoryTitleSection');
         var categoryTabsSection = document.getElementById('menuCategoryTabsSection');
-        var activeFilterTags = document.getElementById('menuActiveFilterTags');
+        var activeFilterTagsWrapper = document.getElementById('menuActiveFilterTagsWrapper');
 
-        // Hàm thực thi tìm kiếm tức thì cả dropdown lẫn grid
+        // =========================================================
+        // HÀM TẢI MƯỢT DANH SÁCH MÓN ĂN QUA AJAX (KHÔNG LOAD CẢ TRANG)
+        // =========================================================
+        function loadProductsAjax(targetUrl) {
+            var gridWrapper = document.getElementById('menuDefaultGridWrapper');
+            if (!gridWrapper) {
+                window.location.href = targetUrl;
+                return;
+            }
+
+            // Hiệu ứng mờ nhẹ khi chuyển món
+            gridWrapper.style.transition = 'opacity 0.2s ease';
+            gridWrapper.style.opacity = '0.35';
+
+            fetch(targetUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(function (res) {
+                if (!res.ok) throw new Error('HTTP error ' + res.status);
+                return res.text();
+            })
+            .then(function (html) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+
+                // Chỉ thay đổi nội dung khung món ăn bên dưới
+                var newGrid = doc.getElementById('menuDefaultGridWrapper');
+                if (newGrid) {
+                    gridWrapper.innerHTML = newGrid.innerHTML;
+                }
+
+                // Cập nhật lại thẻ lọc đang chọn nếu có
+                var newTagsWrapper = doc.getElementById('menuActiveFilterTagsWrapper');
+                var curTagsWrapper = document.getElementById('menuActiveFilterTagsWrapper');
+                if (curTagsWrapper && newTagsWrapper) {
+                    curTagsWrapper.innerHTML = newTagsWrapper.innerHTML;
+                }
+
+                gridWrapper.style.opacity = '1';
+
+                // Cập nhật URL trên thanh địa chỉ mà không reload trang
+                window.history.pushState({}, '', targetUrl);
+
+                // Gán lại sự kiện AJAX cho các nút phân trang mới tải về
+                attachPaginationAjax();
+            })
+            .catch(function (err) {
+                console.warn('Loi tai AJAX thuc don:', err);
+                gridWrapper.style.opacity = '1';
+                window.location.href = targetUrl;
+            });
+        }
+
+        // Gán sự kiện click phân trang không load lại cả trang
+        function attachPaginationAjax() {
+            var gridWrapper = document.getElementById('menuDefaultGridWrapper');
+            if (!gridWrapper) return;
+            var links = gridWrapper.querySelectorAll('nav a[href]');
+            links.forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var href = this.getAttribute('href');
+                    if (href) {
+                        loadProductsAjax(href);
+                        var targetCol = document.getElementById('menuProductListColumn');
+                        if (targetCol) {
+                            targetCol.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                });
+            });
+        }
+
+        // Gán sự kiện click tab danh mục không load lại cả trang
+        function attachCategoryTabsAjax() {
+            var tabs = document.querySelectorAll('.category-filter-tab');
+            tabs.forEach(function (tab) {
+                tab.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var href = this.getAttribute('href');
+                    if (!href) return;
+
+                    // Cập nhật tab active ngay trên giao diện
+                    tabs.forEach(function (t) {
+                        t.className = 'category-filter-tab px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 bg-white text-stone-700 hover:text-[#F47716] hover:bg-stone-50 border border-stone-200';
+                    });
+                    this.className = 'category-filter-tab px-3.5 py-2 rounded-none sm:rounded-sm text-xs sm:text-sm font-semibold transition-all shrink-0 bg-[#F47716] text-white border border-[#F47716] shadow-2xs';
+
+                    loadProductsAjax(href);
+                });
+            });
+        }
+
+        // Sắp xếp các thẻ món ăn tìm kiếm tức thì (khi người dùng đang gõ tìm kiếm)
+        function sortLiveSearchCards(sortVal) {
+            var grid = document.getElementById('menuLiveSearchGrid');
+            if (!grid) return;
+            var cards = Array.from(grid.querySelectorAll('.menu-live-search-card'));
+
+            cards.sort(function (a, b) {
+                var priceA = parseFloat(a.getAttribute('data-price') || '0');
+                var priceB = parseFloat(b.getAttribute('data-price') || '0');
+                var nameA = (a.getAttribute('data-name') || '').trim();
+                var nameB = (b.getAttribute('data-name') || '').trim();
+                var idA = parseInt(a.getAttribute('data-id') || '0', 10);
+                var idB = parseInt(b.getAttribute('data-id') || '0', 10);
+
+                if (sortVal === 'priceAsc') {
+                    return priceA - priceB;
+                } else if (sortVal === 'priceDesc') {
+                    return priceB - priceA;
+                } else if (sortVal === 'alphabet') {
+                    return nameA.localeCompare(nameB, 'vi');
+                } else if (sortVal === 'newest') {
+                    return idB - idA;
+                }
+                return 0;
+            });
+
+            cards.forEach(function (card) {
+                grid.appendChild(card);
+            });
+        }
+
+        // =========================================================
+        // HÀM TÌM KIẾM TỨC THÌ (DROPDOWN + LƯỚI MÓN ĂN)
+        // =========================================================
         function executeSearch(query) {
             var rawQ = (query || '').toLowerCase().trim();
             var asciiQ = removeVietnameseTones(rawQ);
@@ -417,7 +547,7 @@
             // 2. CẬP NHẬT KHUNG THỰC ĐƠN CHÍNH TRÊN TRANG (TỨC THÌ, KHÔNG CẦN ENTER)
             if (categoryTitleSection) categoryTitleSection.classList.add('hidden');
             if (categoryTabsSection) categoryTabsSection.classList.add('hidden');
-            if (activeFilterTags) activeFilterTags.classList.add('hidden');
+            if (activeFilterTagsWrapper) activeFilterTagsWrapper.classList.add('hidden');
             if (defaultGridWrapper) defaultGridWrapper.classList.add('hidden');
 
             if (liveResultsPane) liveResultsPane.classList.remove('hidden');
@@ -452,6 +582,10 @@
             } else {
                 if (liveGrid) liveGrid.classList.remove('hidden');
                 if (liveEmpty) liveEmpty.classList.add('hidden');
+                // Áp dụng thứ tự sắp xếp hiện tại nếu có
+                if (sortSelect && sortSelect.value !== 'default') {
+                    sortLiveSearchCards(sortSelect.value);
+                }
             }
         }
 
@@ -464,7 +598,7 @@
             if (liveResultsPane) liveResultsPane.classList.add('hidden');
             if (categoryTitleSection) categoryTitleSection.classList.remove('hidden');
             if (categoryTabsSection) categoryTabsSection.classList.remove('hidden');
-            if (activeFilterTags) activeFilterTags.classList.remove('hidden');
+            if (activeFilterTagsWrapper) activeFilterTagsWrapper.classList.remove('hidden');
             if (defaultGridWrapper) defaultGridWrapper.classList.remove('hidden');
 
             // Cập nhật lại thanh địa chỉ URL nếu trước đó có param ?search=
@@ -533,19 +667,44 @@
             }
         });
 
-        // Xử lý bộ lọc sắp xếp (giá tăng/giảm, tên A-Z)
+        // =========================================================
+        // XỬ LÝ BỘ LỌC SẮP XẾP: CHỈ LOAD LẠI MÓN ĂN BÊN DƯỚI
+        // =========================================================
         if (sortSelect) {
             sortSelect.addEventListener('change', function () {
+                var sortVal = this.value;
+
+                // Nếu đang trong chế độ tìm kiếm: sắp xếp tức thì trên DOM các thẻ kết quả
+                if (searchInput && searchInput.value.trim().length > 0) {
+                    sortLiveSearchCards(sortVal);
+                    return;
+                }
+
+                // Nếu đang xem thực đơn mặc định: chỉ tải lại phần danh sách món ăn bên dưới qua AJAX
                 var url = new URL(window.location.href);
-                if (this.value && this.value !== 'default') {
-                    url.searchParams.set('sort', this.value);
+                if (sortVal && sortVal !== 'default') {
+                    url.searchParams.set('sort', sortVal);
                 } else {
                     url.searchParams.delete('sort');
                 }
                 url.searchParams.delete('page');
-                window.location.href = url.toString();
+
+                loadProductsAjax(url.toString());
             });
         }
+
+        // Gán AJAX cho phân trang và tab danh mục
+        attachPaginationAjax();
+        attachCategoryTabsAjax();
+
+        // Hỗ trợ nút Back/Forward của trình duyệt không bị giật trang
+        window.addEventListener('popstate', function () {
+            var currentUrl = window.location.href;
+            var u = new URL(currentUrl);
+            var sortP = u.searchParams.get('sort') || 'default';
+            if (sortSelect) sortSelect.value = sortP;
+            loadProductsAjax(currentUrl);
+        });
 
         // Khởi động nếu trên URL đã có sẵn từ khóa tìm kiếm (?search=...)
         if (searchInput && searchInput.value.trim()) {
