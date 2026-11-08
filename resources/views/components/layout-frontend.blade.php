@@ -692,7 +692,7 @@
                             <div class="leading-relaxed">
                                 <span class="text-stone-400 text-xs font-medium">Địa chỉ:</span>
                                 <a href="https://maps.google.com/?q=21.1097,105.5620" target="_blank" rel="noopener noreferrer" class="text-stone-300 hover:text-amber-400 transition-colors ml-1">
-                                    {{ $restaurantSettings['address'] ?? '120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội' }}
+                                    {{ $restaurantSettings['address'] ?? 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội.' }}
                                 </a>
                             </div>
                         </li>

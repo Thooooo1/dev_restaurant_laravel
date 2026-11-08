@@ -206,6 +206,14 @@ Route::middleware('throttle:120,1')->group(function () {
 // ADMIN ROUTES
 // ============================================
 
+// CSRF Token Refresh Endpoint (Keep-alive & auto-refresh)
+Route::get('/refresh-csrf', function () {
+    return response()->json([
+        'token' => csrf_token(),
+        'status' => 'ok'
+    ]);
+})->name('refresh-csrf');
+
 // Admin Auth
 Route::get('/admin/login', [AuthController::class, 'login'])->name('admin.login');
 Route::post('/admin/login', [AuthController::class, 'dologin'])->name('admin.dologin');

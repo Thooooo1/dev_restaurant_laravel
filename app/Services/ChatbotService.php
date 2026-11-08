@@ -38,12 +38,12 @@ class ChatbotService
         'general_info' => [
             'title' => 'Tổng quan nhà hàng',
             'keywords' => ['nhà hàng civilize', 'về civilize', 'giới thiệu', 'thương hiệu', 'phong cách ẩm thực', 'sứ mệnh'],
-            'content' => 'CIVILIZE Restaurant là nhà hàng ẩm thực Việt & Á đương đại tại 120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội. Tôn chỉ hoạt động luôn đặt chữ Tâm và chữ Tín lên hàng đầu, mang đến không gian ấm cúng, sang trọng cùng những món ăn tinh hoa được chế biến tỉ mỉ từ nguyên liệu tươi sạch mỗi ngày.'
+            'content' => 'CIVILIZE Restaurant là nhà hàng ẩm thực Việt & Á đương đại tại Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội. Tôn chỉ hoạt động luôn đặt chữ Tâm và chữ Tín lên hàng đầu, mang đến không gian ấm cúng, sang trọng cùng những món ăn tinh hoa được chế biến tỉ mỉ từ nguyên liệu tươi sạch mỗi ngày.'
         ],
         'location_and_hours' => [
             'title' => 'Địa chỉ & Giờ mở cửa',
             'keywords' => ['địa chỉ', 'ở đâu', 'chỗ nào', 'vị trí', 'đường đi', 'tìm quán', 'giờ mở cửa', 'mấy giờ', 'mở cửa', 'đóng cửa', 'thời gian phục vụ'],
-            'content' => 'Nhà hàng CIVILIZE mở cửa phục vụ: 09:00 – 23:00 tất cả các ngày trong tuần (kể cả Thứ 7, Chủ Nhật và các ngày Lễ, Tết). Địa chỉ chính xác tại: 120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội.'
+            'content' => 'Nhà hàng CIVILIZE mở cửa phục vụ: 09:00 – 23:00 tất cả các ngày trong tuần (kể cả Thứ 7, Chủ Nhật và các ngày Lễ, Tết). Địa chỉ chính xác tại: Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội.'
         ],
         'hotline_and_contact' => [
             'title' => 'Hotline & Liên hệ',
@@ -112,7 +112,7 @@ class ChatbotService
     protected function syncDynamicKnowledge(): void
     {
         $hotline = $this->getSetting('hotline', '0338 990 538');
-        $address = $this->getSetting('address', '120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội');
+        $address = $this->getSetting('address', 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội.');
         $hours = $this->getSetting('opening_hours', '09:00 – 23:00 tất cả các ngày trong tuần');
         $freeShipThreshold = number_format((float)$this->getSetting('shipping_free_threshold', 500000), 0, ',', '.') . '₫';
         $maxKm = $this->getSetting('max_delivery_distance_km', 15);
@@ -954,7 +954,7 @@ class ChatbotService
 
         try {
             $hotline = $this->getSetting('hotline', '0338 990 538');
-            $address = $this->getSetting('address', '120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội');
+            $address = $this->getSetting('address', 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội.');
             $hours = $this->getSetting('opening_hours', '09:00 – 23:00 tất cả các ngày trong tuần');
 
             // Tính toán thời gian thực tế hệ thống theo múi giờ Việt Nam

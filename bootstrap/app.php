@@ -49,5 +49,24 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Phiên làm việc đã hết hạn. Vui lòng làm mới trang.',
+                    'csrf_token' => csrf_token()
+                ], 419);
+            }
+
+            // Neu thao tac trong trang admin
+            if ($request->is('admin*')) {
+                return redirect()->route('admin.login')
+                    ->withInput($request->except('_token', 'password'))
+                    ->with('error', 'Phiên làm việc đã hết hạn do để trang quá lâu. Hệ thống đã tự động làm mới mã bảo mật, vui lòng đăng nhập lại.');
+            }
+
+            return redirect()->back()
+                ->withInput($request->except('_token', 'password'))
+                ->with('error', 'Phiên làm việc đã hết hạn. Hệ thống đã tự động làm mới, vui lòng thử lại.');
+        });
     })->create();

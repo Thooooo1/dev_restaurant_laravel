@@ -20,10 +20,10 @@ class SettingController extends Controller
             // Thông tin nhà hàng
             'restaurant_name' => 'CIVILIZE - Nhà Hàng Phúc Thọ',
             'restaurant_slogan' => 'Tinh hoa ẩm thực truyền thống & Hiện đại',
-            'hotline' => '0338 990 538',
+            'hotline' => '0338990538',
             'email' => 'tnguyenanh189@gmail.com',
-            'address' => '120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội',
-            'opening_hours' => '09:00 – 23:00 tất cả các ngày trong tuần',
+            'address' => 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội.',
+            'opening_hours' => '09:00 – 23:00 (Tất cả các ngày trong tuần)',
             'map_embed_url' => 'https://www.google.com/maps/embed?...',
 
             // Cấu hình thanh toán VietQR

@@ -48,6 +48,7 @@
                 <input type="text" 
                        name="phone" 
                        id="adminLoginInput"
+                       value="{{ old('phone') }}"
                        required
                        class="w-full px-5 py-3.5 bg-white border border-stone-300 rounded-xl sm:rounded-2xl text-stone-900 text-sm sm:text-base placeholder-stone-400 focus:outline-none focus:border-[#C25E00] focus:ring-2 focus:ring-[#C25E00]/20 transition-all shadow-2xs" 
                        placeholder="Email, số điện thoại hoặc tên đăng nhập"
@@ -71,5 +72,29 @@
             </div>        
         </form>
     </div>
+
+    <script>
+        // Tu dong lam moi CSRF token de ngan chan loi 419 Page Expired
+        function refreshCsrfToken() {
+            fetch('{{ route("refresh-csrf") }}', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.token) {
+                    document.querySelectorAll('input[name="_token"]').forEach(el => el.value = data.token);
+                }
+            })
+            .catch(() => {});
+        }
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                refreshCsrfToken();
+            }
+        });
+        window.addEventListener('focus', refreshCsrfToken);
+        setInterval(refreshCsrfToken, 10 * 60 * 1000);
+    </script>
 </body>
 </html>

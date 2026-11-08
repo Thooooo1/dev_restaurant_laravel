@@ -59,7 +59,7 @@
                         <!-- Địa chỉ -->
                         <div class="flex items-start gap-3.5">
                             <i class="fas fa-house text-[#C25E00] text-sm mt-1 shrink-0"></i>
-                            <span class="leading-relaxed font-medium">{{ $restaurantSettings['address'] ?? '120 Phúc Hòa, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội' }}</span>
+                            <span class="leading-relaxed font-medium">{{ $restaurantSettings['address'] ?? 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội.' }}</span>
                         </div>
 
                         <!-- Email -->

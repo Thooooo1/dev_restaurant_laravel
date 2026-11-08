@@ -223,25 +223,31 @@
         }
 
         /* 3.1. SHOPIFY POLARIS & ANT DESIGN BADGES - Chuẩn văn bản đen tối giản, không màu sắc */
-        .polaris-badge {
-            display: inline-block;
-            padding: 0 !important;
-            font-size: 13px !important;
-            font-weight: 500 !important;
-            line-height: 1.4;
-            border: none !important;
-            background: transparent !important;
-            color: rgba(0, 0, 0, 0.85) !important;
-            white-space: nowrap;
-        }
+        .polaris-badge,
+        .polaris-badge--subdued,
+        .polaris-badge--info,
+        .polaris-badge--success,
+        .polaris-badge--warning,
+        .polaris-badge--critical,
+        .polaris-badge--attention,
         .polaris-badge-success,
         .polaris-badge-warning,
         .polaris-badge-processing,
         .polaris-badge-error,
-        .polaris-badge-default {
-            background-color: transparent !important;
+        .polaris-badge-default,
+        .badge {
+            display: inline-block !important;
+            padding: 0 !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            line-height: 1.4 !important;
             border: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            background-color: transparent !important;
             color: rgba(0, 0, 0, 0.85) !important;
+            white-space: nowrap !important;
+            box-shadow: none !important;
         }
 
         /* 3.2. SHOPIFY POLARIS FORM INPUTS */
