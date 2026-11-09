@@ -633,6 +633,9 @@
         .then(data => {
             if (data.success) {
                 renderLiveCartFromData(data);
+                if (typeof window.syncServiceCallTable === 'function') {
+                    window.syncServiceCallTable(tableId, tableName, floorName);
+                }
                 showCartToast(`Đã chọn ${tableName} (${floorName}). Áp dụng ưu đãi giảm 10%!`, 'success');
 
                 // Nếu trước đó đang chờ gửi bếp hoặc thanh toán QR, tự động thực hiện tiếp ngay
@@ -939,6 +942,11 @@
             } else {
                 mobileTableBar.classList.add('hidden');
             }
+        }
+
+        // Đồng bộ trạng thái số bàn sang Chuông gọi phục vụ tại bàn
+        if (isTable && data.table_id && typeof window.syncServiceCallTable === 'function') {
+            window.syncServiceCallTable(data.table_id, data.table_name, data.floor_name);
         }
 
         // 4. Cập nhật Chi phí & Giảm giá

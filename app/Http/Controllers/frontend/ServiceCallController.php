@@ -37,6 +37,13 @@ class ServiceCallController extends Controller
             ], 404);
         }
 
+        // Lưu lại table_id vào session để các lần gọi tiếp theo và đặt món được đồng bộ
+        session([
+            'table_id' => $table->id,
+            'table_name' => $table->name,
+            'table_floor_name' => $table->floor ? $table->floor->name : null,
+        ]);
+
         $callType = $request->input('call_type', 'call_waiter');
         $types = ServiceCall::TYPES;
         $callTypeLabel = $request->input('call_type_label') ?: ($types[$callType]['label'] ?? 'Gọi nhân viên phục vụ');

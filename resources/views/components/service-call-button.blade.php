@@ -197,7 +197,6 @@
                 </button>
             </div>
         </div>
-        </form>
     </div>
 </div>
 
@@ -243,9 +242,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Hàm xóa thông báo cảnh báo lỗi
+    function clearStatusMsg() {
+        if (statusMsg) {
+            statusMsg.className = 'hidden text-xs p-3 rounded-md';
+            statusMsg.textContent = '';
+        }
+    }
+
     // Xử lý chạm nhanh các thẻ nhu cầu (Service Chips) - Hỗ trợ chọn nhiều cùng lúc (Multi-select)
     chips.forEach(chip => {
         chip.addEventListener('click', function() {
+            clearStatusMsg();
             const isSelected = this.classList.contains('is-selected');
             const checkIcon = this.querySelector('.chip-check');
 
@@ -268,6 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Mở modal
     function openModal() {
+        clearStatusMsg();
         if (modal && modal.parentElement !== document.body) {
             document.body.appendChild(modal);
         }
@@ -277,13 +286,27 @@ document.addEventListener('DOMContentLoaded', function() {
             modalBox.classList.add('scale-100');
         }, 10);
 
-        if (!tableIdInput.value) {
+        // Đồng bộ dữ liệu bàn ăn nếu đã có từ giỏ hàng hoặc session
+        const currentCartTableId = window.liveCartState?.table_id;
+        const currentCartTableName = window.liveCartState?.table_name;
+        const currentCartFloorName = window.liveCartState?.floor_name;
+        if (currentCartTableId) {
+            if (tableIdInput) tableIdInput.value = currentCartTableId;
+            if (tableSelect) tableSelect.value = currentCartTableId;
+            if (modalTableSubtitleText && currentCartTableName) {
+                modalTableSubtitleText.textContent = `Bàn: ${currentCartTableName}` + (currentCartFloorName ? ` (${currentCartFloorName})` : '');
+            }
+            clearStatusMsg();
+        }
+
+        if (!tablesLoaded) {
             loadTables();
         }
     }
 
     // Đóng modal
     function closeModal() {
+        clearStatusMsg();
         modalBox.classList.remove('scale-100');
         modalBox.classList.add('scale-95');
         setTimeout(() => {
@@ -310,7 +333,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(res => res.json())
         .then(data => {
             if (data.success && data.floors) {
+                const targetId = (tableIdInput && tableIdInput.value) || (tableSelect && tableSelect.value) || data.current_table_id || (window.liveCartState && window.liveCartState.table_id);
                 tableSelect.innerHTML = '<option value="">-- Chọn số bàn của bạn --</option>';
+                let selectedOptText = '';
+
                 data.floors.forEach(floor => {
                     const optgroup = document.createElement('optgroup');
                     optgroup.label = floor.name;
@@ -319,44 +345,88 @@ document.addEventListener('DOMContentLoaded', function() {
                             const opt = document.createElement('option');
                             opt.value = tbl.id;
                             opt.textContent = tbl.name + ' (' + floor.name + ')';
-                            if (data.current_table_id && data.current_table_id == tbl.id) {
+                            if (targetId && (targetId == tbl.id)) {
                                 opt.selected = true;
-                                tableIdInput.value = tbl.id;
+                                if (tableIdInput) tableIdInput.value = tbl.id;
+                                selectedOptText = opt.textContent;
                             }
                             optgroup.appendChild(opt);
                         });
                     }
                     tableSelect.appendChild(optgroup);
                 });
+
+                if (selectedOptText) {
+                    if (modalTableSubtitleText) modalTableSubtitleText.textContent = 'Bàn: ' + selectedOptText;
+                    const btnTable = document.getElementById('serviceCallBtnTable');
+                    if (btnTable) btnTable.textContent = selectedOptText.split(' (')[0];
+                    clearStatusMsg();
+                }
+
                 tablesLoaded = true;
             }
         })
         .catch(err => console.error('Lỗi tải danh sách bàn:', err));
     }
 
-    if (tableSelect) {
-        tableSelect.addEventListener('change', function() {
-            tableIdInput.value = this.value;
-            const text = this.options[this.selectedIndex] ? this.options[this.selectedIndex].text : '';
+    // Đồng bộ khi khách hàng chọn bàn từ dropdown
+    function syncTableSelection() {
+        const val = tableSelect ? tableSelect.value : '';
+        if (tableIdInput) tableIdInput.value = val;
+
+        if (val) {
+            clearStatusMsg();
+            const text = tableSelect.options[tableSelect.selectedIndex] ? tableSelect.options[tableSelect.selectedIndex].text : '';
             if (text) {
-                modalTableSubtitleText.textContent = 'Bàn: ' + text;
+                if (modalTableSubtitleText) modalTableSubtitleText.textContent = 'Bàn: ' + text;
                 const btnTable = document.getElementById('serviceCallBtnTable');
                 if (btnTable) btnTable.textContent = text.split(' (')[0];
             }
-        });
+        }
     }
+
+    if (tableSelect) {
+        tableSelect.addEventListener('change', syncTableSelection);
+        tableSelect.addEventListener('input', syncTableSelection);
+    }
+
+    // Hàm toàn cục cho phép đồng bộ số bàn từ Giỏ hàng / Table Picker sang Chuông gọi phục vụ
+    window.syncServiceCallTable = function(tableId, tableName, floorName) {
+        if (tableIdInput) tableIdInput.value = tableId;
+        if (tableSelect) tableSelect.value = tableId;
+        if (modalTableSubtitleText) {
+            modalTableSubtitleText.textContent = `Bàn: ${tableName}` + (floorName ? ` (${floorName})` : '');
+        }
+        const btnTable = document.getElementById('serviceCallBtnTable');
+        if (btnTable) btnTable.textContent = `Bàn ${tableName} • Gọi phục vụ`;
+        clearStatusMsg();
+    };
 
     // Submit form gọi phục vụ
     if (form) {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+            clearStatusMsg();
 
-            const tableId = tableIdInput.value;
+            // Kiểm tra linh hoạt cả select, hidden input và state giỏ hàng
+            let tableId = (tableSelect && tableSelect.value) ? tableSelect.value : '';
+            if (!tableId && tableIdInput && tableIdInput.value) {
+                tableId = tableIdInput.value;
+            }
+            if (!tableId && window.liveCartState && window.liveCartState.table_id) {
+                tableId = window.liveCartState.table_id;
+            }
+
             if (!tableId) {
                 statusMsg.className = 'text-xs p-3 rounded-md bg-rose-50 text-rose-700 border border-rose-200 block';
                 statusMsg.textContent = 'Vui lòng chọn số bàn để nhân viên đến phục vụ bạn!';
+                if (tableSelect) tableSelect.focus();
                 return;
             }
+
+            // Đồng bộ chắc chắn cả 2 phần tử
+            if (tableIdInput) tableIdInput.value = tableId;
+            if (tableSelect && !tableSelect.value) tableSelect.value = tableId;
 
             const formData = new FormData(form);
             formData.set('table_id', tableId);
