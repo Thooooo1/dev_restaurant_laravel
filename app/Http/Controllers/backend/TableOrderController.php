@@ -480,10 +480,8 @@ class TableOrderController extends Controller
                 ]);
             }
 
-            // Tính lại tổng tiền chính xác trong transaction
-            $order->total_price = Orderdetail::where('order_id', $order->id)
-                ->where('status', '!=', 'cancelled')
-                ->sum('amount');
+            // Tính lại tổng tiền chính xác trong transaction qua PricingService
+            $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
             $order->has_new_items = true;
             $order->save();
 
@@ -543,10 +541,8 @@ class TableOrderController extends Controller
                 $orderDetail->delete();
             }
 
-            // Tính lại tổng tiền hóa đơn trong transaction
-            $order->total_price = Orderdetail::where('order_id', $order->id)
-                ->where('status', '!=', 'cancelled')
-                ->sum('amount');
+            // Tính lại tổng tiền hóa đơn trong transaction qua PricingService
+            $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
             $order->save();
 
             return response()->json([
@@ -603,10 +599,8 @@ class TableOrderController extends Controller
                 $orderDetail->amount = ($orderDetail->price - $orderDetail->discount) * $newQty;
                 $orderDetail->save();
 
-                // Tính lại tổng tiền hóa đơn trong transaction
-                $order->total_price = Orderdetail::where('order_id', $order->id)
-                    ->where('status', '!=', 'cancelled')
-                    ->sum('amount');
+                // Tính lại tổng tiền hóa đơn trong transaction qua PricingService
+                $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
                 $order->save();
             }
 
@@ -671,10 +665,8 @@ class TableOrderController extends Controller
                 }
             }
 
-            // Tính lại tổng tiền
-            $order->total_price = Orderdetail::where('order_id', $order->id)
-                ->where('status', '!=', 'cancelled')
-                ->sum('amount');
+            // Tính lại tổng tiền qua PricingService
+            $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
             $order->save();
 
             return response()->json([
@@ -778,10 +770,8 @@ class TableOrderController extends Controller
                 }
             }
 
-            // Tính lại tổng tiền
-            $order->total_price = Orderdetail::where('order_id', $order->id)
-                ->where('status', '!=', 'cancelled')
-                ->sum('amount');
+            // Tính lại tổng tiền qua PricingService
+            $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
             $order->save();
 
             return response()->json([

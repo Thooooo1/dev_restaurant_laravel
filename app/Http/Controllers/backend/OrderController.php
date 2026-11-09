@@ -79,28 +79,39 @@ class OrderController extends Controller
             'delivery_note' => 'nullable|string|max:1000',
         ]);
 
+        // Quy tắc chuyển trạng thái: Không cho phép quay ngược từ "đã giao" về trạng thái trước
+        if ($order->delivery_status === 'delivered' && $request->delivery_status !== 'delivered') {
+            $msg = 'Đơn hàng đã giao thành công, không thể chuyển ngược trạng thái.';
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+            return redirect()->back()->with('error', $msg);
+        }
+
         $order->shipper_name = $request->shipper_name;
         $order->shipper_phone = $request->shipper_phone;
         $order->delivery_status = $request->delivery_status;
         $order->delivery_note = $request->delivery_note;
 
-        if ($request->delivery_status === 'picked_up' && !$order->picked_up_at) {
-            $order->picked_up_at = now();
-            if ($order->status == 0 || $order->status == 1) {
-                $order->status = 2; // Đang xử lý / giao hàng
+        if ($request->delivery_status === 'picked_up') {
+            if (!$order->picked_up_at) {
+                $order->picked_up_at = now();
+            }
+            if (in_array((int)$order->status, [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])) {
+                $order->status = \App\Enums\OrderStatus::PROCESSING; // 1: Đang giao hàng / Đang thực hiện
             }
         } elseif ($request->delivery_status === 'delivering') {
             if (!$order->picked_up_at) {
                 $order->picked_up_at = now();
             }
-            if ($order->status == 0 || $order->status == 1) {
-                $order->status = 2; // Đang giao hàng
+            if (in_array((int)$order->status, [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])) {
+                $order->status = \App\Enums\OrderStatus::PROCESSING; // 1: Đang giao hàng / Đang thực hiện
             }
         } elseif ($request->delivery_status === 'delivered') {
             if (!$order->delivered_at) {
                 $order->delivered_at = now();
             }
-            $order->status = 3; // Hoàn tất
+            $order->status = \App\Enums\OrderStatus::COMPLETED; // 2: Đã giao hàng thành công / Hoàn tất
         }
 
         $order->save();
@@ -111,6 +122,8 @@ class OrderController extends Controller
                 'message' => 'Cập nhật tiến trình giao hàng thành công!',
                 'delivery_status' => $order->delivery_status,
                 'delivery_status_label' => $order->delivery_status_label,
+                'order_status' => (int)$order->status,
+                'order_status_label' => $order->status_label,
             ]);
         }
 

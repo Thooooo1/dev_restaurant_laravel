@@ -389,10 +389,10 @@ sequenceDiagram
     Sh-->>S: Nhan don va bao thoi gian den lay
     
     S->>Web: Nhap ten shipper, SDT vao form va bam "Shipper da lay hang"
-    Web->>DB: UPDATE orders SET delivery_status='picked_up', shipper_name, shipper_phone, picked_up_at=NOW()
+    Web->>DB: UPDATE orders SET delivery_status='picked_up', status=1 (OrderStatus::PROCESSING), shipper_name, shipper_phone, picked_up_at=NOW()
     
     S->>Web: Bam "Dang giao hang"
-    Web->>DB: UPDATE orders SET delivery_status='delivering'
+    Web->>DB: UPDATE orders SET delivery_status='delivering', status=1 (OrderStatus::PROCESSING)
     
     C->>Web: Mo trang xem chi tiet /don-hang/{id}
     Web->>DB: SELECT * FROM orders WHERE id={id}
@@ -402,7 +402,7 @@ sequenceDiagram
     Sh->>C: Giao mon an tan noi va nhan tien COD (neu co)
     Sh-->>S: Bao tin don da giao thanh cong
     S->>Web: Bam "Da giao thanh cong"
-    Web->>DB: UPDATE orders SET delivery_status='delivered', status=3 (Completed), delivered_at=NOW()
+    Web->>DB: UPDATE orders SET delivery_status='delivered', status=2 (OrderStatus::COMPLETED), delivered_at=NOW()
     Web-->>C: Cap nhat Timeline don hoan tat 100%
 ```
 
@@ -441,4 +441,12 @@ He thong ap dung cac tieu chuan phong thu chieu sau (Defense-in-Depth) de bao ve
 6. **Bao Ve Quyen Rieng Tu & An Toan Du Lieu Tro Ly Ao AI (Chatbot Security & Privacy):**
    * **Che giau du lieu nhay cam (PII Masking):** So dien thoai va ten khach hang trong du lieu phan hoi cua Chatbot duoc che giau mot phan (vi du: `098***4321`) de tranh ro ri thong tin ca nhan.
    * **Phan quyen tra cuu don hang:** Chatbot chi cho phep tra cuu don hang khi khach hang cung cap chinh xac ca Ma don hang va So dien thoai trung khop voi co so du lieu.
-   * **Phong chong Dau doc Ho so (Profile Poisoning):** Co che `ChatbotMemoryManager` phan tach ro rang giua Context thuc don va du lieu nguoi dung nhap, su dung cac khuon mau Prompt chat che ngan chan tan cong Prompt Injection.
+   * **Module hoa kien thuc va bo nho:** Kien thuc duoc dong goi qua `ChatbotKnowledgeBase`, bo nho duoc kiem soat qua `ChatbotMemoryManager` phan tach ro rang giua Context thuc don va du lieu nguoi dung nhap, ngan chan tan cong Prompt Injection.
+
+7. **Quan Tri Co So Du Lieu An Toan (Strict POST CSRF Migration):**
+   * Tuyen duong `/admin/system-migrate` duoc bao ve 2 lop: chi cho phep quyen Quan tri vien (Admin Role 1) va yeu cau xac thuc qua phuong thuc `POST` voi token `@csrf`.
+   * Khi truy cap bang phuong thuc `GET`, he thong chi tra ve giao dien hop thoai xac nhan chu khong thuc thi bat ky lenh thay doi cau truc nao, triet tieu hoan toan nguy co tan cong CSRF qua the hinh anh hoac lien ket ngam.
+
+8. **Kien Truc Dong Goi Tai Nguyen Cuc Bo (100% Offline Vite Bundle):**
+   * Toan bo thu vien CSS, JS va Font Awesome 6 Icons duoc bien dich thanh goi asset tai `public/build` va quan ly phien ban trong repository.
+   * Loai bo 100% the script CDN runtime ngoai (`cdn.tailwindcss.com`), giup ung dung ket xuat nhanh chong, on dinh ca trong moi truong mang cuc bo hoac mat ket noi Internet ngoai.

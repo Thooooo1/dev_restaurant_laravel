@@ -297,12 +297,48 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
     // ROUTE CHỈ CHO ADMIN
     // ==============================
     Route::middleware('admin-access')->group(function () {
-        // System Migration Runner (An toàn, chỉ tài khoản Admin thực hiện)
+        // System Migration Runner (Yêu cầu xác nhận POST với CSRF token, chỉ tài khoản Admin thực hiện)
         Route::get('/system-migrate', function () {
+            $csrfField = csrf_field();
+            $actionUrl = route('admin.system-migrate.post');
+            $html = <<<HTML
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>CIVILIZE - Xác nhận thực thi Migration</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f5; padding: 40px; margin: 0; }
+        .card { max-width: 600px; margin: 0 auto; background: #fff; padding: 32px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { margin-top: 0; color: #1a1a1a; font-size: 20px; }
+        p { color: #555; line-height: 1.6; font-size: 14px; }
+        .btn { display: inline-block; padding: 10px 24px; background: #ea580c; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; text-decoration: none; font-size: 14px; }
+        .btn:hover { background: #c2410c; }
+        .cancel { display: inline-block; margin-left: 12px; color: #666; text-decoration: none; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Xác nhận cập nhật Cơ sở dữ liệu (System Migration)</h2>
+        <p>Hệ thống sẽ chạy lệnh <code>php artisan migrate --force</code> để đồng bộ các bảng và cột mới vào cơ sở dữ liệu. Thao tác này an toàn và không làm mất dữ liệu hiện tại.</p>
+        <p>Để đảm bảo an toàn bảo mật và chống tấn công CSRF, thao tác bắt buộc thực hiện qua phương thức <strong>POST</strong> có mã bảo vệ CSRF hợp lệ.</p>
+        <form method="POST" action="{$actionUrl}" style="margin-top: 24px;">
+            {$csrfField}
+            <button type="submit" class="btn">Xác nhận chạy Migration (POST CSRF)</button>
+            <a href="/admin" class="cancel">Quay lại Dashboard</a>
+        </form>
+    </div>
+</body>
+</html>
+HTML;
+            return response($html);
+        })->name('admin.system-migrate');
+
+        Route::post('/system-migrate', function () {
             \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
             $output = \Illuminate\Support\Facades\Artisan::output();
-            return response("<pre style='padding:20px;background:#1e1e1e;color:#52c41a;font-family:monospace;font-size:14px;border-radius:8px;'>[CIVILIZE RESTAURANT] System Migration Executed Successfully:\n\n" . htmlspecialchars($output ?: "Nothing to migrate.\n") . "</pre>");
-        })->name('admin.system-migrate');
+            return response("<pre style='padding:24px;background:#1e1e1e;color:#52c41a;font-family:monospace;font-size:14px;border-radius:8px;line-height:1.6;'>[CIVILIZE RESTAURANT] System Migration Executed Successfully via POST CSRF:\n\n" . htmlspecialchars($output ?: "Nothing to migrate (Database is up to date).\n") . "\n<a href='/admin' style='color:#38bdf8;text-decoration:underline;'>Quay lại trang quản trị</a></pre>");
+        })->name('admin.system-migrate.post');
 
         // Order History (Báo cáo & Doanh thu)
             Route::prefix('order-history')->group(function () {

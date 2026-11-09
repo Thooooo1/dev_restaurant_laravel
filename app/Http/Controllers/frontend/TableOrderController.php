@@ -202,10 +202,9 @@ class TableOrderController extends Controller
             return redirect()->route('site.product.gridview')->with('error', 'Hóa đơn của bàn đang trống. Mời quý khách chọn món ăn.');
         }
 
-        $subtotal = $orderDetails->sum('amount');
-        // Ưu đãi giảm 10% tại bàn
-        $discountAmount = round($subtotal * 0.1);
-        $finalAmount = max(0, $subtotal - $discountAmount);
+        $subtotal = \App\Services\PricingService::getOrderSubtotal($order->id);
+        $finalAmount = \App\Services\PricingService::recalculateOrderTotal($order->id, true);
+        $discountAmount = max(0, $subtotal - $finalAmount);
 
         $order->total_price = $finalAmount;
         $order->save();
@@ -311,9 +310,9 @@ class TableOrderController extends Controller
         }
 
         $orderDetails = $order->orderDetails;
-        $subtotal = $orderDetails->sum('amount');
-        $discountAmount = round($subtotal * 0.1);
-        $finalAmount = max(0, $subtotal - $discountAmount);
+        $subtotal = \App\Services\PricingService::getOrderSubtotal($order->id);
+        $finalAmount = \App\Services\PricingService::recalculateOrderTotal($order->id, true);
+        $discountAmount = max(0, $subtotal - $finalAmount);
 
         $memo = "BAN{$id} DH{$order->id}";
         $qrUrl = $vietQRService->generateQrUrl($finalAmount, $memo);

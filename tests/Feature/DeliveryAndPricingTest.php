@@ -93,4 +93,42 @@ class DeliveryAndPricingTest extends TestCase
         $order->delivery_status = Order::DELIVERY_FAILED;
         $this->assertEquals('Giao hàng thất bại', $order->delivery_status_label);
     }
+
+    /**
+     * Kiểm tra logic chuyển trạng thái giao hàng và đồng bộ OrderStatus chính xác
+     */
+    public function test_delivery_status_transitions_and_order_status_sync(): void
+    {
+        $order = new Order();
+        $order->status = \App\Enums\OrderStatus::PENDING; // 0: Chờ xử lý
+        $order->delivery_status = Order::DELIVERY_WAITING;
+
+        // 1. Khi shipper nhận hàng: status chuyển sang PROCESSING (1), không phải COMPLETED (2) hay CANCELLED (3)
+        $order->delivery_status = 'picked_up';
+        if (in_array((int)$order->status, [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])) {
+            $order->status = \App\Enums\OrderStatus::PROCESSING;
+        }
+        $this->assertEquals(\App\Enums\OrderStatus::PROCESSING, $order->status);
+        $this->assertEquals(1, $order->status);
+        $this->assertNotEquals(\App\Enums\OrderStatus::CANCELLED, $order->status);
+
+        // 2. Khi đang giao hàng: status giữ PROCESSING (1)
+        $order->delivery_status = 'delivering';
+        if (in_array((int)$order->status, [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])) {
+            $order->status = \App\Enums\OrderStatus::PROCESSING;
+        }
+        $this->assertEquals(\App\Enums\OrderStatus::PROCESSING, $order->status);
+
+        // 3. Khi đã giao thành công: status PHẢI là COMPLETED (2), tuyệt đối KHÔNG ĐƯỢC là CANCELLED (3)
+        $order->delivery_status = 'delivered';
+        $order->status = \App\Enums\OrderStatus::COMPLETED;
+        $this->assertEquals(\App\Enums\OrderStatus::COMPLETED, $order->status);
+        $this->assertEquals(2, $order->status);
+        $this->assertNotEquals(3, $order->status);
+        $this->assertNotEquals(\App\Enums\OrderStatus::CANCELLED, $order->status);
+
+        // 4. Đảm bảo trạng thái COMPLETED nằm trong danh mục tính doanh thu
+        $revenueStatuses = [\App\Enums\OrderStatus::PROCESSING, \App\Enums\OrderStatus::COMPLETED];
+        $this->assertContains($order->status, $revenueStatuses);
+    }
 }

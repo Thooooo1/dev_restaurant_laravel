@@ -9,6 +9,8 @@ use App\Models\Booking;
 use App\Models\Order;
 use App\Models\ChatbotMessage;
 use App\Models\CustomerAiProfile;
+use App\Services\Chatbot\ChatbotKnowledgeBase;
+use App\Services\Chatbot\ChatbotMemoryManager;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -92,8 +94,14 @@ class ChatbotService
         ],
     ];
 
-    public function __construct()
+    protected ChatbotKnowledgeBase $kb;
+    protected ChatbotMemoryManager $memory;
+
+    public function __construct(?ChatbotKnowledgeBase $kb = null, ?ChatbotMemoryManager $memory = null)
     {
+        $this->kb = $kb ?? new ChatbotKnowledgeBase();
+        $this->memory = $memory ?? new ChatbotMemoryManager();
+
         try {
             if (class_exists(\App\Http\Controllers\backend\SettingController::class)) {
                 $this->settings = (new \App\Http\Controllers\backend\SettingController())->getSettings();
@@ -104,6 +112,16 @@ class ChatbotService
         $this->syncDynamicKnowledge();
     }
 
+    public function getKnowledgeBase(): ChatbotKnowledgeBase
+    {
+        return $this->kb;
+    }
+
+    public function getMemoryManager(): ChatbotMemoryManager
+    {
+        return $this->memory;
+    }
+
     public function getSetting(string $key, $default = null)
     {
         return $this->settings[$key] ?? $default;
@@ -111,6 +129,8 @@ class ChatbotService
 
     protected function syncDynamicKnowledge(): void
     {
+        $this->kb->syncDynamicKnowledge();
+
         $hotline = $this->getSetting('hotline', '0338 990 538');
         $address = $this->getSetting('address', 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội.');
         $hours = $this->getSetting('opening_hours', '09:00 – 23:00 tất cả các ngày trong tuần');
@@ -129,6 +149,13 @@ class ChatbotService
      */
     public function findKnowledgeBaseMatch(string $userMsg): ?array
     {
+        // 1. Tra cứu trực tiếp từ ChatbotKnowledgeBase đã chuẩn hóa
+        $match = $this->kb->findMatch($userMsg);
+        if ($match) {
+            return $match;
+        }
+
+        // 2. Tra cứu đối soát bổ sung từ cấu hình cục bộ
         $lower = mb_strtolower($userMsg, 'UTF-8');
         $normalized = $this->removeAccents($lower);
 
@@ -1934,7 +1961,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
     }
 
     /**
-     * Helpers: Short-term memory saver with PII masking
+     * Helpers: Short-term memory saver with PII masking via ChatbotMemoryManager
      */
     protected function saveMessageToMemory(string $sessionId, ?int $userId, string $role, string $content, ?array $toolCalls = null, ?array $toolOutput = null): void
     {
@@ -1950,21 +1977,15 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 }
             }
 
-            ChatbotMessage::create([
-                'session_id' => $sessionId,
-                'user_id' => $userId,
-                'role' => $role,
-                'content' => $content,
-                'tool_calls' => $toolCalls,
-                'tool_output' => $sanitizedOutput
-            ]);
+            // Ủy quyền lưu trữ và quản lý bộ nhớ cho ChatbotMemoryManager
+            $this->memory->saveMessage($sessionId, $userId, $role, $content, $toolCalls, $sanitizedOutput);
         } catch (\Exception $e) {
             Log::warning('Failed to save chatbot message memory: ' . $e->getMessage());
         }
     }
 
     /**
-     * Helpers: Long-term profile updater (Protected against poisoning)
+     * Helpers: Long-term profile updater (Protected against poisoning via ChatbotMemoryManager)
      */
     protected function updateCustomerProfile(?int $userId, ?string $phone, array $data): void
     {
@@ -1974,17 +1995,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
         }
 
         try {
-            $profile = CustomerAiProfile::firstOrNew(['user_id' => $userId]);
-            if ($phone && preg_match('/^0[35789][0-9]{8}$/', $phone)) {
-                $profile->phone = $phone;
-            }
-            if (!empty($data['customer_name'])) {
-                $profile->customer_name = strip_tags(trim($data['customer_name']));
-            }
-            if (!empty($data['total_visits_increment'])) {
-                $profile->total_visits = ($profile->total_visits ?? 0) + 1;
-            }
-            $profile->save();
+            $this->memory->updateCustomerProfile($userId, $phone, $data);
         } catch (\Exception $e) {
             Log::warning('Failed to update customer profile: ' . $e->getMessage());
         }

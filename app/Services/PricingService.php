@@ -78,11 +78,21 @@ class PricingService
     }
 
     /**
-     * Tính lại tổng tiền của Order từ các OrderDetail trong database
+     * Lấy tổng tiền phụ (subtotal) các món chưa bị hủy của Order
+     */
+    public static function getOrderSubtotal(int $orderId): int
+    {
+        return (int) Orderdetail::where('order_id', $orderId)
+            ->where('status', '!=', 'cancelled')
+            ->sum('amount');
+    }
+
+    /**
+     * Tính lại tổng tiền của Order từ các OrderDetail trong database (Đã loại trừ món hủy)
      */
     public static function recalculateOrderTotal(int $orderId, bool $isTableOrder = false): int
     {
-        $subtotal = (int) Orderdetail::where('order_id', $orderId)->sum('amount');
+        $subtotal = self::getOrderSubtotal($orderId);
         if ($isTableOrder) {
             $discount = (int) round($subtotal * 0.1);
             return max(0, $subtotal - $discount);

@@ -641,10 +641,8 @@ class CartController extends Controller
                 }
             }
 
-            // Tính lại tổng tiền sau chiết khấu 10% tại bàn
-            $newTotal = Orderdetail::where('order_id', $order->id)->sum('amount');
-            $discountAmount = round($newTotal * 0.1);
-            $order->total_price = max(0, $newTotal - $discountAmount);
+            // Tính lại tổng tiền sau chiết khấu 10% tại bàn qua PricingService
+            $order->total_price = \App\Services\PricingService::recalculateOrderTotal($order->id, true);
             $order->save();
 
             // Xóa session giỏ hàng

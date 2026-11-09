@@ -56,7 +56,7 @@ Tai lieu thiet ke va bao ve chuyen sau:
 
 ## 4. KIEM THU TU DONG & CI/CD (AUTOMATED TESTING & CI/CD)
 
-Du an tich hop bo kiem thu tu dong (Feature Tests & Unit Tests) voi **100% Test Case dat tieu chuan (35 tests / 116 assertions)**:
+Du an tich hop bo kiem thu tu dong (Feature Tests & Unit Tests) voi **100% Test Case dat tieu chuan (41 test methods / 125+ assertions)**:
 
 ```bash
 # Chay toan bo test suite tren moi truong may chu / may phat trien
@@ -66,12 +66,12 @@ php artisan test
 ### Cac Nhom Kiem Thu Chinh:
 1. **Security & Payment (`SecurityAndPaymentTest`):** Phan quyen phan tang Admin/Nhan vien/Khach hang, bao ve Webhook VietQR, chan toan bo 33 route admin khoi phuong thuc GET (chong 405), kiem tra chan Open Redirect va Safe Logout.
 2. **Chatbot Security Audit (`ChatbotSecurityTest`):** Chong ro ri PII khach hang, chan prompt injection, xac thuc 2 yeu to khi tra cuu don hang, kiem soat bo nho hoi thoai.
-3. **Delivery & Pricing (`DeliveryAndPricingTest`):** Kiem tra do chinh xac cua `PricingService`, ap dung chiet khau ban tiec 10%, tinh phi ship tu dong theo nguong hoa don, xac thuc `PaymentMethod` Enum va nhan trang thai giao hang 4 buoc.
+3. **Delivery & Pricing (`DeliveryAndPricingTest`):** Kiem tra do chinh xac cua `PricingService`, ap dung chiet khau ban tiec 10%, tinh phi ship tu dong theo nguong hoa don, xac thuc `PaymentMethod` Enum, logic chuyen trang thai giao hang va dong bo OrderStatus::COMPLETED trong doanh thu.
 4. **Order & Inventory:** Kiem tra tru ton kho an toan voi Pessimistic Locking.
 5. **Excel Export Reports:** Kiem tra xuat du lieu cho cac phan he bao cao doanh thu va xuat nhap kho.
 
 ### Tich Hop Lien Tuc (CI/CD):
-Quy trinh GitHub Actions tu dong duoc cau hinh tai `.github/workflows/tests.yml`: Khoi tao moi truong ao hoa MySQL 8.0, chay migration va kiem thu toan bo ma nguon moi khi co ma duoc day len repository.
+Quy trinh GitHub Actions tu dong duoc cau hinh tai `.github/workflows/tests.yml` theo doi ca 2 nhanh `main` va `master`: Khoi tao moi truong ao hoa MySQL 8.0, chay migration va kiem thu toan bo ma nguon moi khi co ma duoc day len repository.
 
 ---
 

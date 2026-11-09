@@ -42,7 +42,7 @@
   "Ve mat ky thuat, du an dat tieu chuan san pham san sang van hanh:
   - Dong goi tai nguyen cuc bo 100% qua Vite (Tailwind CSS, Font Awesome), hoat dong offline muot ma khong phu thuoc CDN ngoai.
   - Kien truc an toan du lieu voi Pessimistic Locking (`lockForUpdate`) va DB Transaction chong tranh chap.
-  - Bo kiem thu tu dong 35 test case dat 100% passed tich hop CI/CD GitHub Actions.
+  - Bo kiem thu tu dong 41 test method dat 100% passed tich hop CI/CD GitHub Actions tren ca hai nhanh main va master.
   Em xin chan thanh cam on quy thay co va san sang tiep nhan cau hoi phan bien."
 
 ---
@@ -106,13 +106,13 @@
 * **Tra loi chuan:**
   "Kinh thua thay co:
   1. **Phan tang vai tro bang Middleware:** He thong phan quyen ro rang qua Middleware `auth` ket hop kiem tra cot `roles`: Role 1 (Admin), Role 2 (Employee / Nhan vien) va Role 3 (Customer / Khach hang).
-  2. **Chuyen doi toan bo thao tac quan tri sang POST CSRF:** Chung em da loai bo hoan toan cac route quan tri dung phuong thuc GET de thay doi trang thai (nhu xoa san pham, doi trang thai ban, dang xuat). Tat ca deu bat buoc su dung phuong thuc `POST` co `@csrf`, loai bo 100% nguy co bi tan cong Cross-Site Request Forgery."
+  2. **Chuyen doi toan bo thao tac quan tri sang POST CSRF:** Chung em da loai bo hoan toan cac route quan tri dung phuong thuc GET de thay doi trang thai (nhu xoa san pham, doi trang thai ban, dang xuat, chay migration qua /admin/system-migrate). Tat ca deu bat buoc su dung phuong thuc `POST` co `@csrf`, loai bo 100% nguy co bi tan cong Cross-Site Request Forgery."
 
 #### Cau Hoi 10: Ban da thuc hien nhung bai kiem thu tu dong nao va quy trinh CI/CD ra sao?
 * **Tra loi chuan:**
   "Kinh thua thay co:
-  1. **Bo kiem thu tu dong (Automated Feature Tests):** Chung em da xay dung bo test bao phu toan bo cac tinh huong ranh gioi (Edge cases):
+  1. **Bo kiem thu tu dong (Automated Feature Tests):** Chung em da xay dung bo test gom 41 phuong thuc kiem thu bao phu toan bo cac tinh huong ranh gioi (Edge cases):
      - `SecurityAndPaymentTest`: Kiem tra phan quyen, chong gia mao webhook, kiem tra chan GET 405 tren 33 route admin.
      - `ChatbotSecurityTest`: Kiem tra chong ro ri PII, chong injection, kiem tra xac thuc don hang.
-     - `DeliveryAndPricingTest`: Kiem tra tinh phi ship, chiet khau, Enum phuong thuc thanh toan va nhan trang thai giao hang.
-  2. **Tich hop lien tuc CI/CD qua GitHub Actions:** Chung em da cau hinh workflow `.github/workflows/tests.yml`. Moi khi co commit moi duoc day len GitHub, he thong se tu dong khoi chay moi truong container MySQL 8.0, chay toan bo migration va bo test. Neu co bat ky loi nghiep vu nao, build se bi chan lai ngay lap tuc."
+     - `DeliveryAndPricingTest`: Kiem tra tinh phi ship, chiet khau, Enum phuong thuc thanh toan, logic chuyen trang thai giao hang va dong bo OrderStatus::COMPLETED trong bao cao doanh thu.
+  2. **Tich hop lien tuc CI/CD qua GitHub Actions:** Chung em da cau hinh workflow `.github/workflows/tests.yml` theo doi ca 2 nhanh `main` va `master`. Moi khi co commit moi duoc day len GitHub, he thong se tu dong khoi chay moi truong container MySQL 8.0, chay toan bo migration va bo test. Neu co bat ky loi nghiep vu nao, build se bi chan lai ngay lap tuc."
