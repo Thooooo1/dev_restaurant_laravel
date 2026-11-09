@@ -116,31 +116,31 @@
     </div>
 
     <!-- Bảng Danh Sách Phiếu Nhập Kho -->
-    <div class="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 class="font-bold text-slate-800 text-base">Danh sách Phiếu nhập kho</h3>
-            <span class="text-xs text-slate-500 font-medium">Hiển thị {{ $receipts->count() }} / {{ $receipts->total() }} phiếu</span>
+    <div class="ant-card shadow-sm overflow-hidden">
+        <div class="px-5 py-4 border-b border-[#F0F0F0] flex items-center justify-between">
+            <h3 class="font-bold text-[rgba(0,0,0,0.85)] text-base">Danh sách Phiếu nhập kho</h3>
+            <span class="text-xs text-[rgba(0,0,0,0.45)] font-medium">Hiển thị {{ $receipts->count() }} / {{ $receipts->total() }} phiếu</span>
         </div>
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-600 uppercase tracking-wider">
+                <thead class="bg-[#FAFAFA] border-b border-[#F0F0F0] text-xs font-semibold text-[rgba(0,0,0,0.85)]">
                     <tr>
-                        <th class="px-4 py-3.5">Mã Phiếu</th>
-                        <th class="px-4 py-3.5">Ngày Nhập Kho</th>
-                        <th class="px-4 py-3.5">Nhà Cung Cấp</th>
-                        <th class="px-4 py-3.5">Người Lập</th>
-                        <th class="px-4 py-3.5 text-center">Số Mặt Hàng</th>
-                        <th class="px-4 py-3.5 text-right">Tổng Tiền Phiếu</th>
-                        <th class="px-4 py-3.5 text-center">Trạng Thái</th>
-                        <th class="px-4 py-3.5 text-center">Thao Tác</th>
+                        <th class="px-4 py-3 text-left">Mã phiếu</th>
+                        <th class="px-4 py-3 text-left">Ngày nhập kho</th>
+                        <th class="px-4 py-3 text-left">Nhà cung cấp</th>
+                        <th class="px-4 py-3 text-left">Người lập</th>
+                        <th class="px-4 py-3 text-center">Số mặt hàng</th>
+                        <th class="px-4 py-3 text-right">Tổng tiền phiếu</th>
+                        <th class="px-4 py-3 text-center">Trạng thái</th>
+                        <th class="px-4 py-3 text-center w-36">Thao tác</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-sm">
+                <tbody class="divide-y divide-[#F0F0F0] text-sm">
                     @forelse($receipts as $receipt)
-                    <tr class="hover:bg-orange-50/40 transition-colors">
+                    <tr class="hover:bg-orange-50/30 transition-colors">
                         <!-- Mã phiếu (Thuần typography) -->
-                        <td class="px-4 py-3.5 whitespace-nowrap font-bold text-slate-900">
+                        <td class="px-4 py-3 whitespace-nowrap font-bold text-slate-900">
                             <a href="{{ route('admin.import-goods.show', $receipt->id) }}" 
                                class="text-slate-900 hover:text-black font-bold"
                                title="Xem chi tiết phiếu nhập">
@@ -149,13 +149,13 @@
                         </td>
 
                         <!-- Ngày nhập -->
-                        <td class="px-4 py-3.5 whitespace-nowrap text-slate-600 text-xs sm:text-sm">
+                        <td class="px-4 py-3 whitespace-nowrap text-slate-600 text-xs sm:text-sm">
                             <div class="font-medium text-slate-800">{{ $receipt->import_date ? $receipt->import_date->format('d/m/Y') : '---' }}</div>
                             <div class="text-xs text-slate-400">{{ $receipt->import_date ? $receipt->import_date->format('H:i') : '' }}</div>
                         </td>
 
                         <!-- Nhà cung cấp -->
-                        <td class="px-4 py-3.5 text-slate-800">
+                        <td class="px-4 py-3 text-slate-800">
                             <div class="font-semibold">{{ $receipt->supplier_name }}</div>
                             @if(!empty($receipt->supplier_phone))
                                 <div class="text-xs text-slate-500 font-mono">{{ $receipt->supplier_phone }}</div>
@@ -163,53 +163,53 @@
                         </td>
 
                         <!-- Người lập -->
-                        <td class="px-4 py-3.5 whitespace-nowrap text-slate-900">
+                        <td class="px-4 py-3 whitespace-nowrap text-slate-900">
                             <span class="text-xs font-bold text-slate-900">
                                 {{ $receipt->creator_name ?? ($receipt->creator->fullname ?? 'Thủ kho') }}
                             </span>
                         </td>
 
                         <!-- Số lượng mặt hàng -->
-                        <td class="px-4 py-3.5 whitespace-nowrap text-center text-xs text-[rgba(0,0,0,0.85)] font-medium">
+                        <td class="px-4 py-3 whitespace-nowrap text-center text-xs text-[rgba(0,0,0,0.85)] font-medium">
                             {{ $receipt->items->count() }} mặt hàng
                         </td>
 
                         <!-- Tổng tiền -->
-                        <td class="px-4 py-3.5 whitespace-nowrap text-right font-semibold text-sm text-[rgba(0,0,0,0.85)] font-mono">
+                        <td class="px-4 py-3 whitespace-nowrap text-right font-semibold text-sm text-[rgba(0,0,0,0.85)] font-mono">
                             {{ number_format($receipt->total_amount, 0, ',', '.') }}₫
                         </td>
 
                         <!-- Trạng thái -->
-                        <td class="px-4 py-3.5 whitespace-nowrap text-center text-xs text-[rgba(0,0,0,0.85)] font-medium">
+                        <td class="px-4 py-3 whitespace-nowrap text-center text-xs text-[rgba(0,0,0,0.85)] font-medium">
                             Đã nhập kho
                         </td>
 
-                        <!-- Thao Tác (Có icon chuẩn chức năng) -->
-                        <td class="px-4 py-3.5 whitespace-nowrap text-center">
+                        <!-- Thao tác (Chuẩn Ant Design Pro đồng bộ hệ thống) -->
+                        <td class="px-4 py-3 whitespace-nowrap text-center">
                             <div class="flex items-center justify-center gap-1.5">
                                 <a href="{{ route('admin.import-goods.show', $receipt->id) }}" 
-                                   class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100 shadow-2xs"
+                                   class="w-7 h-7 rounded border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors"
                                    title="Xem chi tiết phiếu nhập">
-                                    <i class="fa-solid fa-eye"></i>
+                                    <i class="fa-regular fa-eye"></i>
                                 </a>
                                 <a href="{{ route('admin.import-goods.print', $receipt->id) }}" target="_blank"
-                                   class="inline-flex items-center justify-center w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg text-sm transition-all hover:bg-emerald-100 shadow-2xs"
+                                   class="w-7 h-7 rounded border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors"
                                    title="In phiếu nhập kho A4">
                                     <i class="fa-solid fa-print"></i>
                                 </a>
                                 <a href="{{ route('admin.import-goods.edit', $receipt->id) }}" 
-                                   class="inline-flex items-center justify-center w-8 h-8 bg-orange-50 text-orange-600 rounded-lg text-sm transition-all hover:bg-orange-100 shadow-2xs"
+                                   class="w-7 h-7 rounded border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors"
                                    title="Chỉnh sửa phiếu nhập">
-                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    <i class="fa-regular fa-pen-to-square"></i>
                                 </a>
                                 <form action="{{ route('admin.import-goods.destroy', $receipt->id) }}" method="POST" class="inline" 
                                       onsubmit="return confirm('Bạn có chắc chắn muốn xóa phiếu nhập #{{ $receipt->code }}? Toàn bộ các dòng mặt hàng thuộc phiếu này sẽ bị xóa.');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" 
-                                            class="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-lg text-sm transition-all hover:bg-red-100 cursor-pointer shadow-2xs"
+                                            class="w-7 h-7 rounded border border-gray-200 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-600 flex items-center justify-center text-xs transition-colors cursor-pointer"
                                             title="Xóa phiếu nhập">
-                                        <i class="fa-solid fa-trash"></i>
+                                        <i class="fa-regular fa-trash-can"></i>
                                     </button>
                                 </form>
                             </div>

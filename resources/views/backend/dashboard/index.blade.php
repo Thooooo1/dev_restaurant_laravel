@@ -256,7 +256,7 @@
                                 <div class="text-xs">{{ $ro->created_at ? $ro->created_at->format('d/m/Y') : '' }}</div>
                             </td>
                             <td class="text-center whitespace-nowrap">
-                                <a href="{{ route('admin.order.orderdetail', $ro->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100" title="Chi tiết đơn hàng">
+                                <a href="{{ route('admin.order.orderdetail', $ro->id) }}" class="inline-flex items-center justify-center w-7 h-7 rounded border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 text-xs transition-colors" title="Chi tiết đơn hàng">
                                     <i class="fa-regular fa-eye"></i>
                                 </a>
                             </td>
@@ -352,7 +352,7 @@
                                 @endswitch
                             </td>
                             <td class="text-center whitespace-nowrap">
-                                <a href="{{ route('admin.booking.detail', $rb->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100" title="Chi tiết đặt bàn">
+                                <a href="{{ route('admin.booking.detail', $rb->id) }}" class="inline-flex items-center justify-center w-7 h-7 rounded border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 text-xs transition-colors" title="Chi tiết đặt bàn">
                                     <i class="fa-regular fa-eye"></i>
                                 </a>
                             </td>

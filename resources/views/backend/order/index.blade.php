@@ -88,10 +88,10 @@
                             </td>
                             <td class="text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center gap-1.5">
-                                    <a href="{{ route('admin.order.orderdetail', $order->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 rounded-lg text-sm transition-all hover:bg-blue-100" title="Chi tiết đơn hàng">
+                                    <a href="{{ route('admin.order.orderdetail', $order->id) }}" class="w-7 h-7 rounded border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors" title="Chi tiết đơn hàng">
                                         <i class="fa-regular fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('admin.order.edit', $order->id) }}" class="inline-flex items-center justify-center w-8 h-8 bg-orange-50 text-orange-600 rounded-lg text-sm transition-all hover:bg-orange-100" title="Cập nhật trạng thái">
+                                    <a href="{{ route('admin.order.edit', $order->id) }}" class="w-7 h-7 rounded border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors" title="Cập nhật trạng thái">
                                         <i class="fa-regular fa-pen-to-square"></i>
                                     </a>
                                 </div>

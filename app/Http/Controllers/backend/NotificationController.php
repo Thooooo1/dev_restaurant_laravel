@@ -49,7 +49,7 @@ class NotificationController extends Controller
                         'role'       => 'employee',
                         'type'       => 'payment',
                         'title'      => "{$orderLabel} đã thanh toán {$pmText} ({$amountFormatted})",
-                        'message'    => "Hóa đơn {$orderLabel} số tiền {$amountFormatted} đã được thanh toán thành công qua {$pmText}.",
+                        'message'    => "Hóa đơn {$orderLabel} đã được thanh toán thành công qua {$pmText}.",
                         'url'        => $order->table_id ? route('admin.table-order.payment', $order->table_id) : route('admin.order.orderdetail', $order->id),
                         'icon'       => 'fa-receipt',
                         'color'      => '#10B981',
@@ -121,16 +121,30 @@ class NotificationController extends Controller
             $isVietQr = (stripos($p->title, 'VietQR') !== false || stripos($p->message, 'VietQR') !== false || stripos($p->title, 'chuyển khoản') !== false);
             $cleanTitle = preg_replace('/#(\d+)\s*\(\s*(?:Đơn\s*)?#?\1\s*\)/ui', '#$1', $p->title);
             $cleanMessage = preg_replace('/#(\d+)\s*\(\s*(?:Đơn\s*)?#?\1\s*\)/ui', '#$1', $p->message);
+
+            // Tách label đối tượng (Đơn online #... / Bàn ...) và số tiền
+            $amount = '';
+            if (preg_match('/\(([\d\.\,]+\s*[₫đ]?)\)/ui', $cleanTitle, $m)) {
+                $amount = trim($m[1]);
+                if (!str_ends_with($amount, '₫') && !str_ends_with($amount, 'đ')) {
+                    $amount .= '₫';
+                }
+            }
+            $label = preg_replace('/\s+đã\s+thanh\s+toán.*$/ui', '', $cleanTitle);
+            $label = trim($label);
+
             return [
                 'id' => $p->id,
                 'title' => $cleanTitle,
+                'label' => $label ?: $cleanTitle,
+                'amount' => $amount,
                 'message' => $cleanMessage,
                 'url' => $p->url ?: 'javascript:void(0)',
                 'is_read' => (bool)$p->is_read,
                 'time_ago' => $p->created_at ? $p->created_at->locale('vi')->diffForHumans() : 'Vừa xong',
                 'created_at' => $p->created_at ? $p->created_at->format('d/m/Y H:i') : '',
                 'is_vietqr' => $isVietQr,
-                'badge_label' => $isVietQr ? 'Chuyển khoản VietQR' : 'Thanh toán thành công',
+                'badge_label' => $isVietQr ? 'Chuyển khoản VietQR' : 'Tiền mặt',
             ];
         });
 
