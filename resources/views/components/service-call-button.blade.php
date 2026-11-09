@@ -249,6 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
             statusMsg.textContent = '';
         }
     }
+    }
 
     // Xử lý chạm nhanh các thẻ nhu cầu (Service Chips) - Hỗ trợ chọn nhiều cùng lúc (Multi-select)
     chips.forEach(chip => {
@@ -333,9 +334,10 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(res => res.json())
         .then(data => {
             if (data.success && data.floors) {
-                const targetId = (tableIdInput && tableIdInput.value) || (tableSelect && tableSelect.value) || data.current_table_id || (window.liveCartState && window.liveCartState.table_id);
+                const targetId = (tableIdInput && tableIdInput.value) || (tableSelect && tableSelect.value) || data.current_table_id || (window.liveCartState && window.liveCartState.table_id) || localStorage.getItem('civilize_cart_table_id');
                 tableSelect.innerHTML = '<option value="">-- Chọn số bàn của bạn --</option>';
                 let selectedOptText = '';
+                let matchedId = '';
 
                 data.floors.forEach(floor => {
                     const optgroup = document.createElement('optgroup');
@@ -347,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             opt.textContent = tbl.name + ' (' + floor.name + ')';
                             if (targetId && (targetId == tbl.id)) {
                                 opt.selected = true;
-                                if (tableIdInput) tableIdInput.value = tbl.id;
+                                matchedId = tbl.id;
                                 selectedOptText = opt.textContent;
                             }
                             optgroup.appendChild(opt);
@@ -356,6 +358,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     tableSelect.appendChild(optgroup);
                 });
 
+                if (matchedId) {
+                    tableSelect.value = matchedId;
+                    if (tableIdInput) tableIdInput.value = matchedId;
+                }
                 if (selectedOptText) {
                     if (modalTableSubtitleText) modalTableSubtitleText.textContent = 'Bàn: ' + selectedOptText;
                     const btnTable = document.getElementById('serviceCallBtnTable');
@@ -371,10 +377,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Đồng bộ khi khách hàng chọn bàn từ dropdown
     function syncTableSelection() {
-        const val = tableSelect ? tableSelect.value : '';
-        if (tableIdInput) tableIdInput.value = val;
+        let val = tableSelect ? tableSelect.value : '';
+        if (!val && tableSelect && tableSelect.selectedIndex >= 0) {
+            const opt = tableSelect.options[tableSelect.selectedIndex];
+            if (opt && opt.value) val = opt.value;
+        }
 
         if (val) {
+            if (tableIdInput) tableIdInput.value = val;
             clearStatusMsg();
             const text = tableSelect.options[tableSelect.selectedIndex] ? tableSelect.options[tableSelect.selectedIndex].text : '';
             if (text) {
@@ -408,13 +418,21 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             clearStatusMsg();
 
-            // Kiểm tra linh hoạt cả select, hidden input và state giỏ hàng
+            // Kiểm tra linh hoạt cả select, selectedOptions, hidden input, localStorage và state giỏ hàng
             let tableId = (tableSelect && tableSelect.value) ? tableSelect.value : '';
+            if (!tableId && tableSelect && tableSelect.selectedIndex >= 0) {
+                const selOpt = tableSelect.options[tableSelect.selectedIndex];
+                if (selOpt && selOpt.value) tableId = selOpt.value;
+            }
             if (!tableId && tableIdInput && tableIdInput.value) {
                 tableId = tableIdInput.value;
             }
             if (!tableId && window.liveCartState && window.liveCartState.table_id) {
                 tableId = window.liveCartState.table_id;
+            }
+            if (!tableId) {
+                const storedId = localStorage.getItem('civilize_cart_table_id');
+                if (storedId) tableId = storedId;
             }
 
             if (!tableId) {

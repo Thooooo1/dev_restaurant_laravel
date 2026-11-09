@@ -68,6 +68,55 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Cập nhật thông tin đơn hàng thành công');
     }
 
+    public function updateDelivery(Request $request, $id)
+    {
+        $order = Order::findOrFail($id);
+
+        $request->validate([
+            'shipper_name' => 'nullable|string|max:255',
+            'shipper_phone' => 'nullable|string|max:50',
+            'delivery_status' => 'required|string|in:waiting,picked_up,delivering,delivered,failed',
+            'delivery_note' => 'nullable|string|max:1000',
+        ]);
+
+        $order->shipper_name = $request->shipper_name;
+        $order->shipper_phone = $request->shipper_phone;
+        $order->delivery_status = $request->delivery_status;
+        $order->delivery_note = $request->delivery_note;
+
+        if ($request->delivery_status === 'picked_up' && !$order->picked_up_at) {
+            $order->picked_up_at = now();
+            if ($order->status == 0 || $order->status == 1) {
+                $order->status = 2; // Đang xử lý / giao hàng
+            }
+        } elseif ($request->delivery_status === 'delivering') {
+            if (!$order->picked_up_at) {
+                $order->picked_up_at = now();
+            }
+            if ($order->status == 0 || $order->status == 1) {
+                $order->status = 2; // Đang giao hàng
+            }
+        } elseif ($request->delivery_status === 'delivered') {
+            if (!$order->delivered_at) {
+                $order->delivered_at = now();
+            }
+            $order->status = 3; // Hoàn tất
+        }
+
+        $order->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật tiến trình giao hàng thành công!',
+                'delivery_status' => $order->delivery_status,
+                'delivery_status_label' => $order->delivery_status_label,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Cập nhật tiến trình giao hàng thành công!');
+    }
+
     public function detail($id)
     {
         $order = Order::with(['orderDetails.product.category', 'table.floor', 'user'])->findOrFail($id);

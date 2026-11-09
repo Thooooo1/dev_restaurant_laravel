@@ -64,6 +64,14 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        // Hỗ trợ redirect an toàn nếu có tham số điều hướng nội bộ
+        $redirectUrl = $request->input('redirect');
+        if ($redirectUrl && is_string($redirectUrl)) {
+            if (str_starts_with($redirectUrl, '/admin') && !str_starts_with($redirectUrl, '//') && !str_contains($redirectUrl, '\\') && !str_contains($redirectUrl, ':')) {
+                return redirect($redirectUrl);
+            }
+        }
+
         // Điều hướng chính xác theo phân quyền:
         // Nhân viên (admin_lever = 2 hoặc roles = employee) vào màn hình POS gọi món tại bàn
         if ($user->admin_lever == 2 || $user->roles === 'employee') {

@@ -274,6 +274,80 @@
                         </button>
                     </form>
                 </div>
+
+                @if(!$isTableOrder)
+                <!-- Thẻ Phân công Shipper & Tiến trình giao hàng (Không cần tài khoản Shipper) -->
+                <div class="ant-card p-5">
+                    <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+                        <span>Tiến trình giao hàng & Shipper</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold {{ $order->delivery_status === 'delivered' ? 'bg-emerald-100 text-emerald-800' : ($order->delivery_status === 'failed' ? 'bg-rose-100 text-rose-800' : 'bg-blue-100 text-blue-800') }}">
+                            {{ $order->delivery_status_label }}
+                        </span>
+                    </h3>
+
+                    <form action="{{ route('admin.order.updateDelivery', $order->id) }}" method="POST" class="space-y-3 text-xs">
+                        @csrf
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-gray-700 mb-1">Tên Shipper:</label>
+                                <input type="text" name="shipper_name" value="{{ old('shipper_name', $order->shipper_name) }}" placeholder="Ví dụ: Nguyễn Văn An" class="polaris-input w-full text-xs">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-gray-700 mb-1">SĐT Shipper:</label>
+                                <input type="text" name="shipper_phone" value="{{ old('shipper_phone', $order->shipper_phone) }}" placeholder="Ví dụ: 0912345678" class="polaris-input w-full text-xs">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-700 mb-1">Trạng thái giao hàng:</label>
+                            <select name="delivery_status" id="deliveryStatusSelect" class="polaris-select w-full text-xs font-medium">
+                                <option value="waiting" {{ $order->delivery_status === 'waiting' ? 'selected' : '' }}>Chờ phân công shipper / Chuẩn bị món</option>
+                                <option value="picked_up" {{ $order->delivery_status === 'picked_up' ? 'selected' : '' }}>Shipper đã nhận hàng từ quán</option>
+                                <option value="delivering" {{ $order->delivery_status === 'delivering' ? 'selected' : '' }}>Đang giao đến khách</option>
+                                <option value="delivered" {{ $order->delivery_status === 'delivered' ? 'selected' : '' }}>Đã giao hàng thành công (Hoàn tất đơn)</option>
+                                <option value="failed" {{ $order->delivery_status === 'failed' ? 'selected' : '' }}>Giao hàng thất bại</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-gray-700 mb-1">Ghi chú giao hàng (Lý do thất bại / Hẹn giờ):</label>
+                            <textarea name="delivery_note" rows="2" placeholder="Ghi chú thêm nếu giao thất bại hoặc khách hẹn lại giờ..." class="polaris-input w-full text-xs resize-none">{{ old('delivery_note', $order->delivery_note) }}</textarea>
+                        </div>
+
+                        <!-- Các nút chuyển trạng thái nhanh -->
+                        <div class="pt-1">
+                            <span class="block text-[10px] text-gray-400 mb-1.5 font-medium uppercase">Cập nhật nhanh:</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" onclick="setDeliveryQuickStatus('picked_up')" class="px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 text-[11px] font-medium border border-amber-200 cursor-pointer">
+                                    Đã lấy hàng
+                                </button>
+                                <button type="button" onclick="setDeliveryQuickStatus('delivering')" class="px-2 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-800 text-[11px] font-medium border border-blue-200 cursor-pointer">
+                                    Đang giao
+                                </button>
+                                <button type="button" onclick="setDeliveryQuickStatus('delivered')" class="px-2 py-1 rounded bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-medium border border-emerald-200 cursor-pointer">
+                                    Đã giao thành công
+                                </button>
+                                <button type="button" onclick="setDeliveryQuickStatus('failed')" class="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-800 text-[11px] font-medium border border-rose-200 cursor-pointer">
+                                    Giao thất bại
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" class="ant-btn ant-btn-primary w-full text-xs font-bold py-2 justify-center">
+                                Cập nhật thông tin giao hàng
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <script>
+                    function setDeliveryQuickStatus(status) {
+                        const sel = document.getElementById('deliveryStatusSelect');
+                        if (sel) sel.value = status;
+                    }
+                </script>
+                @endif
             </div>
 
             <!-- Cột phải: Danh sách món ăn chi tiết & Bảng tổng kết tiền -->

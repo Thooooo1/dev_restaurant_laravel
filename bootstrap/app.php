@@ -16,7 +16,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->trustProxies(at: '*');
+        $trustedProxies = env('TRUSTED_PROXIES');
+        if ($trustedProxies) {
+            $middleware->trustProxies(at: $trustedProxies === '*' ? '*' : array_map('trim', explode(',', $trustedProxies)));
+        } else {
+            $middleware->trustProxies(at: [
+                '127.0.0.1',
+                '::1',
+            ]);
+        }
+
         $middleware->validateCsrfTokens(except: [
             'api/webhook/*',
             'api/webhook',
@@ -25,10 +34,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/payment/*',
             'payment/*',
             'checkout/ipn',
-            'tu-van/*',
-            'tu-van',
-            'chatbot/*',
-            'chatbot',
         ]);
         $middleware->alias([
             'login-admin' => LoginAdmin::class,

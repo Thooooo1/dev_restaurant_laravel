@@ -121,6 +121,7 @@ class NotificationController extends Controller
             $isVietQr = (stripos($p->title, 'VietQR') !== false || stripos($p->message, 'VietQR') !== false || stripos($p->title, 'chuyển khoản') !== false);
             $cleanTitle = preg_replace('/#(\d+)\s*\(\s*(?:Đơn\s*)?#?\1\s*\)/ui', '#$1', $p->title);
             $cleanMessage = preg_replace('/#(\d+)\s*\(\s*(?:Đơn\s*)?#?\1\s*\)/ui', '#$1', $p->message);
+            $cleanMessage = preg_replace('/số\s+tiền\s+[\d\.\,]+\s*[₫đ]?\s*/ui', '', $cleanMessage);
 
             // Tách label đối tượng (Đơn online #... / Bàn ...) và số tiền
             $amount = '';

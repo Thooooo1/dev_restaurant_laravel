@@ -77,6 +77,128 @@
                     </div>
                 </div>
 
+                @if(empty($order->table_id))
+                <!-- Tiến trình giao hàng & Thông tin liên hệ Shipper (Không cần tài khoản Shipper) -->
+                @php
+                    $delivStatus = $order->delivery_status ?? 'waiting';
+                    $stepIndex = match($delivStatus) {
+                        'picked_up' => 2,
+                        'delivering' => 3,
+                        'delivered' => 4,
+                        'failed' => -1,
+                        default => 1,
+                    };
+                @endphp
+
+                <div class="p-6 sm:p-8 bg-white border-b border-stone-100">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+                        <div>
+                            <span class="text-xs uppercase font-bold tracking-wider text-[#C25E00]">TIẾN TRÌNH GIAO HÀNG</span>
+                            <h3 class="font-serif text-lg font-bold text-stone-900 mt-0.5">
+                                Trạng thái: {{ $order->delivery_status_label }}
+                            </h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="tel:{{ $settings['hotline'] ?? '0338990538' }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition-colors">
+                                <i class="fa-solid fa-phone text-[#C25E00]"></i>
+                                <span>Gọi nhà hàng</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    @if($delivStatus === 'failed')
+                        <div class="p-4 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs mb-6">
+                            <strong class="font-bold block mb-1">Giao hàng chưa thành công</strong>
+                            <span>{{ $order->delivery_note ?: 'Nhân viên giao hàng không liên lạc được với người nhận hoặc khách hẹn giao lại sau.' }}</span>
+                        </div>
+                    @else
+                        <!-- Timeline 4 bước -->
+                        <div class="relative mb-6">
+                            <div class="hidden sm:block absolute top-1/2 left-0 right-0 h-0.5 bg-stone-200 -translate-y-1/2 z-0"></div>
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 relative z-10">
+                                <!-- Bước 1: Tiếp nhận đơn -->
+                                <div class="flex sm:flex-col items-center gap-3 sm:gap-2 text-left sm:text-center">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold {{ $stepIndex >= 1 ? 'bg-[#C25E00] text-white shadow-xs' : 'bg-stone-100 text-stone-400 border border-stone-300' }}">
+                                        1
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-bold text-stone-800 block">Đã tiếp nhận</span>
+                                        <span class="text-[11px] text-stone-400">Chờ bếp chuẩn bị</span>
+                                    </div>
+                                </div>
+
+                                <!-- Bước 2: Bếp làm món & Shipper nhận hàng -->
+                                <div class="flex sm:flex-col items-center gap-3 sm:gap-2 text-left sm:text-center">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold {{ $stepIndex >= 2 ? 'bg-[#C25E00] text-white shadow-xs' : 'bg-stone-100 text-stone-400 border border-stone-300' }}">
+                                        2
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-bold text-stone-800 block">Shipper nhận hàng</span>
+                                        <span class="text-[11px] text-stone-400">Đã lấy món từ quán</span>
+                                    </div>
+                                </div>
+
+                                <!-- Bước 3: Đang giao hàng -->
+                                <div class="flex sm:flex-col items-center gap-3 sm:gap-2 text-left sm:text-center">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold {{ $stepIndex >= 3 ? 'bg-[#C25E00] text-white shadow-xs' : 'bg-stone-100 text-stone-400 border border-stone-300' }}">
+                                        3
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-bold text-stone-800 block">Đang giao đến bạn</span>
+                                        <span class="text-[11px] text-stone-400">Đang trên đường di chuyển</span>
+                                    </div>
+                                </div>
+
+                                <!-- Bước 4: Đã giao thành công -->
+                                <div class="flex sm:flex-col items-center gap-3 sm:gap-2 text-left sm:text-center">
+                                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold {{ $stepIndex >= 4 ? 'bg-emerald-600 text-white shadow-xs' : 'bg-stone-100 text-stone-400 border border-stone-300' }}">
+                                        4
+                                    </div>
+                                    <div>
+                                        <span class="text-xs font-bold text-stone-800 block">Giao thành công</span>
+                                        <span class="text-[11px] text-stone-400">Chúc bạn ngon miệng</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Thông tin Shipper nếu đã phân công -->
+                    @if($order->shipper_name)
+                        <div class="p-4 rounded-lg bg-stone-50 border border-stone-200/90 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-amber-100 text-[#C25E00] flex items-center justify-center font-bold text-sm shrink-0">
+                                    <i class="fa-solid fa-person-biking"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Nhân viên giao hàng</span>
+                                    <strong class="text-stone-900 font-bold text-sm">{{ $order->shipper_name }}</strong>
+                                    @if($delivStatus !== 'delivered' && $order->shipper_phone)
+                                        <span class="text-stone-500 font-mono text-xs block">{{ $order->shipper_phone }}</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            @if($delivStatus !== 'delivered' && $order->shipper_phone)
+                                <div class="flex items-center gap-2 pt-2 sm:pt-0">
+                                    <a href="tel:{{ $order->shipper_phone }}" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-xs">
+                                        <i class="fa-solid fa-phone"></i>
+                                        <span>Gọi shipper</span>
+                                    </a>
+                                    <a href="https://zalo.me/{{ preg_replace('/[^0-9]/', '', $order->shipper_phone) }}" target="_blank" rel="noopener noreferrer" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded bg-[#0068FF] hover:bg-[#0054d1] text-white text-xs font-semibold transition-colors shadow-xs">
+                                        <span>Nhắn Zalo</span>
+                                    </a>
+                                </div>
+                            @elseif($delivStatus === 'delivered')
+                                <div class="text-emerald-700 font-semibold text-xs">
+                                    Đơn hàng đã hoàn tất giao hàng
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+                @endif
+
                 <!-- Dishes Table -->
                 <div class="p-6 sm:p-8">
                     <h3 class="font-serif text-lg font-bold text-stone-900 mb-4">Danh Sách Món Ăn</h3>

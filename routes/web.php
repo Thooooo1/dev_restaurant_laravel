@@ -59,7 +59,7 @@ Route::get('/', [TrangchuController::class, 'index'])->name('site.home');
 Route::get('/thuc-don', [SanPhamController::class, 'index'])->name('site.product');
 Route::get('/danh-sach', [SanPhamController::class, 'product_gridview'])->name('site.product.gridview');
 Route::get('/chi-tiet-san-pham/{slug}', [SanPhamController::class, 'product_detail'])->name('site.product.detail');
-Route::get('/tim-kiem-nhanh', [SanPhamController::class, 'quickSearch'])->name('site.product.quick_search');
+Route::get('/tim-kiem-nhanh', [SanPhamController::class, 'quickSearch'])->middleware('throttle:60,1')->name('site.product.quick_search');
 
 // Blog
 Route::get('/bai-viet', [BaivietController::class, 'index'])->name('site.blog');
@@ -181,7 +181,10 @@ Route::post('/dang-ky', [ThanhVienController::class, 'doregister'])->middleware(
 Route::get('/dang-nhap', [ThanhVienController::class, 'login'])->name('site.login');
 Route::post('/check-phone', [ThanhVienController::class, 'checkPhone'])->middleware('throttle:20,1')->name('site.check_phone');
 Route::post('/dang-nhap', [ThanhVienController::class, 'dologin'])->middleware('throttle:15,1')->name('site.dologin');
-Route::match(['GET', 'POST'], '/dang-xuat', [ThanhVienController::class, 'logout'])->name('site.logout');
+Route::get('/dang-xuat', function () {
+    return redirect()->route('site.login');
+});
+Route::post('/dang-xuat', [ThanhVienController::class, 'logout'])->name('site.logout');
 Route::get('/thong-tin', [ThanhVienController::class, 'profile'])->name('site.profile');
 Route::put('/thong-tin', [ThanhVienController::class, 'updateProfile'])->name('site.updateProfile');
 
@@ -217,7 +220,10 @@ Route::get('/refresh-csrf', function () {
 // Admin Auth
 Route::get('/admin/login', [AuthController::class, 'login'])->name('admin.login');
 Route::post('/admin/login', [AuthController::class, 'dologin'])->name('admin.dologin');
-Route::match(['GET', 'POST'], '/admin/logout', [AuthController::class, 'logout'])->name('admin.logout');
+Route::get('/admin/logout', function () {
+    return redirect()->route('admin.login');
+});
+Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.logout');
 
 // Admin Dashboard (Protected)
 Route::prefix('admin')->middleware('login-admin')->group(function () {
@@ -236,6 +242,7 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::get('/print/{id}', [OrderController::class, 'print'])->name('admin.order.printorder');
         Route::get('/{id}/edit', [OrderController::class, 'edit'])->name('admin.order.edit');
         Route::post('/{id}/update', [OrderController::class, 'update'])->name('admin.order.update');
+        Route::post('/{id}/delivery', [OrderController::class, 'updateDelivery'])->name('admin.order.updateDelivery');
     });
 
     // Table Orders (POS)

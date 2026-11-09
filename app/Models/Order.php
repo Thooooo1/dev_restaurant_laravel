@@ -8,6 +8,12 @@ class Order extends Model
 {
     use SoftDeletes;
     protected $table ='order';
+
+    public const DELIVERY_WAITING = 'waiting';
+    public const DELIVERY_PICKED_UP = 'picked_up';
+    public const DELIVERY_DELIVERING = 'delivering';
+    public const DELIVERY_DELIVERED = 'delivered';
+    public const DELIVERY_FAILED = 'failed';
     
     protected $fillable = [
         'user_id',
@@ -16,6 +22,12 @@ class Order extends Model
         'phone',
         'number_of_guests',
         'address',
+        'shipper_name',
+        'shipper_phone',
+        'delivery_status',
+        'picked_up_at',
+        'delivered_at',
+        'delivery_note',
         'created_by',
         'updated_by',
         'status',
@@ -26,6 +38,17 @@ class Order extends Model
         'payment_method',
         'total_price',
     ];
+
+    public function getDeliveryStatusLabelAttribute(): string
+    {
+        return match($this->delivery_status) {
+            'picked_up' => 'Shipper đã nhận hàng',
+            'delivering' => 'Đang giao hàng',
+            'delivered' => 'Đã giao thành công',
+            'failed' => 'Giao hàng thất bại',
+            default => 'Chờ phân công shipper'
+        };
+    }
 
     public function getStatusLabelAttribute(): string
     {

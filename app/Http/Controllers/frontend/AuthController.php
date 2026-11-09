@@ -92,8 +92,11 @@ class AuthController extends Controller
             ]);
         }
         
-        if ($redirectUrl) {
-            return redirect($redirectUrl);
+        // Chống lỗ hổng Open Redirect: Chỉ chấp nhận đường dẫn nội bộ hợp lệ
+        if ($redirectUrl && is_string($redirectUrl)) {
+            if (str_starts_with($redirectUrl, '/') && !str_starts_with($redirectUrl, '//') && !str_contains($redirectUrl, '\\') && !str_contains($redirectUrl, ':')) {
+                return redirect($redirectUrl);
+            }
         }
         return redirect()->route('site.home');
     }

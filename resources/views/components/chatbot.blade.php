@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    'X-CSRF-TOKEN': getCsrfToken()
                 },
                 body: JSON.stringify({ session_id: sessionId })
             }).catch(() => {});
@@ -473,13 +473,34 @@ document.addEventListener('DOMContentLoaded', function () {
         window.chatbotSendQuickReply(payload, url);
     };
 
-    function sendMessage(text) {
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+    }
+
+    async function refreshCsrfToken() {
+        try {
+            const r = await fetch('{{ route("refresh-csrf", [], false) }}', { headers: { 'Accept': 'application/json' } });
+            const d = await r.json();
+            if (d && d.token) {
+                const meta = document.querySelector('meta[name="csrf-token"]');
+                if (meta) meta.setAttribute('content', d.token);
+                return d.token;
+            }
+        } catch (e) {
+            console.error('Lỗi refresh CSRF token:', e);
+        }
+        return getCsrfToken();
+    }
+
+    function sendMessage(text, isRetry = false) {
         const clean = text.trim();
         if (!clean) return;
 
-        addUserMessage(clean);
-        input.value = '';
-        input.focus();
+        if (!isRetry) {
+            addUserMessage(clean);
+            input.value = '';
+            input.focus();
+        }
         showTyping(true);
         sendBtn.disabled = true;
 
@@ -492,7 +513,7 @@ document.addEventListener('DOMContentLoaded', function () {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': getCsrfToken()
             },
             body: JSON.stringify({ 
                 message: clean,
@@ -501,6 +522,11 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .then(async res => {
             clearTimeout(timeoutId);
+            if (res.status === 419 && !isRetry) {
+                // Tự động làm mới CSRF token và thử lại ngay lập tức
+                await refreshCsrfToken();
+                return sendMessage(clean, true);
+            }
             const isJson = res.headers.get('content-type')?.includes('application/json');
             const data = isJson ? await res.json() : null;
             showTyping(false);

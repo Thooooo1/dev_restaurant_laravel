@@ -793,6 +793,9 @@ class ChatbotService
         }
 
         $statusText = \App\Enums\OrderStatus::getLabel((int)$order->status, !empty($order->table_id));
+        if (empty($order->table_id) && !empty($order->delivery_status) && $order->delivery_status !== 'waiting') {
+            $statusText .= " (" . ($order->delivery_status_label ?? $order->delivery_status) . ")";
+        }
 
         return [
             'found' => true,
@@ -801,6 +804,10 @@ class ChatbotService
             'phone' => $this->maskPhone($order->phone),
             'total_price' => number_format($order->total_price ?? 0, 0, ',', '.') . '₫',
             'status' => $statusText,
+            'delivery_status' => $order->delivery_status,
+            'delivery_status_label' => $order->delivery_status_label,
+            'shipper_name' => $order->shipper_name,
+            'shipper_phone' => $order->shipper_phone ? $this->maskPhone($order->shipper_phone) : null,
             'order_style' => $order->order_style_name,
             'created_at' => $order->created_at ? $order->created_at->format('H:i - d/m/Y') : ''
         ];
@@ -1217,10 +1224,12 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                     $fallbackReply = ($firstResult['message'] ?? 'Dạ nhà hàng hiện vẫn còn bàn phục vụ quý khách ạ.') . "\n\nĐể em giữ vị trí bàn đẹp nhất cho đoàn mình, anh chị cho em xin Họ tên và Số điện thoại nhé ạ!";
                 } elseif ($primaryToolName === 'lookup_order_status') {
                     if (!empty($firstResult['found'])) {
+                        $shipperLine = !empty($firstResult['shipper_name']) ? ("\n• Shipper giao hàng: " . $firstResult['shipper_name'] . (!empty($firstResult['shipper_phone']) ? " (" . $firstResult['shipper_phone'] . ")" : "")) : "";
                         $fallbackReply = "Dạ thông tin đơn hàng của mình:\n\n" .
                                          "• Mã đơn: #{$firstResult['order_id']}\n" .
                                          "• Khách hàng: {$firstResult['customer_name']}\n" .
-                                         "• Trạng thái: {$firstResult['status']}\n" .
+                                         "• Trạng thái: {$firstResult['status']}" .
+                                         $shipperLine . "\n" .
                                          "• Tổng tiền: {$firstResult['total_price']}\n" .
                                          "• Thời gian đặt: {$firstResult['created_at']}";
                     } else {
@@ -1558,9 +1567,11 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             ], $context);
 
             if (!empty($orderResult['found'])) {
+                $shipperLine = !empty($orderResult['shipper_name']) ? ("\n• Shipper giao hàng: " . $orderResult['shipper_name'] . (!empty($orderResult['shipper_phone']) ? " (" . $orderResult['shipper_phone'] . ")" : "")) : "";
                 $reply = "Dạ thông tin đơn hàng #{$orderResult['order_id']} của anh/chị:\n\n" .
                          "• Khách hàng: {$orderResult['customer_name']}\n" .
-                         "• Trạng thái: {$orderResult['status']}\n" .
+                         "• Trạng thái: {$orderResult['status']}" .
+                         $shipperLine . "\n" .
                          "• Tổng tiền: {$orderResult['total_price']}\n" .
                          "• Thời gian đặt: {$orderResult['created_at']}";
             } else {

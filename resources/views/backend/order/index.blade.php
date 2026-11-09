@@ -74,17 +74,26 @@
                             <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
                                 @switch((int)$order->status)
                                     @case(1)
-                                        Đang vận chuyển
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700">Đang chuẩn bị / vận chuyển</span>
                                         @break
                                     @case(2)
-                                        Đã giao hàng
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700">Đã giao hàng</span>
                                         @break
                                     @case(3)
-                                        Đã hủy
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700">Đã hủy</span>
                                         @break
                                     @default
-                                        Đang chờ xử lý
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700">Đang chờ xử lý</span>
                                 @endswitch
+
+                                @if(empty($order->table_id))
+                                    <div class="text-[10px] text-gray-500 font-normal mt-0.5">
+                                        <span>Giao: {{ $order->delivery_status_label }}</span>
+                                        @if($order->shipper_name)
+                                            <span class="text-gray-700 font-medium">({{ $order->shipper_name }})</span>
+                                        @endif
+                                    </div>
+                                @endif
                             </td>
                             <td class="text-center whitespace-nowrap">
                                 <div class="flex items-center justify-center gap-1.5">

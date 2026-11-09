@@ -54,52 +54,20 @@ class ProductController extends Controller
             ]);
         }
 
-        $removeAccents = function ($str) {
-            if (!$str) return '';
-            $str = mb_strtolower($str, 'UTF-8');
-            $str = preg_replace("/(à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ)/u", 'a', $str);
-            $str = preg_replace("/(è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ)/u", 'e', $str);
-            $str = preg_replace("/(ì|í|ị|ỉ|ĩ)/u", 'i', $str);
-            $str = preg_replace("/(ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ)/u", 'o', $str);
-            $str = preg_replace("/(ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ)/u", 'u', $str);
-            $str = preg_replace("/(ỳ|ý|ỵ|ỷ|ỹ)/u", 'y', $str);
-            $str = preg_replace("/(đ)/u", 'd', $str);
-            return trim($str);
-        };
-
-        $rawQ = mb_strtolower($q, 'UTF-8');
-        $asciiQ = $removeAccents($rawQ);
-
+        // Tối ưu truy vấn SQL trực tiếp thay vì nạp toàn bộ sản phẩm vào bộ nhớ
         $products = Product::where('product.status', 1)
             ->join('category', 'product.category_id', '=', 'category.id')
             ->where('category.status', 1)
+            ->where(function ($query) use ($q) {
+                $query->where('product.name', 'like', "%{$q}%")
+                      ->orWhere('category.name', 'like', "%{$q}%");
+            })
             ->select('product.*', 'category.name as category_name')
-            ->get()
-            ->filter(function ($item) use ($rawQ, $asciiQ, $removeAccents) {
-                $nameRaw = mb_strtolower($item->name, 'UTF-8');
-                $nameAscii = $removeAccents($item->name);
-                $catRaw = mb_strtolower($item->category_name ?? '', 'UTF-8');
-                $catAscii = $removeAccents($item->category_name ?? '');
+            ->orderByRaw("CASE WHEN product.name LIKE ? THEN 1 WHEN product.name LIKE ? THEN 2 ELSE 3 END", ["{$q}%", "%{$q}%"])
+            ->take(15)
+            ->get();
 
-                return str_contains($nameRaw, $rawQ)
-                    || str_contains($nameAscii, $asciiQ)
-                    || str_contains($catRaw, $rawQ)
-                    || str_contains($catAscii, $asciiQ);
-            })
-            ->sortByDesc(function ($item) use ($rawQ, $asciiQ, $removeAccents) {
-                $nameRaw = mb_strtolower($item->name, 'UTF-8');
-                $nameAscii = $removeAccents($item->name);
-                if (str_starts_with($nameRaw, $rawQ) || str_starts_with($nameAscii, $asciiQ)) {
-                    return 300;
-                }
-                if (str_contains($nameRaw, $rawQ) || str_contains($nameAscii, $asciiQ)) {
-                    return 200;
-                }
-                return 100;
-            })
-            ->values();
-
-        $items = $products->take(15)->map(function ($item) {
+        $items = $products->map(function ($item) {
             $hasDiscount = !empty($item->price_sale) && !empty($item->price_buy) && ($item->price_sale < $item->price_buy);
             $imgSrc = !empty($item->image) && file_exists(public_path('images/product/' . $item->image))
                 ? asset('images/product/' . $item->image)
@@ -119,7 +87,7 @@ class ProductController extends Controller
         });
 
         return response()->json([
-            'total' => $products->count(),
+            'total' => $items->count(),
             'items' => $items,
         ]);
     }
