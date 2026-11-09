@@ -294,10 +294,17 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
     Route::get('/table/{id}/dishes', [TableController::class, 'getTableDishes'])->name('admin.table.dishes');
 
     // ==============================
-        // ROUTE CHỈ CHO ADMIN
-        // ==============================
-        Route::middleware('admin-access')->group(function () {
-            // Order History (Báo cáo & Doanh thu)
+    // ROUTE CHỈ CHO ADMIN
+    // ==============================
+    Route::middleware('admin-access')->group(function () {
+        // System Migration Runner (An toàn, chỉ tài khoản Admin thực hiện)
+        Route::get('/system-migrate', function () {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            return response("<pre style='padding:20px;background:#1e1e1e;color:#52c41a;font-family:monospace;font-size:14px;border-radius:8px;'>[CIVILIZE RESTAURANT] System Migration Executed Successfully:\n\n" . htmlspecialchars($output ?: "Nothing to migrate.\n") . "</pre>");
+        })->name('admin.system-migrate');
+
+        // Order History (Báo cáo & Doanh thu)
             Route::prefix('order-history')->group(function () {
                 Route::get('/', [OrderHistoryController::class, 'index'])->name('admin.order-history.index');
                 Route::get('/export', [OrderHistoryController::class, 'export'])->name('admin.order-history.export');
