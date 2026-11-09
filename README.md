@@ -1,108 +1,128 @@
-# 🍽️ CIVILIZE Restaurant Management & POS System
-> **Hệ Thống Quản Lý Nhà Hàng, Đặt Bàn, Gọi Món QR Tại Bàn & POS Đa Nền Tảng**  
-> *Đồ án tốt nghiệp / Đồ án chuyên ngành Công Nghệ Thông Tin*
+# CIVILIZE Restaurant Management & POS System
+> He Thong Quan Ly Nha Hang, Dat Ban, Goi Mon QR Tai Ban & POS Da Nen Tang  
+> Do an tot nghiep / Do an chuyen nganh Cong Nghe Thong Tin
 
 ---
 
-## 📌 Giới Thiệu Dự Án
-**CIVILIZE Restaurant** là giải pháp phần mềm quản lý nhà hàng toàn diện được xây dựng trên nền tảng **Laravel 11** và **PHP 8.2**, kết hợp giao diện hiện đại **Blade + TailwindCSS**. Hệ thống tối ưu hóa quy trình vận hành từ khâu khách hàng trải nghiệm (gọi món tại bàn qua mã QR, đặt bàn trước, giao hàng tận nơi) đến nghiệp vụ của nhân viên phục vụ, thu ngân, nhà bếp và ban quản lý.
+## 1. GIOI THIEU DU AN
+CIVILIZE Restaurant la giai phap phan mem quan ly nha hang toan dien duoc xay dung tren nen tang **Laravel 11** va **PHP 8.2**, ket hop cong nghe ket xuat hien dai **Blade + Tailwind CSS** dong goi cuc bo qua **Vite**. He thong toi uu hoa toan dien quy trinh van hanh tu khau thuc khach trai nghiem (quet ma QR tai ban, dat ban truoc, giao hang tan noi) den nghiep vu chuyen sau cua nhan vien phuc vu, thu ngan, nha bep va ban quan tri.
+
+Tai lieu thiet ke va bao ve chuyen sau:
+* Bao cao kien truc va so do he thong: [docs/BAO_CAO_KIEN_TRUC_VA_SO_DO_HE_THONG.md](docs/BAO_CAO_KIEN_TRUC_VA_SO_DO_HE_THONG.md)
+* Kich ban thuyet trinh demo va bo cau hoi phan bien: [docs/KICH_BAN_DEMO_BAO_VE_VA_HOI_DAP.md](docs/KICH_BAN_DEMO_BAO_VE_VA_HOI_DAP.md)
 
 ---
 
-## 🚀 Các Tính Năng Nổi Bật
+## 2. CAC TINH NANG NOI BAT
 
-### 1. Phân Hệ Khách Hàng (Customer Experience)
-* **Quét mã QR tại bàn (Dine-in QR Ordering):** Khách hàng quét mã QR trên bàn để xem thực đơn và gọi món trực tiếp vào bếp mà không cần cài đặt ứng dụng.
-* **Đặt bàn trực tuyến (Table Reservation):** Lựa chọn số lượng khách, ngày giờ, phòng VIP và ghi chú bữa tiệc.
-* **Giao hàng tận nơi (Online Delivery):** Tính toán khoảng cách giao hàng, phí ship tự động (dưới 500k áp dụng 25k, trên 500k miễn phí vận chuyển trong bán kính 15km) và giỏ hàng thông minh.
-* **Cổng thanh toán điện tử:** Tích hợp chuyển khoản tự động **VietQR** (đối soát biến động số dư tự động qua Webhook) và thanh toán Tiền mặt khi nhận hàng (COD).
-* **Trợ lý ảo ẩm thực (AI Chatbot):** Tích hợp Google Gemini AI hỗ trợ tư vấn món ăn, giải đáp thực đơn 24/7.
+### Phuc Vu Khach Hang (Customer Experience)
+* **Quet ma QR tai ban (Dine-in QR Ordering):** Khach hang quet ma QR co dinh tai ban de xem thuc don, them mon vao gio hang va goi mon truc tiep xuong bep ma khong can cai dat bat ky ung dung nao.
+* **Goi nhan vien phuc vu tai ban:** Tich hop hop thoai goi phuc vu truc quan (them da, khan lanh, bat dia, cham nuoc, goi thanh toan), tu dong xoa canh bao khi da chon ban va phat tin hieu realtime cho thu ngan.
+* **Dat ban truc tuyen (Table Reservation):** Chon so luong khach, ngay gio, phong VIP va ghi chu bua tiec.
+* **Giao hang tan noi (Online Delivery & Timeline Tracking):** Tinh toan phi ship tu dong dua tren nguong hoa don qua `PricingService`. Theo doi tien do don hang qua Timeline 4 buoc (Da dat -> Dang chuan bi -> Shipper da lay hang -> Dang giao -> Hoan tat) kem nut goi dien va Zalo tai xe truc tiep.
+* **Cong thanh toan dien tu tu dong:** Tich hop chuyen khoan **VietQR** (doi soat tu dong qua Webhook voi token bao mat) va thanh toan Tien mat.
+* **Tro ly ao am thuc AI (Google Gemini):** Tu van mon an dua tren so thich, giai dap thuc don, tra cuu don hang an toan voi co che che giau thong tin ca nhan (PII Masking).
 
-### 2. Phân Hệ Quản Trị & Điểm Bán Hàng (Admin & POS)
-* **Màn hình POS gọi món tại bàn:** Bố cục sơ đồ bàn theo tầng, hỗ trợ gộp bàn, chuyển bàn và tách bàn linh hoạt.
-* **Màn hình Bếp (Kitchen Order Ticket - KOT):** Nhận thông báo món mới tự động đồng bộ (polling mỗi 5 giây), cập nhật trạng thái chế biến (*chờ bếp nhận -> đang nấu -> đã lên bàn*).
-* **Báo cáo & Thống kê doanh thu:** Xuất báo cáo dữ liệu định dạng Microsoft Excel, thống kê doanh thu theo ngày/tháng/năm.
-* **Quản trị người dùng & Phân quyền:** Phân tầng 2 lớp (*Admin cấp cao* và *Nhân viên phục vụ/thu ngân*).
-
----
-
-## 🛡️ Thiết Kế Bảo Mật & Toàn Vẹn Dữ Liệu (Security & Concurrency Architecture)
-
-* **Kiểm soát đồng thời (Pessimistic Locking & Transactions):**
-  * Sử dụng `DB::transaction` kết hợp `lockForUpdate()` trong các thao tác thêm món, hủy món và thanh toán hóa đơn.
-  * Ngăn ngừa hoàn toàn hiện tượng *Race Condition* khi nhiều nhân viên hoặc khách cùng thao tác trên một bàn.
-* **Nhật ký kiểm toán món ăn (`OrderItemLog`):**
-  * Mọi hành động thêm số lượng, giảm số lượng hoặc hủy món đều được ghi vết chi tiết (người thực hiện, thời gian, lý do, số lượng cũ/mới, trạng thái bếp).
-  * **Hủy mềm (Soft cancellation):** Khi món đã gửi bếp chế biến, hệ thống hủy mềm và bảo toàn lịch sử thay vì xóa cứng khỏi cơ sở dữ liệu.
-* **Kiến trúc thanh toán đa môi trường (`PAYMENT_MODE`):**
-  * `PAYMENT_MODE=demo`: Kích hoạt **Payment Mock Simulator** (Webhook giả lập VietQR) giúp hội đồng chấm thi kiểm thử toàn bộ luồng thanh toán mà không phát sinh giao dịch tiền mặt.
-  * `PAYMENT_MODE=production`: Tự động vô hiệu hóa toàn bộ endpoint giả lập (HTTP 404), bắt buộc xác thực token webhook qua HTTP Header (`Authorization: Apikey` / `secure-token`) và đối soát số tiền chuyển khoản >= tổng hóa đơn.
-* **Phòng chống các lỗ hổng Web phổ biến:**
-  * Toàn bộ thao tác thay đổi trạng thái quản trị chuyển sang phương thức `POST` có mã bảo vệ `@csrf`.
-  * Tái tạo Session ID (`$request->session()->regenerate()`) khi đăng nhập để chống tấn công *Session Fixation*.
-  * Chặn đứng lỗ hổng bypass mật khẩu qua số điện thoại và ngăn chặn dò quét OTP brute-force.
+### Quan Tri & Diem Ban Hang (Admin & POS)
+* **Man hinh POS goi mon tai ban:** So do ban truc quan theo tang, ho tro gop ban, chuyen ban, in hoa don tam tinh va tach ban linh hoat.
+* **Man hinh Bep (Kitchen Order Ticket - KOT):** Dong bo don mon moi realtime qua polling moi 5 giay, cap nhat trang thai che bien (Cho che bien -> Dang nau -> Da len ban).
+* **Nhat ky kiem toan mon an (OrderItemLog):** Co che huy mem (Soft Cancellation) khi mon da vao bep, luu vet chi tiet nguoi huy va ly do huy de chong gian lan noi bo.
+* **Quan tri giao hang tinh gon:** Nhan vien nha hang truc tiep gan ten va so dien thoai shipper ngoai ma khong can phuc tap hoa voi Role Shipper rieng.
+* **Bao cao & Thong ke doanh thu:** Xuat bao cao dinh dang Microsoft Excel, thong ke doanh thu theo ngay/thang/nam va phan tich mon an ban chay.
 
 ---
 
-## 🧪 Kiểm Thử Tự Động (Automated Testing)
+## 3. KIEN TRUC VA TOAN VEN DU LIEU (ARCHITECTURE & SECURITY)
 
-Dự án tích hợp sẵn bộ kiểm thử chức năng (Feature Tests & Unit Tests) với **100% Test Case đạt chuẩn (31 passed / 95 assertions)**:
+* **Kiem soat dong thoi (Pessimistic Locking & ACID Transactions):**
+  * Su dung `DB::transaction()` ket hop `lockForUpdate()` trong cac thao tac dat hang, huy mon, cap nhat ton kho va xac nhan thanh toan.
+  * Ngan ngua hoan toan hien tuong *Race Condition* khi nhieu nguoi cung thao tac tren mot ban an hoac mot mat hang ton kho.
+* **Dich vu tinh toan tap trung (PricingService & PaymentMethod Enum):**
+  * Toan bo logic tinh phi ship, tong tien, chiet khau ban tiec duoc quy ve `app/Services/PricingService.php`.
+  * Phuong thuc thanh toan duoc dinh nghia nhat quan qua `app/Enums/PaymentMethod.php`.
+* **Kien truc thanh toan da moi truong (PAYMENT_MODE):**
+  * `PAYMENT_MODE=demo`: Kich hoat bo mo phong Webhook VietQR giup hoi dong kiem thu luong thanh toan tu dong ma khong ton tien that.
+  * `PAYMENT_MODE=production`: Tu dong chan toan bo endpoint mo phong (HTTP 404), bat buoc xac thuc token bao mat qua HTTP Header va doi soat so tien giao dich.
+* **Dong goi tai nguyen cuc bo 100% (Vite Offline Bundle):**
+  * CSS (Tailwind), Font Awesome 6 va webfonts duoc build san trong `public/build`.
+  * He thong hoat dong on dinh ca khi khong co ket noi Internet ngoai, kem co che Fallback CDN tu dong.
+* **Phong thu chieu sau (Defense-in-Depth):**
+  * Chuyen doi toan bo cac route quan tri sang phuong thuc `POST` kem `@csrf`.
+  * Chot chan lo hong Open Redirect qua co che Safe Local Redirection.
+  * Tu dong lam moi token CSRF cho Chatbot qua endpoint `/refresh-csrf`.
+  * Thu hep Proxy tin cay qua bien moi truong `TRUSTED_PROXIES`.
+
+---
+
+## 4. KIEM THU TU DONG & CI/CD (AUTOMATED TESTING & CI/CD)
+
+Du an tich hop bo kiem thu tu dong (Feature Tests & Unit Tests) voi **100% Test Case dat tieu chuan (35 tests / 116 assertions)**:
 
 ```bash
+# Chay toan bo test suite tren moi truong may chu / may phat trien
 php artisan test
 ```
 
-**Các nhóm kiểm thử chính:**
-* **Chatbot Security Audit:** Chống rò rỉ đơn hàng, chặn rò rỉ thông tin cá nhân khách (PII masking), chống đầu độc hồ sơ AI (profile poisoning), chặn auto-create booking khi thiếu xác nhận rõ ràng, xác thực lịch đặt bàn và kiểm soát bộ nhớ hội thoại.
-* **Security & Payment:** Phân quyền nghiêm ngặt giữa Admin/Nhân viên/Khách hàng, bảo vệ Webhook thanh toán VietQR (chặn token mặc định, chặn giả mạo simulator ở production, chặn số tiền thiếu hoặc thanh toán lặp), chuyển toàn bộ 33 route admin sang POST CSRF (chặn hoàn toàn GET 405), chặn xóa giỏ hàng bằng GET 405, chặn đăng xuất bằng GET 405.
-* **Order & Inventory:** Kiểm tra trừ tồn kho với DB Transaction và Pessimistic Locking (`lockForUpdate`), tự động tính phí giao hàng và miễn phí theo ngưỡng.
-* **Notification Segregation:** Phân tách thông báo bảo mật giữa 3 vai trò Admin, Nhân viên và Khách hàng.
-* **Excel Reports:** Kiểm thử xuất dữ liệu chuẩn định dạng cho 7 phân hệ báo cáo.
+### Cac Nhom Kiem Thu Chinh:
+1. **Security & Payment (`SecurityAndPaymentTest`):** Phan quyen phan tang Admin/Nhan vien/Khach hang, bao ve Webhook VietQR, chan toan bo 33 route admin khoi phuong thuc GET (chong 405), kiem tra chan Open Redirect va Safe Logout.
+2. **Chatbot Security Audit (`ChatbotSecurityTest`):** Chong ro ri PII khach hang, chan prompt injection, xac thuc 2 yeu to khi tra cuu don hang, kiem soat bo nho hoi thoai.
+3. **Delivery & Pricing (`DeliveryAndPricingTest`):** Kiem tra do chinh xac cua `PricingService`, ap dung chiet khau ban tiec 10%, tinh phi ship tu dong theo nguong hoa don, xac thuc `PaymentMethod` Enum va nhan trang thai giao hang 4 buoc.
+4. **Order & Inventory:** Kiem tra tru ton kho an toan voi Pessimistic Locking.
+5. **Excel Export Reports:** Kiem tra xuat du lieu cho cac phan he bao cao doanh thu va xuat nhap kho.
+
+### Tich Hop Lien Tuc (CI/CD):
+Quy trinh GitHub Actions tu dong duoc cau hinh tai `.github/workflows/tests.yml`: Khoi tao moi truong ao hoa MySQL 8.0, chay migration va kiem thu toan bo ma nguon moi khi co ma duoc day len repository.
 
 ---
 
-## ⚙️ Hướng Dẫn Cài Đặt & Khởi Chạy
+## 5. HUONG DAN CAI DAT VA KHOI CHAY
 
-### 1. Yêu Cầu Môi Trường
-* **PHP:** >= 8.2
-* **MySQL:** >= 8.0 (hoặc MariaDB >= 10.4)
-* **Composer:** >= 2.0
+### 1. Yeu Cau Moi Truong
+* PHP >= 8.2
+* MySQL >= 8.0 (hoac MariaDB >= 10.4)
+* Composer >= 2.0
+* Node.js >= 18.0 & npm >= 9.0
 
-### 2. Các Bước Cài Đặt
+### 2. Cac Buoc Cai Dat
 ```bash
 # 1. Clone repository
 git clone https://github.com/Thooooo1/dev_restaurant_laravel.git
 cd dev_restaurant_laravel
 
-# 2. Cài đặt các thư viện phụ thuộc
+# 2. Cai dat cac thu vien PHP
 composer install
 
-# 3. Tạo file cấu hình môi trường
+# 3. Cai dat cac thu vien JavaScript va build assets
+npm install
+npm run build
+
+# 4. Tao file cau hinh moi truong
 cp .env.example .env
 
-# 4. Sinh APP_KEY
+# 5. Sinh APP_KEY
 php artisan key:generate
 
-# 5. Cấu hình cơ sở dữ liệu trong file .env và chạy migration
+# 6. Cau hinh thong so ket noi co so du lieu trong file .env va chay migration
 php artisan migrate
 
-# 6. Khởi chạy máy chủ phát triển
+# 7. Khoi chay may chu phat trien
 php artisan serve
 ```
 
 ---
 
-## 🔑 Tài Khoản Thử Nghiệm (Demo Accounts)
+## 6. TAI KHOAN THU NGHIEM (DEMO ACCOUNTS)
 
-Hệ thống tích hợp sẵn nút bấm **1-Click Tự Động Điền** tại màn hình đăng nhập:
+He thong tich hop san nut bam **1-Click Tu Dong Dien** tai man hinh dang nhap de phuc vu kiem thu truc quan:
 
-| Vai trò | Tên đăng nhập | Mật khẩu | Quyền hạn truy cập |
+| Vai tro | Ten dang nhap | Mat khau | Quyen han truy cap |
 | :--- | :--- | :--- | :--- |
-| **Quản trị viên (Admin)** | `admin1` | `123456` | Toàn quyền quản trị hệ thống, báo cáo, sản phẩm, nhân sự |
-| **Nhân viên (Employee)** | `nhanvien1` | `123456` | Màn hình POS gọi món tại bàn, sơ đồ bàn, phục vụ |
-| **Khách hàng (Customer)** | `khachhang1` | `123456` | Đặt món giao tận nơi, đặt bàn, theo dõi đơn hàng |
+| **Quan tri vien (Admin)** | `admin1` | `123456` | Toan quyen he thong, bao cao doanh thu, san pham, nhan su |
+| **Nhan vien (Employee)** | `nhanvien1` | `123456` | Man hinh POS goi mon tai ban, so do ban, bep, phuc vu |
+| **Khach hang (Customer)** | `khachhang1` | `123456` | Dat mon giao tan noi, dat ban, theo doi tien do don hang |
 
 ---
 
-## 📄 Bản Quyền & Giấy Phép
-Dự án được phát triển phục vụ mục đích học tập và bảo vệ đồ án tốt nghiệp chuyên ngành Công Nghệ Thông Tin.
+## 7. BAN QUYEN & GIAY PHEP
+Du an duoc phat trien phuc vu muc dich hoc tap va bao ve do an tot nghiep chuyen nganh Cong Nghe Thong Tin.
+All rights reserved.
