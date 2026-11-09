@@ -67,6 +67,14 @@
         opacity: 0 !important;
         transform: translateY(-8px) scale(0.96) !important;
     }
+
+    @if(request()->is('admin*'))
+    /* Tắt bỏ hoàn toàn các thông báo thành công dạng popup trong trang quản trị Admin */
+    .app-toast-item.toast-success,
+    .app-toast-item.toast-info {
+        display: none !important;
+    }
+    @endif
 </style>
 
 <div id="app-toast-container"></div>
@@ -75,6 +83,10 @@
     (function() {
         window.showAppToast = function(message, type = 'success', duration = 1600) {
             if (!message) return;
+            // Tắt bỏ toàn bộ thông báo thành công dạng popup trên trang quản trị admin
+            if ((type === 'success' || type === 'info') && (window.location.pathname.startsWith('/admin') || window.location.pathname.includes('/admin/'))) {
+                return;
+            }
             const container = document.getElementById('app-toast-container');
             if (!container) return;
 
@@ -131,7 +143,7 @@
     })();
 </script>
 
-@if(session('success'))
+@if(session('success') && !request()->is('admin*'))
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             window.showAppToast("{!! addslashes(session('success')) !!}", 'success', 1600);
@@ -155,7 +167,7 @@
     </script>
 @endif
 
-@if(session('info'))
+@if(session('info') && !request()->is('admin*'))
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             window.showAppToast("{!! addslashes(session('info')) !!}", 'info', 1600);
