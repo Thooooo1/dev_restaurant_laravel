@@ -15,8 +15,8 @@
                         autoplaySpeed: 5000,
                         arrows: true,
                         dots: true,
-                        prevArrow: '<button type="button" class="slick-prev absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-stone-900/80 hover:bg-[#F47716] text-white flex items-center justify-center transition-colors shadow-lg cursor-pointer"><i class="fas fa-chevron-left text-sm sm:text-base"></i></button>',
-                        nextArrow: '<button type="button" class="slick-next absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-stone-900/80 hover:bg-[#F47716] text-white flex items-center justify-center transition-colors shadow-lg cursor-pointer"><i class="fas fa-chevron-right text-sm sm:text-base"></i></button>'
+                        prevArrow: '<button type="button" class="slick-prev hidden sm:flex absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-stone-900/80 hover:bg-[#F47716] text-white items-center justify-center transition-colors shadow-lg cursor-pointer"><i class="fas fa-chevron-left text-sm sm:text-base"></i></button>',
+                        nextArrow: '<button type="button" class="slick-next hidden sm:flex absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-stone-900/80 hover:bg-[#F47716] text-white items-center justify-center transition-colors shadow-lg cursor-pointer"><i class="fas fa-chevron-right text-sm sm:text-base"></i></button>'
                     });
                 }
             });

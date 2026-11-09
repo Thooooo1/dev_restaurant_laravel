@@ -37,7 +37,9 @@ class NotificationController extends Controller
                     })->exists();
 
                 if (!$hasNoti) {
+                    $isTable = !empty($order->table_id) || !empty($order->table);
                     $tableName = $order->table ? $order->table->name : ($order->table_id ? "Bàn #{$order->table_id}" : "Đơn online #{$order->id}");
+                    $orderLabel = $isTable ? "{$tableName} (Đơn #{$order->id})" : "Đơn online #{$order->id}";
                     $amountFormatted = number_format($order->total_price, 0, ',', '.') . '₫';
                     $pm = (string) $order->payment_method;
                     $isVietQr = in_array(strtolower($pm), ['vietqr', '2', 'chuyển khoản', 'bank_transfer']);
@@ -46,8 +48,8 @@ class NotificationController extends Controller
                     SystemNotification::create([
                         'role'       => 'employee',
                         'type'       => 'payment',
-                        'title'      => "{$tableName} đã thanh toán {$pmText} ({$amountFormatted})",
-                        'message'    => "Hóa đơn {$tableName} (#{$order->id}) số tiền {$amountFormatted} đã được thanh toán thành công qua {$pmText}.",
+                        'title'      => "{$orderLabel} đã thanh toán {$pmText} ({$amountFormatted})",
+                        'message'    => "Hóa đơn {$orderLabel} số tiền {$amountFormatted} đã được thanh toán thành công qua {$pmText}.",
                         'url'        => $order->table_id ? route('admin.table-order.payment', $order->table_id) : route('admin.order.orderdetail', $order->id),
                         'icon'       => 'fa-receipt',
                         'color'      => '#10B981',
@@ -117,10 +119,12 @@ class NotificationController extends Controller
         // Biến đổi paymentNotifications sang format hiển thị
         $formattedPayments = $paymentNotifications->map(function ($p) {
             $isVietQr = (stripos($p->title, 'VietQR') !== false || stripos($p->message, 'VietQR') !== false || stripos($p->title, 'chuyển khoản') !== false);
+            $cleanTitle = preg_replace('/#(\d+)\s*\(\s*(?:Đơn\s*)?#?\1\s*\)/ui', '#$1', $p->title);
+            $cleanMessage = preg_replace('/#(\d+)\s*\(\s*(?:Đơn\s*)?#?\1\s*\)/ui', '#$1', $p->message);
             return [
                 'id' => $p->id,
-                'title' => $p->title,
-                'message' => $p->message,
+                'title' => $cleanTitle,
+                'message' => $cleanMessage,
                 'url' => $p->url ?: 'javascript:void(0)',
                 'is_read' => (bool)$p->is_read,
                 'time_ago' => $p->created_at ? $p->created_at->locale('vi')->diffForHumans() : 'Vừa xong',

@@ -93,9 +93,9 @@ class AuthController extends Controller
         }
         
         if ($redirectUrl) {
-            return redirect($redirectUrl)->with('success', 'Đăng nhập thành công!');
+            return redirect($redirectUrl);
         }
-        return redirect()->route('site.home')->with('success', 'Đăng nhập thành công!');
+        return redirect()->route('site.home');
     }
 
     public function checkPhone(Request $request)

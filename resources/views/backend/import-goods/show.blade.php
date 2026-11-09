@@ -8,7 +8,7 @@
             </a>
             <span class="text-slate-300">|</span>
             <div class="text-xs text-slate-500 font-medium">
-                Mã phiếu: <strong class="font-mono text-slate-800 text-sm font-bold">{{ $receipt->code }}</strong>
+                Mã phiếu: <strong class="text-slate-900 text-sm font-bold">{{ $receipt->code }}</strong>
             </div>
         </div>
 
@@ -42,7 +42,7 @@
             <div class="text-right text-xs">
                 <div class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">Mẫu số: 01 - VT</div>
                 <div class="text-[10px] text-slate-500 italic mt-0.5">(Ban hành theo TT 200/2014/TT-BTC)</div>
-                <div class="mt-2 font-mono text-sm font-bold text-[#F47716] bg-orange-50 px-2.5 py-1 rounded border border-orange-200 inline-block">
+                <div class="mt-2 text-sm font-bold text-slate-900 inline-block">
                     Số: {{ $receipt->code }}
                 </div>
             </div>

@@ -67,10 +67,10 @@ class AuthController extends Controller
         // Điều hướng chính xác theo phân quyền:
         // Nhân viên (admin_lever = 2 hoặc roles = employee) vào màn hình POS gọi món tại bàn
         if ($user->admin_lever == 2 || $user->roles === 'employee') {
-            return redirect()->route('admin.table-order.index')->with('success', 'Đăng nhập thành công! Chào mừng nhân viên ' . $user->fullname . '.');
+            return redirect()->route('admin.table-order.index');
         }
 
-        return redirect()->route('admin.dashboard')->with('success', 'Đăng nhập thành công với quyền Quản trị viên!');
+        return redirect()->route('admin.dashboard');
     }
 
     function logout(){

@@ -49,7 +49,7 @@
                             <i class="fa-solid fa-plus"></i> Thêm
                         </a>
                         <a class="btn btn-sm btn-danger ml-2" href="{{ url('admin/blog/trash') }}">
-                            <i class="fa-solid fa-trash"></i> Thùng rác
+                            Thùng rác
                         </a>
                     </div>
                 </div>

@@ -6,7 +6,6 @@
         </div>
         <div class="flex items-center gap-2 flex-wrap">
             <a href="{{ url('admin/brand/trash') }}" class="ant-btn ant-btn-sm text-gray-500 hover:text-red-600 font-medium bg-white border border-gray-200">
-                <i class="fa-solid fa-trash text-xs"></i>
                 <span>Thùng rác</span>
             </a>
         </div>

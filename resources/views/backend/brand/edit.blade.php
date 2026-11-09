@@ -16,7 +16,7 @@
                 <div class="row">
                     <div class="col-12 text-right">
                         <a class="btn btn-sm btn-danger" href="{{ url('admin/brand/trash')}}">
-                            <i class="fa-solid fa-trash"></i> Thùng rác
+                            Thùng rác
                         </a>
                     </div>
                 </div>

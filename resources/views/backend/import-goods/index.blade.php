@@ -140,9 +140,9 @@
                     @forelse($receipts as $receipt)
                     <tr class="hover:bg-orange-50/40 transition-colors">
                         <!-- Mã phiếu (Thuần typography) -->
-                        <td class="px-4 py-3.5 whitespace-nowrap font-mono font-bold text-slate-800">
+                        <td class="px-4 py-3.5 whitespace-nowrap font-bold text-slate-900">
                             <a href="{{ route('admin.import-goods.show', $receipt->id) }}" 
-                               class="text-[#F47716] hover:underline"
+                               class="text-slate-900 hover:text-black font-bold"
                                title="Xem chi tiết phiếu nhập">
                                 {{ $receipt->code }}
                             </a>
@@ -163,8 +163,8 @@
                         </td>
 
                         <!-- Người lập -->
-                        <td class="px-4 py-3.5 whitespace-nowrap text-slate-600">
-                            <span class="inline-block text-xs font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded">
+                        <td class="px-4 py-3.5 whitespace-nowrap text-slate-900">
+                            <span class="text-xs font-bold text-slate-900">
                                 {{ $receipt->creator_name ?? ($receipt->creator->fullname ?? 'Thủ kho') }}
                             </span>
                         </td>

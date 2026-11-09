@@ -6,12 +6,12 @@
                 <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">
                     <a href="{{ route('admin.import-goods.index') }}" class="hover:text-[#F47716]">Quản lý nhập kho</a>
                     <span>/</span>
-                    <a href="{{ route('admin.import-goods.show', $receipt->id) }}" class="hover:text-[#F47716] font-mono">{{ $receipt->code }}</a>
+                    <a href="{{ route('admin.import-goods.show', $receipt->id) }}" class="hover:text-black">{{ $receipt->code }}</a>
                     <span>/</span>
                     <span class="text-slate-800 font-semibold">Chỉnh sửa</span>
                 </div>
                 <h1 class="text-xl font-bold text-slate-800">
-                    Chỉnh Sửa Phiếu Nhập Kho: <strong class="font-mono text-[#F47716]">{{ $receipt->code }}</strong>
+                    Chỉnh Sửa Phiếu Nhập Kho: <strong class="text-slate-900">{{ $receipt->code }}</strong>
                 </h1>
             </div>
             <div>

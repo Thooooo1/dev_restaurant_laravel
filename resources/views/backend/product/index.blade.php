@@ -156,7 +156,7 @@
                 Hiển thị <span class="font-semibold text-gray-900">{{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }}</span> trong tổng số <span class="font-semibold text-[#F47716]">{{ $products->total() }}</span> món ăn
             </div>
             <div>
-                {{ $products->appends(request()->query())->links() }}
+                {{ $products->appends(request()->query())->onEachSide(1)->links() }}
             </div>
         </div>
     </div>

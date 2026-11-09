@@ -21,53 +21,53 @@
     </div>
 
     <!-- Stat Overview Cards (Shopify Polaris / Ant Design Metric Cards) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5">
         <!-- Tổng số bàn -->
-        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tổng số bàn</span>
-                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
+        <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div class="min-w-0">
+                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate">Tổng số bàn</span>
+                <span class="text-xl sm:text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+            <span class="text-xs font-semibold text-gray-500 shrink-0 ml-1">
                 {{ count($floors) }} tầng
             </span>
         </div>
 
         <!-- Bàn đang có khách -->
-        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+        <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div class="min-w-0">
+                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
                     Đang có khách
                 </span>
-                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['serving'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
+                <span class="text-xl sm:text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['serving'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+            <span class="text-xs font-semibold text-gray-500 shrink-0 ml-1">
                 {{ $stats['total'] > 0 ? round(($stats['serving'] / $stats['total']) * 100) : 0 }}%
             </span>
         </div>
 
         <!-- Bàn còn trống -->
-        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+        <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div class="min-w-0">
+                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
                     Bàn sẵn sàng
                 </span>
-                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
+                <span class="text-xl sm:text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+            <span class="text-xs font-semibold text-gray-500 shrink-0 ml-1">
                 Sẵn có
             </span>
         </div>
 
         <!-- Doanh thu tạm tính trên bàn -->
-        <div class="bg-white p-4 rounded-xl border border-gray-200/80 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tạm tính trên bàn</span>
-                <span class="text-2xl font-black text-[rgba(0,0,0,0.85)] mt-0.5 block tracking-tight">{{ number_format($stats['serving_revenue'] ?? 0) }}₫</span>
+        <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div class="min-w-0">
+                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate">Tạm tính trên bàn</span>
+                <span class="text-xl sm:text-2xl font-black text-[rgba(0,0,0,0.85)] mt-0.5 block tracking-tight truncate">{{ number_format($stats['serving_revenue'] ?? 0) }}₫</span>
             </div>
-            <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900" style="color: #111827 !important;">
+            <span class="text-xs font-semibold text-gray-500 shrink-0 ml-1">
                 {{ $stats['serving'] }} đơn
             </span>
         </div>
@@ -180,7 +180,7 @@
                             <td class="py-3.5 px-3">
                                 @if ($hasActive)
                                     <div>
-                                        <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900 inline-block" style="color: #111827 !important;">
+                                        <span class="text-xs font-semibold text-gray-800 block">
                                             Đang có khách
                                         </span>
                                         <div class="mt-1.5 flex items-center gap-2 text-[11px] text-gray-500">
@@ -194,7 +194,7 @@
                                     </div>
                                 @else
                                     <div>
-                                        <span class="px-2.5 py-1 rounded-md bg-gray-100 border border-gray-200 text-sm font-bold text-gray-900 inline-block" style="color: #111827 !important;">
+                                        <span class="text-xs font-medium text-gray-500 block">
                                             Bàn trống
                                         </span>
                                         <p class="text-[11px] text-gray-400 mt-1">Sẵn sàng đón khách</p>

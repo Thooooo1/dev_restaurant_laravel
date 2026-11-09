@@ -21,61 +21,61 @@
                 <span>Đơn hàng giao</span>
             </a>
             @if(Auth::user()->isAdmin())
-                <a href="{{ route('admin.dashboard') }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700">
-                    <span>Báo cáo doanh thu</span>
+                <a href="{{ route('admin.order-history.index') }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700">
+                    <span>Báo cáo & Doanh thu</span>
                 </a>
             @endif
         </div>
     </div>
 
     <!-- Stat Overview Mini Cards (Shopify Polaris / Ant Design Style - Tinh gọn, không lồng khung) -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-5">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5 mb-5">
         <!-- Tổng số bàn -->
-        <div class="bg-white p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tổng số bàn</span>
-                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
+        <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div class="min-w-0">
+                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate">Tổng số bàn</span>
+                <span class="text-xl sm:text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['total'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-semibold text-gray-500">
+            <span class="text-xs font-semibold text-gray-500 shrink-0 ml-1">
                 {{ count($floors) }} tầng
             </span>
         </div>
 
         <!-- Đang có khách -->
-        <div class="bg-white p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+        <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div class="min-w-0">
+                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
                     Đang có khách
                 </span>
-                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['occupied'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
+                <span class="text-xl sm:text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['occupied'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-semibold text-gray-500">
+            <span class="text-xs font-semibold text-gray-500 shrink-0 ml-1">
                 {{ $posStats['total'] > 0 ? round(($posStats['occupied'] / $posStats['total']) * 100) : 0 }}%
             </span>
         </div>
 
         <!-- Bàn còn trống -->
-        <div class="bg-white p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+        <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div class="min-w-0">
+                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
                     Bàn sẵn sàng
                 </span>
-                <span class="text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
+                <span class="text-xl sm:text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
             </div>
-            <span class="text-xs font-semibold text-gray-500">
+            <span class="text-xs font-semibold text-gray-500 shrink-0 ml-1">
                 Sẵn có
             </span>
         </div>
 
         <!-- Doanh thu tạm tính trên bàn -->
-        <div class="bg-white p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
-            <div>
-                <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider block">Tạm tính trên bàn</span>
-                <span class="text-2xl font-black text-[rgba(0,0,0,0.85)] mt-0.5 block tracking-tight">{{ number_format($posStats['serving_revenue'] ?? 0) }}₫</span>
+        <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
+            <div class="min-w-0">
+                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate">Tạm tính trên bàn</span>
+                <span class="text-xl sm:text-2xl font-black text-[rgba(0,0,0,0.85)] mt-0.5 block tracking-tight truncate">{{ number_format($posStats['serving_revenue'] ?? 0) }}₫</span>
             </div>
-            <span class="text-xs font-semibold text-gray-500">
+            <span class="text-xs font-semibold text-gray-500 shrink-0 ml-1">
                 {{ $posStats['occupied'] }} đơn
             </span>
         </div>
@@ -102,7 +102,7 @@
         </div>
 
         <!-- Status Filter Buttons & Search -->
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-between sm:justify-end">
             <div class="flex items-center bg-gray-100 p-0.5 rounded-md">
                 <button type="button" onclick="filterStatus('all')" class="status-filter-btn px-2.5 py-1 rounded-sm font-bold bg-white text-gray-900 shadow-2xs transition-all cursor-pointer" data-status="all">
                     Tất cả
@@ -117,7 +117,7 @@
 
             <!-- Quick Table Search -->
             <input type="text" id="tableSearchInput" oninput="searchTables(this.value)" placeholder="Tìm tên bàn..." 
-                   class="px-3 py-1.5 rounded-md border border-gray-200 focus:outline-none focus:border-[#F47716] text-xs bg-gray-50 focus:bg-white transition-colors w-36 sm:w-44">
+                   class="px-3 py-1.5 rounded-md border border-gray-200 focus:outline-none focus:border-[#F47716] text-xs bg-gray-50 focus:bg-white transition-colors w-full sm:w-44">
         </div>
     </div>
 
@@ -306,11 +306,11 @@
                                 <div class="p-3 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
                                     @if($isOccupied)
                                         <a href="{{ route('admin.table-order.order', $table->id) }}" 
-                                           class="flex-1 py-2.5 px-3 bg-white hover:bg-orange-50 border border-gray-200 hover:border-orange-200 text-gray-800 hover:text-[#F47716] font-bold rounded-xl text-xs sm:text-sm text-center transition-colors shadow-2xs">
+                                           class="flex-1 py-2 px-3 bg-white hover:bg-orange-50 border border-gray-200 hover:border-orange-200 text-gray-800 hover:text-[#F47716] font-bold rounded-md text-xs sm:text-sm text-center transition-colors shadow-2xs">
                                             Gọi món
                                         </a>
                                         <a href="{{ route('admin.table-order.payment', $table->id) }}" 
-                                           class="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs sm:text-sm text-center transition-colors shadow-2xs">
+                                           class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-md text-xs sm:text-sm text-center transition-colors shadow-2xs">
                                             Thanh toán
                                         </a>
                                     @elseif($isLocked)
@@ -321,7 +321,7 @@
                                         <!-- Bàn trống: Nút Mở bàn -->
                                         <button type="button" 
                                                 onclick="handleTableClick({{ $table->id }}, '{{ $table->name }}', false, '{{ $floor->name }}', false)" 
-                                                class="w-full py-2.5 px-3 bg-stone-900 hover:bg-[#F47716] text-white font-bold rounded-xl text-xs sm:text-sm text-center transition-all cursor-pointer shadow-2xs">
+                                                class="w-full py-2 px-3 bg-stone-900 hover:bg-[#F47716] text-white font-bold rounded-md text-xs sm:text-sm text-center transition-all cursor-pointer shadow-2xs">
                                             Mở bàn & Gọi món
                                         </button>
                                     @endif

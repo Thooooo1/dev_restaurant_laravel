@@ -14,13 +14,14 @@
     <!-- Nút chuông gọi phục vụ: Thiết kế tinh tế, thuần typography cao cấp, tương thích Windows, Mac, iOS & Android -->
     <button type="button" 
             id="openServiceCallBtn"
-            class="group flex items-center gap-2.5 bg-[#C25E00] hover:bg-[#A34E00] text-white px-4 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer select-none active:scale-95"
+            class="group flex items-center gap-2 bg-[#C25E00] hover:bg-[#A34E00] text-white px-3 py-2.5 sm:px-4 sm:py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer select-none active:scale-95 max-w-[220px] sm:max-w-none"
             title="Chuông gọi nhân viên phục vụ tại bàn">
-        <div class="text-left">
-            <span class="text-xs font-black tracking-wide uppercase block" id="serviceCallBtnTable">
+        <i class="fa-solid fa-bell text-sm sm:text-base text-white shrink-0"></i>
+        <div class="text-left {{ $currentTableName ? 'max-w-[130px] sm:max-w-none truncate' : 'hidden sm:block' }}">
+            <span class="text-[11px] sm:text-xs font-black tracking-wide uppercase block truncate" id="serviceCallBtnTable">
                 {{ $currentTableName ? ('Bàn ' . $currentTableName . ' • Gọi phục vụ') : 'Gọi phục vụ tại bàn' }}
             </span>
-            <span class="block text-[10px] text-amber-100 font-normal leading-tight mt-0.5" id="serviceCallBtnSub">
+            <span class="block text-[10px] text-amber-100 font-normal leading-tight mt-0.5 truncate {{ $currentTableName ? 'hidden sm:block' : '' }}" id="serviceCallBtnSub">
                 {{ $currentTableName ? 'Bấm để yêu cầu thêm đá, nước, gọi tính tiền' : 'Hỗ trợ tại bàn' }}
             </span>
         </div>

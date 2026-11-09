@@ -426,14 +426,89 @@
         #sidebar a[class*="text-[#F47716]"] i {
             color: #F47716 !important;
         }
+
+        /* ==========================================================================
+           RESPONSIVE ADMIN & STAFF WORKSPACE (ANT DESIGN PRO STANDARD)
+           - Desktop (>= 1024px): Sidebar 256px cố định, Main Area luôn dời 256px
+           - Mobile & Tablet (< 1024px): Sidebar trượt ẩn/hiện, Main Area 100% full width
+           ========================================================================== */
+        #adminLayoutWrapper {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+            position: relative;
+            background-color: #F0F2F5;
+        }
+
+        #sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            bottom: 0 !important;
+            width: 256px !important;
+            height: 100vh !important;
+            background-color: #ffffff !important;
+            border-right: 1px solid #F0F0F0 !important;
+            z-index: 50 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1) !important;
+        }
+
+        #adminMainArea {
+            flex: 1 1 0% !important;
+            min-height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            background-color: #F0F2F5 !important;
+            min-width: 0 !important;
+            transition: margin-left 0.25s cubic-bezier(0.2, 0, 0, 1), width 0.25s cubic-bezier(0.2, 0, 0, 1) !important;
+        }
+
+        /* Desktop (>= 1024px): Sidebar cố định 256px, Main Content luôn lùi vào 256px */
+        @media screen and (min-width: 1024px) {
+            #sidebar {
+                transform: translateX(0) !important;
+            }
+            #adminMainArea {
+                margin-left: 256px !important;
+                width: calc(100% - 256px) !important;
+                max-width: calc(100% - 256px) !important;
+            }
+            #mobileSidebarToggleBtn {
+                display: none !important;
+            }
+            #sidebar-overlay {
+                display: none !important;
+            }
+        }
+
+        /* Mobile & Tablet (< 1024px): Sidebar ẩn ngoài màn hình, Main Content full width */
+        @media screen and (max-width: 1023.98px) {
+            #sidebar {
+                transform: translateX(-100%) !important;
+                box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18) !important;
+            }
+            #sidebar.drawer-open {
+                transform: translateX(0) !important;
+            }
+            #adminMainArea {
+                margin-left: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            #mobileSidebarToggleBtn {
+                display: inline-flex !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-[#F0F2F5] text-slate-800 min-h-screen">
     @include('components.alert')
     
-    <div class="flex min-h-screen">
+    <div id="adminLayoutWrapper" class="flex min-h-screen">
         <!-- Ant Design Pro Sider (Sidebar 256px, nền trắng, viền #F0F0F0, menu chuẩn AntD) -->
-        <aside id="sidebar" class="fixed left-0 top-0 z-40 flex flex-col w-[256px] h-full bg-white border-r border-[#F0F0F0] transition-transform duration-200 ease-in-out">
+        <aside id="sidebar" class="flex flex-col">
             <!-- Brand Logo Header (Ant Design Pro Sider Header 48px) -->
             <div class="h-14 px-4 border-b border-[#F0F0F0] bg-white flex items-center justify-center">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-center w-full" title="CIVILIZE Restaurant">
@@ -585,13 +660,13 @@
             </div>
         </aside>
         
-        <!-- Main Area (Offset by Ant Design Pro sider width: 256px) -->
-        <div class="flex-1 ml-[256px] min-h-screen flex flex-col bg-[#F0F2F5]">
+        <!-- Main Area (Offset by Ant Design Pro sider width: 256px on desktop) -->
+        <div id="adminMainArea" class="flex-1 min-h-screen flex flex-col bg-[#F0F2F5] min-w-0 overflow-x-hidden">
             <!-- Ant Design Pro Header (Height 48px, pure white, border-bottom #F0F0F0) -->
-            <header class="h-12 bg-white border-b border-[#F0F0F0] sticky top-0 z-30 px-6 sm:px-8 flex items-center justify-between">
+            <header class="h-12 bg-white border-b border-[#F0F0F0] sticky top-0 z-30 px-3.5 sm:px-6 lg:px-8 flex items-center justify-between">
                 <!-- Left: Mobile Menu Toggle -->
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleSidebar()" class="lg:hidden p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors" title="Menu">
+                    <button type="button" id="mobileSidebarToggleBtn" onclick="toggleSidebar()" class="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors cursor-pointer" title="Menu">
                         <i class="fa-solid fa-bars text-sm"></i>
                     </button>
                 </div>
@@ -614,28 +689,23 @@
 
                         <!-- Panel Dropdown Thông Báo -->
                         <div id="systemNotificationDropdown" 
-                             class="hidden absolute right-0 mt-2 w-[440px] max-w-[94vw] bg-white rounded-lg shadow-2xl border border-[#F0F0F0] z-50 overflow-hidden text-xs">
+                             class="hidden absolute right-0 mt-2 w-[440px] max-w-[94vw] bg-white rounded-lg shadow-xl border border-[#F0F0F0] z-50 overflow-hidden text-xs">
                             <!-- Header -->
-                            <div class="px-4 py-3 bg-gradient-to-r from-orange-50/90 to-amber-50/90 border-b border-[#F0F0F0] flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <div class="w-7 h-7 rounded-full bg-[#F47716] text-white flex items-center justify-center text-xs shadow-xs">
-                                        <i class="fa-solid fa-bell"></i>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider">Thông Báo & Nhắc Nhở</h3>
-                                        <p class="text-[10px] text-gray-500" id="notificationSubtext">Đang kết nối hệ thống...</p>
-                                    </div>
+                            <div class="px-4 py-3 bg-white border-b border-[#F0F0F0] flex items-center justify-between">
+                                <div>
+                                    <h3 class="text-xs font-semibold text-[rgba(0,0,0,0.85)] uppercase tracking-wider">Thông Báo & Nhắc Nhở</h3>
+                                    <p class="text-[10px] text-[rgba(0,0,0,0.45)]" id="notificationSubtext">Đang kết nối hệ thống...</p>
                                 </div>
-                                <div class="flex items-center gap-1.5">
+                                <div class="flex items-center gap-2">
                                     <button type="button" 
                                             id="markAllBackendReadBtn" 
-                                            class="text-[11px] font-semibold text-[#F47716] hover:underline px-2 py-1 rounded hover:bg-orange-100/50 transition-colors cursor-pointer" 
+                                            class="text-[11px] text-[rgba(0,0,0,0.45)] hover:text-[#F47716] transition-colors cursor-pointer font-medium" 
                                             title="Đánh dấu tất cả thông báo là đã xem">
                                         Đã xem tất cả
                                     </button>
                                     <button type="button" 
                                             id="soundToggleBtn" 
-                                            class="text-gray-400 hover:text-[#F47716] p-1.5 text-xs rounded hover:bg-white/80 transition-colors cursor-pointer" 
+                                            class="text-[rgba(0,0,0,0.45)] hover:text-[#F47716] p-1 text-xs transition-colors cursor-pointer" 
                                             title="Bật/Tắt âm chuông nhắc nhở">
                                         <i class="fa-solid fa-volume-high" id="soundIcon"></i>
                                     </button>
@@ -643,44 +713,43 @@
                             </div>
 
                             <!-- Tabs: Thanh toán | Gọi phục vụ | Món mới | Đặt bàn -->
-                            <div class="flex border-b border-[#F0F0F0] bg-gray-50 text-[11px]">
-                                <button type="button" data-tab="payments" class="noti-tab-btn flex-1 py-2 text-center font-bold text-[#F47716] border-b-2 border-[#F47716] bg-white transition-colors cursor-pointer">
+                            <div class="flex border-b border-[#F0F0F0] bg-[#FAFAFA] text-[11px]">
+                                <button type="button" data-tab="payments" class="noti-tab-btn flex-1 py-2 text-center font-semibold text-[#F47716] border-b-2 border-[#F47716] bg-white transition-colors cursor-pointer">
                                     Thanh toán (<span id="tabPaymentsCount">0</span>)
                                 </button>
-                                <button type="button" data-tab="calls" class="noti-tab-btn flex-1 py-2 text-center text-gray-500 hover:text-gray-800 transition-colors cursor-pointer">
+                                <button type="button" data-tab="calls" class="noti-tab-btn flex-1 py-2 text-center text-[rgba(0,0,0,0.65)] hover:text-[#F47716] transition-colors cursor-pointer">
                                     Gọi phục vụ (<span id="tabCallsCount">0</span>)
                                 </button>
-                                <button type="button" data-tab="orders" class="noti-tab-btn flex-1 py-2 text-center text-gray-500 hover:text-gray-800 transition-colors cursor-pointer">
+                                <button type="button" data-tab="orders" class="noti-tab-btn flex-1 py-2 text-center text-[rgba(0,0,0,0.65)] hover:text-[#F47716] transition-colors cursor-pointer">
                                     Món mới (<span id="tabOrdersCount">0</span>)
                                 </button>
-                                <button type="button" data-tab="bookings" class="noti-tab-btn flex-1 py-2 text-center text-gray-500 hover:text-gray-800 transition-colors cursor-pointer">
+                                <button type="button" data-tab="bookings" class="noti-tab-btn flex-1 py-2 text-center text-[rgba(0,0,0,0.65)] hover:text-[#F47716] transition-colors cursor-pointer">
                                     Đặt bàn (<span id="tabBookingsCount">0</span>)
                                 </button>
                             </div>
 
                             <!-- Container Danh Sách -->
-                            <div class="max-h-[350px] overflow-y-auto divide-y divide-gray-100" id="notificationListContainer">
-                                <div class="p-6 text-center text-gray-400 text-xs">
-                                    <i class="fa-solid fa-spinner fa-spin text-lg text-orange-500 mb-2"></i>
+                            <div class="max-h-[350px] overflow-y-auto divide-y divide-[#F0F0F0]" id="notificationListContainer">
+                                <div class="p-6 text-center text-[rgba(0,0,0,0.45)] text-xs">
+                                    <i class="fa-solid fa-spinner fa-spin text-base text-[#F47716] mb-2"></i>
                                     <p>Đang tải thông báo...</p>
                                 </div>
                             </div>
 
                             <!-- Footer -->
-                            <div class="p-2.5 bg-gray-50 border-t border-[#F0F0F0] flex items-center justify-between text-[11px]">
-                                <a href="{{ route('admin.table-order.index') }}" class="text-[#F47716] hover:underline font-semibold flex items-center gap-1.5">
-                                    <i class="fa-solid fa-cash-register"></i> Mở sơ đồ bàn (POS)
+                            <div class="px-4 py-2.5 bg-[#FAFAFA] border-t border-[#F0F0F0] flex items-center justify-between text-[11px]">
+                                <a href="{{ route('admin.table-order.index') }}" class="text-[#F47716] hover:text-[#d4620f] font-medium transition-colors">
+                                    Mở sơ đồ bàn (POS)
                                 </a>
-                                <span class="text-gray-400 text-[10px] flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> Real-time
+                                <span class="text-[rgba(0,0,0,0.45)] text-[10px] flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-[#52C41A]"></span> Trực tiếp
                                 </span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Nút Mở POS (Ant Design Pro Ghost Button) -->
-                    <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-pos text-xs">
-                        <i class="fa-solid fa-cash-register text-xs"></i>
+                    <a href="{{ route('admin.table-order.index') }}" class="hidden sm:inline-flex ant-btn ant-btn-pos text-xs">
                         <span>Mở màn hình POS</span>
                     </a>
 
@@ -735,15 +804,15 @@
                 </div>
             </header>
             
-            <!-- Page Content Body (Padding 24px-32px chuẩn Ant Design Pro cho tất cả các trang) -->
-            <main class="flex-1 {{ ($noPadding || ($attributes['no-padding'] ?? false) || ($attributes['noPadding'] ?? false)) ? '' : 'p-6 sm:p-8' }}">
+            <!-- Page Content Body (Padding chuẩn Ant Design Pro cho tất cả các trang) -->
+            <main class="flex-1 min-w-0 {{ ($noPadding || ($attributes['no-padding'] ?? false) || ($attributes['noPadding'] ?? false)) ? '' : 'p-3.5 sm:p-6 lg:p-8' }}">
                 {{ $slot }}
             </main>
         </div>
     </div>
     
     <!-- Mobile sidebar overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/30 z-30 hidden lg:hidden" onclick="toggleSidebar()"></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-40 hidden" onclick="toggleSidebar()"></div>
     
     <!-- Live Floating Toast Container (Nhắc nhở trực tiếp nổi góc phải) -->
     <div id="liveToastContainer" class="fixed top-14 right-5 z-[9999] flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
@@ -983,17 +1052,17 @@
         document.querySelectorAll('.noti-tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.noti-tab-btn').forEach(b => {
-                    b.classList.remove('font-bold', 'text-[#F47716]', 'border-b-2', 'border-[#F47716]', 'bg-white');
-                    b.classList.add('text-gray-500');
+                    b.classList.remove('font-semibold', 'text-[#F47716]', 'border-b-2', 'border-[#F47716]', 'bg-white');
+                    b.classList.add('text-[rgba(0,0,0,0.65)]');
                 });
-                this.classList.add('font-bold', 'text-[#F47716]', 'border-b-2', 'border-[#F47716]', 'bg-white');
-                this.classList.remove('text-gray-500');
+                this.classList.add('font-semibold', 'text-[#F47716]', 'border-b-2', 'border-[#F47716]', 'bg-white');
+                this.classList.remove('text-[rgba(0,0,0,0.65)]');
                 currentTab = this.dataset.tab;
                 renderNotificationList();
             });
         });
 
-        // Render nội dung danh sách theo tab hiện tại
+        // Render nội dung danh sách theo tab hiện tại (Ant Design Pro standard)
         function renderNotificationList() {
             if (!notiListContainer) return;
 
@@ -1001,9 +1070,9 @@
                 const payments = latestData.payments || [];
                 if (payments.length === 0) {
                     notiListContainer.innerHTML = `
-                        <div class="py-10 text-center text-gray-400">
-                            <p class="font-bold text-gray-700 text-xs uppercase tracking-wider">Chưa có giao dịch thanh toán</p>
-                            <span class="text-[11px] text-gray-400 mt-0.5 block">Các giao dịch chuyển khoản VietQR và tiền mặt sẽ hiển thị tại đây</span>
+                        <div class="py-10 text-center text-[rgba(0,0,0,0.45)]">
+                            <p class="font-medium text-[rgba(0,0,0,0.65)] text-xs">Chưa có giao dịch thanh toán</p>
+                            <span class="text-[11px] text-[rgba(0,0,0,0.45)] mt-1 block">Các giao dịch chuyển khoản VietQR và tiền mặt sẽ hiển thị tại đây</span>
                         </div>
                     `;
                     return;
@@ -1011,20 +1080,22 @@
 
                 let html = '';
                 payments.forEach(p => {
-                    const badgeClass = p.is_vietqr ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800';
+                    const tagStyle = p.is_vietqr 
+                        ? 'bg-[#f6ffed] text-[#389e0d] border-[#b7eb8f]' 
+                        : 'bg-[#e6f4ff] text-[#0958d9] border-[#91caff]';
                     const badgeLabel = p.badge_label || (p.is_vietqr ? 'Chuyển khoản VietQR' : 'Thanh toán thành công');
                     html += `
-                        <a href="${p.url}" class="p-3 hover:bg-emerald-50/40 transition-colors flex items-start gap-3 block border-b border-gray-100 last:border-b-0 ${!p.is_read ? 'bg-emerald-50/20' : ''}">
+                        <a href="${p.url}" class="p-3 hover:bg-[#FAFAFA] transition-colors flex items-start gap-3 block border-b border-[#F0F0F0] last:border-b-0 ${!p.is_read ? 'bg-[#FAFAFA]' : ''}">
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between gap-1 mb-1">
-                                    <span class="font-bold text-gray-900 text-xs truncate">${p.title}</span>
-                                    <span class="text-[10px] text-gray-400 shrink-0">${p.time_ago}</span>
+                                <div class="flex items-start justify-between gap-2 mb-1">
+                                    <span class="font-semibold text-[rgba(0,0,0,0.85)] text-xs leading-snug break-words">${p.title}</span>
+                                    <span class="text-[10px] text-[rgba(0,0,0,0.45)] shrink-0 whitespace-nowrap mt-0.5">${p.time_ago}</span>
                                 </div>
                                 <div class="flex items-center gap-2 mb-1">
-                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeClass} uppercase">${badgeLabel}</span>
-                                    <span class="text-[10px] text-gray-400">${p.created_at}</span>
+                                    <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium ${tagStyle}">${badgeLabel}</span>
+                                    <span class="text-[10px] text-[rgba(0,0,0,0.45)]">${p.created_at}</span>
                                 </div>
-                                <p class="text-[11px] text-gray-600 line-clamp-2 leading-relaxed">${p.message}</p>
+                                <p class="text-[11px] text-[rgba(0,0,0,0.65)] line-clamp-2 leading-relaxed">${p.message}</p>
                             </div>
                         </a>
                     `;
@@ -1034,9 +1105,9 @@
                 const calls = latestData.service_calls || [];
                 if (calls.length === 0) {
                     notiListContainer.innerHTML = `
-                        <div class="py-10 text-center text-gray-400">
-                            <p class="font-bold text-gray-700 text-xs uppercase tracking-wider">Không có bàn nào đang gọi</p>
-                            <span class="text-[11px] text-gray-400 mt-0.5 block">Tất cả bàn đang được phục vụ chu đáo</span>
+                        <div class="py-10 text-center text-[rgba(0,0,0,0.45)]">
+                            <p class="font-medium text-[rgba(0,0,0,0.65)] text-xs">Không có bàn nào đang gọi</p>
+                            <span class="text-[11px] text-[rgba(0,0,0,0.45)] mt-1 block">Tất cả bàn đang được phục vụ chu đáo</span>
                         </div>
                     `;
                     return;
@@ -1045,21 +1116,21 @@
                 let html = '';
                 calls.forEach(call => {
                     html += `
-                        <div class="p-3 hover:bg-orange-50/40 transition-colors flex items-start gap-3 group border-b border-gray-100 last:border-b-0" id="noti-call-item-${call.id}">
+                        <div class="p-3 hover:bg-[#FAFAFA] transition-colors flex items-start gap-3 group border-b border-[#F0F0F0] last:border-b-0" id="noti-call-item-${call.id}">
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between gap-1 mb-1">
-                                    <span class="font-bold text-gray-900 text-xs truncate">${call.full_table_name}</span>
-                                    <span class="text-[10px] text-gray-400 shrink-0">${call.time_ago}</span>
+                                <div class="flex items-start justify-between gap-2 mb-1">
+                                    <span class="font-semibold text-[rgba(0,0,0,0.85)] text-xs leading-snug break-words">${call.full_table_name}</span>
+                                    <span class="text-[10px] text-[rgba(0,0,0,0.45)] shrink-0 whitespace-nowrap mt-0.5">${call.time_ago}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 uppercase">${call.type_label}</span>
-                                    ${call.note ? `<span class="text-[11px] text-gray-600 italic line-clamp-1">"${call.note}"</span>` : ''}
+                                    <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium bg-[#fffbe6] text-[#d46b08] border-[#ffe58f]">${call.type_label}</span>
+                                    ${call.note ? `<span class="text-[11px] text-[rgba(0,0,0,0.65)] italic line-clamp-1">"${call.note}"</span>` : ''}
                                 </div>
                                 <div class="flex items-center gap-2 mt-2">
-                                    <button type="button" onclick="completeCall(${call.id}, this)" class="px-2.5 py-1 bg-[#52C41A] hover:bg-[#389E0D] text-white text-[10px] font-bold rounded shadow-xs transition-colors cursor-pointer">
+                                    <button type="button" onclick="completeCall(${call.id}, this)" class="px-2.5 py-1 bg-[#52C41A] hover:bg-[#389E0D] text-white text-[11px] font-medium rounded transition-colors cursor-pointer">
                                         Đã phục vụ
                                     </button>
-                                    <a href="${call.pos_url}" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[10px] font-medium rounded transition-colors">
+                                    <a href="${call.pos_url}" class="px-2.5 py-1 bg-white border border-[#D9D9D9] hover:border-[#F47716] hover:text-[#F47716] text-[rgba(0,0,0,0.65)] text-[11px] font-medium rounded transition-colors">
                                         Mở bàn
                                     </a>
                                 </div>
@@ -1072,9 +1143,9 @@
                 const orders = latestData.new_orders || [];
                 if (orders.length === 0) {
                     notiListContainer.innerHTML = `
-                        <div class="py-10 text-center text-gray-400">
-                            <p class="font-bold text-gray-700 text-xs uppercase tracking-wider">Không có món mới</p>
-                            <span class="text-[11px] text-gray-400 mt-0.5 block">Chưa có món mới cần xác nhận</span>
+                        <div class="py-10 text-center text-[rgba(0,0,0,0.45)]">
+                            <p class="font-medium text-[rgba(0,0,0,0.65)] text-xs">Không có món mới</p>
+                            <span class="text-[11px] text-[rgba(0,0,0,0.45)] mt-1 block">Chưa có món mới cần xác nhận</span>
                         </div>
                     `;
                     return;
@@ -1083,17 +1154,17 @@
                 let html = '';
                 orders.forEach(ord => {
                     html += `
-                        <a href="${ord.url}" class="p-3 hover:bg-blue-50/40 transition-colors flex items-start gap-3 block border-b border-gray-100 last:border-b-0">
+                        <a href="${ord.url}" class="p-3 hover:bg-[#FAFAFA] transition-colors flex items-start gap-3 block border-b border-[#F0F0F0] last:border-b-0">
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between gap-1 mb-1">
-                                    <span class="font-bold text-gray-900 text-xs truncate">${ord.title}</span>
-                                    <span class="text-[10px] text-gray-400">${ord.time_ago}</span>
+                                <div class="flex items-start justify-between gap-2 mb-1">
+                                    <span class="font-semibold text-[rgba(0,0,0,0.85)] text-xs leading-snug break-words">${ord.title}</span>
+                                    <span class="text-[10px] text-[rgba(0,0,0,0.45)] shrink-0 whitespace-nowrap mt-0.5">${ord.time_ago}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 uppercase">Món mới</span>
-                                    <span class="text-[11px] text-gray-500">${ord.subtitle}</span>
+                                    <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium bg-[#e6f4ff] text-[#0958d9] border-[#91caff]">Món mới</span>
+                                    <span class="text-[11px] text-[rgba(0,0,0,0.65)]">${ord.subtitle}</span>
                                 </div>
-                                <div class="text-[11px] font-bold text-blue-600 mt-1">Tổng: ${ord.total_price}</div>
+                                <div class="text-[11px] font-medium text-[#F47716] mt-1">Tổng: ${ord.total_price}</div>
                             </div>
                         </a>
                     `;
@@ -1103,9 +1174,9 @@
                 const bookings = latestData.new_bookings || [];
                 if (bookings.length === 0) {
                     notiListContainer.innerHTML = `
-                        <div class="py-10 text-center text-gray-400">
-                            <p class="font-bold text-gray-700 text-xs uppercase tracking-wider">Không có đặt bàn mới</p>
-                            <span class="text-[11px] text-gray-400 mt-0.5 block">Không có yêu cầu đặt bàn đang chờ</span>
+                        <div class="py-10 text-center text-[rgba(0,0,0,0.45)]">
+                            <p class="font-medium text-[rgba(0,0,0,0.65)] text-xs">Không có đặt bàn mới</p>
+                            <span class="text-[11px] text-[rgba(0,0,0,0.45)] mt-1 block">Không có yêu cầu đặt bàn đang chờ</span>
                         </div>
                     `;
                     return;
@@ -1114,17 +1185,17 @@
                 let html = '';
                 bookings.forEach(b => {
                     html += `
-                        <a href="${b.url}" class="p-3 hover:bg-purple-50/40 transition-colors flex items-start gap-3 block border-b border-gray-100 last:border-b-0">
+                        <a href="${b.url}" class="p-3 hover:bg-[#FAFAFA] transition-colors flex items-start gap-3 block border-b border-[#F0F0F0] last:border-b-0">
                             <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between gap-1 mb-1">
-                                    <span class="font-bold text-gray-900 text-xs truncate">${b.customer_name} (${b.people} khách)</span>
-                                    <span class="text-[10px] text-gray-400">${b.time_ago}</span>
+                                <div class="flex items-start justify-between gap-2 mb-1">
+                                    <span class="font-semibold text-[rgba(0,0,0,0.85)] text-xs leading-snug break-words">${b.customer_name} (${b.people} khách)</span>
+                                    <span class="text-[10px] text-[rgba(0,0,0,0.45)] shrink-0 whitespace-nowrap mt-0.5">${b.time_ago}</span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 uppercase">Đặt bàn</span>
-                                    <span class="text-[11px] text-gray-600">SĐT: ${b.phone}</span>
+                                    <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium bg-[#f9f0ff] text-[#531dab] border-[#d3adf7]">Đặt bàn</span>
+                                    <span class="text-[11px] text-[rgba(0,0,0,0.65)]">SĐT: ${b.phone}</span>
                                 </div>
-                                <div class="text-[11px] font-semibold text-purple-700 mt-0.5">Giờ đến: ${b.booking_time} - ${b.booking_date}</div>
+                                <div class="text-[11px] text-[rgba(0,0,0,0.65)] mt-0.5">Giờ đến: <span class="font-medium text-[rgba(0,0,0,0.85)]">${b.booking_time} - ${b.booking_date}</span></div>
                             </div>
                         </a>
                     `;
@@ -1161,7 +1232,7 @@
                     }
 
                     // Tải lại dữ liệu polling ngay
-                    pollNotifications();
+                    window.pollSystemNotifications();
                 }
             })
             .catch(err => {
@@ -1184,11 +1255,16 @@
 
                 latestData = data;
 
-                // 1. Cập nhật số đếm các tabs
-                if (tabPaymentsCount) tabPaymentsCount.textContent = data.payment_count || 0;
-                if (tabCallsCount) tabCallsCount.textContent = data.service_call_count;
-                if (tabOrdersCount) tabOrdersCount.textContent = data.new_order_count;
-                if (tabBookingsCount) tabBookingsCount.textContent = data.new_booking_count;
+                // 1. Cập nhật số đếm các tabs theo số lượng item hiện có trong từng tab
+                const paymentsCount = (data.payments && data.payments.length) ? data.payments.length : 0;
+                const callsCount = (data.service_calls && data.service_calls.length) ? data.service_calls.length : 0;
+                const ordersCount = (data.new_orders && data.new_orders.length) ? data.new_orders.length : 0;
+                const bookingsCount = (data.new_bookings && data.new_bookings.length) ? data.new_bookings.length : 0;
+
+                if (tabPaymentsCount) tabPaymentsCount.textContent = paymentsCount;
+                if (tabCallsCount) tabCallsCount.textContent = callsCount;
+                if (tabOrdersCount) tabOrdersCount.textContent = ordersCount;
+                if (tabBookingsCount) tabBookingsCount.textContent = bookingsCount;
 
                 // 2. Cập nhật Badge trên chuông (nếu đang mở xem thì không hiện badge)
                 const isViewing = notiDropdown && !notiDropdown.classList.contains('hidden');
@@ -1197,16 +1273,16 @@
                     notiBadge.classList.remove('hidden');
                     bellIcon.classList.add('text-[#F47716]');
                     if (data.payment_count > 0) {
-                        notiSubtext.textContent = `Có ${data.payment_count} thông báo thanh toán mới`;
+                        notiSubtext.textContent = `Có ${data.payment_count} thanh toán mới`;
                     } else if (data.service_call_count > 0) {
-                        notiSubtext.textContent = `Có ${data.service_call_count} bàn đang gọi phục vụ`;
+                        notiSubtext.textContent = `Có ${data.service_call_count} bàn đang gọi`;
                     } else {
                         notiSubtext.textContent = `Có ${data.total_count} thông báo mới`;
                     }
                 } else if (!isViewing) {
                     notiBadge.classList.add('hidden');
                     bellIcon.classList.remove('text-[#F47716]');
-                    notiSubtext.textContent = 'Hệ thống đang hoạt động ổn định';
+                    notiSubtext.textContent = 'Hệ thống sẵn sàng';
                 }
 
                 // 3. Kiểm tra thông báo thanh toán mới xuất hiện
@@ -1265,26 +1341,30 @@
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             if (sidebar && overlay) {
-                sidebar.classList.toggle('-translate-x-full');
-                overlay.classList.toggle('hidden');
-            }
-        }
-        
-        function checkScreenSize() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            if (sidebar && overlay) {
-                if (window.innerWidth < 1024) {
-                    sidebar.classList.add('-translate-x-full');
+                const isOpen = sidebar.classList.toggle('drawer-open');
+                if (isOpen) {
+                    overlay.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
                 } else {
-                    sidebar.classList.remove('-translate-x-full');
                     overlay.classList.add('hidden');
+                    document.body.style.overflow = '';
                 }
             }
         }
-        
-        window.addEventListener('resize', checkScreenSize);
-        checkScreenSize();
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (sidebar) sidebar.classList.remove('drawer-open');
+            if (overlay) overlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024) {
+                closeSidebar();
+            }
+        });
 
         // Global CSRF Protection: Tự động chuyển toàn bộ link trạng thái, xóa, khôi phục sang POST kèm CSRF token
         window.submitAdminAction = function(url) {

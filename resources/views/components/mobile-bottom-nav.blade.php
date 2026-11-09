@@ -45,14 +45,15 @@
 
         <!-- 4. Giỏ hàng -->
         <a href="{{ url('/gio-hang') }}" 
-           class="flex flex-col items-center justify-center h-full py-1 relative transition-colors {{ $isCart ? 'text-[#C25E00]' : 'text-stone-500 hover:text-stone-800' }}">
-            <div class="relative inline-block">
+           class="flex flex-col items-center justify-center h-full py-1 relative transition-colors notranslate {{ $isCart ? 'text-[#C25E00]' : 'text-stone-500 hover:text-stone-800' }}"
+           translate="no">
+            <div class="relative inline-block notranslate" translate="no">
                 <i class="fa-solid fa-bag-shopping text-[17px] mb-1"></i>
                 <span class="global-cart-badge-bottom {{ $cartCount > 0 ? '' : 'hidden' }} absolute -top-1.5 -right-2.5 bg-[#C25E00] text-white text-[9px] font-extrabold px-1.5 py-0.2 rounded-full min-w-[16px] leading-tight text-center">
                     {{ $cartCount }}
                 </span>
             </div>
-            <span class="text-[10px] font-bold tracking-tight {{ $isCart ? 'font-extrabold text-[#C25E00]' : '' }}">Giỏ hàng</span>
+            <span class="text-[10px] font-bold tracking-tight whitespace-nowrap notranslate {{ $isCart ? 'font-extrabold text-[#C25E00]' : '' }}" translate="no">Giỏ hàng</span>
         </a>
 
         <!-- 5. Tài khoản / POS -->

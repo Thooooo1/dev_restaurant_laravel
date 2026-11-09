@@ -1,4 +1,4 @@
-const CACHE_NAME = 'civilize-cache-v1';
+const CACHE_NAME = 'civilize-cache-v2';
 const STATIC_ASSETS = [
     '/',
     '/images/logo/logo.png',

@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="vi" class="scroll-smooth notranslate" translate="no">
 
 <head>
     <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover, interactive-widget=resizes-content">
     <meta name="theme-color" content="#FAF8F5" media="(prefers-color-scheme: light)">
@@ -231,6 +232,12 @@
         .slick-prev:before, .slick-next:before {
             display: none !important;
             content: '' !important;
+        }
+        @media (max-width: 639px) {
+            .home-hero-slider .slick-prev,
+            .home-hero-slider .slick-next {
+                display: none !important;
+            }
         }
         .home-hero-slider .slick-prev {
             left: 16px !important;
