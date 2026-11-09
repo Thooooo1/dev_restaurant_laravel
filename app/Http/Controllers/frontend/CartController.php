@@ -229,18 +229,15 @@ class CartController extends Controller
     {
         $cartKey = $this->getCartKey();
         $cart = session()->get($cartKey, []);
+        $isTableOrder = session('is_table_order') ? true : false;
 
+        $pricing = \App\Services\PricingService::calculateCartSummary($cart, $isTableOrder);
         $items = [];
-        $totalQty = 0;
-        $subtotal = 0;
 
         foreach ($cart as $id => $item) {
             $price = (float)($item['price'] ?? 0);
             $qty = (int)($item['qty'] ?? 1);
             $itemTotal = $price * $qty;
-
-            $totalQty += $qty;
-            $subtotal += $itemTotal;
 
             $imgSrc = !empty($item['image']) && file_exists(public_path('images/product/' . $item['image']))
                 ? asset('images/product/' . $item['image'])
@@ -298,23 +295,20 @@ class CartController extends Controller
             }
         }
 
-        // Tính chiết khấu đặt bàn (10% nếu tại bàn)
-        $discountPercent = $isTableOrder ? 10 : 0;
-        $discountAmount = $isTableOrder ? round($subtotal * 0.1) : 0;
-        $finalTotal = max(0, $subtotal - $discountAmount);
-
         return response()->json([
             'success' => true,
             'message' => $message,
             'items' => $items,
-            'count' => $totalQty,
-            'subtotal' => $subtotal,
-            'subtotal_formatted' => number_format($subtotal, 0, ',', '.') . '₫',
-            'discount_percent' => $discountPercent,
-            'discount_amount' => $discountAmount,
-            'discount_formatted' => number_format($discountAmount, 0, ',', '.') . '₫',
-            'total' => $finalTotal,
-            'total_formatted' => number_format($finalTotal, 0, ',', '.') . '₫',
+            'count' => $pricing['count'],
+            'subtotal' => $pricing['subtotal'],
+            'subtotal_formatted' => $pricing['subtotal_formatted'],
+            'discount_percent' => $isTableOrder ? 10 : 0,
+            'discount_amount' => $pricing['discount'],
+            'discount_formatted' => $pricing['discount_formatted'],
+            'shipping_fee' => $pricing['shipping_fee'],
+            'shipping_fee_formatted' => $pricing['shipping_fee_formatted'],
+            'total' => $pricing['total'],
+            'total_formatted' => $pricing['total_formatted'],
             'is_table_order' => $isTableOrder,
             'dining_mode' => session('dining_mode', $isTableOrder ? 'dine_in' : 'delivery'),
             'table_id' => $tableId,
@@ -899,27 +893,11 @@ class CartController extends Controller
                     $lockedProducts[$productId] = $product;
                 }
 
-                // 2. Tính toán tổng tiền món ăn
-                $subtotal = 0;
-                foreach ($cart as $details) {
-                    $price = $details['price'];
-                    $quantity = $details['qty'];
-                    $discount = $details['discount'] ?? 0;
-                    $subtotal += ($price - $discount) * $quantity;
-                }
-                $subtotal = (int) round($subtotal);
-
-                // 3. Tính phí giao hàng tự động từ cài đặt
-                $shippingFee = 0;
-                if (!session('table_id')) {
-                    $settings = (new \App\Http\Controllers\backend\SettingController())->getSettings();
-                    $freeThreshold = (int)($settings['shipping_free_threshold'] ?? 500000);
-                    $baseFee = (int)($settings['shipping_base_fee'] ?? 25000);
-                    if ($subtotal < $freeThreshold) {
-                        $shippingFee = $baseFee;
-                    }
-                }
-                $finalTotal = $subtotal + $shippingFee;
+                // 2. Tính toán tổng tiền và phí giao hàng qua PricingService
+                $pricing = \App\Services\PricingService::calculateCartSummary($cart, !empty(session('table_id')));
+                $subtotal = $pricing['subtotal'];
+                $shippingFee = $pricing['shipping_fee'];
+                $finalTotal = $pricing['total'];
 
                 $userId = Auth::id() ?? 0;
                 $newOrder = new Order();

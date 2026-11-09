@@ -80,57 +80,7 @@ class Order extends Model
      */
     public function getPaymentMethodInfoAttribute(): array
     {
-        $method = (string) $this->payment_method;
-
-        if ($method === '1' || strtolower($method) === 'cod' || strtolower($method) === 'cash' || strtolower($method) === 'tiền mặt') {
-            return [
-                'code' => 'cash',
-                'name' => 'Tiền mặt',
-                'icon' => 'fa-money-bill-wave',
-                'color' => '#52C41A',
-                'bg' => 'bg-emerald-50',
-                'text' => 'text-emerald-700',
-                'border' => 'border-emerald-200',
-                'desc' => 'Thanh toán trực tiếp bằng tiền mặt tại quầy / bàn',
-            ];
-        }
-
-        if ($method === '2' || strtolower($method) === 'vietqr' || strtolower($method) === 'bank' || str_contains(strtolower($method), 'chuyển khoản') || strtolower($method) === 'momo') {
-            return [
-                'code' => 'vietqr',
-                'name' => 'Chuyển khoản VietQR',
-                'icon' => 'fa-qrcode',
-                'color' => '#1677FF',
-                'bg' => 'bg-blue-50',
-                'text' => 'text-blue-700',
-                'border' => 'border-blue-200',
-                'desc' => 'Quét mã VietQR chuyển khoản ngân hàng (Napas 247)',
-            ];
-        }
-
-        if ($method === '3' || strtolower($method) === 'card' || strtolower($method) === 'pos' || str_contains(strtolower($method), 'thẻ')) {
-            return [
-                'code' => 'card',
-                'name' => 'Quẹt thẻ POS',
-                'icon' => 'fa-credit-card',
-                'color' => '#722ED1',
-                'bg' => 'bg-purple-50',
-                'text' => 'text-purple-700',
-                'border' => 'border-purple-200',
-                'desc' => 'Thanh toán quẹt thẻ ATM nội địa / Visa / MasterCard qua máy POS',
-            ];
-        }
-
-        return [
-            'code' => 'other',
-            'name' => $this->payment_method ?: 'Chưa chọn',
-            'icon' => 'fa-circle-question',
-            'color' => '#8C8C8C',
-            'bg' => 'bg-gray-50',
-            'text' => 'text-gray-700',
-            'border' => 'border-gray-200',
-            'desc' => 'Phương thức thanh toán khác',
-        ];
+        return \App\Enums\PaymentMethod::getInfo($this->payment_method);
     }
 
     public function getPaymentMethodNameAttribute(): string
