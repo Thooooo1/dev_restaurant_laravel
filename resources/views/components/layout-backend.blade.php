@@ -465,10 +465,40 @@
             transition: margin-left 0.25s cubic-bezier(0.2, 0, 0, 1), width 0.25s cubic-bezier(0.2, 0, 0, 1) !important;
         }
 
-        /* Desktop (>= 1024px): Sidebar cố định 256px, Main Content luôn lùi vào 256px */
-        @media screen and (min-width: 1024px) {
+        /* Overlay Backdrop cho Sidebar Drawer trên Mobile & Tablet (< 992px) */
+        #sidebar-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background-color: rgba(0, 0, 0, 0.45) !important;
+            backdrop-filter: blur(2px) !important;
+            -webkit-backdrop-filter: blur(2px) !important;
+            z-index: 45 !important;
+            cursor: pointer !important;
+            transition: opacity 0.2s ease !important;
+        }
+
+        #sidebar-overlay.hidden {
+            display: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        #sidebar-overlay:not(.hidden) {
+            display: block !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        /* Desktop & Laptop (>= 992px): Sidebar cố định 256px, Main Content luôn lùi vào 256px */
+        @media screen and (min-width: 992px) {
             #sidebar {
                 transform: translateX(0) !important;
+                box-shadow: none !important;
             }
             #adminMainArea {
                 margin-left: 256px !important;
@@ -480,11 +510,15 @@
             }
             #sidebar-overlay {
                 display: none !important;
+                pointer-events: none !important;
+            }
+            #sidebarCloseMobileBtn {
+                display: none !important;
             }
         }
 
-        /* Mobile & Tablet (< 1024px): Sidebar ẩn ngoài màn hình, Main Content full width */
-        @media screen and (max-width: 1023.98px) {
+        /* Mobile & Tablet (< 992px): Sidebar ẩn ngoài màn hình dạng Drawer, Main Content full width */
+        @media screen and (max-width: 991.98px) {
             #sidebar {
                 transform: translateX(-100%) !important;
                 box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18) !important;
@@ -500,6 +534,24 @@
             #mobileSidebarToggleBtn {
                 display: inline-flex !important;
             }
+            #sidebarCloseMobileBtn {
+                display: inline-flex !important;
+            }
+        }
+
+        /* Mobile Dropdown Notifications (< 640px): Cố định tràn màn hình tinh tế, không bị lệch hoặc overflow */
+        @media screen and (max-width: 639.98px) {
+            #systemNotificationDropdown {
+                position: fixed !important;
+                top: 52px !important;
+                left: 10px !important;
+                right: 10px !important;
+                width: auto !important;
+                max-width: calc(100vw - 20px) !important;
+                margin-top: 0 !important;
+                border-radius: 8px !important;
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+            }
         }
     </style>
 </head>
@@ -510,10 +562,13 @@
         <!-- Ant Design Pro Sider (Sidebar 256px, nền trắng, viền #F0F0F0, menu chuẩn AntD) -->
         <aside id="sidebar" class="flex flex-col">
             <!-- Brand Logo Header (Ant Design Pro Sider Header 48px) -->
-            <div class="h-14 px-4 border-b border-[#F0F0F0] bg-white flex items-center justify-center">
-                <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-center w-full" title="CIVILIZE Restaurant">
+            <div class="h-14 px-4 border-b border-[#F0F0F0] bg-white flex items-center justify-between">
+                <a href="{{ route('admin.dashboard') }}" class="flex items-center justify-center flex-1" title="CIVILIZE Restaurant">
                     <img src="{{ asset('images/logo/logo.png') }}" alt="CIVILIZE Restaurant" class="h-10 max-h-10 w-auto object-contain">
                 </a>
+                <button type="button" id="sidebarCloseMobileBtn" onclick="closeSidebar()" class="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors cursor-pointer" title="Đóng menu">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
             </div>
             
             <!-- Ant Design Pro SiderMenu -->
@@ -692,14 +747,14 @@
                              class="hidden absolute right-0 mt-2 w-[440px] max-w-[94vw] bg-white rounded-lg shadow-xl border border-[#F0F0F0] z-50 overflow-hidden text-xs">
                             <!-- Header -->
                             <div class="px-4 py-3 bg-white border-b border-[#F0F0F0] flex items-center justify-between">
-                                <div>
-                                    <h3 class="text-xs font-semibold text-[rgba(0,0,0,0.85)] uppercase tracking-wider">Thông Báo & Nhắc Nhở</h3>
-                                    <p class="text-[10px] text-[rgba(0,0,0,0.45)]" id="notificationSubtext">Đang kết nối hệ thống...</p>
-                                </div>
                                 <div class="flex items-center gap-2">
+                                    <h3 class="text-[13px] font-semibold text-[rgba(0,0,0,0.85)]">Thông báo & Nhắc nhở</h3>
+                                    <span id="notificationSubtext" class="hidden text-[10px] text-[rgba(0,0,0,0.45)]"></span>
+                                </div>
+                                <div class="flex items-center gap-2.5">
                                     <button type="button" 
                                             id="markAllBackendReadBtn" 
-                                            class="text-[11px] text-[rgba(0,0,0,0.45)] hover:text-[#F47716] transition-colors cursor-pointer font-medium" 
+                                            class="text-xs text-[rgba(0,0,0,0.45)] hover:text-[#F47716] transition-colors cursor-pointer font-medium" 
                                             title="Đánh dấu tất cả thông báo là đã xem">
                                         Đã xem tất cả
                                     </button>
@@ -811,8 +866,8 @@
         </div>
     </div>
     
-    <!-- Mobile sidebar overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/40 z-40 hidden" onclick="toggleSidebar()"></div>
+    <!-- Mobile sidebar overlay (Nhấn vào backdrop để đóng menu) -->
+    <div id="sidebar-overlay" class="hidden" onclick="closeSidebar()"></div>
     
     <!-- Live Floating Toast Container (Nhắc nhở trực tiếp nổi góc phải) -->
     <div id="liveToastContainer" class="fixed top-14 right-5 z-[9999] flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
@@ -1080,23 +1135,24 @@
 
                 let html = '';
                 payments.forEach(p => {
-                    const tagStyle = p.is_vietqr 
-                        ? 'bg-[#f6ffed] text-[#389e0d] border-[#b7eb8f]' 
-                        : 'bg-[#e6f4ff] text-[#0958d9] border-[#91caff]';
-                    const badgeLabel = p.badge_label || (p.is_vietqr ? 'Chuyển khoản VietQR' : 'Thanh toán thành công');
+                    const tagStyle = 'bg-[#F5F5F5] text-[rgba(0,0,0,0.65)] border-[#E8E8E8]';
+                    const badgeLabel = p.badge_label || (p.is_vietqr ? 'Chuyển khoản VietQR' : 'Tiền mặt');
+                    const hasLabelAndAmount = p.label && p.amount;
+
                     html += `
-                        <a href="${p.url}" class="p-3 hover:bg-[#FAFAFA] transition-colors flex items-start gap-3 block border-b border-[#F0F0F0] last:border-b-0 ${!p.is_read ? 'bg-[#FAFAFA]' : ''}">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-start justify-between gap-2 mb-1">
-                                    <span class="font-semibold text-[rgba(0,0,0,0.85)] text-xs leading-snug break-words">${p.title}</span>
-                                    <span class="text-[10px] text-[rgba(0,0,0,0.45)] shrink-0 whitespace-nowrap mt-0.5">${p.time_ago}</span>
-                                </div>
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium ${tagStyle}">${badgeLabel}</span>
-                                    <span class="text-[10px] text-[rgba(0,0,0,0.45)]">${p.created_at}</span>
-                                </div>
-                                <p class="text-[11px] text-[rgba(0,0,0,0.65)] line-clamp-2 leading-relaxed">${p.message}</p>
+                        <a href="${p.url}" class="p-3 hover:bg-[#FAFAFA] transition-colors block border-b border-[#F0F0F0] last:border-b-0 ${!p.is_read ? 'bg-[#FAFAFA]' : ''}">
+                            <div class="flex items-center justify-between gap-2 mb-1.5">
+                                <span class="font-bold text-[rgba(0,0,0,0.85)] text-xs">${hasLabelAndAmount ? p.label : p.title}</span>
+                                ${hasLabelAndAmount ? `<span class="font-bold text-[#F47716] text-xs shrink-0">${p.amount}</span>` : ''}
                             </div>
+                            <div class="flex items-center justify-between text-[10px] text-[rgba(0,0,0,0.45)]">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium ${tagStyle}">${badgeLabel}</span>
+                                    <span>${p.created_at}</span>
+                                </div>
+                                <span class="shrink-0">${p.time_ago}</span>
+                            </div>
+                            ${!hasLabelAndAmount && p.message ? `<p class="text-[11px] text-[rgba(0,0,0,0.65)] line-clamp-2 leading-relaxed mt-1.5">${p.message}</p>` : ''}
                         </a>
                     `;
                 });
@@ -1116,24 +1172,22 @@
                 let html = '';
                 calls.forEach(call => {
                     html += `
-                        <div class="p-3 hover:bg-[#FAFAFA] transition-colors flex items-start gap-3 group border-b border-[#F0F0F0] last:border-b-0" id="noti-call-item-${call.id}">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-start justify-between gap-2 mb-1">
-                                    <span class="font-semibold text-[rgba(0,0,0,0.85)] text-xs leading-snug break-words">${call.full_table_name}</span>
-                                    <span class="text-[10px] text-[rgba(0,0,0,0.45)] shrink-0 whitespace-nowrap mt-0.5">${call.time_ago}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium bg-[#fffbe6] text-[#d46b08] border-[#ffe58f]">${call.type_label}</span>
-                                    ${call.note ? `<span class="text-[11px] text-[rgba(0,0,0,0.65)] italic line-clamp-1">"${call.note}"</span>` : ''}
-                                </div>
-                                <div class="flex items-center gap-2 mt-2">
-                                    <button type="button" onclick="completeCall(${call.id}, this)" class="px-2.5 py-1 bg-[#52C41A] hover:bg-[#389E0D] text-white text-[11px] font-medium rounded transition-colors cursor-pointer">
-                                        Đã phục vụ
-                                    </button>
-                                    <a href="${call.pos_url}" class="px-2.5 py-1 bg-white border border-[#D9D9D9] hover:border-[#F47716] hover:text-[#F47716] text-[rgba(0,0,0,0.65)] text-[11px] font-medium rounded transition-colors">
-                                        Mở bàn
-                                    </a>
-                                </div>
+                        <div class="p-3 hover:bg-[#FAFAFA] transition-colors block border-b border-[#F0F0F0] last:border-b-0" id="noti-call-item-${call.id}">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <span class="font-bold text-[rgba(0,0,0,0.85)] text-xs">${call.full_table_name}</span>
+                                <span class="text-[10px] text-[rgba(0,0,0,0.45)] shrink-0">${call.time_ago}</span>
+                            </div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium bg-[#F5F5F5] text-[rgba(0,0,0,0.65)] border-[#E8E8E8]">${call.type_label}</span>
+                                ${call.note ? `<span class="text-[11px] text-[rgba(0,0,0,0.65)] italic line-clamp-1">"${call.note}"</span>` : ''}
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="completeCall(${call.id}, this)" class="px-2.5 py-1 bg-[#52C41A] hover:bg-[#389E0D] text-white text-[11px] font-medium rounded transition-colors cursor-pointer">
+                                    Đã phục vụ
+                                </button>
+                                <a href="${call.pos_url}" class="px-2.5 py-1 bg-white border border-[#D9D9D9] hover:border-[#F47716] hover:text-[#F47716] text-[rgba(0,0,0,0.65)] text-[11px] font-medium rounded transition-colors">
+                                    Mở bàn
+                                </a>
                             </div>
                         </div>
                     `;
@@ -1154,17 +1208,17 @@
                 let html = '';
                 orders.forEach(ord => {
                     html += `
-                        <a href="${ord.url}" class="p-3 hover:bg-[#FAFAFA] transition-colors flex items-start gap-3 block border-b border-[#F0F0F0] last:border-b-0">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-start justify-between gap-2 mb-1">
-                                    <span class="font-semibold text-[rgba(0,0,0,0.85)] text-xs leading-snug break-words">${ord.title}</span>
-                                    <span class="text-[10px] text-[rgba(0,0,0,0.45)] shrink-0 whitespace-nowrap mt-0.5">${ord.time_ago}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium bg-[#e6f4ff] text-[#0958d9] border-[#91caff]">Món mới</span>
+                        <a href="${ord.url}" class="p-3 hover:bg-[#FAFAFA] transition-colors block border-b border-[#F0F0F0] last:border-b-0">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <span class="font-bold text-[rgba(0,0,0,0.85)] text-xs">${ord.title}</span>
+                                <span class="font-bold text-[#F47716] text-xs shrink-0">${ord.total_price}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-[10px] text-[rgba(0,0,0,0.45)] mb-1">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium bg-[#F5F5F5] text-[rgba(0,0,0,0.65)] border-[#E8E8E8]">Món mới</span>
                                     <span class="text-[11px] text-[rgba(0,0,0,0.65)]">${ord.subtitle}</span>
                                 </div>
-                                <div class="text-[11px] font-medium text-[#F47716] mt-1">Tổng: ${ord.total_price}</div>
+                                <span class="shrink-0">${ord.time_ago}</span>
                             </div>
                         </a>
                     `;
@@ -1185,17 +1239,17 @@
                 let html = '';
                 bookings.forEach(b => {
                     html += `
-                        <a href="${b.url}" class="p-3 hover:bg-[#FAFAFA] transition-colors flex items-start gap-3 block border-b border-[#F0F0F0] last:border-b-0">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-start justify-between gap-2 mb-1">
-                                    <span class="font-semibold text-[rgba(0,0,0,0.85)] text-xs leading-snug break-words">${b.customer_name} (${b.people} khách)</span>
-                                    <span class="text-[10px] text-[rgba(0,0,0,0.45)] shrink-0 whitespace-nowrap mt-0.5">${b.time_ago}</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium bg-[#f9f0ff] text-[#531dab] border-[#d3adf7]">Đặt bàn</span>
+                        <a href="${b.url}" class="p-3 hover:bg-[#FAFAFA] transition-colors block border-b border-[#F0F0F0] last:border-b-0">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <span class="font-bold text-[rgba(0,0,0,0.85)] text-xs">${b.customer_name} (${b.people} khách)</span>
+                                <span class="font-medium text-[#F47716] text-xs shrink-0">${b.booking_time} - ${b.booking_date}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-[10px] text-[rgba(0,0,0,0.45)]">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium bg-[#F5F5F5] text-[rgba(0,0,0,0.65)] border-[#E8E8E8]">Đặt bàn</span>
                                     <span class="text-[11px] text-[rgba(0,0,0,0.65)]">SĐT: ${b.phone}</span>
                                 </div>
-                                <div class="text-[11px] text-[rgba(0,0,0,0.65)] mt-0.5">Giờ đến: <span class="font-medium text-[rgba(0,0,0,0.85)]">${b.booking_time} - ${b.booking_date}</span></div>
+                                <span class="shrink-0">${b.time_ago}</span>
                             </div>
                         </a>
                     `;
@@ -1337,19 +1391,12 @@
         pollNotifications();
         setInterval(pollNotifications, 5000);
 
-        function toggleSidebar() {
+        function openSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
-            if (sidebar && overlay) {
-                const isOpen = sidebar.classList.toggle('drawer-open');
-                if (isOpen) {
-                    overlay.classList.remove('hidden');
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    overlay.classList.add('hidden');
-                    document.body.style.overflow = '';
-                }
-            }
+            if (sidebar) sidebar.classList.add('drawer-open');
+            if (overlay) overlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         }
 
         function closeSidebar() {
@@ -1360,8 +1407,53 @@
             document.body.style.overflow = '';
         }
 
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) return;
+            if (sidebar.classList.contains('drawer-open')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        }
+        window.openSidebar = openSidebar;
+        window.closeSidebar = closeSidebar;
+        window.toggleSidebar = toggleSidebar;
+
+        // Global Click outside listener: Đóng sidebar khi click bất cứ đâu ra ngoài (màn hình, thẻ card, overlay, body)
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('mobileSidebarToggleBtn');
+            if (!sidebar) return;
+            if (sidebar.classList.contains('drawer-open')) {
+                if (!sidebar.contains(e.target) && (!toggleBtn || !toggleBtn.contains(e.target))) {
+                    closeSidebar();
+                }
+            }
+        }, true);
+
+        // Touch outside for mobile / tablet touchscreens
+        document.addEventListener('touchstart', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('mobileSidebarToggleBtn');
+            if (!sidebar) return;
+            if (sidebar.classList.contains('drawer-open')) {
+                if (!sidebar.contains(e.target) && (!toggleBtn || !toggleBtn.contains(e.target))) {
+                    closeSidebar();
+                }
+            }
+        }, { passive: true, capture: true });
+
+        // Phím ESC: đóng sidebar drawer
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeSidebar();
+            }
+        });
+
+        // Tự động thu hồi drawer và unlock scroll khi co giãn màn hình lên desktop >= 992px
         window.addEventListener('resize', function() {
-            if (window.innerWidth >= 1024) {
+            if (window.innerWidth >= 992) {
                 closeSidebar();
             }
         });
