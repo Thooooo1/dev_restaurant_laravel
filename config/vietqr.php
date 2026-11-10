@@ -15,5 +15,5 @@ return [
     'template' => env('VIETQR_TEMPLATE', 'compact2'), // compact2, compact, qr_only, print
     
     // Khóa bí mật để xác thực Webhook từ bên thứ ba (Sepay / Casso)
-    'webhook_token' => env('PAYMENT_WEBHOOK_TOKEN', 'civilize_webhook_key_2026'),
+    'webhook_token' => env('PAYMENT_WEBHOOK_TOKEN'),
 ];

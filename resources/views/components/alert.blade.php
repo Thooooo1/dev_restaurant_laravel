@@ -69,10 +69,32 @@
     }
 
     @if(request()->is('admin*'))
-    /* Tắt bỏ hoàn toàn các thông báo thành công dạng popup trong trang quản trị Admin */
-    .app-toast-item.toast-success,
-    .app-toast-item.toast-info {
-        display: none !important;
+    /* Bố cục Toast riêng cho Admin: Nằm ở góc dưới bên phải (bottom-right), cách xa hoàn toàn các nút thao tác phía trên */
+    #app-toast-container {
+        top: auto !important;
+        bottom: 24px !important;
+        right: 24px !important;
+        flex-direction: column-reverse !important;
+    }
+    .app-toast-item {
+        font-size: 12.5px !important;
+        padding: 7px 15px !important;
+        border-radius: 6px !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+        transform: translateY(8px) scale(0.98) !important;
+    }
+    .app-toast-item.show {
+        transform: translateY(0) scale(1) !important;
+    }
+    .app-toast-item.hide {
+        transform: translateY(8px) scale(0.96) !important;
+    }
+    @media (max-width: 640px) {
+        #app-toast-container {
+            right: 12px !important;
+            bottom: 16px !important;
+            max-width: calc(100vw - 24px) !important;
+        }
     }
     @endif
 </style>
@@ -81,12 +103,10 @@
 
 <script>
     (function() {
-        window.showAppToast = function(message, type = 'success', duration = 1600) {
+        window.showAppToast = function(message, type = 'success', duration = null) {
             if (!message) return;
-            // Tắt bỏ toàn bộ thông báo thành công dạng popup trên trang quản trị admin
-            if ((type === 'success' || type === 'info') && (window.location.pathname.startsWith('/admin') || window.location.pathname.includes('/admin/'))) {
-                return;
-            }
+            const isAdmin = window.location.pathname.startsWith('/admin') || window.location.pathname.includes('/admin/');
+            const effectiveDuration = duration !== null ? duration : (isAdmin ? 2000 : 1600);
             const container = document.getElementById('app-toast-container');
             if (!container) return;
 
@@ -107,10 +127,10 @@
                 toast.classList.add('show');
             });
 
-            // Tự động biến mất sau đúng duration (1.6 giây)
+            // Tự động biến mất sau đúng duration (Admin: 2 giây ở góc dưới; Khách: 1.6 giây ở góc trên)
             let timer = setTimeout(() => {
                 dismissToast(toast);
-            }, duration);
+            }, effectiveDuration);
 
             function dismissToast(el) {
                 if (!el || el._isDismissing) return;
@@ -126,10 +146,10 @@
 
         // Ghi đè Toastr toàn cục để tương thích 100% với toàn bộ code cũ
         window.toastr = {
-            success: (msg) => window.showAppToast(msg, 'success', 1600),
+            success: (msg) => window.showAppToast(msg, 'success'),
             error: (msg) => window.showAppToast(msg, 'error', 1800),
             warning: (msg) => window.showAppToast(msg, 'warning', 1600),
-            info: (msg) => window.showAppToast(msg, 'info', 1600),
+            info: (msg) => window.showAppToast(msg, 'info'),
             clear: () => {
                 const c = document.getElementById('app-toast-container');
                 if (c) c.innerHTML = '';
@@ -143,10 +163,10 @@
     })();
 </script>
 
-@if(session('success') && !request()->is('admin*'))
+@if(session('success'))
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            window.showAppToast("{!! addslashes(session('success')) !!}", 'success', 1600);
+            window.showAppToast("{!! addslashes(session('success')) !!}", 'success', {{ request()->is('admin*') ? 2000 : 1600 }});
         });
     </script>
 @endif
@@ -167,10 +187,10 @@
     </script>
 @endif
 
-@if(session('info') && !request()->is('admin*'))
+@if(session('info'))
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            window.showAppToast("{!! addslashes(session('info')) !!}", 'info', 1600);
+            window.showAppToast("{!! addslashes(session('info')) !!}", 'info', {{ request()->is('admin*') ? 2000 : 1600 }});
         });
     </script>
 @endif

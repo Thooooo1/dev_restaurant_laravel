@@ -60,5 +60,5 @@ jobs:
         DB_DATABASE: test_civilize
         DB_USERNAME: root
         DB_PASSWORD: root
-        PAYMENT_WEBHOOK_TOKEN: civilize_webhook_key_2026
+        PAYMENT_WEBHOOK_TOKEN: testing_ci_webhook_secret_key
       run: php artisan test

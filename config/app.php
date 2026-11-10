@@ -123,8 +123,15 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
-   
-   
-    
+
+    /*
+    |--------------------------------------------------------------------------
+    | System Migration Runner (Web Route Access Gate)
+    |--------------------------------------------------------------------------
+    | Cho phép chạy migration từ xa qua route /admin/system-migrate.
+    | Mặc định luôn là false để bảo vệ ứng dụng, chỉ bật khi cần migrate thủ công.
+    */
+    'allow_system_migrate' => (bool) env('ALLOW_SYSTEM_MIGRATE', false),
+
 ];
 

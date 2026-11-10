@@ -26,7 +26,7 @@
         <!-- <env name="DB_DATABASE" value=":memory:"/> -->
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
-        <env name="PAYMENT_WEBHOOK_TOKEN" value="civilize_webhook_key_2026"/>
+        <env name="PAYMENT_WEBHOOK_TOKEN" value="testing_ci_webhook_secret_key"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>

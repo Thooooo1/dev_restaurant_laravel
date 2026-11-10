@@ -297,8 +297,8 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
     // ROUTE CHỈ CHO ADMIN
     // ==============================
     Route::middleware('admin-access')->group(function () {
-        // System Migration Runner: Chi kich hoat khi ALLOW_SYSTEM_MIGRATE=true trong .env
-        if (env('ALLOW_SYSTEM_MIGRATE', false)) {
+        // System Migration Runner: Chi kich hoat khi ALLOW_SYSTEM_MIGRATE=true trong .env (doc qua config app)
+        if (config('app.allow_system_migrate', false)) {
         // System Migration Runner (Yêu cầu xác nhận POST với CSRF token, chỉ tài khoản Admin thực hiện)
         Route::get('/system-migrate', function () {
             $csrfField = csrf_field();

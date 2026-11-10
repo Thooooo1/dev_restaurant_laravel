@@ -22,3 +22,15 @@ yarn-error.log
 /.zed
 *.sql
 /docs/*.sql
+
+# Deployment scripts, credentials, backups and server logs
+deploy*.php
+*.bat
+*.ps1
+*.zip
+*.log
+cookies.txt
+config-tunnel.yml
+tunnel.log
+*.key
+
