@@ -26,9 +26,7 @@
     </script>
 
     <!-- Google Fonts: Plus Jakarta Sans & Inter (Chuẩn nét, sắc sảo cho tiếng Việt) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,500;1,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('fonts/fonts.css') }}">
 
     <!-- Local Vite Bundled Assets (Tailwind CSS, Font Awesome 6 Icons, Offline-ready) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])

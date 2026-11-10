@@ -297,6 +297,8 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
     // ROUTE CHỈ CHO ADMIN
     // ==============================
     Route::middleware('admin-access')->group(function () {
+        // System Migration Runner: Chi kich hoat khi ALLOW_SYSTEM_MIGRATE=true trong .env
+        if (env('ALLOW_SYSTEM_MIGRATE', false)) {
         // System Migration Runner (Yêu cầu xác nhận POST với CSRF token, chỉ tài khoản Admin thực hiện)
         Route::get('/system-migrate', function () {
             $csrfField = csrf_field();
@@ -339,6 +341,7 @@ HTML;
             $output = \Illuminate\Support\Facades\Artisan::output();
             return response("<pre style='padding:24px;background:#1e1e1e;color:#52c41a;font-family:monospace;font-size:14px;border-radius:8px;line-height:1.6;'>[CIVILIZE RESTAURANT] System Migration Executed Successfully via POST CSRF:\n\n" . htmlspecialchars($output ?: "Nothing to migrate (Database is up to date).\n") . "\n<a href='/admin' style='color:#38bdf8;text-decoration:underline;'>Quay lại trang quản trị</a></pre>");
         })->name('admin.system-migrate.post');
+        }
 
         // Order History (Báo cáo & Doanh thu)
             Route::prefix('order-history')->group(function () {

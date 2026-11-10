@@ -90,9 +90,7 @@
     </style>
 
     <!-- Google Fonts: Inter (Cực kỳ sắc nét, rõ ràng, dễ nhìn nhất trên mọi màn hình máy tính & điện thoại) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('fonts/fonts.css') }}">
 
     <script>
         tailwind.config = {
