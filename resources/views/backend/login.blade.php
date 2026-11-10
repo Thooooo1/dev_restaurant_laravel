@@ -15,8 +15,8 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <script src="{{ asset('plugins/jquery/jquery.min.js') }}"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
+    <link rel="stylesheet" href="{{ asset('plugins/toastr/toastr.min.css') }}">
+    <script src="{{ asset('plugins/toastr/toastr.min.js') }}"></script>
 
     <style>
         html, body,

@@ -55,6 +55,9 @@ class ProductController extends Controller
         }
 
         // Tối ưu truy vấn SQL trực tiếp thay vì nạp toàn bộ sản phẩm vào bộ nhớ
+        $tablePrefix = \Illuminate\Support\Facades\DB::connection()->getTablePrefix();
+        $fullProductTable = $tablePrefix . (new Product)->getTable();
+
         $products = Product::where('product.status', 1)
             ->join('category', 'product.category_id', '=', 'category.id')
             ->where('category.status', 1)
@@ -63,7 +66,7 @@ class ProductController extends Controller
                       ->orWhere('category.name', 'like', "%{$q}%");
             })
             ->select('product.*', 'category.name as category_name')
-            ->orderByRaw("CASE WHEN product.name LIKE ? THEN 1 WHEN product.name LIKE ? THEN 2 ELSE 3 END", ["{$q}%", "%{$q}%"])
+            ->orderByRaw("CASE WHEN {$fullProductTable}.name LIKE ? THEN 1 WHEN {$fullProductTable}.name LIKE ? THEN 2 ELSE 3 END", ["{$q}%", "%{$q}%"])
             ->take(15)
             ->get();
 

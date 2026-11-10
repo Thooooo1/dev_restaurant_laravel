@@ -19,7 +19,7 @@ class ChatbotKnowledgeBase
         $this->knowledgeBase = [
             'location_and_hours' => [
                 'title' => 'Địa chỉ & Giờ mở cửa',
-                'keywords' => ['địa chỉ', 'dia chi', 'ở đâu', 'o dau', 'giờ mở cửa', 'gio mo cua', 'mở cửa mấy giờ', 'mo cua', 'chi nhánh', 'vi trí', 'vi tri', 'maps', 'google map', 'đường đi'],
+                'keywords' => ['địa chỉ', 'dia chi', 'ở đâu', 'o dau', 'giờ mở cửa', 'gio mo cua', 'mở cửa mấy giờ', 'mo cua', 'chi nhánh', 'vị trí', 'vi tri', 'maps', 'google map', 'đường đi'],
                 'content' => 'CIVILIZE Restaurant toạ lạc tại 123 Đường Ẩm Thực, Quận 1, TP. Hồ Chí Minh. Thời gian phục vụ đón khách từ 10:00 sáng đến 23:00 đêm mỗi ngày (từ Thứ Hai đến Chủ Nhật, kể cả các ngày Lễ/Tết).'
             ],
             'parking_and_space' => [
@@ -73,20 +73,80 @@ class ChatbotKnowledgeBase
         return $this->knowledgeBase;
     }
 
+    /**
+     * Chuyen chuoi tieng Viet co dau sang khong dau de so khop tu khoa chinh xac
+     */
+    public function removeAccents(string $str): string
+    {
+        $accents = [
+            'a' => '/[àáạảãâầấậẩẫăằắặẳẵ]/u',
+            'e' => '/[èéẹẻẽêềếệểễ]/u',
+            'i' => '/[ìíịỉĩ]/u',
+            'o' => '/[òóọỏõôồốộổỗơờớợởỡ]/u',
+            'u' => '/[ùúụủũưừứựửữ]/u',
+            'y' => '/[ỳýỵỷỹ]/u',
+            'd' => '/[đ]/u',
+            'A' => '/[ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ]/u',
+            'E' => '/[ÈÉẸẺẼÊỀẾỆỂỄ]/u',
+            'I' => '/[ÌÍỊỈĨ]/u',
+            'O' => '/[ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ]/u',
+            'U' => '/[ÙÚỤỦŨƯỪỨỰỬỮ]/u',
+            'Y' => '/[ỲÝỴỶỸ]/u',
+            'D' => '/[Đ]/u',
+        ];
+        foreach ($accents as $nonAccent => $pattern) {
+            $str = preg_replace($pattern, $nonAccent, $str);
+        }
+        return mb_strtolower($str, 'UTF-8');
+    }
+
+    /**
+     * Tim kiem doan tri thuc phu hop nhat voi tin nhan nguoi dung (ho tro ca co dau va khong dau)
+     */
     public function findMatch(string $userMsg): ?array
     {
         $cleanMsg = mb_strtolower(trim($userMsg), 'UTF-8');
+        $unaccentedMsg = $this->removeAccents($cleanMsg);
+
+        $bestMatch = null;
+        $maxScore = 0;
+
         foreach ($this->knowledgeBase as $key => $chunk) {
+            $score = 0;
             foreach ($chunk['keywords'] as $kw) {
-                if (str_contains($cleanMsg, $kw)) {
-                    return [
-                        'key' => $key,
-                        'title' => $chunk['title'],
-                        'content' => $chunk['content']
-                    ];
+                $cleanKw = mb_strtolower(trim($kw), 'UTF-8');
+                $unaccentedKw = $this->removeAccents($cleanKw);
+
+                if (str_contains($cleanMsg, $cleanKw)) {
+                    $score += 2; // Khop chinh xac co dau
+                } elseif (str_contains($unaccentedMsg, $unaccentedKw)) {
+                    $score += 1; // Khop khong dau
                 }
             }
+
+            if ($score > $maxScore) {
+                $maxScore = $score;
+                $bestMatch = [
+                    'key' => $key,
+                    'title' => $chunk['title'],
+                    'content' => $chunk['content'],
+                    'score' => $score
+                ];
+            }
         }
-        return null;
+
+        return $bestMatch;
+    }
+
+    /**
+     * Tong hop tri thuc thanh van ban de bo tro System Prompt
+     */
+    public function getSummaryContext(): string
+    {
+        $context = [];
+        foreach ($this->knowledgeBase as $chunk) {
+            $context[] = "- {$chunk['title']}: {$chunk['content']}";
+        }
+        return implode("\n", $context);
     }
 }

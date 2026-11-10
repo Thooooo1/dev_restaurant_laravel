@@ -37,25 +37,16 @@
 
     <!-- Local Vite Bundled Assets (Tailwind CSS, Font Awesome 6 Icons, Offline-ready) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <!-- Slick CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css" />
-    <link rel="stylesheet" type="text/css"
-        href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css" />
+    <!-- Slick CSS (Local offline-ready) -->
+    <link rel="stylesheet" type="text/css" href="{{ asset('plugins/slick/slick.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('plugins/slick/slick-theme.css') }}" />
 
-    <!-- Slick JS -->
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+    <!-- jQuery & Slick JS (Local offline-ready) -->
+    <script type="text/javascript" src="{{ asset('plugins/jquery/jquery.min.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('plugins/slick/slick.min.js') }}"></script>
 
-    {{--
-    <script src="{{asset('plugins/jquery/jquery.min.js')}}"></script> --}}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css">
-    {{-- <!-- Thêm Quill CSS -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <!-- Thêm Quill JS -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script> --}}
-
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
+    <link rel="stylesheet" href="{{ asset('plugins/toastr/toastr.min.css') }}">
+    <script src="{{ asset('plugins/toastr/toastr.min.js') }}"></script>
 
     <!-- Nhúng Alpine.js nếu chưa có -->
     <script src="{{ asset('assets/alpinejs@3.x.x/dist/cdn.min.js') }}" defer></script>

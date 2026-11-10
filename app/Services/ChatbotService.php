@@ -928,34 +928,11 @@ class ChatbotService
         $sessionId = $context['session_id'] ?? session()->getId();
         $user = $context['user'] ?? null;
 
-        // 1. Tải Short-Term Memory (10 lượt hội thoại gần nhất của session này, theo thứ tự thời gian)
-        $recentMessages = collect([]);
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('chatbot_messages')) {
-                $recentMessages = ChatbotMessage::where('session_id', $sessionId)
-                    ->orderBy('id', 'desc')
-                    ->limit(10)
-                    ->get()
-                    ->reverse()
-                    ->values();
-            }
-        } catch (\Throwable $e) {
-            Log::warning('Chatbot memory load failed: ' . $e->getMessage());
-        }
+        // 1. Tải Short-Term Memory qua ChatbotMemoryManager (10 lượt hội thoại gần nhất)
+        $recentMessages = $this->memory->loadRecentMessages($sessionId, 10);
 
-        // 2. Tải Long-Term Memory (Hồ sơ ẩm thực của khách nếu có)
-        $customerProfile = null;
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('customer_ai_profiles')) {
-                if (!empty($user['id'])) {
-                    $customerProfile = CustomerAiProfile::where('user_id', $user['id'])->first();
-                } elseif (!empty($user['phone'])) {
-                    $customerProfile = CustomerAiProfile::where('phone', $user['phone'])->first();
-                }
-            }
-        } catch (\Throwable $e) {
-            Log::warning('Customer profile load failed: ' . $e->getMessage());
-        }
+        // 2. Tải Long-Term Memory qua ChatbotMemoryManager (Hồ sơ ẩm thực của khách nếu có)
+        $customerProfile = $this->memory->getCustomerProfile($user['id'] ?? null, $user['phone'] ?? null);
 
         // 3. Quyết định kênh tạo câu trả lời: Gemini Function Calling hoặc Native Fallback
         $apiKey = config('services.gemini.api_key') ?: env('GEMINI_API_KEY');

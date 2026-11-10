@@ -79,41 +79,18 @@ class OrderController extends Controller
             'delivery_note' => 'nullable|string|max:1000',
         ]);
 
-        // Quy tắc chuyển trạng thái: Không cho phép quay ngược từ "đã giao" về trạng thái trước
-        if ($order->delivery_status === 'delivered' && $request->delivery_status !== 'delivered') {
-            $msg = 'Đơn hàng đã giao thành công, không thể chuyển ngược trạng thái.';
+        try {
+            $order->applyDeliveryStatusTransition($request->delivery_status);
+        } catch (\DomainException $e) {
             if ($request->wantsJson() || $request->ajax()) {
-                return response()->json(['success' => false, 'message' => $msg], 422);
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
             }
-            return redirect()->back()->with('error', $msg);
+            return redirect()->back()->with('error', $e->getMessage());
         }
 
         $order->shipper_name = $request->shipper_name;
         $order->shipper_phone = $request->shipper_phone;
-        $order->delivery_status = $request->delivery_status;
         $order->delivery_note = $request->delivery_note;
-
-        if ($request->delivery_status === 'picked_up') {
-            if (!$order->picked_up_at) {
-                $order->picked_up_at = now();
-            }
-            if (in_array((int)$order->status, [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])) {
-                $order->status = \App\Enums\OrderStatus::PROCESSING; // 1: Đang giao hàng / Đang thực hiện
-            }
-        } elseif ($request->delivery_status === 'delivering') {
-            if (!$order->picked_up_at) {
-                $order->picked_up_at = now();
-            }
-            if (in_array((int)$order->status, [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])) {
-                $order->status = \App\Enums\OrderStatus::PROCESSING; // 1: Đang giao hàng / Đang thực hiện
-            }
-        } elseif ($request->delivery_status === 'delivered') {
-            if (!$order->delivered_at) {
-                $order->delivered_at = now();
-            }
-            $order->status = \App\Enums\OrderStatus::COMPLETED; // 2: Đã giao hàng thành công / Hoàn tất
-        }
-
         $order->save();
 
         if ($request->wantsJson() || $request->ajax()) {

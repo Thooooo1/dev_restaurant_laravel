@@ -186,30 +186,30 @@
 
                         <!-- Thao tác (Chuẩn Ant Design Pro đồng bộ hệ thống) -->
                         <td class="px-4 py-3 whitespace-nowrap text-center">
-                            <div class="flex items-center justify-center gap-1.5">
+                            <div class="flex items-center justify-center gap-1">
                                 <a href="{{ route('admin.import-goods.show', $receipt->id) }}" 
-                                   class="w-7 h-7 rounded border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors"
+                                   class="text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors p-1.5 rounded flex items-center justify-center"
                                    title="Xem chi tiết phiếu nhập">
-                                    <i class="fa-regular fa-eye"></i>
+                                    <i class="fa-regular fa-eye text-xs"></i>
                                 </a>
                                 <a href="{{ route('admin.import-goods.print', $receipt->id) }}" target="_blank"
-                                   class="w-7 h-7 rounded border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors"
+                                   class="text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors p-1.5 rounded flex items-center justify-center"
                                    title="In phiếu nhập kho A4">
-                                    <i class="fa-solid fa-print"></i>
+                                    <i class="fa-solid fa-print text-xs"></i>
                                 </a>
                                 <a href="{{ route('admin.import-goods.edit', $receipt->id) }}" 
-                                   class="w-7 h-7 rounded border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors"
+                                   class="text-gray-400 hover:text-[#F47716] hover:bg-orange-50 transition-colors p-1.5 rounded flex items-center justify-center"
                                    title="Chỉnh sửa phiếu nhập">
-                                    <i class="fa-regular fa-pen-to-square"></i>
+                                    <i class="fa-regular fa-pen-to-square text-xs"></i>
                                 </a>
-                                <form action="{{ route('admin.import-goods.destroy', $receipt->id) }}" method="POST" class="inline" 
+                                <form action="{{ route('admin.import-goods.destroy', $receipt->id) }}" method="POST" class="inline m-0 p-0" 
                                       onsubmit="return confirm('Bạn có chắc chắn muốn xóa phiếu nhập #{{ $receipt->code }}? Toàn bộ các dòng mặt hàng thuộc phiếu này sẽ bị xóa.');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" 
-                                            class="w-7 h-7 rounded border border-gray-200 bg-white hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-600 flex items-center justify-center text-xs transition-colors cursor-pointer"
+                                            class="text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors p-1.5 rounded flex items-center justify-center cursor-pointer bg-transparent border-0"
                                             title="Xóa phiếu nhập">
-                                        <i class="fa-regular fa-trash-can"></i>
+                                        <i class="fa-regular fa-trash-can text-xs"></i>
                                     </button>
                                 </form>
                             </div>

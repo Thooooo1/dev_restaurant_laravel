@@ -140,4 +140,38 @@ class Order extends Model
 
         return '---';
     }
+
+    /**
+     * Chuyen doi tien trinh giao hang va dong bo trang thai don hang tuong ung
+     *
+     * @throws \DomainException neu trang thai khong hop le hoac vi pham quy tac chuyen doi
+     */
+    public function applyDeliveryStatusTransition(string $deliveryStatus): void
+    {
+        // 1. Don hang da bi huy thi tuyet doi khong cho phep cap nhat giao hang
+        if ((int)$this->status === \App\Enums\OrderStatus::CANCELLED) {
+            throw new \DomainException('Đơn hàng đã bị hủy, không thể cập nhật tiến trình giao hàng.');
+        }
+
+        // 2. Chan quay nguoc trang thai tu da giao ve cac buoc truoc
+        if ($this->delivery_status === self::DELIVERY_DELIVERED && $deliveryStatus !== self::DELIVERY_DELIVERED) {
+            throw new \DomainException('Đơn hàng đã giao thành công, không thể chuyển ngược trạng thái.');
+        }
+
+        $this->delivery_status = $deliveryStatus;
+
+        if ($deliveryStatus === self::DELIVERY_PICKED_UP || $deliveryStatus === self::DELIVERY_DELIVERING) {
+            if (!$this->picked_up_at) {
+                $this->picked_up_at = now();
+            }
+            if (in_array((int)$this->status, [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])) {
+                $this->status = \App\Enums\OrderStatus::PROCESSING; // 1: Dang giao hang / Dang thuc hien
+            }
+        } elseif ($deliveryStatus === self::DELIVERY_DELIVERED) {
+            if (!$this->delivered_at) {
+                $this->delivered_at = now();
+            }
+            $this->status = \App\Enums\OrderStatus::COMPLETED; // 2: Da giao hang thanh cong / Hoan tat
+        }
+    }
 }

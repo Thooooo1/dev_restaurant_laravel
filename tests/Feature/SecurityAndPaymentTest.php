@@ -798,4 +798,143 @@ class SecurityAndPaymentTest extends TestCase
         $orderYesterdayPaidToday->forceDelete();
         $orderTodayDelivery->forceDelete();
     }
+
+    /**
+     * 21. Test HTTP: Admin cap nhat tien trinh giao hang qua POST /admin/order/{id}/delivery
+     * - Khi giao thanh cong -> status chuyen sang OrderStatus::COMPLETED (2), khong phai CANCELLED (3)
+     * - Don hang duoc tinh vao tong doanh thu
+     */
+    public function test_admin_update_delivery_to_delivered_sets_completed_and_counts_revenue(): void
+    {
+        $admin = User::where('roles', 'admin')->where('status', 1)->first();
+        if (!$admin) {
+            $admin = User::create([
+                'username' => 'test_admin_deliv_' . uniqid(),
+                'fullname' => 'Test Admin Delivery',
+                'password' => Hash::make('123456'),
+                'phone' => '0999888771',
+                'roles' => 'admin',
+                'admin_lever' => 1,
+                'status' => 1,
+            ]);
+        }
+
+        $order = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Khach Test HTTP Delivery',
+            'phone' => '0988776655',
+            'email' => 'httpdelivery@test.com',
+            'address' => 'So 10 Pho Hue, Ha Noi',
+            'total_price' => 350000,
+            'payment_method' => 1,
+            'status' => \App\Enums\OrderStatus::PENDING,
+            'delivery_status' => Order::DELIVERY_WAITING,
+            'created_by' => $admin->id,
+        ]);
+
+        // 1. Gui request HTTP picked_up
+        $resPickedUp = $this->actingAs($admin)->postJson(route('admin.order.updateDelivery', $order->id), [
+            'shipper_name' => 'Shipper Test 1',
+            'shipper_phone' => '0987654321',
+            'delivery_status' => 'picked_up',
+            'delivery_note' => 'Da giao kien hang cho shipper',
+        ]);
+        $resPickedUp->assertStatus(200);
+        $resPickedUp->assertJson(['success' => true]);
+
+        $order->refresh();
+        $this->assertEquals(\App\Enums\OrderStatus::PROCESSING, $order->status);
+        $this->assertEquals(1, $order->status);
+
+        // 2. Gui request HTTP delivered (Da giao thanh cong)
+        $resDelivered = $this->actingAs($admin)->postJson(route('admin.order.updateDelivery', $order->id), [
+            'shipper_name' => 'Shipper Test 1',
+            'shipper_phone' => '0987654321',
+            'delivery_status' => 'delivered',
+            'delivery_note' => 'Khach da nhan hang va thanh toan',
+        ]);
+        $resDelivered->assertStatus(200);
+        $resDelivered->assertJson(['success' => true]);
+
+        $order->refresh();
+        // Kiem tra toi quan trong: status PHAI la COMPLETED (2), KHONG DUOC la CANCELLED (3)
+        $this->assertEquals(\App\Enums\OrderStatus::COMPLETED, $order->status);
+        $this->assertEquals(2, $order->status);
+        $this->assertNotEquals(\App\Enums\OrderStatus::CANCELLED, $order->status);
+
+        // 3. Kiem tra tinh vao doanh thu
+        $revenueTotal = Order::whereNull('deleted_at')
+            ->whereIn('status', [\App\Enums\OrderStatus::PROCESSING, \App\Enums\OrderStatus::COMPLETED])
+            ->where('id', $order->id)
+            ->sum('total_price');
+        $this->assertEquals(350000, (int)$revenueTotal);
+
+        // Don dep
+        $order->forceDelete();
+    }
+
+    /**
+     * 22. Test HTTP: updateDelivery chan quay nguoc trang thai tu "da giao" va chan don da huy
+     */
+    public function test_update_delivery_prevents_rollback_and_blocks_cancelled(): void
+    {
+        $admin = User::where('roles', 'admin')->where('status', 1)->first();
+        if (!$admin) {
+            $admin = User::create([
+                'username' => 'test_admin_rb_' . uniqid(),
+                'fullname' => 'Test Admin Rollback',
+                'password' => Hash::make('123456'),
+                'phone' => '0999888772',
+                'roles' => 'admin',
+                'admin_lever' => 1,
+                'status' => 1,
+            ]);
+        }
+
+        // Ca 1: Don da giao thanh cong -> khong cho quay ve waiting
+        $deliveredOrder = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Khach Da Nhan',
+            'phone' => '0988776655',
+            'email' => 'delivered@test.com',
+            'address' => 'Ha Noi',
+            'total_price' => 200000,
+            'payment_method' => 1,
+            'status' => \App\Enums\OrderStatus::COMPLETED,
+            'delivery_status' => 'delivered',
+            'created_by' => $admin->id,
+        ]);
+
+        $resRollback = $this->actingAs($admin)->postJson(route('admin.order.updateDelivery', $deliveredOrder->id), [
+            'delivery_status' => 'waiting',
+        ]);
+        $resRollback->assertStatus(422);
+        $resRollback->assertJson(['success' => false]);
+        $this->assertEquals('delivered', $deliveredOrder->fresh()->delivery_status);
+
+        // Ca 2: Don da bi huy -> khong cho cap nhat giao hang
+        $cancelledOrder = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Khach Huy Don',
+            'phone' => '0988776655',
+            'email' => 'cancelled@test.com',
+            'address' => 'Ha Noi',
+            'total_price' => 200000,
+            'payment_method' => 1,
+            'status' => \App\Enums\OrderStatus::CANCELLED,
+            'delivery_status' => 'waiting',
+            'created_by' => $admin->id,
+        ]);
+
+        $resCancelled = $this->actingAs($admin)->postJson(route('admin.order.updateDelivery', $cancelledOrder->id), [
+            'delivery_status' => 'delivered',
+        ]);
+        $resCancelled->assertStatus(422);
+        $resCancelled->assertJson(['success' => false]);
+        $this->assertEquals(\App\Enums\OrderStatus::CANCELLED, $cancelledOrder->fresh()->status);
+
+        // Don dep
+        $deliveredOrder->forceDelete();
+        $cancelledOrder->forceDelete();
+    }
 }
