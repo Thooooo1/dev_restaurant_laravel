@@ -43,9 +43,6 @@
                 </div>
 
                 <!-- Customer & Payment Details Grid -->
-                @php
-                    $paymentInfo = $order->payment_method_info;
-                @endphp
                 <div class="p-6 sm:p-8 bg-[#FAF8F5] border-b border-stone-100 grid grid-cols-1 sm:grid-cols-3 gap-5 text-xs sm:text-sm">
                     <div>
                         <span class="block text-stone-400 text-xs font-medium mb-1">Người nhận / Khách hàng</span>
@@ -65,14 +62,9 @@
 
                     <div>
                         <span class="block text-stone-400 text-xs font-medium mb-1">Phương thức thanh toán</span>
-                        <div class="flex items-center gap-2">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold {{ $paymentInfo['bg'] }} {{ $paymentInfo['text'] }} border {{ $paymentInfo['border'] }}">
-                                <i class="fa-solid {{ $paymentInfo['icon'] }}"></i>
-                                <span>{{ $paymentInfo['name'] }}</span>
-                            </span>
-                        </div>
-                        <span class="text-[11px] block mt-1 font-semibold {{ (int)$order->status === 2 ? 'text-emerald-600' : 'text-amber-600' }}">
-                            {{ (int)$order->status === 2 ? '✓ Đã thanh toán' : '⏳ Chưa thanh toán' }}
+                        <strong class="text-stone-900 block font-semibold">{{ $order->payment_method_name }}</strong>
+                        <span class="text-xs block mt-1 font-medium {{ $order->isPaid() ? 'text-emerald-700' : 'text-stone-600' }}">
+                            {{ $order->payment_status_label }}
                         </span>
                     </div>
                 </div>
