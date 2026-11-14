@@ -110,6 +110,11 @@ class Order extends Model
             return false; // Đã hoàn tiền hoặc thất bại thì không tính vào doanh thu thực thu
         }
 
+        // Đơn giao hàng thất bại (failed): Tiền khách đã trả (nếu có qua VietQR) bị chuyển sang khoản tạm thu chờ xử lý/hoàn tiền, không tính là doanh thu bán hàng thực hiện
+        if ($this->delivery_status === self::DELIVERY_FAILED) {
+            return false;
+        }
+
         if ($this->payment_status === self::PAYMENT_PAID) {
             return true;
         }
@@ -136,24 +141,38 @@ class Order extends Model
     }
 
     /**
-     * Scope chỉ lọc các đơn hàng đã thực sự thu tiền / ghi nhận doanh thu (loại trừ đã hoàn tiền)
+     * Scope chỉ lọc các đơn hàng đã thực sự thu tiền / ghi nhận doanh thu (loại trừ đã hoàn tiền và giao thất bại)
      */
     public function scopePaid($query)
     {
         return $query->where(function ($q) {
-            // 1. Rõ ràng được đánh dấu là PAID
-            $q->where('payment_status', self::PAYMENT_PAID)
-              // 2. Hoặc các đơn hàng đã hoàn tất (COMPLETED), không bị đánh dấu refunded hoặc failed
-              ->orWhere(function ($sub) {
-                  $sub->where('status', \App\Enums\OrderStatus::COMPLETED)
-                      ->whereNotIn('payment_status', [self::PAYMENT_REFUNDED, self::PAYMENT_FAILED]);
-              })
-              // 3. Hoặc đơn trực tuyến đang chế biến nhưng đã xác nhận thanh toán PAID
-              ->orWhere(function ($s2) {
-                  $s2->where('status', \App\Enums\OrderStatus::PROCESSING)
-                     ->whereIn('payment_method', [2, '2', 'VietQR', 'vietqr', 'Momo', 'momo'])
-                     ->where('payment_status', self::PAYMENT_PAID);
-              });
+            // 1. Rõ ràng được đánh dấu là PAID (và không ở trạng thái giao thất bại)
+            $q->where(function ($paid) {
+                $paid->where('payment_status', self::PAYMENT_PAID)
+                     ->where(function ($deliv) {
+                         $deliv->whereNull('delivery_status')
+                               ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
+                     });
+            })
+            // 2. Hoặc các đơn hàng đã hoàn tất (COMPLETED), không bị đánh dấu refunded hoặc failed
+            ->orWhere(function ($sub) {
+                $sub->where('status', \App\Enums\OrderStatus::COMPLETED)
+                    ->whereNotIn('payment_status', [self::PAYMENT_REFUNDED, self::PAYMENT_FAILED])
+                    ->where(function ($deliv) {
+                        $deliv->whereNull('delivery_status')
+                              ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
+                    });
+            })
+            // 3. Hoặc đơn trực tuyến đang chế biến nhưng đã xác nhận thanh toán PAID và chưa thất bại
+            ->orWhere(function ($s2) {
+                $s2->where('status', \App\Enums\OrderStatus::PROCESSING)
+                   ->whereIn('payment_method', [2, '2', 'VietQR', 'vietqr', 'Momo', 'momo'])
+                   ->where('payment_status', self::PAYMENT_PAID)
+                   ->where(function ($deliv) {
+                       $deliv->whereNull('delivery_status')
+                             ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
+                   });
+            });
         })->where('payment_status', '!=', self::PAYMENT_REFUNDED);
     }
 
