@@ -175,15 +175,43 @@ class PaymentWebhookController extends Controller
         }
 
         // 2. Thực thi giao dịch nguyên tử trong Database Transaction
-        \Illuminate\Support\Facades\DB::transaction(function () use ($order, $isTableOrder, $amount, $referenceCode, $content, $request) {
+        $txResult = \Illuminate\Support\Facades\DB::transaction(function () use ($order, $isTableOrder, $amount, $referenceCode, $content, $request, $isProduction) {
             $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->firstOrFail();
+
+            // Khóa bi quan: kiểm tra lại xem đơn đã được thanh toán bởi 1 webhook khác vừa hoàn tất ngay trước đó
+            if ($lockedOrder->payment_status === Order::PAYMENT_PAID || $lockedOrder->isPaid()) {
+                Log::info("Race-condition: Đơn hàng #{$lockedOrder->id} đã được thanh toán bởi một giao dịch khác vừa hoàn tất.");
+                \App\Models\PaymentTransaction::create([
+                    'order_id' => $lockedOrder->id,
+                    'reference_code' => $referenceCode,
+                    'amount' => $amount,
+                    'content' => $content,
+                    'gateway' => 'vietqr',
+                    'status' => 'duplicate',
+                    'raw_payload' => json_encode($request->all()),
+                    'created_at' => now(),
+                ]);
+                return ['already_paid' => true];
+            }
+
+            // Ghi nhận tiền thừa nếu khách chuyển lớn hơn tổng tiền hóa đơn
+            $surplus = $amount - (float)$lockedOrder->total_price;
+            $surplusNote = '';
+            if ($surplus > 0 && (float)$lockedOrder->total_price > 0) {
+                Log::notice("Khách chuyển thừa tiền cho đơn #{$lockedOrder->id}: Chuyển {$amount}đ, Tổng đơn {$lockedOrder->total_price}đ (thừa {$surplus}đ)");
+                $surplusNote = 'Khách chuyển thừa: ' . number_format($surplus, 0, ',', '.') . 'đ (cần đối soát hoàn lại)';
+            }
 
             if ($isTableOrder) {
                 $lockedOrder->status = 2; // 2: Completed (Đã thanh toán tại bàn)
                 $lockedOrder->payment_method = 2; // 2: Chuyển khoản VietQR
                 $lockedOrder->payment_status = Order::PAYMENT_PAID;
+                $lockedOrder->paid_at = now();
                 $lockedOrder->total_price = $lockedOrder->total_price > 0 ? $lockedOrder->total_price : $amount;
                 $lockedOrder->has_new_items = false;
+                if ($surplusNote) {
+                    $lockedOrder->delivery_note = ($lockedOrder->delivery_note ? $lockedOrder->delivery_note . ' | ' : '') . $surplusNote;
+                }
                 $lockedOrder->save();
 
                 // Giải phóng bàn đã thanh toán
@@ -202,8 +230,12 @@ class PaymentWebhookController extends Controller
                 $lockedOrder->status = 1; // 1: PROCESSING (Đã xác nhận & Đã thanh toán chuyển khoản)
                 $lockedOrder->payment_method = 'VietQR';
                 $lockedOrder->payment_status = Order::PAYMENT_PAID;
+                $lockedOrder->paid_at = now();
                 $lockedOrder->total_price = $lockedOrder->total_price > 0 ? $lockedOrder->total_price : $amount;
                 $lockedOrder->has_new_items = true;
+                if ($surplusNote) {
+                    $lockedOrder->delivery_note = ($lockedOrder->delivery_note ? $lockedOrder->delivery_note . ' | ' : '') . $surplusNote;
+                }
                 $lockedOrder->save();
             }
 
@@ -218,7 +250,18 @@ class PaymentWebhookController extends Controller
                 'raw_payload' => json_encode($request->all()),
                 'created_at' => now(),
             ]);
+
+            return ['already_paid' => false];
         });
+
+        if (!empty($txResult['already_paid'])) {
+            return response()->json([
+                'success' => true,
+                'message' => "Đơn hàng #{$order->id} đã được thanh toán trước đó (Phát hiện bởi khóa bi quan).",
+                'order_id' => $order->id,
+                'already_paid' => true,
+            ]);
+        }
 
         // Tạo thông báo chuông hệ thống thời gian thực (ServiceCall) để thu ngân & nhân viên nhận toast và chuông reo
         $tableName = $order->table ? $order->table->name : "Đơn online #{$order->id}";

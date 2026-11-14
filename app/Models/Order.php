@@ -42,7 +42,14 @@ class Order extends Model
         'order_turn',
         'payment_method',
         'payment_status',
+        'paid_at',
         'total_price',
+    ];
+
+    protected $casts = [
+        'picked_up_at' => 'datetime',
+        'delivered_at' => 'datetime',
+        'paid_at' => 'datetime',
     ];
 
     public function getPaymentStatusLabelAttribute(): string
@@ -146,34 +153,28 @@ class Order extends Model
     public function scopePaid($query)
     {
         return $query->where(function ($q) {
-            // 1. Rõ ràng được đánh dấu là PAID (và không ở trạng thái giao thất bại)
-            $q->where(function ($paid) {
-                $paid->where('payment_status', self::PAYMENT_PAID)
-                     ->where(function ($deliv) {
-                         $deliv->whereNull('delivery_status')
-                               ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
-                     });
+            // 1. Đơn tại bàn (Dine-in), tại quầy (POS), hoặc đơn giao hàng đã hoàn tất / đã giao thành công
+            $q->where(function ($completed) {
+                $completed->where(function ($ch) {
+                    $ch->whereNotNull('table_id')
+                       ->orWhere('address', 'Tại quán')
+                       ->orWhere('name', 'Khách POS')
+                       ->orWhere('status', \App\Enums\OrderStatus::COMPLETED)
+                       ->orWhere('delivery_status', self::DELIVERY_DELIVERED);
+                })->where('payment_status', self::PAYMENT_PAID);
             })
-            // 2. Hoặc các đơn hàng đã hoàn tất (COMPLETED), không bị đánh dấu refunded hoặc failed
+            // 2. Hoặc đơn hoàn tất COMPLETED (với fallback tương thích ngược cho dữ liệu cũ chưa có payment_status)
             ->orWhere(function ($sub) {
                 $sub->where('status', \App\Enums\OrderStatus::COMPLETED)
-                    ->whereNotIn('payment_status', [self::PAYMENT_REFUNDED, self::PAYMENT_FAILED])
                     ->where(function ($deliv) {
                         $deliv->whereNull('delivery_status')
                               ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
                     });
-            })
-            // 3. Hoặc đơn trực tuyến đang chế biến nhưng đã xác nhận thanh toán PAID và chưa thất bại
-            ->orWhere(function ($s2) {
-                $s2->where('status', \App\Enums\OrderStatus::PROCESSING)
-                   ->whereIn('payment_method', [2, '2', 'VietQR', 'vietqr', 'Momo', 'momo'])
-                   ->where('payment_status', self::PAYMENT_PAID)
-                   ->where(function ($deliv) {
-                       $deliv->whereNull('delivery_status')
-                             ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
-                   });
             });
-        })->where('payment_status', '!=', self::PAYMENT_REFUNDED);
+        })->where(function ($w) {
+            $w->where('payment_status', '!=', self::PAYMENT_REFUNDED)
+              ->orWhereNull('payment_status');
+        });
     }
 
     /**
@@ -258,6 +259,14 @@ class Order extends Model
         return '---';
     }
 
+    public static array $validDeliveryTransitions = [
+        self::DELIVERY_WAITING => [self::DELIVERY_WAITING, self::DELIVERY_PICKED_UP, self::DELIVERY_DELIVERING],
+        self::DELIVERY_PICKED_UP => [self::DELIVERY_PICKED_UP, self::DELIVERY_DELIVERING, self::DELIVERY_DELIVERED, self::DELIVERY_FAILED],
+        self::DELIVERY_DELIVERING => [self::DELIVERY_DELIVERING, self::DELIVERY_DELIVERED, self::DELIVERY_FAILED],
+        self::DELIVERY_FAILED => [self::DELIVERY_FAILED, self::DELIVERY_WAITING],
+        self::DELIVERY_DELIVERED => [self::DELIVERY_DELIVERED], // Idempotent no-op
+    ];
+
     /**
      * Chuyen doi tien trinh giao hang va dong bo trang thai don hang tuong ung
      *
@@ -270,12 +279,21 @@ class Order extends Model
             throw new \DomainException('Đơn hàng đã bị hủy, không thể cập nhật tiến trình giao hàng.');
         }
 
-        // 2. Chan quay nguoc trang thai tu da giao ve cac buoc truoc
-        if ($this->delivery_status === self::DELIVERY_DELIVERED && $deliveryStatus !== self::DELIVERY_DELIVERED) {
-            throw new \DomainException('Đơn hàng đã giao thành công, không thể chuyển ngược trạng thái.');
+        // 2. Kiem tra tinh idempotent khi da giao thanh cong
+        if ($this->delivery_status === self::DELIVERY_DELIVERED) {
+            if ($deliveryStatus === self::DELIVERY_DELIVERED) {
+                return; // Da giao truoc do, khong lam gi ca (khong ghi de delivered_at)
+            }
+            throw new \DomainException('Đơn hàng đã giao thành công, không thể thay đổi hoặc chuyển ngược trạng thái.');
         }
 
-        // 3. Quy trinh xu ly giao hang that bai (failed)
+        // 3. Kiem tra bang chuyen trang thai hop le (State Transition Whitelist)
+        $currentStatus = $this->delivery_status ?: self::DELIVERY_WAITING;
+        if (!isset(self::$validDeliveryTransitions[$currentStatus]) || !in_array($deliveryStatus, self::$validDeliveryTransitions[$currentStatus])) {
+            throw new \DomainException("Không thể chuyển tiến trình giao hàng từ '{$currentStatus}' sang '{$deliveryStatus}'.");
+        }
+
+        // 4. Quy trinh xu ly giao hang that bai (failed)
         if ($deliveryStatus === self::DELIVERY_FAILED) {
             if (empty(trim($note ?? '')) && empty(trim($this->delivery_note ?? ''))) {
                 throw new \DomainException('Vui lòng nhập lý do giao hàng thất bại vào phần ghi chú.');
@@ -284,13 +302,12 @@ class Order extends Model
             if ($note) {
                 $this->delivery_note = $note;
             }
-            // Giữ nguyên trạng thái PROCESSING để nhân viên xử lý tiếp (điều phối lại hoặc hủy)
             $this->status = \App\Enums\OrderStatus::PROCESSING;
             return;
         }
 
-        // 4. Quy trinh dieu phoi lai (tu failed ve waiting)
-        if ($this->delivery_status === self::DELIVERY_FAILED && $deliveryStatus === self::DELIVERY_WAITING) {
+        // 5. Quy trinh dieu phoi lai (tu failed ve waiting)
+        if ($currentStatus === self::DELIVERY_FAILED && $deliveryStatus === self::DELIVERY_WAITING) {
             $this->delivery_status = self::DELIVERY_WAITING;
             $this->status = \App\Enums\OrderStatus::PROCESSING;
             if ($note) {
@@ -314,6 +331,9 @@ class Order extends Model
         } elseif ($deliveryStatus === self::DELIVERY_DELIVERED) {
             if (!$this->delivered_at) {
                 $this->delivered_at = now();
+            }
+            if (!$this->paid_at) {
+                $this->paid_at = now();
             }
             $this->status = \App\Enums\OrderStatus::COMPLETED; // 2: Da giao hang thanh cong / Hoan tat
             // Với đơn COD / tiền mặt: Giao thành công đồng nghĩa tài xế đã thu tiền mặt từ khách

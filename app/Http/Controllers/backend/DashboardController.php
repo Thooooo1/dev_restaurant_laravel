@@ -77,10 +77,17 @@ class DashboardController extends Controller
             return Order::whereNull('deleted_at')
                 ->paid()
                 ->where(function($q) use ($start, $end) {
-                    $q->whereBetween('created_at', [$start, $end])
+                    $q->whereBetween('paid_at', [$start, $end])
                       ->orWhere(function($sub) use ($start, $end) {
-                          $sub->where('status', 2)
-                              ->whereBetween('updated_at', [$start, $end]);
+                          $sub->whereNull('paid_at')
+                              ->where(function($fallback) use ($start, $end) {
+                                  $fallback->whereBetween('delivered_at', [$start, $end])
+                                           ->orWhereBetween('created_at', [$start, $end])
+                                           ->orWhere(function($s2) use ($start, $end) {
+                                               $s2->where('status', 2)
+                                                  ->whereBetween('updated_at', [$start, $end]);
+                                           });
+                              });
                       });
                 });
         };
