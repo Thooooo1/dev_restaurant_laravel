@@ -48,7 +48,7 @@
                        value="{{ old('phone') }}"
                        required
                        class="w-full px-5 py-3.5 bg-white border border-stone-300 rounded-xl sm:rounded-2xl text-stone-900 text-sm sm:text-base placeholder-stone-400 focus:outline-none focus:border-[#C25E00] focus:ring-2 focus:ring-[#C25E00]/20 transition-all shadow-2xs" 
-                       placeholder="Email, số điện thoại hoặc tên đăng nhập"
+                       placeholder="Email / SĐT / Tên đăng nhập"
                        autofocus>
             </div>
 
