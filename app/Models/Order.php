@@ -19,6 +19,17 @@ class Order extends Model
     public const PAYMENT_PAID = 'paid';
     public const PAYMENT_FAILED = 'failed';
     public const PAYMENT_REFUNDED = 'refunded';
+
+    // Định nghĩa 4 kênh nghiệp vụ rõ ràng (Channel Taxonomy)
+    public const CHANNEL_DINE_IN = 'dine_in';       // Dùng bữa tại bàn (table_id != null)
+    public const CHANNEL_POS = 'pos';               // Bán trực tiếp tại quầy POS
+    public const CHANNEL_TAKEAWAY = 'takeaway';     // Khách đặt mang về
+    public const CHANNEL_DELIVERY = 'delivery';     // Giao hàng tận nơi
+    public const CHANNEL_UNKNOWN = 'unknown';       // Không xác định / Dữ liệu bất thường
+
+    public const STYLE_DELIVERY = 1;  // Giao hàng
+    public const STYLE_POS = 2;       // Tại quầy
+    public const STYLE_TAKEAWAY = 3;  // Mang về
     
     protected $fillable = [
         'user_id',
@@ -111,36 +122,86 @@ class Order extends Model
     }
 
     /**
-     * Phân loại hình thức nghiệp vụ đơn hàng (Single Source of Truth)
+     * Phân loại hình thức nghiệp vụ đơn hàng (Single Source of Truth - 4 kênh rõ ràng)
      */
+    public function getChannelAttribute(): string
+    {
+        return $this->getChannel();
+    }
+
+    public function getChannel(): string
+    {
+        // Kênh 1: Dùng bữa tại bàn (Dine-in)
+        if (!empty($this->table_id)) {
+            return self::CHANNEL_DINE_IN;
+        }
+
+        $style = (int)($this->orderStyle ?? 0);
+        $addr = trim((string)($this->address ?? ''));
+        $name = trim((string)($this->name ?? ''));
+
+        // Kênh 2: Bán tại quầy POS trực tiếp (POS Counter)
+        if ($style === self::STYLE_POS || $addr === 'Tại quán' || $name === 'Khách POS') {
+            return self::CHANNEL_POS;
+        }
+
+        // Kênh 3: Đặt mang về (Takeaway)
+        if ($style === self::STYLE_TAKEAWAY || str_contains(mb_strtolower($addr), 'mang về') || str_contains(mb_strtolower($addr), 'takeaway')) {
+            return self::CHANNEL_TAKEAWAY;
+        }
+
+        // Kênh 4: Giao hàng tận nơi (Delivery)
+        // Chỉ chấp nhận là delivery khi có chỉ định rõ ràng hoặc có địa chỉ giao hàng hợp lệ khác 'Tại quán' và có số điện thoại
+        if ($style === self::STYLE_DELIVERY || (!empty($addr) && $addr !== 'Tại quán' && !empty($this->phone))) {
+            return self::CHANNEL_DELIVERY;
+        }
+
+        // Trường hợp đơn hàng bất thường / thiếu thông tin cơ bản
+        return self::CHANNEL_UNKNOWN;
+    }
+
     public function isDineIn(): bool
     {
-        return !empty($this->table_id);
+        return $this->getChannel() === self::CHANNEL_DINE_IN;
     }
 
     public function isPos(): bool
     {
-        if ($this->isDineIn()) {
-            return false;
-        }
-
-        $addr = trim((string)($this->address ?? ''));
-        $name = trim((string)($this->name ?? ''));
-        $style = (int)($this->orderStyle ?? 0);
-
-        return $addr === 'Tại quán' 
-            || $name === 'Khách POS' 
-            || $style === 2;
+        return $this->getChannel() === self::CHANNEL_POS;
     }
 
     public function isTakeaway(): bool
     {
-        return (int)($this->orderStyle ?? 0) === 3;
+        return $this->getChannel() === self::CHANNEL_TAKEAWAY;
     }
 
     public function isDelivery(): bool
     {
-        return !$this->isDineIn() && !$this->isPos() && !$this->isTakeaway();
+        return $this->getChannel() === self::CHANNEL_DELIVERY;
+    }
+
+    /**
+     * Bàn giao món cho khách mang về (Takeaway Handover)
+     * Tại thời điểm này đơn mới chuyển COMPLETED và chính thức ghi nhận doanh thu (Accrual Fulfillment)
+     */
+    public function markAsHandedOver(?int $actorId = null, ?string $note = null): void
+    {
+        if (!$this->isTakeaway() && !$this->isPos()) {
+            throw new \DomainException('Thao tác bàn giao trực tiếp chỉ áp dụng cho đơn mang về hoặc tại quầy.');
+        }
+
+        if ($this->payment_status !== self::PAYMENT_PAID) {
+            throw new \DomainException('Đơn hàng chưa thanh toán, không thể bàn giao món.');
+        }
+
+        $this->status = \App\Enums\OrderStatus::COMPLETED;
+        $this->revenue_recognized_at = $this->revenue_recognized_at ?: now();
+        if ($actorId) {
+            $this->updated_by = $actorId;
+        }
+        $handoverNote = 'Đã bàn giao món cho khách' . ($note ? ": {$note}" : '');
+        $this->delivery_note = ($this->delivery_note ? $this->delivery_note . ' | ' : '') . $handoverNote;
+        $this->save();
     }
 
     /**
@@ -182,9 +243,22 @@ class Order extends Model
     }
 
     /**
-     * Scope lọc các đơn hàng đã thực sự thu tiền (Dòng tiền thực thu / Tiền đã về tài khoản hoặc thu tiền mặt)
+     * Scope 1: Tổng tiền đã từng thu (Gross Cash Collection)
+     * Đo lường toàn bộ dòng tiền từng chảy vào tài khoản ngân hàng hoặc quỹ tiền mặt (kể cả khoản sau này bị hoàn)
      */
-    public function scopeCollected($query)
+    public function scopeGrossCollected($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereIn('payment_status', [self::PAYMENT_PAID, self::PAYMENT_REFUNDED])
+              ->orWhereNotNull('paid_at');
+        });
+    }
+
+    /**
+     * Scope 2: Dòng tiền thực thu ròng (Net Cash Collection)
+     * Tiền thực thu sau khi đã trừ đi các khoản hoàn tiền thành công và loại trừ đơn giao thất bại
+     */
+    public function scopeNetCollected($query)
     {
         return $query->where('payment_status', self::PAYMENT_PAID)
             ->where(function ($q) {
@@ -194,12 +268,29 @@ class Order extends Model
     }
 
     /**
-     * Scope lọc các đơn hàng đã được ghi nhận doanh thu (Doanh thu bán hàng thực hiện - Accrual Accounting)
-     * Nguyên tắc:
-     * - Đơn tại bàn / tại quầy: Hoàn tất bữa ăn / nhận hàng và đã thanh toán
-     * - Đơn giao hàng: Đã giao thành công (delivered) và đã thanh toán
-     * - Phải có mốc revenue_recognized_at IS NOT NULL
-     * - Loại trừ đơn thất bại và đơn hoàn tiền
+     * Bí danh tương thích ngược cho Net Cash Collection
+     */
+    public function scopeCollected($query)
+    {
+        return $this->scopeNetCollected($query);
+    }
+
+    /**
+     * Scope 3: Doanh thu bán hàng gộp (Gross Revenue)
+     * Tổng giá trị hàng hóa/dịch vụ đã hoàn tất nghĩa vụ cung cấp (chưa trừ khoản hoàn tiền)
+     */
+    public function scopeGrossRevenue($query)
+    {
+        return $query->whereNotNull('revenue_recognized_at')
+            ->where(function ($q) {
+                $q->whereNull('delivery_status')
+                  ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
+            });
+    }
+
+    /**
+     * Scope 4: Doanh thu thuần ghi nhận (Net Accrual Revenue)
+     * Doanh thu thực hiện sau khi loại bỏ hoàn toàn đơn hoàn tiền và đơn giao hàng thất bại
      */
     public function scopeRevenueRecognized($query)
     {
@@ -209,6 +300,14 @@ class Order extends Model
                 $q->whereNull('delivery_status')
                   ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
             });
+    }
+
+    /**
+     * Bí danh cho Net Accrual Revenue
+     */
+    public function scopeNetRevenue($query)
+    {
+        return $this->scopeRevenueRecognized($query);
     }
 
     /**
@@ -296,22 +395,71 @@ class Order extends Model
     }
 
     /**
-     * Xác nhận thu đủ tiền mặt COD từ shipper và chính thức ghi nhận doanh thu
+     * Xác nhận thu đủ tiền mặt COD từ shipper và chính thức ghi nhận doanh thu theo nguyên tắc dồn tích (Accrual Basis)
      */
-    public function confirmCodCollected(?string $note = null): void
+    public function confirmCodCollected(?string $note = null, ?int $actorId = null): void
     {
+        $isCod = in_array((string)$this->payment_method, [1, '1', 'COD', 'cod', 'cash']) || empty($this->payment_method);
+        if (!$isCod) {
+            throw new \DomainException('Chỉ đơn hàng có hình thức thanh toán COD / tiền mặt mới thực hiện xác nhận thu COD.');
+        }
+
         if ($this->delivery_status !== self::DELIVERY_DELIVERED) {
             throw new \DomainException('Chỉ có thể xác nhận thu tiền COD khi đơn hàng đã giao thành công.');
         }
 
+        // Chống xác nhận trùng lặp nhiều lần (Idempotent)
+        if ($this->payment_status === self::PAYMENT_PAID) {
+            return;
+        }
+
         $this->payment_status = self::PAYMENT_PAID;
         $this->paid_at = $this->paid_at ?: now();
-        $this->revenue_recognized_at = $this->revenue_recognized_at ?: now();
+        // Nguyên tắc kế toán dồn tích: Doanh thu được ghi nhận tại thời điểm giao hàng thực tế (delivered_at)
+        $this->revenue_recognized_at = $this->delivered_at ?: now();
         $this->status = \App\Enums\OrderStatus::COMPLETED;
-        if ($note) {
-            $this->delivery_note = ($this->delivery_note ? $this->delivery_note . ' | ' : '') . $note;
+        if ($actorId) {
+            $this->updated_by = $actorId;
         }
+
+        $auditNote = 'Xác nhận đã thu đủ tiền COD' . ($note ? ": {$note}" : '');
+        $this->delivery_note = ($this->delivery_note ? $this->delivery_note . ' | ' : '') . $auditNote;
         $this->save();
+
+        // Ghi nhật ký kiểm toán giao nhận (Delivery Audit Log)
+        try {
+            \App\Models\OrderDeliveryLog::create([
+                'order_id' => $this->id,
+                'user_id' => $actorId,
+                'from_delivery_status' => self::DELIVERY_DELIVERED,
+                'to_delivery_status' => self::DELIVERY_DELIVERED,
+                'from_order_status' => (int)$this->status,
+                'to_order_status' => (int)$this->status,
+                'shipper_name' => $this->shipper_name,
+                'shipper_phone' => $this->shipper_phone,
+                'note' => $auditNote,
+                'created_at' => now(),
+            ]);
+        } catch (\Throwable $e) {}
+
+        // Ghi nhật ký dòng tiền thanh toán (Payment Transaction Audit)
+        try {
+            \App\Models\PaymentTransaction::create([
+                'order_id' => $this->id,
+                'reference_code' => 'COD_' . $this->id . '_' . time(),
+                'amount' => (int) $this->total_price,
+                'content' => $auditNote,
+                'gateway' => 'cod_cash',
+                'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+                'raw_payload' => json_encode([
+                    'actor_id' => $actorId,
+                    'delivered_at' => (string)$this->delivered_at,
+                    'confirmed_at' => (string)now(),
+                    'note' => $note,
+                ]),
+                'created_at' => now(),
+            ]);
+        } catch (\Throwable $e) {}
     }
 
     /**

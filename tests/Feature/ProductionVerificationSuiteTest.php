@@ -762,4 +762,428 @@ class ProductionVerificationSuiteTest extends TestCase
         ServiceCall::where('order_id', $order->id)->delete();
         $order->forceDelete();
     }
+
+    /**
+     * 18. TEST MO RONG 1: Hai webhook dong thoi su dung cung reference_code nhung thuoc hai don khac nhau -> 409 Conflict
+     */
+    public function test_concurrent_different_orders_same_reference_code_conflict_409(): void
+    {
+        $admin = $this->getAdminUser();
+        Config::set('payment.mode', 'production');
+        Config::set('payment.webhook_token', 'suite_token_adv_01');
+
+        $orderA = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Don A',
+            'phone' => '0911999001',
+            'email' => 'dona@example.com',
+            'address' => 'Ha Noi',
+            'total_price' => 150000,
+            'payment_method' => 2,
+            'status' => OrderStatus::PENDING,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => $admin->id,
+        ]);
+
+        $orderB = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Don B',
+            'phone' => '0911999002',
+            'email' => 'donb@example.com',
+            'address' => 'Ha Noi',
+            'total_price' => 150000,
+            'payment_method' => 2,
+            'status' => OrderStatus::PENDING,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => $admin->id,
+        ]);
+
+        $sharedRef = 'CONCURRENT_REF_' . uniqid();
+        $headers = ['X-Webhook-Token' => 'suite_token_adv_01'];
+
+        // Request 1 thanh toan cho don A thanh cong
+        $resA = $this->postJson(route('api.payment.webhook'), [
+            'amount' => 150000,
+            'content' => 'DH' . $orderA->id,
+            'referenceCode' => $sharedRef,
+        ], $headers);
+        $resA->assertStatus(200);
+
+        // Request 2 co gang su dung lai cung ma sharedRef cho don B -> phai bi chan voi 409 Conflict
+        $resB = $this->postJson(route('api.payment.webhook'), [
+            'amount' => 150000,
+            'content' => 'DH' . $orderB->id,
+            'referenceCode' => $sharedRef,
+        ], $headers);
+        $resB->assertStatus(409);
+        $resB->assertJson(['success' => false]);
+
+        PaymentTransaction::where('reference_code', $sharedRef)->delete();
+        $orderA->forceDelete();
+        $orderB->forceDelete();
+    }
+
+    /**
+     * 19. TEST MO RONG 2: Hai giao dich khac nhau cho cung mot don -> Giao dich 2 ghi nhan overpayment va ServiceCall trong cung transaction
+     */
+    public function test_concurrent_same_order_different_reference_codes_creates_overpayment_in_same_tx(): void
+    {
+        $admin = $this->getAdminUser();
+        Config::set('payment.mode', 'production');
+        Config::set('payment.webhook_token', 'suite_token_adv_02');
+
+        $order = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Don Thu Hai',
+            'phone' => '0911999003',
+            'email' => 'donthuhai@example.com',
+            'address' => 'Ha Noi',
+            'total_price' => 200000,
+            'payment_method' => 2,
+            'status' => OrderStatus::PENDING,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => $admin->id,
+        ]);
+
+        $ref1 = 'REF_TX1_' . uniqid();
+        $ref2 = 'REF_TX2_' . uniqid();
+        $headers = ['X-Webhook-Token' => 'suite_token_adv_02'];
+
+        // Giao dich 1
+        $res1 = $this->postJson(route('api.payment.webhook'), [
+            'amount' => 200000,
+            'content' => 'DH' . $order->id,
+            'referenceCode' => $ref1,
+        ], $headers);
+        $res1->assertStatus(200);
+
+        // Giao dich 2 voi ma khac
+        $res2 = $this->postJson(route('api.payment.webhook'), [
+            'amount' => 200000,
+            'content' => 'DH' . $order->id,
+            'referenceCode' => $ref2,
+        ], $headers);
+        $res2->assertStatus(200);
+        $res2->assertJson(['success' => true, 'already_paid' => true]);
+
+        // Kiem tra ca PaymentTransaction overpayment va ServiceCall deu ton tai
+        $txOverpayment = PaymentTransaction::where('reference_code', $ref2)->first();
+        $this->assertNotNull($txOverpayment);
+        $this->assertEquals(PaymentTransaction::STATUS_OVERPAYMENT, $txOverpayment->status);
+
+        $serviceCallAlert = ServiceCall::where('order_id', $order->id)
+            ->where('call_type', 'service')
+            ->first();
+        $this->assertNotNull($serviceCallAlert);
+
+        PaymentTransaction::whereIn('reference_code', [$ref1, $ref2])->delete();
+        ServiceCall::where('order_id', $order->id)->delete();
+        $order->forceDelete();
+    }
+
+    /**
+     * 20. TEST MO RONG 3: COD da giao nhung chua thu tien, sau do xac nhan thu tien 2 lan -> Lan 2 idempotent, khong nhan doi doanh thu
+     */
+    public function test_cod_delivered_double_confirm_is_idempotent(): void
+    {
+        $employee = $this->getEmployeeUser();
+
+        $order = Order::create([
+            'user_id' => $employee->id,
+            'name' => 'Khach COD Double Confirm',
+            'phone' => '0911999004',
+            'email' => 'coddouble@example.com',
+            'address' => 'Ha Noi',
+            'total_price' => 300000,
+            'payment_method' => 1,
+            'status' => OrderStatus::PROCESSING,
+            'delivery_status' => Order::DELIVERY_DELIVERED,
+            'delivered_at' => Carbon::now()->subHours(2),
+            'payment_status' => Order::PAYMENT_PENDING,
+            'revenue_recognized_at' => null,
+            'created_by' => $employee->id,
+        ]);
+
+        // Lan 1: Xac nhan thu tien COD qua HTTP endpoint
+        $res1 = $this->actingAs($employee)->postJson(route('admin.order.confirmCod', $order->id), [
+            'note' => 'Xac nhan thu du tien tu shipper A',
+        ]);
+        $res1->assertStatus(200);
+
+        $order->refresh();
+        $this->assertEquals(Order::PAYMENT_PAID, $order->payment_status);
+        $this->assertNotNull($order->revenue_recognized_at);
+        $firstRevenueRecognizedAt = $order->revenue_recognized_at;
+
+        // Lan 2: Thu ngan / nhan vien bam xac nhan lai lan 2 (Idempotency)
+        $res2 = $this->actingAs($employee)->postJson(route('admin.order.confirmCod', $order->id), [
+            'note' => 'Bam lai lan 2',
+        ]);
+        $res2->assertStatus(200);
+
+        $order->refresh();
+        $this->assertEquals(Order::PAYMENT_PAID, $order->payment_status);
+        $this->assertEquals($firstRevenueRecognizedAt->toDateTimeString(), $order->revenue_recognized_at->toDateTimeString());
+
+        // Chi co 1 ban ghi PaymentTransaction COD cho lan xac nhan nay
+        $codTxCount = PaymentTransaction::where('order_id', $order->id)->where('gateway', 'cod_cash')->count();
+        $this->assertEquals(1, $codTxCount);
+
+        PaymentTransaction::where('order_id', $order->id)->delete();
+        OrderDeliveryLog::where('order_id', $order->id)->delete();
+        $order->forceDelete();
+    }
+
+    /**
+     * 21. TEST MO RONG 4: Giao dich VietQR da thanh toan nhung giao that bai, sau do giao lai thanh cong
+     */
+    public function test_vietqr_paid_delivery_failed_then_redispatched_and_delivered_successfully(): void
+    {
+        $employee = $this->getEmployeeUser();
+
+        $order = Order::create([
+            'user_id' => $employee->id,
+            'name' => 'Khach Redispatch',
+            'phone' => '0911999005',
+            'email' => 'redispatch@example.com',
+            'address' => '123 Pho Giao Lai',
+            'total_price' => 320000,
+            'payment_method' => 2,
+            'status' => OrderStatus::PROCESSING,
+            'delivery_status' => Order::DELIVERY_DELIVERING,
+            'payment_status' => Order::PAYMENT_PAID,
+            'paid_at' => Carbon::now(),
+            'revenue_recognized_at' => null,
+            'created_by' => $employee->id,
+        ]);
+
+        // Buoc 1: Giao hang that bai
+        $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $order->id), [
+            'delivery_status' => Order::DELIVERY_FAILED,
+            'delivery_note' => 'Khach ban khong the nhan gio nay',
+        ]);
+
+        $order->refresh();
+        $this->assertEquals(Order::DELIVERY_FAILED, $order->delivery_status);
+        $this->assertFalse(Order::revenueRecognized()->where('id', $order->id)->exists());
+
+        // Buoc 2: Dieu phoi lai (ve waiting)
+        $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $order->id), [
+            'delivery_status' => Order::DELIVERY_WAITING,
+            'delivery_note' => 'Xep lich giao lai buoi chieu',
+        ]);
+
+        $order->refresh();
+        $this->assertEquals(Order::DELIVERY_WAITING, $order->delivery_status);
+        $this->assertFalse(Order::revenueRecognized()->where('id', $order->id)->exists());
+
+        // Buoc 3: Nhan vien bat dau giao lai (delivering)
+        $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $order->id), [
+            'delivery_status' => Order::DELIVERY_DELIVERING,
+        ]);
+
+        // Buoc 4: Giao hang thanh cong (delivered)
+        $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $order->id), [
+            'delivery_status' => Order::DELIVERY_DELIVERED,
+        ]);
+
+        $order->refresh();
+        $this->assertEquals(Order::DELIVERY_DELIVERED, $order->delivery_status);
+        $this->assertEquals(OrderStatus::COMPLETED, $order->status);
+        $this->assertNotNull($order->revenue_recognized_at);
+        $this->assertTrue(Order::revenueRecognized()->where('id', $order->id)->exists());
+
+        OrderDeliveryLog::where('order_id', $order->id)->delete();
+        $order->forceDelete();
+    }
+
+    /**
+     * 22. TEST MO RONG 5: ServiceCall canh bao thanh toan thua co mat trong database cung voi PaymentTransaction overpayment
+     */
+    public function test_service_call_overpayment_alert_atomic_transaction_integrity(): void
+    {
+        $admin = $this->getAdminUser();
+        Config::set('payment.mode', 'production');
+        Config::set('payment.webhook_token', 'suite_token_adv_05');
+
+        $order = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Don Test Overpayment ACID',
+            'phone' => '0911999006',
+            'email' => 'overpayment_acid@example.com',
+            'address' => 'Ha Noi',
+            'total_price' => 100000,
+            'payment_method' => 2,
+            'status' => OrderStatus::COMPLETED,
+            'payment_status' => Order::PAYMENT_PAID,
+            'paid_at' => Carbon::now(),
+            'revenue_recognized_at' => Carbon::now(),
+            'created_by' => $admin->id,
+        ]);
+
+        $ref = 'OVERPAY_ACID_' . uniqid();
+        $headers = ['X-Webhook-Token' => 'suite_token_adv_05'];
+
+        $res = $this->postJson(route('api.payment.webhook'), [
+            'amount' => 100000,
+            'content' => 'DH' . $order->id,
+            'referenceCode' => $ref,
+        ], $headers);
+
+        $res->assertStatus(200);
+        $res->assertJson(['success' => true, 'already_paid' => true]);
+
+        // Xac nhan ton tai ca 2 ban ghi duoc tao boi cung transaction
+        $this->assertTrue(PaymentTransaction::where('reference_code', $ref)->where('status', PaymentTransaction::STATUS_OVERPAYMENT)->exists());
+        $this->assertTrue(ServiceCall::where('order_id', $order->id)->where('call_type', 'service')->exists());
+
+        PaymentTransaction::where('reference_code', $ref)->delete();
+        ServiceCall::where('order_id', $order->id)->delete();
+        $order->forceDelete();
+    }
+
+    /**
+     * 23. TEST MO RONG 6: Khach hang A thu truy cap checkPaymentStatus() cua Khach hang B -> 403 Forbidden
+     */
+    public function test_customer_a_cannot_check_payment_status_of_customer_b_returns_403(): void
+    {
+        $uidA = uniqid();
+        $customerA = User::create([
+            'username' => 'customera_' . $uidA,
+            'fullname' => 'Khach Hang A',
+            'email' => "customera_{$uidA}@example.com",
+            'gender' => 1,
+            'password' => bcrypt('123456'),
+            'phone' => '0901000001',
+            'roles' => 'customer',
+            'status' => 1,
+        ]);
+
+        $uidB = uniqid();
+        $customerB = User::create([
+            'username' => 'customerb_' . $uidB,
+            'fullname' => 'Khach Hang B',
+            'email' => "customerb_{$uidB}@example.com",
+            'gender' => 1,
+            'password' => bcrypt('123456'),
+            'phone' => '0901000002',
+            'roles' => 'customer',
+            'status' => 1,
+        ]);
+
+        // Don hang cua khach hang B
+        $orderB = Order::create([
+            'user_id' => $customerB->id,
+            'name' => 'Don Hang Cua B',
+            'phone' => '0901000002',
+            'email' => 'orderb@example.com',
+            'address' => 'Ha Noi',
+            'total_price' => 500000,
+            'payment_method' => 2,
+            'status' => OrderStatus::PENDING,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => $customerB->id,
+        ]);
+
+        // Khach hang A dang nhap va co gang kiem tra trang thai don hang cua B
+        $response = $this->actingAs($customerA)->getJson(route('api.payment.check-status', $orderB->id));
+
+        // Phai bi chan voi 403 Forbidden
+        $response->assertStatus(403);
+        $response->assertJson(['success' => false]);
+
+        $orderB->forceDelete();
+        $customerA->forceDelete();
+        $customerB->forceDelete();
+    }
+
+    /**
+     * 24. TEST MO RONG 7: Don mang ve (Takeaway) thanh toan VietQR -> Chuyen PROCESSING, chi ghi nhan doanh thu khi ban giao mon (Handover)
+     */
+    public function test_takeaway_order_paid_vietqr_status_processing_revenue_recognized_only_upon_handover(): void
+    {
+        $admin = $this->getAdminUser();
+        Config::set('payment.mode', 'production');
+        Config::set('payment.webhook_token', 'suite_token_adv_07');
+
+        $takeawayOrder = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Khach Dat Mang Ve',
+            'phone' => '0911999007',
+            'email' => 'takeaway@example.com',
+            'address' => 'Mang về',
+            'orderStyle' => Order::STYLE_TAKEAWAY, // Style = 3
+            'table_id' => null,
+            'total_price' => 250000,
+            'payment_method' => 2,
+            'status' => OrderStatus::PENDING,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => $admin->id,
+        ]);
+
+        $this->assertTrue($takeawayOrder->isTakeaway());
+
+        $ref = 'TAKEAWAY_' . uniqid();
+        $headers = ['X-Webhook-Token' => 'suite_token_adv_07'];
+
+        // Webhook thanh toan thanh cong
+        $res = $this->postJson(route('api.payment.webhook'), [
+            'amount' => 250000,
+            'content' => 'DH' . $takeawayOrder->id,
+            'referenceCode' => $ref,
+        ], $headers);
+        $res->assertStatus(200);
+
+        $takeawayOrder->refresh();
+        $this->assertEquals(Order::PAYMENT_PAID, $takeawayOrder->payment_status);
+        // Dang che bien mon trong bep, chua ban giao -> status = PROCESSING
+        $this->assertEquals(OrderStatus::PROCESSING, $takeawayOrder->status);
+        // Chua ban giao mon -> revenue_recognized_at van phai la NULL
+        $this->assertNull($takeawayOrder->revenue_recognized_at);
+        $this->assertFalse(Order::revenueRecognized()->where('id', $takeawayOrder->id)->exists());
+
+        // Nhan vien thuc hien ban giao mon cho khach (Takeaway Handover)
+        $takeawayOrder->markAsHandedOver($admin->id, 'Khach da den lay mon');
+        $takeawayOrder->refresh();
+
+        // Sau khi ban giao: status = COMPLETED va da ghi nhan doanh thu
+        $this->assertEquals(OrderStatus::COMPLETED, $takeawayOrder->status);
+        $this->assertNotNull($takeawayOrder->revenue_recognized_at);
+        $this->assertTrue(Order::revenueRecognized()->where('id', $takeawayOrder->id)->exists());
+
+        PaymentTransaction::where('reference_code', $ref)->delete();
+        $takeawayOrder->forceDelete();
+    }
+
+    /**
+     * 25. TEST MO RONG 8: Hoan tien that bai (tren don chua thanh toan) khong thay doi trang thai sang refunded
+     */
+    public function test_refund_attempt_on_unpaid_order_fails_and_does_not_change_status(): void
+    {
+        $admin = $this->getAdminUser();
+
+        $unpaidOrder = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Khach Chua Thanh Toan',
+            'phone' => '0911999008',
+            'email' => 'unpaid@example.com',
+            'address' => 'Ha Noi',
+            'total_price' => 180000,
+            'payment_method' => 1,
+            'status' => OrderStatus::PENDING,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => $admin->id,
+        ]);
+
+        $this->expectException(\DomainException::class);
+
+        try {
+            $unpaidOrder->markAsRefunded('Thu hoan tien don chua tra');
+        } finally {
+            $unpaidOrder->refresh();
+            $this->assertEquals(Order::PAYMENT_PENDING, $unpaidOrder->payment_status);
+            $this->assertFalse(PaymentTransaction::where('order_id', $unpaidOrder->id)->where('status', 'refunded')->exists());
+            $unpaidOrder->forceDelete();
+        }
+    }
 }

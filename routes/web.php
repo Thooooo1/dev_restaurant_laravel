@@ -241,6 +241,7 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::get('/{id}/edit', [OrderController::class, 'edit'])->name('admin.order.edit');
         Route::post('/{id}/update', [OrderController::class, 'update'])->name('admin.order.update');
         Route::post('/{id}/delivery', [OrderController::class, 'updateDelivery'])->name('admin.order.updateDelivery');
+        Route::post('/{id}/confirm-cod', [OrderController::class, 'confirmCodCollected'])->name('admin.order.confirmCod');
     });
 
     // Table Orders (POS)

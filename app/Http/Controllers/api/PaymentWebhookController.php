@@ -27,10 +27,8 @@ class PaymentWebhookController extends Controller
     public function handleWebhook(Request $request)
     {
         // 1. Kiểm tra xác thực Token khi ở môi trường Production (Tuyệt đối không miễn trừ dựa trên nội dung payload)
-        $isProduction = config('payment.mode', 'demo') === 'production' || app()->environment('production');
-        $expectedToken = config('payment.webhook_token') 
-            ?? config('services.payment.webhook_token') 
-            ?? env('PAYMENT_WEBHOOK_TOKEN');
+        $isProduction = config('payment.mode', 'production') === 'production' || app()->environment('production');
+        $expectedToken = config('payment.webhook_token') ?? config('services.payment.webhook_token');
 
         if ($isProduction) {
             if (empty($expectedToken)) {
@@ -159,14 +157,17 @@ class PaymentWebhookController extends Controller
         }
 
         // 3. Chuẩn hóa payload an toàn theo danh sách cho phép (Allowlist), tuyệt đối không lưu token/auth
+        $rawAccount = (string)($request->input('accountNumber') ?? $request->input('account_number') ?? '');
+        $maskedAccount = strlen($rawAccount) > 4 ? str_repeat('*', strlen($rawAccount) - 4) . substr($rawAccount, -4) : $rawAccount;
+
         $sanitizedPayload = [
             'amount' => (int) round($amount),
             'content' => $content,
             'reference_code' => $referenceCode,
-            'gateway' => (string) $request->input('gateway', 'vietqr'),
-            'account_number' => (string) $request->input('accountNumber', ''),
-            'transaction_date' => (string) $request->input('transactionDate', now()->toIso8601String()),
-            'ip' => $request->ip(),
+            'gateway' => 'vietqr', // Xác định bởi hệ thống, không tin cậy client
+            'account_number' => $maskedAccount,
+            'transaction_date' => (string) ($request->input('transactionDate') ?? $request->input('transaction_date') ?? now()->toIso8601String()),
+            'ip' => $request->ip(), // Lấy trực tiếp từ server
         ];
 
         try {
@@ -214,25 +215,27 @@ class PaymentWebhookController extends Controller
                         . "Phát sinh thanh toán dư: " . number_format((int)round($amount), 0, ',', '.') . "đ (Mã GD: {$referenceCode}, cần hoàn tiền)";
                     $lockedOrder->save();
 
-                    // Cảnh báo khẩn cấp cho thu ngân qua ServiceCall
-                    try {
-                        ServiceCall::create([
-                            'table_id' => $lockedOrder->table_id,
-                            'order_id' => $lockedOrder->id,
-                            'customer_name' => $lockedOrder->customer_name ?: 'Khách thanh toán dư',
-                            'phone' => $lockedOrder->customer_phone !== '---' ? $lockedOrder->customer_phone : null,
-                            'call_type' => 'service',
-                            'call_type_label' => 'Cảnh báo thanh toán dư / trùng',
-                            'note' => "Phát hiện chuyển khoản phát sinh " . number_format((int)round($amount), 0, ',', '.') . "đ cho đơn #{$lockedOrder->id} đã hoàn tất (Mã GD: {$referenceCode}). Cần kiểm tra đối soát hoàn tiền.",
-                            'status' => ServiceCall::STATUS_PENDING,
-                            'handled_at' => null,
-                        ]);
-                    } catch (\Throwable $e) {}
+                    // Cảnh báo khẩn cấp cho thu ngân qua ServiceCall (Trong cùng transaction đảm bảo tính toàn vẹn)
+                    $channelLabel = $lockedOrder->isDineIn() 
+                        ? ($lockedOrder->table ? $lockedOrder->table->name : "Bàn #{$lockedOrder->table_id}")
+                        : ($lockedOrder->isPos() ? "Quầy POS" : ($lockedOrder->isTakeaway() ? "Đơn mang về #{$lockedOrder->id}" : "Đơn giao online #{$lockedOrder->id}"));
+
+                    ServiceCall::create([
+                        'table_id' => $lockedOrder->table_id,
+                        'order_id' => $lockedOrder->id,
+                        'customer_name' => $lockedOrder->customer_name ?: 'Khách thanh toán dư',
+                        'phone' => $lockedOrder->customer_phone !== '---' ? $lockedOrder->customer_phone : null,
+                        'call_type' => 'service',
+                        'call_type_label' => 'Cảnh báo thanh toán dư / trùng',
+                        'note' => "Phát hiện chuyển khoản phát sinh " . number_format((int)round($amount), 0, ',', '.') . "đ cho đơn #{$lockedOrder->id} đã hoàn tất ({$channelLabel}, Mã GD: {$referenceCode}). Cần kiểm tra đối soát hoàn tiền.",
+                        'status' => ServiceCall::STATUS_PENDING,
+                        'handled_at' => null,
+                    ]);
 
                     return [
                         'status' => 'already_paid',
                         'order_id' => $lockedOrder->id,
-                        'message' => "Đơn hàng #{$lockedOrder->id} đã được thanh toán trước đó. Ghi nhận khoản thanh toán phát sinh.",
+                        'message' => "Đơn hàng #{$lockedOrder->id} đã được thanh toán trước đó. Ghi nhận khoản thanh toán phát sinh và cảnh báo đối soát.",
                     ];
                 }
 
@@ -252,7 +255,7 @@ class PaymentWebhookController extends Controller
                     $surplusNote = 'Khách chuyển thừa: ' . number_format($surplus, 0, ',', '.') . 'đ (cần đối soát hoàn lại)';
                 }
 
-                // 4.4. Phân loại 3 hình thức đơn hàng rõ ràng (Dine-In, POS/Takeaway, Delivery)
+                // 4.4. Phân loại 4 hình thức đơn hàng rõ ràng (Dine-In, POS, Takeaway, Delivery)
                 if ($lockedOrder->isDineIn()) {
                     // Nhánh 1: Dùng bữa tại bàn (Dine-in) -> Khách thanh toán xong giải phóng bàn và ghi nhận doanh thu ngay
                     $lockedOrder->status = 2; // 2: Completed
@@ -283,9 +286,9 @@ class PaymentWebhookController extends Controller
                                 'handled_at' => now(),
                             ]);
                     } catch (\Throwable $e) {}
-                } elseif ($lockedOrder->isPos() || $lockedOrder->isTakeaway()) {
-                    // Nhánh 2: Bán tại quầy POS hoặc Mang về -> Nhận tiền hoàn tất đơn và ghi nhận doanh thu tức thì
-                    $lockedOrder->status = 2; // 2: Completed
+                } elseif ($lockedOrder->isPos()) {
+                    // Nhánh 2: Bán trực tiếp tại quầy POS -> Khách nhận bill và món tại quầy tức thì -> Hoàn tất đơn và ghi nhận doanh thu ngay
+                    $lockedOrder->status = \App\Enums\OrderStatus::COMPLETED; // 2: Completed
                     $lockedOrder->payment_method = 2; // 2: Chuyển khoản VietQR
                     $lockedOrder->payment_status = Order::PAYMENT_PAID;
                     $lockedOrder->paid_at = now();
@@ -296,9 +299,24 @@ class PaymentWebhookController extends Controller
                         $lockedOrder->delivery_note = ($lockedOrder->delivery_note ? $lockedOrder->delivery_note . ' | ' : '') . $surplusNote;
                     }
                     $lockedOrder->save();
+                } elseif ($lockedOrder->isTakeaway()) {
+                    // Nhánh 3: Khách đặt mang về (Takeaway) -> Thanh toán trước qua VietQR
+                    // Bếp tiến hành chuẩn bị món: đơn chuyển sang PROCESSING, CHƯA ghi nhận doanh thu
+                    // Doanh thu chỉ được ghi nhận khi nhân viên thực tế bàn giao món cho khách (markAsHandedOver / COMPLETED)
+                    $lockedOrder->status = \App\Enums\OrderStatus::PROCESSING;
+                    $lockedOrder->payment_method = 2;
+                    $lockedOrder->payment_status = Order::PAYMENT_PAID;
+                    $lockedOrder->paid_at = now();
+                    $lockedOrder->revenue_recognized_at = null; // Chưa bàn giao món, chưa ghi nhận doanh thu
+                    $lockedOrder->total_price = $orderTotal > 0 ? $orderTotal : $paidAmount;
+                    $lockedOrder->has_new_items = true;
+                    if ($surplusNote) {
+                        $lockedOrder->delivery_note = ($lockedOrder->delivery_note ? $lockedOrder->delivery_note . ' | ' : '') . $surplusNote;
+                    }
+                    $lockedOrder->save();
                 } else {
-                    // Nhánh 3: Đơn giao hàng online -> Đã thu tiền (paid_at), nhưng revenue_recognized_at chờ giao thành công (delivered)
-                    $lockedOrder->status = 1; // 1: PROCESSING (Đang chế biến & Chờ giao)
+                    // Nhánh 4: Đơn giao hàng tận nơi (Delivery) -> Thanh toán trước qua VietQR
+                    $lockedOrder->status = \App\Enums\OrderStatus::PROCESSING; // 1: PROCESSING (Đang chế biến & Chờ giao)
                     $lockedOrder->payment_method = 'VietQR';
                     $lockedOrder->payment_status = Order::PAYMENT_PAID;
                     $lockedOrder->paid_at = now();
@@ -448,12 +466,30 @@ class PaymentWebhookController extends Controller
 
     /**
      * API kiểm tra trạng thái thanh toán thời gian thực (cho client & quầy POS polling)
+     * Bảo vệ chống IDOR: Chỉ cho phép Admin/Employee, chủ sở hữu đơn hàng hoặc khách có phiên thanh toán/bàn hợp lệ
      */
-    public function checkPaymentStatus($orderId)
+    public function checkPaymentStatus(Request $request, $orderId)
     {
         $order = Order::with('table')->find($orderId);
         if (!$order) {
             return response()->json(['success' => false, 'message' => 'Không tìm thấy đơn hàng'], 404);
+        }
+
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $isStaff = $user && in_array($user->roles, ['admin', 'employee']);
+        $isOwnerUser = $user && (int)$user->id === (int)$order->user_id;
+        $isSessionOwner = session('last_order_id') == $order->id;
+        $isTableSession = !empty($order->table_id) && (session('table_id') == $order->table_id || $request->input('table_id') == $order->table_id);
+        
+        // Xác thực khách vãng lai bằng số điện thoại nếu được cung cấp
+        $providedPhone = $request->input('phone') ?? $request->header('X-Order-Phone');
+        $isPhoneMatch = !empty($providedPhone) && !empty($order->phone) && $order->phone === $providedPhone;
+
+        if (!$isStaff && !$isOwnerUser && !$isSessionOwner && !$isTableSession && !$isPhoneMatch) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không có quyền truy cập trạng thái thanh toán của đơn hàng này.'
+            ], 403);
         }
 
         $isPaid = $order->isPaid();
@@ -463,11 +499,12 @@ class PaymentWebhookController extends Controller
             'order_id' => $order->id,
             'table_id' => $order->table_id,
             'table_name' => $order->table ? $order->table->name : null,
-            'status' => $order->status,
+            'status' => (int)$order->status,
+            'channel' => $order->channel,
             'payment_status' => $order->payment_status,
             'payment_status_label' => $order->payment_status_label,
             'payment_method' => $order->payment_method,
-            'total_price' => $order->total_price,
+            'total_price' => (float)$order->total_price,
             'is_paid' => $isPaid,
         ]);
     }
@@ -478,7 +515,7 @@ class PaymentWebhookController extends Controller
     public function simulateWebhook(Request $request)
     {
         // Tuyệt đối không cho phép chạy API giả lập thanh toán trong môi trường Production
-        $isProduction = config('payment.mode', 'demo') === 'production' || app()->environment('production');
+        $isProduction = config('payment.mode', 'production') === 'production' || app()->environment('production');
         if ($isProduction) {
             return response()->json([
                 'success' => false,

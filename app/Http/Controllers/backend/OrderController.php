@@ -156,6 +156,45 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Cập nhật tiến trình giao hàng thành công!');
     }
 
+    /**
+     * Xác nhận đã thu đủ tiền mặt COD cho đơn giao hàng (Chỉ dành cho Employee/Admin)
+     */
+    public function confirmCodCollected($id, Request $request)
+    {
+        $order = Order::findOrFail($id);
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($order, $request) {
+                $order->confirmCodCollected(
+                    $request->input('note'),
+                    \Illuminate\Support\Facades\Auth::id()
+                );
+            });
+        } catch (\DomainException $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Lỗi xác nhận thu COD cho đơn #{$order->id}: " . $e->getMessage());
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Lỗi hệ thống khi xác nhận thu tiền COD.'], 500);
+            }
+            return redirect()->back()->with('error', 'Lỗi hệ thống khi xác nhận thu COD: ' . $e->getMessage());
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Đã xác nhận thu đủ tiền COD thành công!',
+                'payment_status' => $order->payment_status,
+                'revenue_recognized_at' => $order->revenue_recognized_at,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Đã xác nhận thu đủ tiền COD thành công!');
+    }
+
     public function detail($id)
     {
         $order = Order::with(['orderDetails.product.category', 'table.floor', 'user', 'deliveryLogs.user', 'paymentTransactions'])->findOrFail($id);
