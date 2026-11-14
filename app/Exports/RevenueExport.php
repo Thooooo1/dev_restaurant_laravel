@@ -23,7 +23,10 @@ class RevenueExport
     {
         $query = Order::query()
             ->whereNull('deleted_at')
-            ->where('status', 2) // Completed orders
+            ->where(function ($q) {
+                $q->where('status', 2)
+                  ->orWhere('payment_status', Order::PAYMENT_PAID);
+            })
             ->with(['user', 'orderDetails.product']);
 
         if ($this->year) {

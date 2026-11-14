@@ -894,6 +894,7 @@ class TableOrderController extends Controller
             $order->payment_method = $request->payment_method;
             $order->payment_status = Order::PAYMENT_PAID; // Đã thanh toán thành công
             $order->paid_at = now();
+            $order->revenue_recognized_at = now();
             $order->total_price = $actualTotal;
             $order->has_new_items = false;
             $order->save();
@@ -901,42 +902,31 @@ class TableOrderController extends Controller
             // Clear table lock cho các bàn liên kết
             Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
 
-            // 1. Thông báo nghiệp vụ cho Nhân viên & Quản trị viên
-            try {
-                $tableName = $order->table ? $order->table->name : "Bàn #{$order->table_id}";
-                $actualTotalFormatted = number_format($actualTotal, 0, ',', '.') . '₫';
-                $pmText = $request->payment_method == 2 ? 'Chuyển khoản VietQR' : ($request->payment_method == 3 ? 'Quẹt thẻ POS' : 'Tiền mặt');
-                \App\Services\NotificationService::send([
-                    'role'    => 'employee',
-                    'type'    => 'payment',
-                    'title'   => "{$tableName} đã thanh toán {$pmText} ({$actualTotalFormatted})",
-                    'message' => "Hóa đơn #{$order->id} - Hoàn tất thanh toán.",
-                    'url'     => route('admin.table-order.payment', $order->table_id),
-                    'icon'    => 'fa-receipt',
-                    'color'   => '#10B981',
-                    'data'    => [
-                        'order_id' => $order->id,
-                        'table_id' => $order->table_id,
-                        'is_vietqr' => $request->payment_method == 2
-                    ],
-                ]);
-            } catch (\Exception $e) {}
+            $pmText = $request->payment_method == 2 ? 'Chuyển khoản VietQR' : ($request->payment_method == 3 ? 'Quẹt thẻ POS' : 'Tiền mặt');
+            $refCode = 'POS_' . $order->id . '_' . time();
 
-            // 2. Thông báo riêng cho khách hàng sở hữu đơn hàng (chỉ gửi đích danh cho tài khoản của khách này)
-            if ($order->user_id) {
-                try {
-                    \App\Services\NotificationService::send([
-                        'user_id' => $order->user_id,
-                        'role'    => 'customer',
-                        'type'    => 'payment',
-                        'title'   => 'Thanh toán hoàn tất! Cảm ơn quý khách',
-                        'message' => 'Hóa đơn đơn hàng #' . $order->id . ' đã được thanh toán thành công. Cảm ơn bạn đã lựa chọn dùng bữa tại CIVILIZE!',
-                        'url'     => route('site.orders'),
-                        'icon'    => 'fa-receipt',
-                        'color'   => '#10B981',
-                    ]);
-                } catch (\Exception $e) {}
-            }
+            // Ghi nhận nhật ký dòng tiền giao dịch (PaymentTransaction)
+            try {
+                \App\Models\PaymentTransaction::create([
+                    'order_id' => $order->id,
+                    'reference_code' => $refCode,
+                    'amount' => (int) $actualTotal,
+                    'content' => "Thu ngân thanh toán tại quầy POS ({$pmText})",
+                    'gateway' => $request->payment_method == 2 ? 'vietqr' : ($request->payment_method == 3 ? 'card' : 'cash'),
+                    'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+                    'raw_payload' => json_encode([
+                        'table_id' => $order->table_id,
+                        'payment_method' => $request->payment_method,
+                        'paid_at' => (string)now(),
+                    ]),
+                    'created_at' => now(),
+                ]);
+            } catch (\Throwable $e) {}
+
+            // Bắn thông báo dòng tiền đến Quản trị viên (Admin), Nhân viên và Khách hàng
+            try {
+                \App\Services\NotificationService::notifyPaymentSuccess($order, $actualTotal, $refCode, $pmText);
+            } catch (\Exception $e) {}
 
             return response()->json(['success' => true, 'message' => 'Thanh toán thành công']);
         });

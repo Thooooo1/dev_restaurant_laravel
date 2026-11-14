@@ -220,11 +220,13 @@ class TableOrderController extends Controller
         $order->has_new_items = false;
         $order->save();
 
+        $refCode = 'VIETQR_TABLE_' . $order->id . '_' . time();
+
         // Ghi nhận nhật ký PaymentTransaction
         try {
             \App\Models\PaymentTransaction::create([
                 'order_id' => $order->id,
-                'reference_code' => 'VIETQR_TABLE_' . $order->id . '_' . time(),
+                'reference_code' => $refCode,
                 'amount' => (int) $order->total_price,
                 'content' => 'Khách hàng xác nhận thanh toán VietQR tại bàn',
                 'gateway' => 'vietqr',
@@ -247,24 +249,9 @@ class TableOrderController extends Controller
                 ]);
         } catch (\Throwable $e) {}
 
+        // Báo dòng tiền thời gian thực cho Admin, Nhân viên và Khách hàng
         try {
-            $tableName = $table ? $table->name : "Bàn #{$id}";
-            $totalFmt = number_format($order->total_price, 0, ',', '.') . '₫';
-            \App\Services\NotificationService::send([
-                'role' => 'employee',
-                'type' => 'payment',
-                'title' => "{$tableName} đã thanh toán VietQR ({$totalFmt})",
-                'message' => "Hóa đơn #{$order->id} đã được khách xác nhận thanh toán qua VietQR.",
-                'url' => route('admin.table-order.payment', $id),
-                'icon' => 'fa-credit-card',
-                'color' => '#10B981',
-                'data' => [
-                    'order_id' => $order->id,
-                    'table_id' => $id,
-                    'is_paid' => true,
-                    'is_vietqr' => true
-                ]
-            ]);
+            \App\Services\NotificationService::notifyPaymentSuccess($order, (float)$order->total_price, $refCode, 'VietQR');
         } catch (\Exception $e) {}
 
         // Xóa triệt để giỏ hàng và reset đơn hàng đã thanh toán

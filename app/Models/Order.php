@@ -465,10 +465,12 @@ class Order extends Model
             'created_at' => now(),
         ]);
 
+        $codRefCode = 'COD_' . $this->id . '_' . time();
+
         // Ghi nhật ký dòng tiền thanh toán (Payment Transaction Audit)
         \App\Models\PaymentTransaction::create([
             'order_id' => $this->id,
-            'reference_code' => 'COD_' . $this->id . '_' . time(),
+            'reference_code' => $codRefCode,
             'amount' => (int) $this->total_price,
             'content' => $auditNote,
             'gateway' => 'cod_cash',
@@ -481,6 +483,11 @@ class Order extends Model
             ]),
             'created_at' => now(),
         ]);
+
+        // Báo dòng tiền thu COD cho Admin, Nhân viên và Khách hàng
+        try {
+            \App\Services\NotificationService::notifyPaymentSuccess($this, (float)$this->total_price, $codRefCode, 'Tiền mặt COD');
+        } catch (\Exception $e) {}
     }
 
     /**

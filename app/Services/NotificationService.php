@@ -207,12 +207,12 @@ class NotificationService
     }
 
     /**
-     * Bắn thông báo khi nhận được thanh toán VietQR thành công cho cả 3 vai trò:
+     * Bắn thông báo khi nhận được thanh toán thành công cho cả 3 vai trò:
      * 1. Quản trị viên (Admin)
      * 2. Nhân viên phục vụ / Thu ngân (Employee)
      * 3. Khách hàng đặt đơn / thanh toán bàn (Customer)
      */
-    public static function notifyPaymentSuccess(Order $order, float $amount, string $referenceCode)
+    public static function notifyPaymentSuccess(Order $order, float $amount, string $referenceCode = '', string $paymentMethodName = 'VietQR')
     {
         $amountFormatted = number_format($amount, 0, ',', '.') . '₫';
         $isTable = !empty($order->table_id);
@@ -220,20 +220,26 @@ class NotificationService
             ? ($order->table ? $order->table->name : "Bàn #{$order->table_id}") 
             : "Đơn hàng #{$order->id}";
 
+        $adminTitle = "Dòng tiền mới: {$orderContext} đã thanh toán {$paymentMethodName} ({$amountFormatted})";
+        $adminMessage = !empty($referenceCode) 
+            ? "Phương thức: {$paymentMethodName} • Mã GD: {$referenceCode}" 
+            : "Hóa đơn {$orderContext} đã được thanh toán thành công ({$paymentMethodName}).";
+
         // 1. Vai trò Quản trị viên (Admin)
         self::send([
             'role'    => 'admin',
             'type'    => 'payment',
-            'title'   => "{$orderContext} đã thanh toán VietQR ({$amountFormatted})",
-            'message' => !empty($referenceCode) ? "Mã giao dịch: {$referenceCode}" : "Thanh toán VietQR thành công.",
-            'url'     => $isTable ? route('admin.table-order.order', $order->table_id) : route('admin.order.orderdetail', $order->id),
-            'icon'    => 'fa-circle-check',
+            'title'   => $adminTitle,
+            'message' => $adminMessage,
+            'url'     => $isTable ? route('admin.table-order.payment', $order->table_id) : route('admin.order.orderdetail', $order->id),
+            'icon'    => 'fa-receipt',
             'color'   => '#10B981',
             'data'    => [
                 'order_id'       => $order->id,
                 'table_id'       => $order->table_id,
                 'amount'         => $amount,
                 'reference_code' => $referenceCode,
+                'payment_method' => $paymentMethodName,
                 'target_role'    => 'admin'
             ],
         ]);
@@ -242,16 +248,17 @@ class NotificationService
         self::send([
             'role'    => 'employee',
             'type'    => 'payment',
-            'title'   => "{$orderContext} đã thanh toán VietQR ({$amountFormatted})",
-            'message' => !empty($referenceCode) ? "Mã giao dịch: {$referenceCode}" : "Thanh toán VietQR thành công.",
-            'url'     => $isTable ? route('admin.table-order.order', $order->table_id) : route('admin.order.orderdetail', $order->id),
+            'title'   => "{$orderContext} đã thanh toán {$paymentMethodName} ({$amountFormatted})",
+            'message' => !empty($referenceCode) ? "Mã giao dịch: {$referenceCode}" : "Thanh toán {$paymentMethodName} thành công.",
+            'url'     => $isTable ? route('admin.table-order.payment', $order->table_id) : route('admin.order.orderdetail', $order->id),
             'icon'    => 'fa-receipt',
-            'color'   => '#3B82F6',
+            'color'   => '#10B981',
             'data'    => [
                 'order_id'       => $order->id,
                 'table_id'       => $order->table_id,
                 'amount'         => $amount,
                 'reference_code' => $referenceCode,
+                'payment_method' => $paymentMethodName,
                 'target_role'    => 'employee'
             ],
         ]);
@@ -278,7 +285,7 @@ class NotificationService
                 'role'    => 'customer',
                 'type'    => 'payment',
                 'title'   => "Thanh toán thành công: {$amountFormatted}!",
-                'message' => "Nhà hàng CIVILIZE đã xác nhận thanh toán cho {$orderContext} qua VietQR. Cảm ơn bạn đã lựa chọn dùng bữa tại CIVILIZE!",
+                'message' => "Nhà hàng CIVILIZE đã xác nhận thanh toán cho {$orderContext} qua {$paymentMethodName}. Cảm ơn bạn đã lựa chọn dùng bữa tại CIVILIZE!",
                 'url'     => $isTable ? route('site.table.bill', $order->table_id) : route('site.orders'),
                 'icon'    => 'fa-circle-check',
                 'color'   => '#10B981',
@@ -287,6 +294,7 @@ class NotificationService
                     'table_id'       => $order->table_id,
                     'amount'         => $amount,
                     'reference_code' => $referenceCode,
+                    'payment_method' => $paymentMethodName,
                     'target_role'    => 'customer'
                 ],
             ]);

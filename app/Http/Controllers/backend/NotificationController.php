@@ -46,15 +46,15 @@ class NotificationController extends Controller
                     $pmText = $isVietQr ? 'Chuyển khoản VietQR' : ($pm === '3' ? 'Quẹt thẻ POS' : 'Tiền mặt');
 
                     SystemNotification::create([
-                        'role'       => 'employee',
+                        'role'       => 'admin',
                         'type'       => 'payment',
-                        'title'      => "{$orderLabel} đã thanh toán {$pmText} ({$amountFormatted})",
+                        'title'      => "Dòng tiền mới: {$orderLabel} đã thanh toán {$pmText} ({$amountFormatted})",
                         'message'    => "Hóa đơn {$orderLabel} đã được thanh toán thành công qua {$pmText}.",
                         'url'        => $order->table_id ? route('admin.table-order.payment', $order->table_id) : route('admin.order.orderdetail', $order->id),
                         'icon'       => 'fa-receipt',
                         'color'      => '#10B981',
                         'data'       => ['order_id' => $order->id, 'table_id' => $order->table_id, 'is_vietqr' => $isVietQr],
-                        'is_read'    => true,
+                        'is_read'    => false,
                         'created_at' => $order->updated_at,
                         'updated_at' => $order->updated_at,
                     ]);
@@ -130,9 +130,20 @@ class NotificationController extends Controller
                 if (!str_ends_with($amount, '₫') && !str_ends_with($amount, 'đ')) {
                     $amount .= '₫';
                 }
+            } elseif (preg_match('/([\d\.\,]+\s*[₫đ])/ui', $cleanTitle, $m)) {
+                $amount = trim($m[1]);
             }
             $label = preg_replace('/\s+đã\s+thanh\s+toán.*$/ui', '', $cleanTitle);
             $label = trim($label);
+
+            $badgeLabel = 'Tiền mặt';
+            if ($isVietQr) {
+                $badgeLabel = 'Chuyển khoản VietQR';
+            } elseif (stripos($p->title, 'thẻ') !== false || stripos($p->message, 'thẻ') !== false) {
+                $badgeLabel = 'Quẹt thẻ POS';
+            } elseif (stripos($p->title, 'cod') !== false || stripos($p->message, 'cod') !== false) {
+                $badgeLabel = 'Tiền mặt COD';
+            }
 
             return [
                 'id' => $p->id,
@@ -145,7 +156,7 @@ class NotificationController extends Controller
                 'time_ago' => $p->created_at ? $p->created_at->locale('vi')->diffForHumans() : 'Vừa xong',
                 'created_at' => $p->created_at ? $p->created_at->format('d/m/Y H:i') : '',
                 'is_vietqr' => $isVietQr,
-                'badge_label' => $isVietQr ? 'Chuyển khoản VietQR' : 'Tiền mặt',
+                'badge_label' => $badgeLabel,
             ];
         });
 

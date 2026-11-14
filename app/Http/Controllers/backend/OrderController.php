@@ -363,13 +363,17 @@ class OrderController extends Controller
             $order->updated_by = $user->id;
             $order->save();
 
+            $refCode = 'ADMIN_CONFIRM_' . $order->id . '_' . time();
+            $pmInfo = $order->payment_method_info;
+            $pmText = $pmInfo['name'] ?? 'Thủ công';
+
             // Ghi nhận nhật ký PaymentTransaction
             try {
                 \App\Models\PaymentTransaction::create([
                     'order_id' => $order->id,
-                    'reference_code' => 'ADMIN_CONFIRM_' . $order->id . '_' . time(),
+                    'reference_code' => $refCode,
                     'amount' => (int) $order->total_price,
-                    'content' => 'Nhân viên/Admin xác nhận đã nhận thanh toán',
+                    'content' => 'Nhân viên/Admin xác nhận đã nhận thanh toán (' . $pmText . ')',
                     'gateway' => $order->payment_method ?: 'manual',
                     'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
                     'raw_payload' => json_encode([
@@ -379,6 +383,11 @@ class OrderController extends Controller
                     ]),
                 ]);
             } catch (\Throwable $e) {}
+
+            // Báo dòng tiền cho Admin, Nhân viên và Khách hàng
+            try {
+                \App\Services\NotificationService::notifyPaymentSuccess($order, (float)$order->total_price, $refCode, $pmText);
+            } catch (\Exception $e) {}
 
             return redirect()->back()->with('success', "Đã xác nhận thanh toán thành công cho đơn hàng #{$order->id}!");
         });
