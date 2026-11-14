@@ -236,7 +236,7 @@ class TableOrderController extends Controller
             ]);
         }
 
-        return redirect()->route('site.table.bill', $id)->with('success', 'Thanh toán thành công! Nhà bếp đang chuẩn bị món ăn cho quý khách.');
+        return redirect()->route('site.table.bill', $id);
     }
 
     /**

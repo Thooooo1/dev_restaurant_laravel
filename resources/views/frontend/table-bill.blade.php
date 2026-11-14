@@ -13,11 +13,7 @@
 
         <div class="container mx-auto px-4 max-w-xl pt-6 sm:pt-10">
             
-            @if(session('success'))
-                <div class="mb-5 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs shadow-sm">
-                    <div class="font-bold leading-relaxed">{{ session('success') }}</div>
-                </div>
-            @endif
+
 
             <!-- THẺ HÓA ĐƠN ĐIỆN TỬ (Mô phỏng tờ bill thanh lịch) -->
             <div class="bg-white rounded-xl sm:rounded-2xl border border-stone-200/90 shadow-xl overflow-hidden mb-6">
