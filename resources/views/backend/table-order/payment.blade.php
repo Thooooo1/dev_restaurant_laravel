@@ -44,8 +44,7 @@
                     <i class="fa-solid fa-print text-xs"></i>
                     <span>In hoá đơn</span>
                 </button>
-                <button type="button" class="ant-btn ant-btn-primary ant-btn-sm" onclick="handleConfirmPayment()">
-                    <i class="fa-solid fa-money-bill-wave text-xs"></i>
+                <button type="button" class="ant-btn ant-btn-primary ant-btn-sm font-semibold" onclick="handleConfirmPayment()">
                     <span>Xác nhận thanh toán</span>
                 </button>
             </div>
