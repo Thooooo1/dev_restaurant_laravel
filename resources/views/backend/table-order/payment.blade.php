@@ -12,7 +12,20 @@
                         <span class="polaris-badge polaris-badge-warning">Chờ thanh toán</span>
                     </div>
                     <p class="text-xs text-[rgba(0,0,0,0.45)] mt-0.5">
-                        Mã đơn: <span class="font-mono font-medium text-[rgba(0,0,0,0.65)]">#{{ $order->id }}</span> • Khách: <strong>{{ $order->customer_name }}</strong> ({{ $order->customer_phone }})
+                        Mã đơn: <span class="font-mono font-medium text-[rgba(0,0,0,0.65)]">#{{ $order->id }}</span>
+                        @php
+                            $dispCustName = $order->customer_name;
+                            $dispCustPhone = $order->customer_phone;
+                            $hasCustomName = !empty($dispCustName) && $dispCustName !== 'Khách tại bàn' && !str_starts_with(mb_strtolower($dispCustName), 'bàn');
+                            $hasCustomPhone = !empty($dispCustPhone) && $dispCustPhone !== '---' && $dispCustPhone !== '—' && $dispCustPhone !== '0900000000';
+                        @endphp
+                        @if($hasCustomName)
+                            • Khách: <strong>{{ $dispCustName }}</strong>
+                        @endif
+                        @if($hasCustomPhone)
+                            <span class="text-[rgba(0,0,0,0.65)] font-mono">({{ $dispCustPhone }})</span>
+                        @endif
+                        • Bắt đầu: <span class="text-[rgba(0,0,0,0.65)]">{{ $order->created_at ? $order->created_at->format('H:i - d/m/Y') : 'Vừa xong' }}</span>
                     </p>
                 </div>
             </div>

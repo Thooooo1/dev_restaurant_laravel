@@ -74,10 +74,18 @@
             <div class="ant-card p-4 flex flex-col h-full shadow-sm">
                 <!-- Customer Info & Notes -->
                 <div class="pb-3 border-b border-[#F0F0F0] flex items-center justify-between text-xs">
+                    @php
+                        $dispCustName = $order->customer_name;
+                        $dispCustPhone = $order->customer_phone;
+                        $hasCustomName = !empty($dispCustName) && $dispCustName !== 'Khách tại bàn' && !str_starts_with(mb_strtolower($dispCustName), 'bàn');
+                        $hasCustomPhone = !empty($dispCustPhone) && $dispCustPhone !== '---' && $dispCustPhone !== '—' && $dispCustPhone !== '0900000000';
+                    @endphp
                     <div>
                         <span class="text-[rgba(0,0,0,0.45)]">Khách:</span>
-                        <strong class="text-[rgba(0,0,0,0.85)] ml-1">{{ $order->customer_name }}</strong>
-                        <span class="text-[rgba(0,0,0,0.45)] ml-1">({{ $order->customer_phone }})</span>
+                        <strong class="text-[rgba(0,0,0,0.85)] ml-1">{{ $hasCustomName ? $dispCustName : 'Khách tại bàn' }}</strong>
+                        @if($hasCustomPhone)
+                            <span class="text-[rgba(0,0,0,0.45)] ml-1 font-mono">({{ $dispCustPhone }})</span>
+                        @endif
                     </div>
                     <span class="polaris-badge polaris-badge-default">{{ $order->number_of_guests ?? 2 }} khách</span>
                 </div>

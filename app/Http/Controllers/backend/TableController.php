@@ -119,7 +119,7 @@ class TableController extends Controller
                 'created_at' => $order->created_at ? $order->created_at->format('H:i d/m/Y') : 'Vừa xong',
                 'time_seated' => $order->created_at ? $order->created_at->locale('vi')->diffForHumans() : 'Vừa xong',
                 'customer_name' => $order->customer_name,
-                'phone' => ($order->customer_phone && $order->customer_phone !== '---') ? $order->customer_phone : '—',
+                'phone' => ($order->customer_phone && $order->customer_phone !== '---' && $order->customer_phone !== '0900000000') ? $order->customer_phone : '—',
                 'note' => $order->note,
             ],
             'dishes' => $dishes,

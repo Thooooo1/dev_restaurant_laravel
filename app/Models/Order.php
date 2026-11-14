@@ -518,16 +518,28 @@ class Order extends Model
      */
     public function getCustomerNameAttribute(): string
     {
-        if (!empty(trim($this->name ?? ''))) {
-            return trim($this->name);
+        $name = trim($this->name ?? '');
+
+        // Nếu là đơn dùng bữa tại bàn, tránh lặp lại tên bàn hoặc nhãn hệ thống
+        if ($this->table_id) {
+            if ($this->user && $this->user->roles === 'customer') {
+                return $this->user->fullname ?: ($this->user->username ?: 'Khách hàng');
+            }
+
+            $lower = mb_strtolower($name);
+            if (empty($name) || str_starts_with($lower, 'bàn') || str_contains($lower, 'khách gọi món') || $lower === 'khách tại bàn' || $lower === 'tại quán') {
+                return 'Khách tại bàn';
+            }
+
+            return $name;
+        }
+
+        if (!empty($name)) {
+            return $name;
         }
 
         if ($this->user && $this->user->roles === 'customer') {
             return $this->user->fullname ?: ($this->user->username ?: 'Khách hàng');
-        }
-
-        if ($this->table_id) {
-            return 'Khách tại bàn';
         }
 
         return 'Khách lẻ';
