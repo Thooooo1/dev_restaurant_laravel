@@ -828,25 +828,25 @@
 
                         <!-- Ant Design Menu Dropdown -->
                         <div id="profileDropdownMenu" 
-                             class="hidden absolute right-0 mt-2 w-52 bg-white rounded shadow-lg border border-[#F0F0F0] py-1 z-50 text-xs">
-                            <div class="px-4 py-2 border-b border-[#F0F0F0]">
-                                <div class="font-semibold text-[rgba(0,0,0,0.85)] flex items-center justify-between">
-                                    <span class="truncate">{{ trim(str_ireplace(['Hệ Thống', 'Hệ thống', 'hệ thống', 'Vận Hành', 'Vận hành', 'vận hành'], '', Auth::user()->fullname)) ?: (Auth::user()->roles === 'admin' ? 'Quản trị viên' : 'Nhân viên') }}</span>
-                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded {{ Auth::user()->roles === 'admin' ? 'bg-orange-100 text-[#F47716]' : 'bg-blue-100 text-blue-700' }}">
+                             class="hidden absolute right-0 mt-2 w-64 sm:w-72 bg-white rounded-lg shadow-xl border border-[#F0F0F0] py-1.5 z-50 text-xs">
+                            <div class="px-4 py-2.5 border-b border-[#F0F0F0]">
+                                <div class="font-semibold text-[rgba(0,0,0,0.85)] flex items-center justify-between gap-2 mb-1">
+                                    <span class="truncate text-sm" title="{{ Auth::user()->fullname }}">{{ Auth::user()->fullname ?: (Auth::user()->roles === 'admin' ? 'Quản trị viên' : 'Nhân viên') }}</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded whitespace-nowrap flex-shrink-0 {{ Auth::user()->roles === 'admin' ? 'bg-orange-100 text-[#F47716]' : 'bg-blue-100 text-blue-700' }}">
                                         {{ Auth::user()->roles === 'admin' ? 'Quản trị viên' : 'Nhân viên' }}
                                     </span>
                                 </div>
                                 <div class="text-[rgba(0,0,0,0.45)] text-[11px] truncate">{{ Auth::user()->email ?? Auth::user()->phone }}</div>
                             </div>
                             
-                            <a href="{{ url('/') }}" target="_blank" class="flex items-center gap-2 px-4 py-2 text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] hover:text-[#F47716] transition-colors">
-                                <i class="fa-solid fa-arrow-up-right-from-square text-xs text-[rgba(0,0,0,0.45)] w-4"></i>
+                            <a href="{{ url('/') }}" target="_blank" class="flex items-center gap-2.5 px-4 py-2 text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] hover:text-[#F47716] transition-colors">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs text-[rgba(0,0,0,0.45)] w-4 text-center"></i>
                                 <span>Xem trang chủ</span>
                             </a>
 
                             @if(Auth::user()->isAdmin())
-                            <a href="{{ route('admin.user.employees') }}" class="flex items-center gap-2 px-4 py-2 text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] hover:text-[#F47716] transition-colors">
-                                <i class="fa-solid fa-users-gear text-xs text-[rgba(0,0,0,0.45)] w-4"></i>
+                            <a href="{{ route('admin.user.employees') }}" class="flex items-center gap-2.5 px-4 py-2 text-[rgba(0,0,0,0.85)] hover:bg-[#F5F5F5] hover:text-[#F47716] transition-colors">
+                                <i class="fa-solid fa-users-gear text-xs text-[rgba(0,0,0,0.45)] w-4 text-center"></i>
                                 <span>Quản lý nhân viên</span>
                             </a>
                             @endif
@@ -855,8 +855,8 @@
 
                             <form action="{{ route('admin.logout') }}" method="POST" class="m-0 p-0">
                                 @csrf
-                                <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-[#FF4D4F] hover:bg-[#FFF1F0] transition-colors font-medium bg-transparent border-0 text-left cursor-pointer text-sm">
-                                    <i class="fa-solid fa-arrow-right-from-bracket text-xs w-4"></i>
+                                <button type="submit" class="w-full flex items-center gap-2.5 px-4 py-2 text-[#FF4D4F] hover:bg-[#FFF1F0] transition-colors font-medium bg-transparent border-0 text-left cursor-pointer text-xs">
+                                    <i class="fa-solid fa-arrow-right-from-bracket text-xs w-4 text-center"></i>
                                     <span>Đăng xuất</span>
                                 </button>
                             </form>
