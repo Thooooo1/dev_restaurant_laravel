@@ -108,22 +108,10 @@
 
                         <!-- Culinary Guarantees -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6 p-4 rounded-none sm:rounded-sm bg-[#FAF8F5] border border-stone-200/90 text-xs text-stone-700">
-                            <div class="flex items-center gap-2.5">
-                                <i class="fa-solid fa-leaf text-[#C25E00] text-sm shrink-0"></i>
-                                <span>Thực phẩm sạch nhập mới mỗi ngày</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i class="fa-solid fa-fire-burner text-[#C25E00] text-sm shrink-0"></i>
-                                <span>Chế biến nóng hổi ngay khi gọi món</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i class="fa-solid fa-shield-halved text-[#C25E00] text-sm shrink-0"></i>
-                                <span>Đảm bảo tiêu chuẩn vệ sinh ATTP</span>
-                            </div>
-                            <div class="flex items-center gap-2.5">
-                                <i class="fa-solid fa-chair text-[#C25E00] text-sm shrink-0"></i>
-                                <span>Phục vụ tại bàn ấm cúng Phúc Thọ</span>
-                            </div>
+                            <div>Thực phẩm sạch nhập mới mỗi ngày</div>
+                            <div>Chế biến nóng hổi ngay khi gọi món</div>
+                            <div>Đảm bảo tiêu chuẩn vệ sinh ATTP</div>
+                            <div>Phục vụ tại bàn ấm cúng Phúc Thọ</div>
                         </div>
 
                         <!-- Order Form: Quantity Stepper & Dual CTAs -->
