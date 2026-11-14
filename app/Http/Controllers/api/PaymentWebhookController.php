@@ -26,14 +26,20 @@ class PaymentWebhookController extends Controller
      */
     public function handleWebhook(Request $request)
     {
-        Log::info('=== PAYMENT WEBHOOK RECEIVED ===', $request->all());
+        // 1. Lọc bỏ các trường token / credentials nhạy cảm khỏi payload lưu trữ và ghi log
+        $sanitizedPayload = $request->except([
+            'token', 'secure_token', 'secure-token', 'X-Token',
+            'key', 'apiKey', 'api_key', 'secret', 'password', 'Authorization'
+        ]);
 
         // Kiểm tra nếu là yêu cầu giả lập test
         $isSimulated = str_starts_with((string)$request->input('referenceCode', ''), 'SIMULATED_');
 
         // Kiểm tra xác thực Token khi ở môi trường Production (và không phải test giả lập)
         $isProduction = config('payment.mode', 'demo') === 'production';
-        $expectedToken = config('payment.webhook_token', env('PAYMENT_WEBHOOK_TOKEN'));
+        $expectedToken = config('payment.webhook_token') 
+            ?? config('services.payment.webhook_token') 
+            ?? env('PAYMENT_WEBHOOK_TOKEN');
 
         if ($isProduction && !$isSimulated) {
             if (empty($expectedToken)) {
@@ -45,7 +51,10 @@ class PaymentWebhookController extends Controller
             }
 
             $authHeader = $request->header('Authorization', '');
-            $secureToken = $request->header('secure-token') ?? $request->header('X-Token') ?? $request->input('token');
+            $secureToken = $request->header('secure-token') 
+                ?? $request->header('X-Token') 
+                ?? $request->header('X-Webhook-Token') 
+                ?? $request->input('token');
 
             $tokenFromAuth = '';
             if (str_starts_with($authHeader, 'Apikey ')) {
@@ -62,7 +71,11 @@ class PaymentWebhookController extends Controller
             }
 
             if (!$valid) {
-                Log::warning('Webhook bị từ chối: Token không hợp lệ hoặc thiếu xác thực', ['headers' => $request->headers->all()]);
+                // Tuyệt đối không log toàn bộ headers để tránh rò rỉ token bảo mật
+                Log::warning('Webhook bị từ chối: Token không hợp lệ hoặc thiếu xác thực', [
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ]);
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthorized: Token xác thực Webhook không hợp lệ.'
@@ -85,6 +98,13 @@ class PaymentWebhookController extends Controller
             ?? $request->input('referenceNumber') 
             ?? $request->input('id') 
             ?? uniqid('PAY_'));
+
+        Log::info('Nhận Webhook Thanh Toán Hợp Lệ:', [
+            'amount' => $amount,
+            'content' => $content,
+            'reference_code' => $referenceCode,
+            'ip' => $request->ip(),
+        ]);
 
         if ($amount <= 0 || empty($content)) {
             Log::warning('Webhook payload không hợp lệ hoặc số tiền <= 0', ['content' => $content, 'amount' => $amount]);
@@ -125,7 +145,7 @@ class PaymentWebhookController extends Controller
             ], 404);
         }
 
-        // 1. Chống xử lý trùng lặp Webhook (Idempotency) qua bảng payment_transactions
+        // 1. Chống xử lý trùng lặp Webhook (Idempotency) nhanh ngoài transaction
         $existingTx = \App\Models\PaymentTransaction::where('reference_code', $referenceCode)->first();
         if ($existingTx) {
             Log::info("Idempotency: Giao dịch mã '{$referenceCode}' đã được xử lý trước đó cho đơn #{$existingTx->order_id}.");
@@ -137,134 +157,163 @@ class PaymentWebhookController extends Controller
             ]);
         }
 
-        // Kiểm tra xem đơn đã được thanh toán chưa
         $isTableOrder = !empty($order->table_id);
-        $alreadyPaid = $order->isPaid();
 
-        if ($alreadyPaid) {
-            Log::info("Đơn hàng #{$order->id} đã được thanh toán từ trước.");
-            // Lưu vết giao dịch trùng
-            try {
-                \App\Models\PaymentTransaction::create([
-                    'order_id' => $order->id,
-                    'reference_code' => $referenceCode,
-                    'amount' => $amount,
-                    'content' => $content,
-                    'gateway' => 'vietqr',
-                    'status' => 'duplicate',
-                    'raw_payload' => json_encode($request->all()),
-                    'created_at' => now(),
-                ]);
-            } catch (\Throwable $e) {}
+        try {
+            // 2. Thực thi giao dịch nguyên tử trong Database Transaction kết hợp Khóa Bi Quan
+            $txResult = \Illuminate\Support\Facades\DB::transaction(function () use (
+                $order, $isTableOrder, $amount, $referenceCode, $content, $sanitizedPayload, $isProduction
+            ) {
+                $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->firstOrFail();
 
-            return response()->json([
-                'success' => true,
-                'message' => "Đơn hàng #{$order->id} đã được thanh toán trước đó.",
-                'order_id' => $order->id,
-                'already_paid' => true
-            ]);
-        }
+                // 2.1. Chống race-condition cùng reference_code: Kiểm tra lại bên trong transaction
+                $sameTx = \App\Models\PaymentTransaction::where('reference_code', $referenceCode)->first();
+                if ($sameTx) {
+                    Log::info("Idempotency intercepted: Giao dịch '{$referenceCode}' đã được commit trước đó.");
+                    return [
+                        'status' => 'already_processed',
+                        'order_id' => $sameTx->order_id,
+                        'message' => "Giao dịch {$referenceCode} đã được xử lý trước đó (Idempotent).",
+                    ];
+                }
 
-        // Kiểm tra đối soát số tiền khi ở môi trường Production
-        if ($isProduction && $order->total_price > 0 && $amount < $order->total_price) {
-            Log::warning("Số tiền chuyển không đủ cho đơn #{$order->id}: Chuyển {$amount}đ, Tổng đơn {$order->total_price}đ");
-            return response()->json([
-                'success' => false,
-                'message' => "Số tiền chuyển {$amount}đ nhỏ hơn tổng đơn {$order->total_price}đ"
-            ], 400);
-        }
+                // 2.2. Chống race-condition khác reference_code: Kiểm tra nếu đơn đã thanh toán xong
+                if ($lockedOrder->payment_status === Order::PAYMENT_PAID || $lockedOrder->isPaid()) {
+                    Log::info("Overpayment intercepted: Đơn hàng #{$lockedOrder->id} đã được thanh toán trước đó. Ghi nhận giao dịch phát sinh '{$referenceCode}'.");
+                    \App\Models\PaymentTransaction::create([
+                        'order_id' => $lockedOrder->id,
+                        'reference_code' => $referenceCode,
+                        'amount' => (int) round($amount),
+                        'content' => $content,
+                        'gateway' => 'vietqr',
+                        'status' => 'overpayment', // Phân loại chuẩn xác là khoản thanh toán dư / phát sinh sau
+                        'raw_payload' => json_encode($sanitizedPayload),
+                        'created_at' => now(),
+                    ]);
 
-        // 2. Thực thi giao dịch nguyên tử trong Database Transaction
-        $txResult = \Illuminate\Support\Facades\DB::transaction(function () use ($order, $isTableOrder, $amount, $referenceCode, $content, $request, $isProduction) {
-            $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->firstOrFail();
+                    $lockedOrder->delivery_note = ($lockedOrder->delivery_note ? $lockedOrder->delivery_note . ' | ' : '') 
+                        . "Phát sinh thanh toán dư: " . number_format((int)round($amount), 0, ',', '.') . "đ (Mã GD: {$referenceCode}, cần hoàn tiền)";
+                    $lockedOrder->save();
 
-            // Khóa bi quan: kiểm tra lại xem đơn đã được thanh toán bởi 1 webhook khác vừa hoàn tất ngay trước đó
-            if ($lockedOrder->payment_status === Order::PAYMENT_PAID || $lockedOrder->isPaid()) {
-                Log::info("Race-condition: Đơn hàng #{$lockedOrder->id} đã được thanh toán bởi một giao dịch khác vừa hoàn tất.");
+                    return [
+                        'status' => 'already_paid',
+                        'order_id' => $lockedOrder->id,
+                        'message' => "Đơn hàng #{$lockedOrder->id} đã được thanh toán trước đó. Ghi nhận khoản thanh toán phát sinh.",
+                    ];
+                }
+
+                // 2.3. Kiểm tra số tiền chuyển bên trong khóa bi quan (Sử dụng số nguyên chính xác VND)
+                $orderTotal = (int) $lockedOrder->total_price;
+                $paidAmount = (int) round($amount);
+
+                if ($isProduction && $orderTotal > 0 && $paidAmount < $orderTotal) {
+                    throw new \DomainException("Số tiền chuyển {$paidAmount}đ nhỏ hơn tổng đơn {$orderTotal}đ");
+                }
+
+                // Ghi nhận tiền thừa nếu khách chuyển lớn hơn tổng tiền hóa đơn
+                $surplus = $paidAmount - $orderTotal;
+                $surplusNote = '';
+                if ($surplus > 0 && $orderTotal > 0) {
+                    Log::notice("Khách chuyển thừa tiền cho đơn #{$lockedOrder->id}: Chuyển {$paidAmount}đ, Tổng đơn {$orderTotal}đ (thừa {$surplus}đ)");
+                    $surplusNote = 'Khách chuyển thừa: ' . number_format($surplus, 0, ',', '.') . 'đ (cần đối soát hoàn lại)';
+                }
+
+                if ($isTableOrder) {
+                    $lockedOrder->status = 2; // 2: Completed (Đã thanh toán tại bàn)
+                    $lockedOrder->payment_method = 2; // 2: Chuyển khoản VietQR
+                    $lockedOrder->payment_status = Order::PAYMENT_PAID;
+                    $lockedOrder->paid_at = now();
+                    $lockedOrder->revenue_recognized_at = now(); // Đơn tại bàn ăn xong thanh toán -> Doanh thu thực hiện ngay
+                    $lockedOrder->total_price = $orderTotal > 0 ? $orderTotal : $paidAmount;
+                    $lockedOrder->has_new_items = false;
+                    if ($surplusNote) {
+                        $lockedOrder->delivery_note = ($lockedOrder->delivery_note ? $lockedOrder->delivery_note . ' | ' : '') . $surplusNote;
+                    }
+                    $lockedOrder->save();
+
+                    // Giải phóng bàn đã thanh toán
+                    Table::where('locked_order_id', $lockedOrder->id)->update(['locked_order_id' => null]);
+
+                    // Đánh dấu hoàn tất các yêu cầu gọi tính tiền trước đó của bàn này
+                    ServiceCall::where('table_id', $lockedOrder->table_id)
+                        ->where('call_type', 'bill')
+                        ->where('status', ServiceCall::STATUS_PENDING)
+                        ->update([
+                            'status' => ServiceCall::STATUS_COMPLETED,
+                            'handled_at' => Carbon::now(),
+                        ]);
+                } else {
+                    // Đơn giao hàng online: Đã thanh toán tiền (paid_at), nhưng revenue_recognized_at chờ giao thành công
+                    $lockedOrder->status = 1; // 1: PROCESSING (Đang chế biến & Chờ giao)
+                    $lockedOrder->payment_method = 'VietQR';
+                    $lockedOrder->payment_status = Order::PAYMENT_PAID;
+                    $lockedOrder->paid_at = now();
+                    $lockedOrder->total_price = $orderTotal > 0 ? $orderTotal : $paidAmount;
+                    $lockedOrder->has_new_items = true;
+                    if ($surplusNote) {
+                        $lockedOrder->delivery_note = ($lockedOrder->delivery_note ? $lockedOrder->delivery_note . ' | ' : '') . $surplusNote;
+                    }
+                    $lockedOrder->save();
+                }
+
+                // Ghi nhật ký giao dịch ngân hàng thành công (Payment Audit Trail)
                 \App\Models\PaymentTransaction::create([
                     'order_id' => $lockedOrder->id,
                     'reference_code' => $referenceCode,
-                    'amount' => $amount,
+                    'amount' => $paidAmount,
                     'content' => $content,
                     'gateway' => 'vietqr',
-                    'status' => 'duplicate',
-                    'raw_payload' => json_encode($request->all()),
+                    'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+                    'raw_payload' => json_encode($sanitizedPayload),
                     'created_at' => now(),
                 ]);
-                return ['already_paid' => true];
+
+                return ['status' => 'success', 'order_id' => $lockedOrder->id];
+            });
+        } catch (\DomainException $e) {
+            Log::warning("Webhook từ chối do vi phạm quy tắc: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 400);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Bắt lỗi vi phạm Unique Constraint trên reference_code nếu xảy ra race-condition cực điểm
+            if ((isset($e->errorInfo[1]) && $e->errorInfo[1] == 1062) || str_contains($e->getMessage(), 'Duplicate entry')) {
+                Log::info("Idempotency: Bắt ngoại lệ Duplicate entry 1062 cho mã giao dịch '{$referenceCode}'.");
+                return response()->json([
+                    'success' => true,
+                    'message' => "Giao dịch {$referenceCode} đã được xử lý trước đó (Idempotent).",
+                    'order_id' => $order->id,
+                    'already_processed' => true,
+                ]);
             }
+            Log::error('Lỗi Database Webhook: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi hệ thống khi lưu giao dịch thanh toán.'
+            ], 500);
+        }
 
-            // Ghi nhận tiền thừa nếu khách chuyển lớn hơn tổng tiền hóa đơn
-            $surplus = $amount - (float)$lockedOrder->total_price;
-            $surplusNote = '';
-            if ($surplus > 0 && (float)$lockedOrder->total_price > 0) {
-                Log::notice("Khách chuyển thừa tiền cho đơn #{$lockedOrder->id}: Chuyển {$amount}đ, Tổng đơn {$lockedOrder->total_price}đ (thừa {$surplus}đ)");
-                $surplusNote = 'Khách chuyển thừa: ' . number_format($surplus, 0, ',', '.') . 'đ (cần đối soát hoàn lại)';
-            }
-
-            if ($isTableOrder) {
-                $lockedOrder->status = 2; // 2: Completed (Đã thanh toán tại bàn)
-                $lockedOrder->payment_method = 2; // 2: Chuyển khoản VietQR
-                $lockedOrder->payment_status = Order::PAYMENT_PAID;
-                $lockedOrder->paid_at = now();
-                $lockedOrder->total_price = $lockedOrder->total_price > 0 ? $lockedOrder->total_price : $amount;
-                $lockedOrder->has_new_items = false;
-                if ($surplusNote) {
-                    $lockedOrder->delivery_note = ($lockedOrder->delivery_note ? $lockedOrder->delivery_note . ' | ' : '') . $surplusNote;
-                }
-                $lockedOrder->save();
-
-                // Giải phóng bàn đã thanh toán
-                Table::where('locked_order_id', $lockedOrder->id)->update(['locked_order_id' => null]);
-
-                // Đánh dấu hoàn tất các yêu cầu gọi tính tiền trước đó của bàn này
-                ServiceCall::where('table_id', $lockedOrder->table_id)
-                    ->where('call_type', 'bill')
-                    ->where('status', ServiceCall::STATUS_PENDING)
-                    ->update([
-                        'status' => ServiceCall::STATUS_COMPLETED,
-                        'handled_at' => Carbon::now(),
-                    ]);
-            } else {
-                // Đơn giao hàng online
-                $lockedOrder->status = 1; // 1: PROCESSING (Đã xác nhận & Đã thanh toán chuyển khoản)
-                $lockedOrder->payment_method = 'VietQR';
-                $lockedOrder->payment_status = Order::PAYMENT_PAID;
-                $lockedOrder->paid_at = now();
-                $lockedOrder->total_price = $lockedOrder->total_price > 0 ? $lockedOrder->total_price : $amount;
-                $lockedOrder->has_new_items = true;
-                if ($surplusNote) {
-                    $lockedOrder->delivery_note = ($lockedOrder->delivery_note ? $lockedOrder->delivery_note . ' | ' : '') . $surplusNote;
-                }
-                $lockedOrder->save();
-            }
-
-            // Ghi nhật ký giao dịch ngân hàng thành công (Payment Audit Trail)
-            \App\Models\PaymentTransaction::create([
-                'order_id' => $lockedOrder->id,
-                'reference_code' => $referenceCode,
-                'amount' => $amount,
-                'content' => $content,
-                'gateway' => 'vietqr',
-                'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
-                'raw_payload' => json_encode($request->all()),
-                'created_at' => now(),
-            ]);
-
-            return ['already_paid' => false];
-        });
-
-        if (!empty($txResult['already_paid'])) {
+        if ($txResult['status'] === 'already_processed') {
             return response()->json([
                 'success' => true,
-                'message' => "Đơn hàng #{$order->id} đã được thanh toán trước đó (Phát hiện bởi khóa bi quan).",
-                'order_id' => $order->id,
+                'message' => $txResult['message'],
+                'order_id' => $txResult['order_id'],
+                'already_processed' => true,
+            ]);
+        }
+
+        if ($txResult['status'] === 'already_paid') {
+            return response()->json([
+                'success' => true,
+                'message' => $txResult['message'],
+                'order_id' => $txResult['order_id'],
                 'already_paid' => true,
             ]);
         }
 
         // Tạo thông báo chuông hệ thống thời gian thực (ServiceCall) để thu ngân & nhân viên nhận toast và chuông reo
-        $tableName = $order->table ? $order->table->name : "Đơn online #{$order->id}";
+        $tableName = $order->table ? $order->table->name : ($isTableOrder ? "Bàn #{$order->table_id}" : "Đơn online #{$order->id}");
         ServiceCall::create([
             'table_id' => $order->table_id,
             'order_id' => $order->id,
@@ -272,29 +321,26 @@ class PaymentWebhookController extends Controller
             'phone' => $order->phone,
             'call_type' => 'bill',
             'call_type_label' => 'Đã nhận chuyển khoản VietQR',
-            'note' => "Hệ thống tự động nhận " . number_format($amount, 0, ',', '.') . "đ qua VietQR (Mã GD: {$referenceCode})",
+            'note' => "Hệ thống tự động nhận " . number_format((int)round($amount), 0, ',', '.') . "đ qua VietQR (Mã GD: {$referenceCode})",
             'status' => ServiceCall::STATUS_PENDING,
             'handled_at' => null,
         ]);
 
         // Gửi thông báo hệ thống chính thức cho cả 3 vai trò: Admin, Employee, Customer
-        NotificationService::notifyPaymentSuccess($order, $amount, $referenceCode);
+        NotificationService::notifyPaymentSuccess($order, (int)round($amount), $referenceCode);
 
-        // Lưu thông báo thanh toán vào session flash
-        session()->flash('payment_success_notification', [
+        session()->flash('payment_success_toast', [
+            'title' => 'Thanh toán thành công!',
+            'message' => "Đã nhận " . number_format((int)round($amount), 0, ',', '.') . "đ cho đơn hàng #{$order->id}.",
+            'amount' => (int)round($amount),
             'order_id' => $order->id,
-            'amount' => $amount,
-            'reference_code' => $referenceCode,
-            'message' => "Hệ thống đã tự động nhận tiền thành công và gửi thông báo tới Quản trị viên, Nhân viên và Khách hàng."
         ]);
-
-        Log::info("Thanh toán thành công đơn #{$order->id} ({$tableName}) với số tiền {$amount}đ qua VietQR (GD: {$referenceCode}).");
 
         return response()->json([
             'success' => true,
-            'message' => "Thanh toán VietQR thành công cho {$tableName}",
+            'message' => 'Xử lý thanh toán thành công qua Webhook',
             'order_id' => $order->id,
-            'amount' => $amount,
+            'amount' => (int)round($amount),
             'reference_code' => $referenceCode,
             'notifications_sent' => [
                 'admin' => true,
