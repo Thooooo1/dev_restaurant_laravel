@@ -43,6 +43,7 @@ class Order extends Model
         'payment_method',
         'payment_status',
         'paid_at',
+        'revenue_recognized_at',
         'total_price',
     ];
 
@@ -50,6 +51,7 @@ class Order extends Model
         'picked_up_at' => 'datetime',
         'delivered_at' => 'datetime',
         'paid_at' => 'datetime',
+        'revenue_recognized_at' => 'datetime',
     ];
 
     public function getPaymentStatusLabelAttribute(): string
@@ -109,12 +111,45 @@ class Order extends Model
     }
 
     /**
+     * Phân loại hình thức nghiệp vụ đơn hàng (Single Source of Truth)
+     */
+    public function isDineIn(): bool
+    {
+        return !empty($this->table_id);
+    }
+
+    public function isPos(): bool
+    {
+        if ($this->isDineIn()) {
+            return false;
+        }
+
+        $addr = trim((string)($this->address ?? ''));
+        $name = trim((string)($this->name ?? ''));
+        $style = (int)($this->orderStyle ?? 0);
+
+        return $addr === 'Tại quán' 
+            || $name === 'Khách POS' 
+            || $style === 2;
+    }
+
+    public function isTakeaway(): bool
+    {
+        return (int)($this->orderStyle ?? 0) === 3;
+    }
+
+    public function isDelivery(): bool
+    {
+        return !$this->isDineIn() && !$this->isPos() && !$this->isTakeaway();
+    }
+
+    /**
      * Kiểm tra đơn hàng đã thực sự được thanh toán / thu tiền hay chưa
      */
     public function isPaid(): bool
     {
         if ($this->payment_status === self::PAYMENT_REFUNDED || $this->payment_status === self::PAYMENT_FAILED) {
-            return false; // Đã hoàn tiền hoặc thất bại thì không tính vào doanh thu thực thu
+            return false;
         }
 
         // Đơn giao hàng thất bại (failed): Tiền khách đã trả (nếu có qua VietQR) bị chuyển sang khoản tạm thu chờ xử lý/hoàn tiền, không tính là doanh thu bán hàng thực hiện
@@ -140,7 +175,6 @@ class Order extends Model
             if ($this->payment_status === self::PAYMENT_PENDING) {
                 return false;
             }
-            // Fallback neu payment_status null (ban ghi cu hoac new Order() chua khoi tao)
             return (int)$this->status >= \App\Enums\OrderStatus::PROCESSING;
         }
 
@@ -148,28 +182,77 @@ class Order extends Model
     }
 
     /**
-     * Scope chỉ lọc các đơn hàng đã thực sự thu tiền / ghi nhận doanh thu (loại trừ đã hoàn tiền và giao thất bại)
+     * Scope lọc các đơn hàng đã thực sự thu tiền (Dòng tiền thực thu / Tiền đã về tài khoản hoặc thu tiền mặt)
+     */
+    public function scopeCollected($query)
+    {
+        return $query->where('payment_status', self::PAYMENT_PAID)
+            ->where(function ($q) {
+                $q->whereNull('delivery_status')
+                  ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
+            });
+    }
+
+    /**
+     * Scope lọc các đơn hàng đã được ghi nhận doanh thu (Doanh thu bán hàng thực hiện - Accrual Accounting)
+     * Nguyên tắc:
+     * - Đơn tại bàn / tại quầy: Hoàn tất bữa ăn / nhận hàng và đã thanh toán
+     * - Đơn giao hàng: Đã giao thành công (delivered) và đã thanh toán
+     * - Phải có mốc revenue_recognized_at IS NOT NULL
+     * - Loại trừ đơn thất bại và đơn hoàn tiền
+     */
+    public function scopeRevenueRecognized($query)
+    {
+        return $query->where('payment_status', self::PAYMENT_PAID)
+            ->whereNotNull('revenue_recognized_at')
+            ->where(function ($q) {
+                $q->whereNull('delivery_status')
+                  ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
+            });
+    }
+
+    /**
+     * Scope chỉ lọc các đơn hàng đã thực sự ghi nhận doanh thu (hỗ trợ tương thích ngược cho dữ liệu cũ)
      */
     public function scopePaid($query)
     {
-        return $query->where(function ($q) {
-            // 1. Đơn tại bàn (Dine-in), tại quầy (POS), hoặc đơn giao hàng đã hoàn tất / đã giao thành công
-            $q->where(function ($completed) {
-                $completed->where(function ($ch) {
-                    $ch->whereNotNull('table_id')
-                       ->orWhere('address', 'Tại quán')
-                       ->orWhere('name', 'Khách POS')
-                       ->orWhere('status', \App\Enums\OrderStatus::COMPLETED)
-                       ->orWhere('delivery_status', self::DELIVERY_DELIVERED);
-                })->where('payment_status', self::PAYMENT_PAID);
+        return $query->where(function ($main) {
+            // Nhánh 1: Bản ghi chuẩn có revenue_recognized_at
+            $main->where(function ($modern) {
+                $modern->where('payment_status', self::PAYMENT_PAID)
+                       ->whereNotNull('revenue_recognized_at')
+                       ->where(function ($d) {
+                           $d->whereNull('delivery_status')
+                             ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
+                       });
             })
-            // 2. Hoặc đơn hoàn tất COMPLETED (với fallback tương thích ngược cho dữ liệu cũ chưa có payment_status)
-            ->orWhere(function ($sub) {
-                $sub->where('status', \App\Enums\OrderStatus::COMPLETED)
-                    ->where(function ($deliv) {
-                        $deliv->whereNull('delivery_status')
-                              ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
-                    });
+            // Nhánh 2: Bản ghi tương thích ngược (chưa có revenue_recognized_at)
+            ->orWhere(function ($legacy) {
+                $legacy->whereNull('revenue_recognized_at')
+                       ->where(function ($ch) {
+                           // Đơn tại bàn hoặc tại quầy đã COMPLETED
+                           $ch->where(function ($dinePos) {
+                               $dinePos->where(function ($t) {
+                                   $t->whereNotNull('table_id')
+                                     ->orWhere('address', 'Tại quán')
+                                     ->orWhere('name', 'Khách POS');
+                               })->where('status', \App\Enums\OrderStatus::COMPLETED)
+                                 ->where(function ($p) {
+                                     $p->where('payment_status', self::PAYMENT_PAID)
+                                       ->orWhereNull('payment_status');
+                                 });
+                           })
+                           // Đơn giao hàng đã DELIVERED hoặc đơn bất kỳ đã hoàn tất COMPLETED
+                           ->orWhere(function ($deliv) {
+                               $deliv->where(function ($d) {
+                                   $d->where('delivery_status', self::DELIVERY_DELIVERED)
+                                     ->orWhere('status', \App\Enums\OrderStatus::COMPLETED);
+                               })->where(function ($p) {
+                                   $p->where('payment_status', self::PAYMENT_PAID)
+                                     ->orWhereNull('payment_status');
+                               });
+                           });
+                       });
             });
         })->where(function ($w) {
             $w->where('payment_status', '!=', self::PAYMENT_REFUNDED)
@@ -180,15 +263,53 @@ class Order extends Model
     /**
      * Xử lý hoàn tiền cho đơn hàng (đơn VietQR giao thất bại hoặc hủy sau khi đã chuyển khoản)
      */
-    public function markAsRefunded(?string $reason = null): void
+    public function markAsRefunded(?string $reason = null, ?string $refundTxCode = null): void
     {
         if (!$this->isPaid() && $this->payment_status !== self::PAYMENT_PAID) {
             throw new \DomainException('Đơn hàng chưa ghi nhận thanh toán, không thể thực hiện hoàn tiền.');
         }
 
         $this->payment_status = self::PAYMENT_REFUNDED;
-        if ($reason) {
-            $this->delivery_note = ($this->delivery_note ? $this->delivery_note . ' | ' : '') . 'Hoàn tiền: ' . $reason;
+        $refundNote = 'Hoàn tiền' . ($refundTxCode ? " (Mã GD hoàn: {$refundTxCode})" : '') . ($reason ? ": {$reason}" : '');
+        $this->delivery_note = ($this->delivery_note ? $this->delivery_note . ' | ' : '') . $refundNote;
+        $this->save();
+
+        // Ghi nhật ký giao dịch hoàn tiền vào PaymentTransaction
+        try {
+            \App\Models\PaymentTransaction::create([
+                'order_id' => $this->id,
+                'reference_code' => $refundTxCode ?: ('REFUND_' . $this->id . '_' . time()),
+                'amount' => (int) $this->total_price,
+                'content' => $refundNote,
+                'gateway' => 'vietqr',
+                'status' => 'refunded',
+                'raw_payload' => json_encode([
+                    'action' => 'refund',
+                    'order_id' => $this->id,
+                    'reason' => $reason,
+                    'refund_tx' => $refundTxCode,
+                    'timestamp' => now()->toIso8601String(),
+                ]),
+                'created_at' => now(),
+            ]);
+        } catch (\Throwable $e) {}
+    }
+
+    /**
+     * Xác nhận thu đủ tiền mặt COD từ shipper và chính thức ghi nhận doanh thu
+     */
+    public function confirmCodCollected(?string $note = null): void
+    {
+        if ($this->delivery_status !== self::DELIVERY_DELIVERED) {
+            throw new \DomainException('Chỉ có thể xác nhận thu tiền COD khi đơn hàng đã giao thành công.');
+        }
+
+        $this->payment_status = self::PAYMENT_PAID;
+        $this->paid_at = $this->paid_at ?: now();
+        $this->revenue_recognized_at = $this->revenue_recognized_at ?: now();
+        $this->status = \App\Enums\OrderStatus::COMPLETED;
+        if ($note) {
+            $this->delivery_note = ($this->delivery_note ? $this->delivery_note . ' | ' : '') . $note;
         }
         $this->save();
     }
@@ -272,7 +393,7 @@ class Order extends Model
      *
      * @throws \DomainException neu trang thai khong hop le hoac vi pham quy tac chuyen doi
      */
-    public function applyDeliveryStatusTransition(string $deliveryStatus, ?string $note = null): void
+    public function applyDeliveryStatusTransition(string $deliveryStatus, ?string $note = null, ?bool $codCollected = null): void
     {
         // 1. Don hang da bi huy thi tuyet doi khong cho phep cap nhat giao hang
         if ((int)$this->status === \App\Enums\OrderStatus::CANCELLED) {
@@ -282,6 +403,15 @@ class Order extends Model
         // 2. Kiem tra tinh idempotent khi da giao thanh cong
         if ($this->delivery_status === self::DELIVERY_DELIVERED) {
             if ($deliveryStatus === self::DELIVERY_DELIVERED) {
+                if ($codCollected && $this->payment_status !== self::PAYMENT_PAID) {
+                    $this->payment_status = self::PAYMENT_PAID;
+                    $this->paid_at = $this->paid_at ?: now();
+                    $this->revenue_recognized_at = $this->revenue_recognized_at ?: now();
+                    $this->status = \App\Enums\OrderStatus::COMPLETED;
+                    if ($note) {
+                        $this->delivery_note = ($this->delivery_note ? $this->delivery_note . ' | ' : '') . $note;
+                    }
+                }
                 return; // Da giao truoc do, khong lam gi ca (khong ghi de delivered_at)
             }
             throw new \DomainException('Đơn hàng đã giao thành công, không thể thay đổi hoặc chuyển ngược trạng thái.');
@@ -332,13 +462,39 @@ class Order extends Model
             if (!$this->delivered_at) {
                 $this->delivered_at = now();
             }
-            if (!$this->paid_at) {
-                $this->paid_at = now();
-            }
-            $this->status = \App\Enums\OrderStatus::COMPLETED; // 2: Da giao hang thanh cong / Hoan tat
-            // Với đơn COD / tiền mặt: Giao thành công đồng nghĩa tài xế đã thu tiền mặt từ khách
-            if ($this->payment_status !== self::PAYMENT_PAID) {
-                $this->payment_status = self::PAYMENT_PAID;
+
+            // Giao thanh cong chuyen status don sang COMPLETED (hoan tat giao nhan)
+            $this->status = \App\Enums\OrderStatus::COMPLETED;
+
+            $isCod = in_array((string)$this->payment_method, [1, '1', 'COD', 'cod', 'cash']) 
+                || empty($this->payment_method);
+
+            $hasPaymentNote = $note && (
+                str_contains(mb_strtolower($note), 'thanh toan') || 
+                str_contains(mb_strtolower($note), 'thanh toán') ||
+                str_contains(mb_strtolower($note), 'thu tiền') ||
+                str_contains(mb_strtolower($note), 'thu tien')
+            );
+
+            $isConfirmedCod = $codCollected === true || ($codCollected === null && $hasPaymentNote);
+
+            if ($isCod) {
+                // Với đơn COD: Chỉ đánh dấu đã thanh toán và ghi nhận doanh thu khi ĐÃ XÁC NHẬN thu tiền mặt
+                if ($isConfirmedCod) {
+                    $this->payment_status = self::PAYMENT_PAID;
+                    $this->paid_at = $this->paid_at ?: now();
+                    $this->revenue_recognized_at = $this->revenue_recognized_at ?: now();
+                } else {
+                    // Chưa xác nhận thu tiền COD: Giữ payment_status = pending, không ghi nhận doanh thu
+                    if ($this->payment_status !== self::PAYMENT_PAID) {
+                        $this->payment_status = self::PAYMENT_PENDING;
+                    }
+                }
+            } else {
+                // Đơn đã thanh toán trực tuyến từ trước (VietQR): Giao thành công ghi nhận doanh thu
+                if ($this->payment_status === self::PAYMENT_PAID) {
+                    $this->revenue_recognized_at = $this->revenue_recognized_at ?: now();
+                }
             }
         }
     }

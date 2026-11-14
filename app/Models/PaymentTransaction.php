@@ -12,6 +12,7 @@ class PaymentTransaction extends Model
     public const STATUS_SUCCESS = 'success';
     public const STATUS_FAILED = 'failed';
     public const STATUS_REFUNDED = 'refunded';
+    public const STATUS_OVERPAYMENT = 'overpayment';
 
     protected $fillable = [
         'order_id',

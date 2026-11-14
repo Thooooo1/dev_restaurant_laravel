@@ -72,20 +72,36 @@ class DashboardController extends Controller
         }
 
         // === 2. TÍNH TOÁN 4 CHỈ SỐ KPI CHUẨN DOANH NGHIỆP ===
-        // Hàm lọc đơn hàng phát sinh hoặc hoàn tất thanh toán trong kỳ (Chỉ tính đơn đã thực thu tiền)
+        // Hàm lọc đơn hàng phát sinh hoặc hoàn tất thanh toán trong kỳ (Chỉ tính đơn đã thực thu tiền và hoàn tất bán hàng)
         $buildPeriodOrders = function($start, $end) {
             return Order::whereNull('deleted_at')
                 ->paid()
                 ->where(function($q) use ($start, $end) {
-                    $q->whereBetween('paid_at', [$start, $end])
+                    // Ưu tiên chuẩn xác theo mốc ghi nhận doanh thu hoàn tất nghĩa vụ bán hàng
+                    $q->whereBetween('revenue_recognized_at', [$start, $end])
                       ->orWhere(function($sub) use ($start, $end) {
-                          $sub->whereNull('paid_at')
+                          // Fallback cho dữ liệu cũ chưa có revenue_recognized_at
+                          $sub->whereNull('revenue_recognized_at')
                               ->where(function($fallback) use ($start, $end) {
+                                  // Đơn giao hàng: Căn cứ vào thời điểm giao thành công (delivered_at) hoặc updated_at
                                   $fallback->whereBetween('delivered_at', [$start, $end])
-                                           ->orWhereBetween('created_at', [$start, $end])
-                                           ->orWhere(function($s2) use ($start, $end) {
-                                               $s2->where('status', 2)
-                                                  ->whereBetween('updated_at', [$start, $end]);
+                                           ->orWhere(function($deliv) use ($start, $end) {
+                                               $deliv->where('delivery_status', Order::DELIVERY_DELIVERED)
+                                                     ->whereBetween('updated_at', [$start, $end]);
+                                           })
+                                           // Đơn tại bàn / tại quầy: Căn cứ vào thời điểm hoàn tất hoặc thanh toán
+                                           ->orWhere(function($dinePos) use ($start, $end) {
+                                               $dinePos->where(function($t) {
+                                                   $t->whereNotNull('table_id')
+                                                     ->orWhere('address', 'Tại quán')
+                                                     ->orWhere('name', 'Khách POS');
+                                               })->where(function($times) use ($start, $end) {
+                                                   $times->whereBetween('paid_at', [$start, $end])
+                                                         ->orWhere(function($s2) use ($start, $end) {
+                                                             $s2->where('status', \App\Enums\OrderStatus::COMPLETED)
+                                                                ->whereBetween('updated_at', [$start, $end]);
+                                                         });
+                                               });
                                            });
                               });
                       });

@@ -97,7 +97,10 @@ class OrderController extends Controller
                 $oldShipperPhone = $order->shipper_phone;
 
                 // 2. Kiểm tra tính hợp lệ của State Machine (ném DomainException nếu vi phạm)
-                $order->applyDeliveryStatusTransition($request->delivery_status, $request->delivery_note);
+                $codCollected = $request->has('cod_collected') 
+                    ? $request->boolean('cod_collected') 
+                    : ($request->input('payment_status') === 'paid' ? true : null);
+                $order->applyDeliveryStatusTransition($request->delivery_status, $request->delivery_note, $codCollected);
 
                 // 3. Cập nhật thông tin giao hàng
                 $newShipperName = $request->has('shipper_name') ? $request->shipper_name : $oldShipperName;

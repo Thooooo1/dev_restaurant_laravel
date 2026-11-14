@@ -758,6 +758,9 @@ class SecurityAndPaymentTest extends TestCase
             'total_price' => 500000,
             'created_by' => $admin->id,
             'payment_method' => 'VietQR',
+            'payment_status' => Order::PAYMENT_PAID,
+            'paid_at' => Carbon::now(),
+            'revenue_recognized_at' => Carbon::now(),
             'status' => 2,
             'created_at' => Carbon::yesterday(),
             'updated_at' => Carbon::now(),
@@ -775,6 +778,9 @@ class SecurityAndPaymentTest extends TestCase
             'created_by' => $admin->id,
             'payment_method' => 1,
             'delivery_status' => Order::DELIVERY_DELIVERED,
+            'payment_status' => Order::PAYMENT_PAID,
+            'delivered_at' => Carbon::now(),
+            'revenue_recognized_at' => Carbon::now(),
             'status' => 2,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
@@ -1146,9 +1152,19 @@ class SecurityAndPaymentTest extends TestCase
         $codOrder->refresh();
         $this->assertEquals(Order::PAYMENT_PENDING, $codOrder->payment_status);
 
-        // Khi da giao thanh cong (delivered) -> payment_status tu dong chuyen sang paid va order status la COMPLETED
+        // Khi da giao thanh cong (delivered) nhung chua xac nhan thu COD -> payment_status van la PENDING (COD-01)
         $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $codOrder->id), [
             'delivery_status' => Order::DELIVERY_DELIVERED,
+            'cod_collected' => false,
+        ]);
+        $codOrder->refresh();
+        $this->assertEquals(Order::DELIVERY_DELIVERED, $codOrder->delivery_status);
+        $this->assertEquals(Order::PAYMENT_PENDING, $codOrder->payment_status);
+
+        // Khi xac nhan da thu du tien COD (cod_collected = true) -> payment_status chuyen sang paid va order status la COMPLETED
+        $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $codOrder->id), [
+            'delivery_status' => Order::DELIVERY_DELIVERED,
+            'cod_collected' => true,
         ]);
         $codOrder->refresh();
         $this->assertEquals(Order::DELIVERY_DELIVERED, $codOrder->delivery_status);

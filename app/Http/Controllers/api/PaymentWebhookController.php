@@ -26,22 +26,13 @@ class PaymentWebhookController extends Controller
      */
     public function handleWebhook(Request $request)
     {
-        // 1. Lọc bỏ các trường token / credentials nhạy cảm khỏi payload lưu trữ và ghi log
-        $sanitizedPayload = $request->except([
-            'token', 'secure_token', 'secure-token', 'X-Token',
-            'key', 'apiKey', 'api_key', 'secret', 'password', 'Authorization'
-        ]);
-
-        // Kiểm tra nếu là yêu cầu giả lập test
-        $isSimulated = str_starts_with((string)$request->input('referenceCode', ''), 'SIMULATED_');
-
-        // Kiểm tra xác thực Token khi ở môi trường Production (và không phải test giả lập)
-        $isProduction = config('payment.mode', 'demo') === 'production';
+        // 1. Kiểm tra xác thực Token khi ở môi trường Production (Tuyệt đối không miễn trừ dựa trên nội dung payload)
+        $isProduction = config('payment.mode', 'demo') === 'production' || app()->environment('production');
         $expectedToken = config('payment.webhook_token') 
             ?? config('services.payment.webhook_token') 
             ?? env('PAYMENT_WEBHOOK_TOKEN');
 
-        if ($isProduction && !$isSimulated) {
+        if ($isProduction) {
             if (empty($expectedToken)) {
                 Log::error('Webhook bị từ chối: PAYMENT_WEBHOOK_TOKEN chưa được cấu hình trong môi trường Production.');
                 return response()->json([
@@ -100,7 +91,7 @@ class PaymentWebhookController extends Controller
             ?? uniqid('PAY_'));
 
         Log::info('Nhận Webhook Thanh Toán Hợp Lệ:', [
-            'amount' => $amount,
+            'amount' => (int) round($amount),
             'content' => $content,
             'reference_code' => $referenceCode,
             'ip' => $request->ip(),
@@ -124,7 +115,6 @@ class PaymentWebhookController extends Controller
             $tableId = $parsed['id'];
             $table = Table::find($tableId);
             if (!$table) {
-                // Thử tìm theo tên bàn (ví dụ Bàn 15)
                 $table = Table::where('name', 'like', "%{$tableId}%")->first();
             }
 
@@ -145,39 +135,68 @@ class PaymentWebhookController extends Controller
             ], 404);
         }
 
-        // 1. Chống xử lý trùng lặp Webhook (Idempotency) nhanh ngoài transaction
+        // 2. Chống xử lý trùng lặp Webhook (Idempotency) nhanh ngoài transaction
+        // Xác minh xem reference_code đã tồn tại và thuộc đơn hàng nào
         $existingTx = \App\Models\PaymentTransaction::where('reference_code', $referenceCode)->first();
         if ($existingTx) {
-            Log::info("Idempotency: Giao dịch mã '{$referenceCode}' đã được xử lý trước đó cho đơn #{$existingTx->order_id}.");
-            return response()->json([
-                'success' => true,
-                'message' => "Giao dịch {$referenceCode} đã được xử lý trước đó (Idempotent).",
-                'order_id' => $existingTx->order_id,
-                'already_processed' => true,
-            ]);
+            if ((int)$existingTx->order_id === (int)$order->id) {
+                Log::info("Idempotency: Giao dịch mã '{$referenceCode}' đã được xử lý trước đó cho đơn #{$order->id}.");
+                return response()->json([
+                    'success' => true,
+                    'message' => "Giao dịch {$referenceCode} đã được xử lý trước đó (Idempotent).",
+                    'order_id' => $existingTx->order_id,
+                    'already_processed' => true,
+                ]);
+            } else {
+                Log::warning("Xung đột mã giao dịch: '{$referenceCode}' đã thuộc đơn #{$existingTx->order_id}, không thể gán cho đơn #{$order->id}.");
+                return response()->json([
+                    'success' => false,
+                    'message' => "Mã giao dịch {$referenceCode} đã được sử dụng cho đơn hàng #{$existingTx->order_id}.",
+                    'order_id' => $order->id,
+                    'conflict_order_id' => $existingTx->order_id,
+                ], 409);
+            }
         }
 
-        $isTableOrder = !empty($order->table_id);
+        // 3. Chuẩn hóa payload an toàn theo danh sách cho phép (Allowlist), tuyệt đối không lưu token/auth
+        $sanitizedPayload = [
+            'amount' => (int) round($amount),
+            'content' => $content,
+            'reference_code' => $referenceCode,
+            'gateway' => (string) $request->input('gateway', 'vietqr'),
+            'account_number' => (string) $request->input('accountNumber', ''),
+            'transaction_date' => (string) $request->input('transactionDate', now()->toIso8601String()),
+            'ip' => $request->ip(),
+        ];
 
         try {
-            // 2. Thực thi giao dịch nguyên tử trong Database Transaction kết hợp Khóa Bi Quan
+            // 4. Thực thi giao dịch nguyên tử trong Database Transaction kết hợp Khóa Bi Quan
             $txResult = \Illuminate\Support\Facades\DB::transaction(function () use (
-                $order, $isTableOrder, $amount, $referenceCode, $content, $sanitizedPayload, $isProduction
+                $order, $amount, $referenceCode, $content, $sanitizedPayload, $isProduction
             ) {
                 $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->firstOrFail();
 
-                // 2.1. Chống race-condition cùng reference_code: Kiểm tra lại bên trong transaction
+                // 4.1. Chống race-condition cùng reference_code: Kiểm tra lại bên trong transaction
                 $sameTx = \App\Models\PaymentTransaction::where('reference_code', $referenceCode)->first();
                 if ($sameTx) {
-                    Log::info("Idempotency intercepted: Giao dịch '{$referenceCode}' đã được commit trước đó.");
-                    return [
-                        'status' => 'already_processed',
-                        'order_id' => $sameTx->order_id,
-                        'message' => "Giao dịch {$referenceCode} đã được xử lý trước đó (Idempotent).",
-                    ];
+                    if ((int)$sameTx->order_id === (int)$lockedOrder->id) {
+                        Log::info("Idempotency intercepted: Giao dịch '{$referenceCode}' đã được commit trước đó.");
+                        return [
+                            'status' => 'already_processed',
+                            'order_id' => $sameTx->order_id,
+                            'message' => "Giao dịch {$referenceCode} đã được xử lý trước đó (Idempotent).",
+                        ];
+                    } else {
+                        return [
+                            'status' => 'conflict',
+                            'order_id' => $lockedOrder->id,
+                            'conflict_order_id' => $sameTx->order_id,
+                            'message' => "Mã giao dịch {$referenceCode} đã được sử dụng cho đơn hàng #{$sameTx->order_id}.",
+                        ];
+                    }
                 }
 
-                // 2.2. Chống race-condition khác reference_code: Kiểm tra nếu đơn đã thanh toán xong
+                // 4.2. Chống race-condition khác reference_code: Kiểm tra nếu đơn đã thanh toán xong
                 if ($lockedOrder->payment_status === Order::PAYMENT_PAID || $lockedOrder->isPaid()) {
                     Log::info("Overpayment intercepted: Đơn hàng #{$lockedOrder->id} đã được thanh toán trước đó. Ghi nhận giao dịch phát sinh '{$referenceCode}'.");
                     \App\Models\PaymentTransaction::create([
@@ -186,7 +205,7 @@ class PaymentWebhookController extends Controller
                         'amount' => (int) round($amount),
                         'content' => $content,
                         'gateway' => 'vietqr',
-                        'status' => 'overpayment', // Phân loại chuẩn xác là khoản thanh toán dư / phát sinh sau
+                        'status' => 'overpayment',
                         'raw_payload' => json_encode($sanitizedPayload),
                         'created_at' => now(),
                     ]);
@@ -195,6 +214,21 @@ class PaymentWebhookController extends Controller
                         . "Phát sinh thanh toán dư: " . number_format((int)round($amount), 0, ',', '.') . "đ (Mã GD: {$referenceCode}, cần hoàn tiền)";
                     $lockedOrder->save();
 
+                    // Cảnh báo khẩn cấp cho thu ngân qua ServiceCall
+                    try {
+                        ServiceCall::create([
+                            'table_id' => $lockedOrder->table_id,
+                            'order_id' => $lockedOrder->id,
+                            'customer_name' => $lockedOrder->customer_name ?: 'Khách thanh toán dư',
+                            'phone' => $lockedOrder->customer_phone !== '---' ? $lockedOrder->customer_phone : null,
+                            'call_type' => 'service',
+                            'call_type_label' => 'Cảnh báo thanh toán dư / trùng',
+                            'note' => "Phát hiện chuyển khoản phát sinh " . number_format((int)round($amount), 0, ',', '.') . "đ cho đơn #{$lockedOrder->id} đã hoàn tất (Mã GD: {$referenceCode}). Cần kiểm tra đối soát hoàn tiền.",
+                            'status' => ServiceCall::STATUS_PENDING,
+                            'handled_at' => null,
+                        ]);
+                    } catch (\Throwable $e) {}
+
                     return [
                         'status' => 'already_paid',
                         'order_id' => $lockedOrder->id,
@@ -202,7 +236,7 @@ class PaymentWebhookController extends Controller
                     ];
                 }
 
-                // 2.3. Kiểm tra số tiền chuyển bên trong khóa bi quan (Sử dụng số nguyên chính xác VND)
+                // 4.3. Kiểm tra số tiền chuyển bên trong khóa bi quan (Sử dụng số nguyên chính xác VND)
                 $orderTotal = (int) $lockedOrder->total_price;
                 $paidAmount = (int) round($amount);
 
@@ -218,12 +252,14 @@ class PaymentWebhookController extends Controller
                     $surplusNote = 'Khách chuyển thừa: ' . number_format($surplus, 0, ',', '.') . 'đ (cần đối soát hoàn lại)';
                 }
 
-                if ($isTableOrder) {
-                    $lockedOrder->status = 2; // 2: Completed (Đã thanh toán tại bàn)
+                // 4.4. Phân loại 3 hình thức đơn hàng rõ ràng (Dine-In, POS/Takeaway, Delivery)
+                if ($lockedOrder->isDineIn()) {
+                    // Nhánh 1: Dùng bữa tại bàn (Dine-in) -> Khách thanh toán xong giải phóng bàn và ghi nhận doanh thu ngay
+                    $lockedOrder->status = 2; // 2: Completed
                     $lockedOrder->payment_method = 2; // 2: Chuyển khoản VietQR
                     $lockedOrder->payment_status = Order::PAYMENT_PAID;
                     $lockedOrder->paid_at = now();
-                    $lockedOrder->revenue_recognized_at = now(); // Đơn tại bàn ăn xong thanh toán -> Doanh thu thực hiện ngay
+                    $lockedOrder->revenue_recognized_at = now();
                     $lockedOrder->total_price = $orderTotal > 0 ? $orderTotal : $paidAmount;
                     $lockedOrder->has_new_items = false;
                     if ($surplusNote) {
@@ -233,21 +269,40 @@ class PaymentWebhookController extends Controller
 
                     // Giải phóng bàn đã thanh toán
                     Table::where('locked_order_id', $lockedOrder->id)->update(['locked_order_id' => null]);
+                    if ($lockedOrder->table_id) {
+                        Table::where('id', $lockedOrder->table_id)->update(['status' => 0, 'locked_order_id' => null]);
+                    }
 
                     // Đánh dấu hoàn tất các yêu cầu gọi tính tiền trước đó của bàn này
-                    ServiceCall::where('table_id', $lockedOrder->table_id)
-                        ->where('call_type', 'bill')
-                        ->where('status', ServiceCall::STATUS_PENDING)
-                        ->update([
-                            'status' => ServiceCall::STATUS_COMPLETED,
-                            'handled_at' => Carbon::now(),
-                        ]);
+                    try {
+                        ServiceCall::where('table_id', $lockedOrder->table_id)
+                            ->where('call_type', 'bill')
+                            ->where('status', ServiceCall::STATUS_PENDING)
+                            ->update([
+                                'status' => ServiceCall::STATUS_HANDLED,
+                                'handled_at' => now(),
+                            ]);
+                    } catch (\Throwable $e) {}
+                } elseif ($lockedOrder->isPos() || $lockedOrder->isTakeaway()) {
+                    // Nhánh 2: Bán tại quầy POS hoặc Mang về -> Nhận tiền hoàn tất đơn và ghi nhận doanh thu tức thì
+                    $lockedOrder->status = 2; // 2: Completed
+                    $lockedOrder->payment_method = 2; // 2: Chuyển khoản VietQR
+                    $lockedOrder->payment_status = Order::PAYMENT_PAID;
+                    $lockedOrder->paid_at = now();
+                    $lockedOrder->revenue_recognized_at = now();
+                    $lockedOrder->total_price = $orderTotal > 0 ? $orderTotal : $paidAmount;
+                    $lockedOrder->has_new_items = false;
+                    if ($surplusNote) {
+                        $lockedOrder->delivery_note = ($lockedOrder->delivery_note ? $lockedOrder->delivery_note . ' | ' : '') . $surplusNote;
+                    }
+                    $lockedOrder->save();
                 } else {
-                    // Đơn giao hàng online: Đã thanh toán tiền (paid_at), nhưng revenue_recognized_at chờ giao thành công
+                    // Nhánh 3: Đơn giao hàng online -> Đã thu tiền (paid_at), nhưng revenue_recognized_at chờ giao thành công (delivered)
                     $lockedOrder->status = 1; // 1: PROCESSING (Đang chế biến & Chờ giao)
                     $lockedOrder->payment_method = 'VietQR';
                     $lockedOrder->payment_status = Order::PAYMENT_PAID;
                     $lockedOrder->paid_at = now();
+                    $lockedOrder->revenue_recognized_at = null; // Chưa giao thành công thì chưa ghi nhận doanh thu
                     $lockedOrder->total_price = $orderTotal > 0 ? $orderTotal : $paidAmount;
                     $lockedOrder->has_new_items = true;
                     if ($surplusNote) {
@@ -279,6 +334,17 @@ class PaymentWebhookController extends Controller
         } catch (\Illuminate\Database\QueryException $e) {
             // Bắt lỗi vi phạm Unique Constraint trên reference_code nếu xảy ra race-condition cực điểm
             if ((isset($e->errorInfo[1]) && $e->errorInfo[1] == 1062) || str_contains($e->getMessage(), 'Duplicate entry')) {
+                $conflictTx = \App\Models\PaymentTransaction::where('reference_code', $referenceCode)->first();
+                if ($conflictTx && (int)$conflictTx->order_id !== (int)$order->id) {
+                    Log::warning("1062 Conflict: Mã GD '{$referenceCode}' đã thuộc đơn #{$conflictTx->order_id}.");
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Mã giao dịch {$referenceCode} đã được sử dụng cho đơn hàng #{$conflictTx->order_id}.",
+                        'order_id' => $order->id,
+                        'conflict_order_id' => $conflictTx->order_id,
+                    ], 409);
+                }
+
                 Log::info("Idempotency: Bắt ngoại lệ Duplicate entry 1062 cho mã giao dịch '{$referenceCode}'.");
                 return response()->json([
                     'success' => true,
@@ -303,6 +369,15 @@ class PaymentWebhookController extends Controller
             ]);
         }
 
+        if ($txResult['status'] === 'conflict') {
+            return response()->json([
+                'success' => false,
+                'message' => $txResult['message'],
+                'order_id' => $txResult['order_id'],
+                'conflict_order_id' => $txResult['conflict_order_id'] ?? null,
+            ], 409);
+        }
+
         if ($txResult['status'] === 'already_paid') {
             return response()->json([
                 'success' => true,
@@ -313,21 +388,46 @@ class PaymentWebhookController extends Controller
         }
 
         // Tạo thông báo chuông hệ thống thời gian thực (ServiceCall) để thu ngân & nhân viên nhận toast và chuông reo
-        $tableName = $order->table ? $order->table->name : ($isTableOrder ? "Bàn #{$order->table_id}" : "Đơn online #{$order->id}");
-        ServiceCall::create([
-            'table_id' => $order->table_id,
-            'order_id' => $order->id,
-            'customer_name' => $order->name ?: ($order->table ? $order->table->name : 'Khách VietQR'),
-            'phone' => $order->phone,
-            'call_type' => 'bill',
-            'call_type_label' => 'Đã nhận chuyển khoản VietQR',
-            'note' => "Hệ thống tự động nhận " . number_format((int)round($amount), 0, ',', '.') . "đ qua VietQR (Mã GD: {$referenceCode})",
-            'status' => ServiceCall::STATUS_PENDING,
-            'handled_at' => null,
-        ]);
+        $channelLabel = $order->isDineIn() 
+            ? ($order->table ? $order->table->name : "Bàn #{$order->table_id}")
+            : ($order->isPos() ? "Quầy POS" : "Đơn giao online #{$order->id}");
 
-        // Gửi thông báo hệ thống chính thức cho cả 3 vai trò: Admin, Employee, Customer
-        NotificationService::notifyPaymentSuccess($order, (int)round($amount), $referenceCode);
+        $callLabel = $order->isDineIn()
+            ? 'Đã nhận chuyển khoản VietQR - Dùng bữa tại bàn'
+            : ($order->isPos() ? 'Đã nhận chuyển khoản VietQR - Tại quầy POS' : 'Đã nhận chuyển khoản VietQR - Đơn giao hàng');
+
+        $notificationsSent = [
+            'admin' => false,
+            'employee' => false,
+            'customer' => false,
+        ];
+
+        try {
+            ServiceCall::create([
+                'table_id' => $order->table_id,
+                'order_id' => $order->id,
+                'customer_name' => $order->customer_name ?: 'Khách VietQR',
+                'phone' => $order->customer_phone !== '---' ? $order->customer_phone : null,
+                'call_type' => 'bill',
+                'call_type_label' => $callLabel,
+                'note' => "Hệ thống tự động nhận " . number_format((int)round($amount), 0, ',', '.') . "đ qua VietQR ({$channelLabel}, Mã GD: {$referenceCode})",
+                'status' => ServiceCall::STATUS_PENDING,
+                'handled_at' => null,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error("Không thể tạo ServiceCall cho webhook thanh toán đơn #{$order->id}: " . $e->getMessage());
+        }
+
+        try {
+            NotificationService::notifyPaymentSuccess($order, (int)round($amount), $referenceCode);
+            $notificationsSent = [
+                'admin' => true,
+                'employee' => true,
+                'customer' => true,
+            ];
+        } catch (\Throwable $e) {
+            Log::error("Không thể gửi thông báo thanh toán thành công cho đơn #{$order->id}: " . $e->getMessage());
+        }
 
         session()->flash('payment_success_toast', [
             'title' => 'Thanh toán thành công!',
@@ -342,11 +442,7 @@ class PaymentWebhookController extends Controller
             'order_id' => $order->id,
             'amount' => (int)round($amount),
             'reference_code' => $referenceCode,
-            'notifications_sent' => [
-                'admin' => true,
-                'employee' => true,
-                'customer' => true,
-            ]
+            'notifications_sent' => $notificationsSent,
         ]);
     }
 
@@ -381,6 +477,15 @@ class PaymentWebhookController extends Controller
      */
     public function simulateWebhook(Request $request)
     {
+        // Tuyệt đối không cho phép chạy API giả lập thanh toán trong môi trường Production
+        $isProduction = config('payment.mode', 'demo') === 'production' || app()->environment('production');
+        if ($isProduction) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Not Found: API giả lập webhook không được phép hoạt động trên môi trường Production.'
+            ], 404);
+        }
+
         $orderId = $request->input('order_id');
         $order = Order::find($orderId);
 
