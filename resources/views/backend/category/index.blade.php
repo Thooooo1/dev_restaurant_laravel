@@ -121,8 +121,8 @@
                                     </td>
                                     <td class="text-center whitespace-nowrap" style="text-align: center !important;">
                                         @if ($category->status == 1)
-                                            <a href="{{ route('admin.category.status', ['category' => $category->id]) }}" class="text-gray-700 hover:text-black text-xs font-medium" title="Đang hiển thị - bấm để tắt">
-                                                <i class="fa-solid fa-toggle-on text-base text-gray-800"></i>
+                                            <a href="{{ route('admin.category.status', ['category' => $category->id]) }}" class="text-emerald-600 hover:text-emerald-700 text-xs font-medium" title="Đang hiển thị - bấm để tắt">
+                                                <i class="fa-solid fa-toggle-on text-base text-emerald-600"></i>
                                             </a>
                                         @else
                                             <a href="{{ route('admin.category.status', ['category' => $category->id]) }}" class="text-gray-400 hover:text-gray-600 text-xs font-medium" title="Đang ẩn - bấm để bật">

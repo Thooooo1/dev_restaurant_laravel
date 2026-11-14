@@ -43,7 +43,10 @@
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-semibold bg-stone-100 text-stone-700 border border-stone-200" id="modalTableBadge">
                         <span id="modalTableSubtitleText">{{ $currentTableName ? ('Vị trí: ' . $currentTableName) : 'Chọn số bàn của bạn' }}</span>
                     </span>
-                    <span class="text-[11px] text-stone-500 hidden sm:inline">• Trực bàn sẵn sàng</span>
+                    <span class="inline-flex items-center gap-1.5 text-[11px] text-stone-500 hidden sm:inline-flex">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                        Trực bàn sẵn sàng
+                    </span>
                 </div>
             </div>
         </div>

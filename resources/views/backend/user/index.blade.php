@@ -118,8 +118,8 @@
                                     @if (Auth::user()->isAdmin() || Auth::user()->id == $user->id)
                                         <form action="{{ route('admin.user.toggleLine', $user->id) }}" method="POST" class="inline">
                                             @csrf
-                                            <button type="submit" class="text-gray-700 hover:text-black text-xs font-medium cursor-pointer" title="{{ $user->line == 1 ? 'Online (Bấm để tắt)' : 'Offline (Bấm để bật)' }}">
-                                                <i class="fa-solid {{ $user->line == 1 ? 'fa-toggle-on text-base text-gray-800' : 'fa-toggle-off text-base text-gray-400' }}"></i>
+                                            <button type="submit" class="text-gray-700 hover:text-emerald-600 text-xs font-medium cursor-pointer" title="{{ $user->line == 1 ? 'Online (Bấm để tắt)' : 'Offline (Bấm để bật)' }}">
+                                                <i class="fa-solid {{ $user->line == 1 ? 'fa-toggle-on text-base text-emerald-600' : 'fa-toggle-off text-base text-gray-400' }}"></i>
                                             </button>
                                         </form>
                                     @endif
