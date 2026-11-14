@@ -53,7 +53,7 @@
                 <button type="button" 
                         id="openVietQrModalBtn" 
                         onclick="openVietQrModal()" 
-                        class="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-sm font-bold shadow-xs flex items-center justify-center cursor-pointer transition-all">
+                        class="px-3.5 py-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 rounded-lg text-xs font-bold shadow-2xs flex items-center justify-center cursor-pointer transition-colors">
                     <span>Mở mã QR</span>
                 </button>
             </div>
@@ -201,10 +201,10 @@
 
                         <!-- Countdown Timer & Lắng nghe thời gian thực -->
                         <div class="w-full mt-4 pt-3 border-t border-gray-100 flex items-center justify-center gap-2 text-xs">
-                            <div class="flex items-center gap-1.5 text-gray-500 font-medium">
-                                <i class="fa-regular fa-clock text-blue-600"></i>
+                            <div class="flex items-center gap-1.5 text-gray-600 font-medium">
+                                <i class="fa-regular fa-clock text-gray-500"></i>
                                 <span>Mã QR có hiệu lực:</span>
-                                <span id="posQrCountdown" class="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">03:00</span>
+                                <span id="posQrCountdown" class="font-mono font-bold text-gray-800 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">03:00</span>
                             </div>
                         </div>
                     </div>
@@ -212,14 +212,14 @@
                     <!-- Cột Phải (5 cols): Tổng Tiền & Chi tiết chuyển khoản & Nút thao tác -->
                     <div class="md:col-span-5 flex flex-col justify-between space-y-4">
                         <div class="space-y-3">
-                            <!-- Card Tổng tiền nổi bật (như ảnh thiết kế) -->
-                            <div class="p-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-sm flex items-center justify-between">
+                            <!-- Card Tổng tiền đơn giản, thanh lịch -->
+                            <div class="p-4 bg-white rounded-xl border border-gray-200 shadow-2xs flex items-center justify-between">
                                 <div>
-                                    <span class="text-[11px] uppercase tracking-wider text-blue-100 font-medium block">Tổng thanh toán</span>
-                                    <span class="text-xs text-blue-200">VietQR Napas 247</span>
+                                    <span class="text-xs uppercase tracking-wider text-gray-900 font-bold block">Tổng thanh toán</span>
+                                    <span class="text-xs text-gray-500 font-medium">VietQR (Napas 247)</span>
                                 </div>
                                 <div class="text-right">
-                                    <span class="text-2xl font-black font-mono tracking-tight" id="posQrAmount">0 ₫</span>
+                                    <span class="text-2xl font-black font-mono tracking-tight text-gray-900" id="posQrAmount">0 ₫</span>
                                 </div>
                             </div>
 
@@ -232,8 +232,8 @@
                                 <div class="flex items-center justify-between pt-1 border-t border-gray-100">
                                     <span class="text-gray-500">Nội dung CK:</span>
                                     <div class="flex items-center gap-1">
-                                        <span class="font-mono font-black text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200" id="posQrMemo">BAN{{ $table->id }}</span>
-                                        <button type="button" onclick="copyPosMemo()" class="text-[11px] text-stone-500 hover:text-blue-600 cursor-pointer p-0.5" title="Sao chép nội dung">
+                                        <span class="font-mono font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded border border-gray-200" id="posQrMemo">BAN{{ $table->id }}</span>
+                                        <button type="button" onclick="copyPosMemo()" class="text-[11px] text-gray-500 hover:text-gray-800 cursor-pointer p-0.5" title="Sao chép nội dung">
                                             <i class="fa-regular fa-copy"></i>
                                         </button>
                                     </div>
@@ -258,7 +258,7 @@
                             <button type="button" 
                                     id="posConfirmPayBtn"
                                     onclick="confirmVietQrPaymentNow()" 
-                                    class="w-full py-3 px-4 bg-[#52C41A] hover:bg-[#389E0D] text-white rounded-xl text-sm font-bold transition-all flex items-center justify-center cursor-pointer shadow-md hover:shadow-lg active:scale-[0.99]">
+                                    class="w-full py-2.5 px-4 bg-gray-900 hover:bg-black text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center cursor-pointer shadow-xs active:scale-[0.99]">
                                 <span>Xác nhận thanh toán thành công</span>
                             </button>
                         </div>
