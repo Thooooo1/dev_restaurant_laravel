@@ -191,6 +191,17 @@
             background-color: #ea580c !important;
             border-color: #ea580c !important;
         }
+        .ant-btn-success {
+            color: #FFFFFF !important;
+            background-color: #059669 !important;
+            border-color: #059669 !important;
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.043);
+        }
+        .ant-btn-success:hover, .ant-btn-success:focus, .ant-btn-success:active {
+            color: #FFFFFF !important;
+            background-color: #047857 !important;
+            border-color: #047857 !important;
+        }
         .ant-btn-danger {
             color: #FF4D4F !important;
             background-color: #FFFFFF !important;

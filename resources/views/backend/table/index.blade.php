@@ -8,7 +8,7 @@
             </div>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-sm bg-orange-500 text-white hover:bg-orange-600 border-none shadow-xs font-bold uppercase tracking-wider">
+            <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider">
                 <span>Mở POS Bán Hàng</span>
             </a>
             <a href="{{ route('admin.table.create') }}" class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider">
@@ -251,7 +251,7 @@
 
                                         <!-- Nút Thanh toán (Chuyển sang trang thanh toán POS) -->
                                         <a href="{{ route('admin.table-order.payment', $table->id) }}" 
-                                           class="ant-btn ant-btn-sm bg-emerald-600 text-white hover:bg-emerald-700 border-none font-bold shadow-xs uppercase tracking-wider"
+                                           class="ant-btn ant-btn-sm ant-btn-success !bg-emerald-600 !text-white hover:!bg-emerald-700 !border-emerald-600 font-bold shadow-xs uppercase tracking-wider"
                                            title="Thanh toán hóa đơn cho bàn này (VietQR / Tiền mặt / Quẹt thẻ)">
                                             <span>Thanh toán</span>
                                         </a>
@@ -422,7 +422,7 @@
                         <a id="modalOrderMoreBtn" href="#" class="ant-btn ant-btn-sm bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 font-semibold">
                             <span>Gọi thêm món</span>
                         </a>
-                        <a id="modalPaymentBtn" href="#" class="ant-btn ant-btn-sm bg-emerald-600 text-white hover:bg-emerald-700 font-bold border-none shadow-xs uppercase tracking-wider">
+                        <a id="modalPaymentBtn" href="#" class="ant-btn ant-btn-sm ant-btn-success !bg-emerald-600 !text-white hover:!bg-emerald-700 !border-emerald-600 font-bold shadow-xs uppercase tracking-wider">
                             <span>Thanh toán ngay</span>
                         </a>
                     </div>

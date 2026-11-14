@@ -24,6 +24,23 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
 
+        // Tu dong dong bo migration tren moi truong hosting khong co SSH khi co bang hoac cot moi
+        $migrationFlag = storage_path('framework/migrated_20261114.flag');
+        if (!File::exists($migrationFlag)) {
+            try {
+                if (!\Illuminate\Support\Facades\Schema::hasTable('order_delivery_logs') ||
+                    !\Illuminate\Support\Facades\Schema::hasTable('payment_transactions') ||
+                    !\Illuminate\Support\Facades\Schema::hasColumn('order', 'channel') ||
+                    !\Illuminate\Support\Facades\Schema::hasColumn('order', 'payment_status')) {
+                    @set_time_limit(180);
+                    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                }
+                @File::put($migrationFlag, (string)time());
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Auto-migration error: ' . $e->getMessage());
+            }
+        }
+
         if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         } elseif (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] == 1)) {

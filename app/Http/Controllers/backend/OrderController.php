@@ -323,7 +323,17 @@ class OrderController extends Controller
 
     public function detail($id)
     {
-        $order = Order::with(['orderDetails.product.category', 'table.floor', 'user', 'deliveryLogs.user', 'paymentTransactions'])->findOrFail($id);
+        try {
+            $order = Order::with(['orderDetails.product.category', 'table.floor', 'user', 'deliveryLogs.user', 'paymentTransactions'])->findOrFail($id);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if (str_contains($e->getMessage(), 'cdw1_order_delivery_logs') || str_contains($e->getMessage(), 'cdw1_payment_transactions') || str_contains($e->getMessage(), '1146')) {
+                @set_time_limit(180);
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                $order = Order::with(['orderDetails.product.category', 'table.floor', 'user', 'deliveryLogs.user', 'paymentTransactions'])->findOrFail($id);
+            } else {
+                throw $e;
+            }
+        }
 
         return view('backend.order.orderdetail', compact('order'));
     }

@@ -335,7 +335,7 @@
                                     <label class="block text-[11px] font-semibold text-gray-700 mb-1">Ghi chú bàn giao (tùy chọn):</label>
                                     <input type="text" name="note" placeholder="Ví dụ: Đã kiểm đủ món, gửi kèm túi đá..." class="polaris-input w-full text-xs">
                                 </div>
-                                <button type="submit" class="ant-btn ant-btn-primary w-full text-xs font-bold py-2.5 justify-center bg-emerald-600 hover:bg-emerald-700">
+                                <button type="submit" class="ant-btn ant-btn-success w-full text-xs font-bold py-2.5 justify-center">
                                     Bàn giao món cho khách (Hoàn tất đơn)
                                 </button>
                             </form>

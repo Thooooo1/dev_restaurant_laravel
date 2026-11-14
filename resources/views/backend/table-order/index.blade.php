@@ -1075,7 +1075,7 @@
                         <a id="modalOrderMoreBtn" href="#" class="ant-btn ant-btn-sm bg-orange-50 text-[#F47716] hover:bg-orange-100 border border-orange-200 font-semibold">
                             <span>Gọi thêm món</span>
                         </a>
-                        <a id="modalPaymentBtn" href="#" class="ant-btn ant-btn-sm bg-emerald-600 text-white hover:bg-emerald-700 font-bold border-none shadow-xs uppercase tracking-wider">
+                        <a id="modalPaymentBtn" href="#" class="ant-btn ant-btn-sm ant-btn-success !bg-emerald-600 !text-white hover:!bg-emerald-700 !border-emerald-600 font-bold shadow-xs uppercase tracking-wider">
                             <span>Thanh toán ngay</span>
                         </a>
                     </div>
