@@ -3,11 +3,11 @@
     <!-- Bell Trigger Button (Facebook / Messenger Circle Style) -->
     <button type="button" 
             @click="open = !open; if(open) { window.frontNotiOnOpen && window.frontNotiOnOpen(); }"
-            class="group relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-100 hover:bg-stone-200/80 text-stone-700 hover:text-[#C25E00] transition-all cursor-pointer focus:outline-none"
+            class="group relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-100 hover:bg-stone-200/80 text-stone-700 hover:text-stone-900 transition-all cursor-pointer focus:outline-none"
             title="Thông báo của bạn">
         <i class="fa-regular fa-bell text-base group-hover:scale-110 transition-transform"></i>
-        <!-- Facebook Style Red Badge -->
-        <span class="frontNotiBadge hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-[#E41E3F] text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-xs border-2 border-white leading-none">
+        <!-- Unread Badge -->
+        <span class="frontNotiBadge hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-stone-900 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-xs border-2 border-white leading-none">
             0
         </span>
     </button>
@@ -30,22 +30,22 @@
         <div class="p-4 pb-2.5 border-b border-stone-100 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <h3 class="text-base font-bold text-stone-900 tracking-tight">Thông báo</h3>
-                <span class="frontNotiHeaderCount text-xs px-2 py-0.5 rounded-full bg-orange-100 text-[#C25E00] font-bold">
+                <span class="frontNotiHeaderCount text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-700 font-semibold">
                     0 mới
                 </span>
             </div>
             <button type="button" 
                     onclick="window.frontNotiMarkAllRead(event)"
-                    class="text-xs font-semibold text-[#C25E00] hover:text-[#9A3412] hover:underline cursor-pointer transition-colors">
+                    class="text-xs font-semibold text-stone-600 hover:text-stone-900 hover:underline cursor-pointer transition-colors">
                 Đánh dấu đã đọc tất cả
             </button>
         </div>
 
-        <!-- Filter Tabs: Tất cả / Chưa đọc (Facebook style) -->
+        <!-- Filter Tabs: Tất cả / Chưa đọc -->
         <div class="flex items-center gap-2 px-4 py-2 border-b border-stone-100 bg-stone-50/50 text-xs">
             <button type="button" 
                     onclick="window.frontNotiSetFilter('all')"
-                    class="frontTabAll px-3 py-1 rounded-full font-bold bg-[#C25E00] text-white transition-all cursor-pointer">
+                    class="frontTabAll px-3 py-1 rounded-full font-bold bg-stone-900 text-white transition-all cursor-pointer">
                 Tất cả
             </button>
             <button type="button" 
@@ -66,11 +66,11 @@
         <div class="p-2.5 bg-stone-50 border-t border-stone-100 text-center text-xs text-stone-500 flex items-center justify-between px-4">
             <span class="text-[11px] text-stone-400">Cập nhật tự động thời gian thực</span>
             @if(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()))
-                <a href="{{ route('admin.dashboard') }}" class="font-semibold text-[#C25E00] hover:underline text-xs">
+                <a href="{{ route('admin.dashboard') }}" class="font-semibold text-stone-800 hover:text-black hover:underline text-xs">
                     Vào trang quản trị »
                 </a>
             @else
-                <a href="{{ route('site.orders') }}" class="font-semibold text-[#C25E00] hover:underline text-xs">
+                <a href="{{ route('site.orders') }}" class="font-semibold text-stone-800 hover:text-black hover:underline text-xs">
                     Xem đơn hàng của tôi »
                 </a>
             @endif
@@ -79,7 +79,7 @@
 </div>
 
 @once
-<!-- Facebook Style Floating Toast Popup for Realtime Alerts -->
+<!-- Floating Toast Popup for Realtime Alerts -->
 <div id="frontNotiToastContainer" class="fixed top-20 right-4 z-50 space-y-2 pointer-events-none max-w-sm w-full"></div>
 
 <script>
@@ -90,22 +90,6 @@
     let currentFilter = 'all';
     let currentUnreadCount = 0;
     let isFirstLoad = true;
-
-    // Helper: phân loại nhãn badge không icon
-    function getTypeBadgeClass(type) {
-        switch(type) {
-            case 'booking':
-                return 'bg-purple-100 text-purple-800';
-            case 'service_call':
-                return 'bg-amber-100 text-amber-800';
-            case 'order':
-                return 'bg-orange-100 text-[#C25E00]';
-            case 'payment':
-                return 'bg-emerald-100 text-emerald-800';
-            default:
-                return 'bg-stone-100 text-stone-700';
-        }
-    }
 
     function getTypeLabel(type) {
         switch(type) {
@@ -167,12 +151,12 @@
         currentFilter = filter;
         document.querySelectorAll('.frontTabAll').forEach(el => {
             el.className = filter === 'all' 
-                ? 'frontTabAll px-3 py-1 rounded-full font-bold bg-[#C25E00] text-white transition-all cursor-pointer'
+                ? 'frontTabAll px-3 py-1 rounded-full font-bold bg-stone-900 text-white transition-all cursor-pointer'
                 : 'frontTabAll px-3 py-1 rounded-full font-medium text-stone-600 hover:bg-stone-200/60 transition-all cursor-pointer';
         });
         document.querySelectorAll('.frontTabUnread').forEach(el => {
             el.className = filter === 'unread'
-                ? 'frontTabUnread px-3 py-1 rounded-full font-bold bg-[#C25E00] text-white transition-all cursor-pointer'
+                ? 'frontTabUnread px-3 py-1 rounded-full font-bold bg-stone-900 text-white transition-all cursor-pointer'
                 : 'frontTabUnread px-3 py-1 rounded-full font-medium text-stone-600 hover:bg-stone-200/60 transition-all cursor-pointer';
         });
         window.frontNotiFetch();
@@ -254,7 +238,7 @@
         } else {
             items.forEach(item => {
                 const isUnread = !item.is_read;
-                const bgClass = isUnread ? 'bg-amber-50/50 hover:bg-amber-50/80 font-medium' : 'bg-white hover:bg-stone-50';
+                const bgClass = isUnread ? 'bg-stone-50 hover:bg-stone-100/70 font-medium' : 'bg-white hover:bg-stone-50';
                 
                 html += `
                     <div class="p-3.5 flex items-start gap-3 transition-colors cursor-pointer ${bgClass} relative group border-b border-stone-100 last:border-b-0" 
@@ -263,7 +247,7 @@
                         
                         <div class="flex-1 min-w-0 pr-2">
                             <div class="flex items-center justify-between gap-2 mb-1">
-                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wide uppercase ${getTypeBadgeClass(item.type)}">
+                                <span class="text-[11px] font-bold text-stone-900 uppercase tracking-wide">
                                     ${getTypeLabel(item.type)}
                                 </span>
                                 <span class="text-[11px] text-stone-400 shrink-0 font-normal">
@@ -278,7 +262,7 @@
                             </p>
                         </div>
 
-                        ${isUnread ? '<span class="w-2 h-2 rounded-full bg-[#C25E00] shrink-0 mt-2" title="Chưa đọc"></span>' : ''}
+                        ${isUnread ? '<span class="w-2 h-2 rounded-full bg-stone-900 shrink-0 mt-2" title="Chưa đọc"></span>' : ''}
                     </div>
                 `;
             });
@@ -309,9 +293,9 @@
 
         const items = document.querySelectorAll(`[id="noti-item-${id}"]`);
         items.forEach(itemEl => {
-            itemEl.classList.remove('bg-amber-50/50', 'hover:bg-amber-50/80', 'font-medium');
+            itemEl.classList.remove('bg-stone-50', 'hover:bg-stone-100/70', 'font-medium');
             itemEl.classList.add('bg-white', 'hover:bg-stone-50');
-            const dot = itemEl.querySelector('.bg-\\[\\#C25E00\\]');
+            const dot = itemEl.querySelector('.bg-stone-900');
             if (dot) dot.remove();
         });
 

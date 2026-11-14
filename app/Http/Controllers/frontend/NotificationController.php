@@ -27,14 +27,34 @@ class NotificationController extends Controller
         }
 
         $notifications = $query->take(25)->get()->map(function ($noti) {
+            $title = $noti->title;
+            $message = $noti->message;
+
+            // Khử lặp lại số tiền nếu tiêu đề đã nêu số tiền
+            $amount = null;
+            if (preg_match('/(?:\(|\:\s*)(\d{1,3}(?:\.\d{3})+)\s*[₫đ]?\s*(?:\)|\!|$)/ui', $title, $m)) {
+                $amount = $m[1];
+            } elseif (preg_match('/(\d{1,3}(?:\.\d{3})+)\s*(?:₫|đ(?![a-zà-ỹ]))/ui', $title, $m)) {
+                $amount = $m[1];
+            }
+
+            if ($amount) {
+                $amountPattern = preg_quote($amount, '/') . '\s*(?:₫|đ(?![a-zà-ỹ])|vnd)?';
+                $message = preg_replace('/(thành công\s+)' . $amountPattern . '\s*/ui', '$1', $message);
+                $message = preg_replace('/(nhận\s+(?:được\s+)?)' . $amountPattern . '\s*/ui', '$1thanh toán ', $message);
+                $message = preg_replace('/\s*' . $amountPattern . '\s*/ui', ' ', $message);
+                $message = preg_replace('/số\s+tiền\s+đã\s+/ui', 'đã ', $message);
+                $message = preg_replace('/\s{2,}/', ' ', trim($message));
+            }
+
             return [
                 'id' => $noti->id,
                 'type' => $noti->type,
-                'title' => $noti->title,
-                'message' => $noti->message,
+                'title' => $title,
+                'message' => $message,
                 'url' => $noti->url ?: 'javascript:void(0)',
                 'icon' => $noti->icon ?: 'fa-bell',
-                'color' => $noti->color ?: '#F47716',
+                'color' => '#1C1917',
                 'is_read' => (bool)$noti->is_read,
                 'time_ago' => $noti->created_at ? $noti->created_at->locale('vi')->diffForHumans() : 'Vừa xong',
                 'created_at' => $noti->created_at ? $noti->created_at->toIso8601String() : null,
