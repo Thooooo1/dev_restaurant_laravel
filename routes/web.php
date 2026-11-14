@@ -292,6 +292,8 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
 
     // Dishes & Bill Breakdown for Table (Dành cho POS cả Admin & Employee)
     Route::get('/table/{id}/dishes', [TableController::class, 'getTableDishes'])->name('admin.table.dishes');
+    // Xem và in mã QR để bàn (Dành cho cả Admin & Nhân viên phục vụ)
+    Route::get('/table/{id}/qr', [TableController::class, 'downloadQr'])->name('admin.table.qr');
 
     // ==============================
     // ROUTE CHỈ CHO ADMIN
@@ -560,8 +562,6 @@ HTML;
             Route::get('/trash', [TableController::class, 'trash'])->name('admin.table.trash');
             Route::post('/{id}/restore', [TableController::class, 'restore'])->name('admin.table.restore');
             Route::delete('/{id}/destroy', [TableController::class, 'destroy'])->name('admin.table.destroy');
-            // Download QR
-            Route::get('/{id}/qr', [TableController::class, 'downloadQr'])->name('admin.table.qr');
         });
 
         // Settings (Cài đặt hệ thống)
