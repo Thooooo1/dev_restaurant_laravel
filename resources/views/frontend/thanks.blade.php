@@ -9,9 +9,6 @@
 
         <div class="container mx-auto px-4 max-w-lg pt-10 sm:pt-14">
             <div class="bg-white rounded-none sm:rounded-sm border-t-4 border-t-[#C25E00] border-x border-b border-stone-200/90 shadow-md p-8 sm:p-10 text-center">
-                <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto mb-4 text-2xl">
-                    <i class="fa-solid fa-check"></i>
-                </div>
                 <h2 class="text-2xl font-black font-serif text-stone-900 mb-2">Đặt Hàng Hoàn Tất!</h2>
                 <p class="text-xs sm:text-sm text-stone-600 leading-relaxed mb-6">
                     Món ăn của bạn đang được các đầu bếp chuẩn bị nóng sốt. Nhân viên nhà hàng sẽ liên hệ xác nhận trong giây lát.
