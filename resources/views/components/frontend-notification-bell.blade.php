@@ -30,7 +30,7 @@
         <div class="p-4 pb-2.5 border-b border-stone-100 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <h3 class="text-base font-bold text-stone-900 tracking-tight">Thông báo</h3>
-                <span class="frontNotiHeaderCount text-xs px-2 py-0.5 rounded-full bg-stone-100 text-stone-700 font-semibold">
+                <span class="frontNotiHeaderCount text-xs px-2.5 py-0.5 rounded-full bg-red-100 text-red-600 font-bold">
                     0 mới
                 </span>
             </div>
