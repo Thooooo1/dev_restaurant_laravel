@@ -322,64 +322,61 @@
         <!-- Backdrop blur -->
         <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity" onclick="closeDishesModal()"></div>
 
-        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-            <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-gray-100">
+        <div class="flex min-h-full items-center justify-center p-3 text-center sm:p-4">
+            <div class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:my-6 sm:w-full sm:max-w-xl border border-gray-150">
                 
-                <!-- Modal Header: Nền trắng chữ đen thanh lịch, hiện đại -->
-                <div class="px-6 py-4 bg-white text-gray-900 flex items-center justify-between border-b border-gray-100">
+                <!-- Modal Header: Tinh gọn, thanh lịch -->
+                <div class="px-5 py-3.5 bg-white text-gray-900 flex items-center justify-between border-b border-gray-100">
                     <div>
-                        <h3 class="text-base font-bold text-gray-900" id="modalTableTitle">Chi tiết món ăn bàn</h3>
-                        <p class="text-xs text-gray-500 mt-0.5" id="modalTableSub">Đang tải thông tin bàn...</p>
+                        <h3 class="text-sm sm:text-base font-bold text-gray-900" id="modalTableTitle">Chi tiết món ăn bàn</h3>
+                        <p class="text-[11px] text-gray-500 mt-0.5" id="modalTableSub">Đang tải thông tin bàn...</p>
                     </div>
-                    <button type="button" onclick="closeDishesModal()" class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:text-gray-800 hover:bg-gray-100 flex items-center justify-center transition-colors font-bold text-sm cursor-pointer border border-gray-200" aria-label="Đóng">
+                    <button type="button" onclick="closeDishesModal()" class="w-7 h-7 rounded-md bg-gray-50 text-gray-400 hover:text-gray-800 hover:bg-gray-100 flex items-center justify-center transition-colors font-bold text-xs cursor-pointer border border-gray-200" aria-label="Đóng">
                         ✕
                     </button>
                 </div>
 
                 <!-- Modal Body Loading Skeleton -->
                 <div id="modalLoading" class="p-8 text-center">
-                    <div class="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-                    <p class="text-xs text-gray-500 font-medium">Đang lấy dữ liệu món ăn thời gian thực...</p>
+                    <div class="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-2.5"></div>
+                    <p class="text-xs text-gray-500 font-medium">Đang tải dữ liệu gọi món...</p>
                 </div>
 
                 <!-- Modal Body Empty State -->
                 <div id="modalEmptyState" class="p-8 text-center hidden">
                     <h4 class="text-sm font-bold text-gray-800" id="modalEmptyMessage">Bàn này hiện đang trống</h4>
                     <p class="text-xs text-gray-500 mt-1 max-w-sm mx-auto">Chưa có lượt khách nào đăng ký gọi món tại bàn này.</p>
-                    <div class="mt-4">
-                        <a id="modalEmptyOrderBtn" href="#" class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider">
-                            <span>Mở bàn & Gọi món ngay</span>
+                    <div class="mt-3.5">
+                        <a id="modalEmptyOrderBtn" href="#" class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider text-xs">
+                            <span>Mở bàn & Gọi món</span>
                         </a>
                     </div>
                 </div>
 
-                <!-- Modal Body Content -->
-                <div id="modalContent" class="p-6 hidden">
-                    <!-- Customer & Order Meta -->
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 bg-gray-50 rounded-xl mb-4 text-xs border border-gray-100">
-                        <div>
-                            <span class="text-gray-400 block text-[11px]">Mã đơn hàng:</span>
+                <!-- Modal Body Content: Tinh gọn & có thanh cuộn mượt cho danh sách món -->
+                <div id="modalContent" class="p-4 sm:p-5 hidden">
+                    <!-- Customer & Order Meta: Thanh 1 dòng tinh giản, loại bỏ chiếm chỗ dọc -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-gray-50 rounded-lg text-xs border border-gray-100 mb-3">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="text-gray-400 text-[11px]">Đơn:</span>
                             <span class="font-mono font-bold text-gray-800" id="modalOrderCode">#00</span>
+                            <span class="text-gray-300">•</span>
+                            <span class="font-medium text-gray-700" id="modalCustomerName">Khách tại bàn</span>
                         </div>
-                        <div>
-                            <span class="text-gray-400 block text-[11px]">Khách hàng:</span>
-                            <span class="font-semibold text-gray-800" id="modalCustomerName">Khách tại bàn</span>
-                        </div>
-                        <div>
-                            <span class="text-gray-400 block text-[11px]">Bắt đầu ngồi:</span>
-                            <span class="font-semibold text-gray-800" id="modalSeatedTime">Vừa xong</span>
+                        <div class="text-gray-500 text-[11px]">
+                            <span class="text-gray-400">Ngồi: </span><span class="font-medium text-gray-700" id="modalSeatedTime">Vừa xong</span>
                         </div>
                     </div>
 
-                    <!-- Dishes List Table -->
-                    <div class="border border-gray-200 rounded-xl overflow-hidden mb-4 shadow-2xs">
+                    <!-- Dishes List Table: Cuộn tối đa khi nhiều món, không làm tràn màn hình -->
+                    <div class="border border-gray-200 rounded-lg overflow-hidden mb-3 shadow-2xs max-h-56 sm:max-h-64 overflow-y-auto">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold uppercase text-[10px]">
+                            <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold uppercase text-[10px] sticky top-0 z-10">
                                 <tr>
-                                    <th class="py-2.5 px-3">Món ăn</th>
-                                    <th class="py-2.5 px-3 text-center w-20">SL</th>
-                                    <th class="py-2.5 px-3 text-right w-28">Đơn giá</th>
-                                    <th class="py-2.5 px-3 text-right w-32">Thành tiền</th>
+                                    <th class="py-2 px-2.5">Món ăn</th>
+                                    <th class="py-2 px-2 text-center w-14">SL</th>
+                                    <th class="py-2 px-2 text-right w-24">Đơn giá</th>
+                                    <th class="py-2 px-2.5 text-right w-24">Thành tiền</th>
                                 </tr>
                             </thead>
                             <tbody id="modalDishesTableBody" class="divide-y divide-gray-100">
@@ -388,41 +385,38 @@
                         </table>
                     </div>
 
-                    <!-- Summary & Totals -->
-                    <div class="bg-gradient-to-br from-amber-50/60 to-orange-50/60 p-4 rounded-xl border border-orange-100/80 space-y-1.5 text-xs">
-                        <div class="flex justify-between text-gray-600">
+                    <!-- Summary & Totals: Thiết kế tinh gọn, số liệu rõ ràng -->
+                    <div class="bg-amber-50/50 p-3 rounded-lg border border-amber-200/60 space-y-1 text-xs">
+                        <div class="flex justify-between items-center text-gray-600">
                             <span>Tạm tính (<span id="modalTotalItems">0</span> món):</span>
-                            <span class="font-semibold text-gray-900" id="modalSubtotal">0₫</span>
+                            <span class="font-mono font-semibold text-gray-900" id="modalSubtotal">0₫</span>
                         </div>
-                        <div class="flex justify-between text-emerald-700" id="modalDiscountRow">
-                            <span>Chiết khấu / Ưu đãi:</span>
-                            <span class="font-semibold" id="modalDiscount">-0₫</span>
+                        <div class="flex justify-between items-center text-emerald-700 hidden" id="modalDiscountRow">
+                            <span>Ưu đãi / Giảm giá:</span>
+                            <span class="font-mono font-semibold" id="modalDiscount">-0₫</span>
                         </div>
-                        <div class="pt-2 border-t border-orange-200/60 flex justify-between items-center text-sm">
-                            <span class="font-bold text-gray-900 uppercase tracking-wide">Tổng tiền thanh toán:</span>
-                            <span class="font-black text-xl text-[#F47716]" id="modalFinalTotal">0₫</span>
+                        <div class="pt-1.5 border-t border-amber-200/60 flex justify-between items-center">
+                            <span class="font-bold text-gray-900 uppercase text-xs">Tổng thanh toán:</span>
+                            <span class="font-black text-base sm:text-lg text-[#F47716] font-mono" id="modalFinalTotal">0₫</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Modal Footer Actions -->
-                <div class="px-6 py-3.5 bg-gray-50 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <a id="modalBillLink" href="#" target="_blank" class="ant-btn ant-btn-sm text-gray-700 hover:text-blue-600 border border-gray-200 font-medium">
-                            <span>Hóa đơn & QR khách</span>
-                        </a>
-                        <a id="modalQrLink" href="#" class="ant-btn ant-btn-sm text-gray-700 hover:text-gray-900 border border-gray-200 font-medium">
-                            <span>Mã QR để bàn</span>
+                <!-- Modal Footer Actions: Tinh gọn các nút điều hướng -->
+                <div class="px-4 sm:px-5 py-3 bg-gray-50 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div>
+                        <a id="modalBillLink" href="#" target="_blank" class="ant-btn ant-btn-sm text-gray-700 hover:text-blue-600 border border-gray-200 font-medium text-xs">
+                            <span>Hóa đơn khách</span>
                         </a>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button type="button" onclick="closeDishesModal()" class="ant-btn ant-btn-sm text-gray-600 hover:text-gray-800 font-medium cursor-pointer">
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="closeDishesModal()" class="ant-btn ant-btn-sm text-gray-600 hover:text-gray-800 font-medium cursor-pointer text-xs">
                             Đóng
                         </button>
-                        <a id="modalOrderMoreBtn" href="#" class="ant-btn ant-btn-sm bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 font-semibold">
+                        <a id="modalOrderMoreBtn" href="#" class="ant-btn ant-btn-sm bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 font-semibold text-xs">
                             <span>Gọi thêm món</span>
                         </a>
-                        <a id="modalPaymentBtn" href="#" class="ant-btn ant-btn-sm ant-btn-success !bg-emerald-600 !text-white hover:!bg-emerald-700 !border-emerald-600 font-bold shadow-xs uppercase tracking-wider">
+                        <a id="modalPaymentBtn" href="#" class="ant-btn ant-btn-sm ant-btn-success !bg-emerald-600 !text-white hover:!bg-emerald-700 !border-emerald-600 font-bold shadow-xs uppercase tracking-wider text-xs">
                             <span>Thanh toán ngay</span>
                         </a>
                     </div>
@@ -473,7 +467,8 @@
                     document.getElementById('modalPaymentBtn').classList.add('hidden');
                     document.getElementById('modalOrderMoreBtn').classList.add('hidden');
                     document.getElementById('modalBillLink').classList.add('hidden');
-                    document.getElementById('modalQrLink').href = `/admin/table/${tableId}/qr`;
+                    const qrLink = document.getElementById('modalQrLink');
+                    if (qrLink) qrLink.href = `/admin/table/${tableId}/qr`;
                     return;
                 }
 
@@ -499,25 +494,28 @@
                 data.dishes.forEach((dish, idx) => {
                     const row = document.createElement('tr');
                     row.className = 'hover:bg-amber-50/20 transition-colors';
+                    const turnBadge = dish.order_turn > 1 
+                        ? `<span class="inline-block text-[9px] text-amber-700 bg-amber-50 px-1 py-0.2 rounded font-medium border border-amber-200 mt-0.5">Đợt #${dish.order_turn}</span>` 
+                        : '';
                     row.innerHTML = `
-                        <td class="py-2.5 px-3">
-                            <div class="flex items-center gap-2.5">
-                                <img src="${dish.thumbnail}" alt="${dish.name}" class="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-200 shadow-2xs" onerror="this.src='{{ asset('/images/default-product.png') }}'"/>
-                                <div>
-                                    <div class="font-semibold text-gray-900">${dish.name}</div>
-                                    <div class="text-[10px] text-gray-400">Lượt gọi #${dish.order_turn}</div>
+                        <td class="py-1.5 px-2.5">
+                            <div class="flex items-center gap-2">
+                                <img src="${dish.thumbnail}" alt="${dish.name}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-md object-cover shrink-0 border border-gray-200 shadow-2xs" onerror="this.src='{{ asset('/images/default-product.png') }}'"/>
+                                <div class="min-w-0">
+                                    <div class="font-semibold text-gray-900 text-xs truncate max-w-[200px] sm:max-w-[240px]" title="${dish.name}">${dish.name}</div>
+                                    ${turnBadge}
                                 </div>
                             </div>
                         </td>
-                        <td class="py-2.5 px-3 text-center font-bold text-gray-800">
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 text-[11px]">
+                        <td class="py-1.5 px-2 text-center font-bold text-gray-800 text-xs">
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 text-gray-800 text-[10px]">
                                 x${dish.qty}
                             </span>
                         </td>
-                        <td class="py-2.5 px-3 text-right font-mono text-gray-600">
+                        <td class="py-1.5 px-2 text-right font-mono text-[11px] text-gray-500">
                             ${dish.price_formatted}
                         </td>
-                        <td class="py-2.5 px-3 text-right font-mono font-bold text-gray-900">
+                        <td class="py-1.5 px-2.5 text-right font-mono font-bold text-xs text-gray-900">
                             ${dish.amount_formatted}
                         </td>
                     `;
@@ -542,7 +540,8 @@
                 document.getElementById('modalPaymentBtn').href = data.urls.payment_url;
                 document.getElementById('modalOrderMoreBtn').href = data.urls.order_url;
                 document.getElementById('modalBillLink').href = data.urls.bill_url;
-                document.getElementById('modalQrLink').href = data.urls.qr_url;
+                const qrLink = document.getElementById('modalQrLink');
+                if (qrLink) qrLink.href = data.urls.qr_url;
             })
             .catch(err => {
                 loading.classList.add('hidden');
