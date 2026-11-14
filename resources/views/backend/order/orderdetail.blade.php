@@ -285,24 +285,77 @@
                             <span class="text-xs font-bold text-gray-700">Điều chỉnh trạng thái (Admin):</span>
                             <span class="text-[10px] text-gray-400">Chỉ Admin mới có quyền can thiệp</span>
                         </div>
-                        <div class="flex gap-2 items-center">
-                            <div class="flex-1">
-                                <select name="status" class="polaris-select w-full text-xs font-medium">
-                                    <option value="0" {{ (int)$order->status === 0 ? 'selected' : '' }}>0 - Chờ xử lý</option>
-                                    <option value="1" {{ (int)$order->status === 1 ? 'selected' : '' }}>1 - Đang chế biến / Giao hàng</option>
-                                    <option value="2" {{ (int)$order->status === 2 ? 'selected' : '' }}>2 - Hoàn tất</option>
-                                    <option value="3" {{ (int)$order->status === 3 ? 'selected' : '' }}>3 - Đã hủy đơn</option>
-                                </select>
+                        <div class="space-y-2">
+                            <div class="flex gap-2 items-center">
+                                <div class="flex-1">
+                                    <select name="status" class="polaris-select w-full text-xs font-medium">
+                                        <option value="0" {{ (int)$order->status === 0 ? 'selected' : '' }}>0 - Chờ xử lý</option>
+                                        <option value="1" {{ (int)$order->status === 1 ? 'selected' : '' }}>1 - Đang chế biến / Giao hàng</option>
+                                        <option value="2" {{ (int)$order->status === 2 ? 'selected' : '' }}>2 - Hoàn tất</option>
+                                        <option value="3" {{ (int)$order->status === 3 ? 'selected' : '' }}>3 - Đã hủy đơn</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="ant-btn ant-btn-primary text-xs font-bold py-2 px-4 justify-center">
+                                    Cập nhật
+                                </button>
                             </div>
-                            <button type="submit" class="ant-btn ant-btn-primary text-xs font-bold py-2 px-4 justify-center">
-                                Cập nhật
-                            </button>
+                            <input type="text" name="reason" placeholder="Lý do điều chỉnh (bắt buộc khi hủy đơn đã thanh toán)" class="polaris-input w-full text-xs">
                         </div>
                     </form>
                     @endif
                 </div>
 
-                @if(!$isTableOrder)
+                @if($order->isTakeaway() || $order->isPos())
+                <!-- Thẻ Bàn giao món cho khách mang về / tại quầy -->
+                <div class="ant-card p-5">
+                    <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+                        <span>Bàn giao món ({{ $order->isTakeaway() ? 'Đơn mang về' : 'Đơn tại quầy' }})</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold {{ (int)$order->status === 2 ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800' }}">
+                            {{ $order->status_label }}
+                        </span>
+                    </h3>
+
+                    @if((int)$order->status === 2)
+                        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs space-y-1.5 text-emerald-800">
+                            <div class="font-bold">Đã bàn giao món thành công cho khách</div>
+                            <div class="text-[11px]">
+                                Doanh thu ghi nhận: <strong>{{ $order->revenue_recognized_at ? $order->revenue_recognized_at->format('H:i:s d/m/Y') : 'Đã ghi nhận' }}</strong>
+                            </div>
+                            @if($order->delivery_note)
+                                <div class="text-[11px] italic text-emerald-700">
+                                    {{ $order->delivery_note }}
+                                </div>
+                            @endif
+                        </div>
+                    @elseif((int)$order->status === 1)
+                        @if($order->payment_status === 'paid' || $order->isPaid())
+                            <form action="{{ route('admin.order.handover', $order->id) }}" method="POST" class="space-y-3 text-xs">
+                                @csrf
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-700 mb-1">Ghi chú bàn giao (tùy chọn):</label>
+                                    <input type="text" name="note" placeholder="Ví dụ: Đã kiểm đủ món, gửi kèm túi đá..." class="polaris-input w-full text-xs">
+                                </div>
+                                <button type="submit" class="ant-btn ant-btn-primary w-full text-xs font-bold py-2.5 justify-center bg-emerald-600 hover:bg-emerald-700">
+                                    Bàn giao món cho khách (Hoàn tất đơn)
+                                </button>
+                            </form>
+                        @else
+                            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 space-y-2">
+                                <div class="font-bold">Chưa thể bàn giao món:</div>
+                                <div>Đơn hàng chưa được thanh toán. Nhân viên cần thu tiền hoặc chờ webhook VietQR xác nhận trước khi bàn giao món cho khách.</div>
+                            </div>
+                        @endif
+                    @elseif((int)$order->status === 3)
+                        <div class="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800">
+                            Đơn hàng đã bị hủy.
+                        </div>
+                    @else
+                        <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-600">
+                            Đơn hàng đang chờ xử lý.
+                        </div>
+                    @endif
+                </div>
+                @elseif($order->isDelivery())
                 <!-- Thẻ Phân công Shipper & Tiến trình giao hàng (Không cần tài khoản Shipper) -->
                 <div class="ant-card p-5">
                     <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
@@ -367,6 +420,7 @@
                         </div>
                     </form>
                 </div>
+                @endif
 
                 <!-- Thẻ Nhật ký điều phối & Giao hàng (Audit Trail) -->
                 <div class="ant-card p-5">

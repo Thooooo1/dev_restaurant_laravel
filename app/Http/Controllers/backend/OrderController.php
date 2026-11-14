@@ -56,43 +56,87 @@ class OrderController extends Controller
             abort(403, 'Chỉ Quản trị viên (Admin) mới có quyền cập nhật đơn hàng.');
         }
 
-        $order = Order::find($id);
-        if (!$order) {
-            return redirect()->route('admin.order.index')->with('error', 'Đơn hàng không tồn tại');
-        }
-
         // Chỉ cho phép cập nhật status (0..3). Tuyệt đối không cho phép đổi payment_status hay payment_method qua form này
         $request->validate([
             'status' => 'required|integer|in:0,1,2,3',
+            'reason' => 'nullable|string|max:1000',
         ], [
             'status.in' => 'Trạng thái đơn hàng không hợp lệ (chỉ chấp nhận từ 0 đến 3).',
         ]);
 
-        $fromStatus = (int)$order->status;
-        $toStatus = (int)$request->status;
+        try {
+            $order = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $id, $user) {
+                $order = Order::with('orderDetails.product')->where('id', $id)->lockForUpdate()->firstOrFail();
 
-        $order->status = $toStatus;
-        $order->updated_by = $user->id;
-        $order->save();
+                $fromStatus = (int)$order->status;
+                $toStatus = (int)$request->status;
 
-        // Release merged tables if order is completed or cancelled
-        if (!in_array((int)$order->status, [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])) {
-             \App\Models\Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
+                if ($toStatus === \App\Enums\OrderStatus::CANCELLED) {
+                    // Nếu đơn hàng đã thanh toán, phải thực hiện quy trình hoàn tiền chính thức
+                    if ($order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
+                        $reason = $request->input('reason') ?: 'Admin hủy đơn hàng đã thanh toán';
+                        $order->markAsRefunded($reason);
+                    }
+
+                    // Hoàn trả tồn kho cho tất cả sản phẩm trong đơn hàng
+                    foreach ($order->orderDetails as $detail) {
+                        if ($detail->product) {
+                            $detail->product->increment('qty', $detail->qty);
+                        }
+                    }
+                } elseif ($toStatus === \App\Enums\OrderStatus::COMPLETED) {
+                    if ($order->isPaid() && !$order->revenue_recognized_at) {
+                        $order->revenue_recognized_at = now();
+                    }
+                }
+
+                $order->status = $toStatus;
+                $order->updated_by = $user->id;
+                $order->save();
+
+                // Release merged tables if order is completed or cancelled
+                if (!in_array((int)$order->status, [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])) {
+                    \App\Models\Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
+                }
+
+                // Ghi nhật ký kiểm toán (Audit Trail)
+                \App\Models\OrderDeliveryLog::create([
+                    'order_id' => $order->id,
+                    'user_id' => $user->id,
+                    'from_delivery_status' => $order->delivery_status,
+                    'to_delivery_status' => $order->delivery_status,
+                    'from_order_status' => $fromStatus,
+                    'to_order_status' => $toStatus,
+                    'shipper_name' => $order->shipper_name,
+                    'shipper_phone' => $order->shipper_phone,
+                    'note' => 'Admin cập nhật trạng thái đơn hàng từ ' . \App\Enums\OrderStatus::getLabel($fromStatus) . ' sang ' . \App\Enums\OrderStatus::getLabel($toStatus) . ($request->reason ? (' - Lý do: ' . $request->reason) : ''),
+                    'created_at' => now(),
+                ]);
+
+                return $order;
+            });
+        } catch (\DomainException $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Lỗi transaction cập nhật đơn hàng: ' . $e->getMessage());
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Lỗi hệ thống khi cập nhật đơn hàng.'], 500);
+            }
+            return redirect()->back()->with('error', 'Lỗi hệ thống khi cập nhật đơn hàng: ' . $e->getMessage());
         }
 
-        // Ghi nhật ký kiểm toán (Audit Trail)
-        \App\Models\OrderDeliveryLog::create([
-            'order_id' => $order->id,
-            'user_id' => $user->id,
-            'from_delivery_status' => $order->delivery_status,
-            'to_delivery_status' => $order->delivery_status,
-            'from_order_status' => $fromStatus,
-            'to_order_status' => $toStatus,
-            'shipper_name' => $order->shipper_name,
-            'shipper_phone' => $order->shipper_phone,
-            'note' => 'Admin cập nhật trạng thái đơn hàng từ ' . \App\Enums\OrderStatus::getLabel($fromStatus) . ' sang ' . \App\Enums\OrderStatus::getLabel($toStatus),
-            'created_at' => now(),
-        ]);
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật trạng thái đơn hàng thành công!',
+                'order_status' => (int)$order->status,
+                'order_status_label' => $order->status_label,
+                'payment_status' => $order->payment_status,
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Cập nhật trạng thái đơn hàng thành công!');
     }
@@ -112,6 +156,10 @@ class OrderController extends Controller
             $order = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $id) {
                 // 1. Khóa bi quan hàng đơn hàng (Pessimistic Locking) để chống race-condition
                 $order = Order::where('id', $id)->lockForUpdate()->firstOrFail();
+
+                if (!$order->isDelivery()) {
+                    throw new \DomainException('Thao tác điều phối shipper chỉ áp dụng cho đơn giao hàng (Delivery).');
+                }
 
                 $fromDeliveryStatus = $order->delivery_status;
                 $fromOrderStatus = (int)$order->status;
@@ -176,6 +224,62 @@ class OrderController extends Controller
         }
 
         return redirect()->back()->with('success', 'Cập nhật tiến trình giao hàng thành công!');
+    }
+
+    /**
+     * Bàn giao món trực tiếp cho khách (áp dụng cho đơn Takeaway hoặc POS)
+     * Thao tác này chuyển trạng thái sang COMPLETED và chính thức ghi nhận doanh thu
+     */
+    public function markHandedOver(Request $request, $id)
+    {
+        try {
+            $order = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $id) {
+                $order = Order::where('id', $id)->lockForUpdate()->firstOrFail();
+                $fromStatus = (int)$order->status;
+                $actorId = \Illuminate\Support\Facades\Auth::id();
+                $note = $request->input('note');
+
+                $order->markAsHandedOver($actorId, $note);
+
+                \App\Models\OrderDeliveryLog::create([
+                    'order_id' => $order->id,
+                    'user_id' => $actorId,
+                    'from_delivery_status' => $order->delivery_status,
+                    'to_delivery_status' => $order->delivery_status,
+                    'from_order_status' => $fromStatus,
+                    'to_order_status' => (int)$order->status,
+                    'shipper_name' => $order->shipper_name,
+                    'shipper_phone' => $order->shipper_phone,
+                    'note' => 'Bàn giao món cho khách: ' . ($note ?: 'Thành công'),
+                    'created_at' => now(),
+                ]);
+
+                return $order;
+            });
+        } catch (\DomainException $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Lỗi transaction bàn giao món: ' . $e->getMessage());
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Lỗi hệ thống khi bàn giao món.'], 500);
+            }
+            return redirect()->back()->with('error', 'Lỗi hệ thống khi bàn giao món: ' . $e->getMessage());
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Bàn giao món cho khách thành công!',
+                'order_status' => (int)$order->status,
+                'order_status_label' => $order->status_label,
+                'revenue_recognized_at' => $order->revenue_recognized_at?->toIso8601String(),
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Bàn giao món cho khách thành công!');
     }
 
     /**

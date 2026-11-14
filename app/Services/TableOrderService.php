@@ -80,6 +80,11 @@ class TableOrderService
         return DB::transaction(function () use ($tableId, $items, $turn) {
             $order = static::getOrCreateActiveOrder($tableId);
 
+            $hasExisting = $order->orderDetails()->exists();
+            if ($hasExisting && $turn === null) {
+                $order->order_turn = ($order->order_turn ?? 1) + 1;
+            }
+
             foreach ($items as $item) {
                 $productId = $item['product_id'] ?? $item['id'];
                 $qty = (int)($item['qty'] ?? $item['quantity'] ?? 1);

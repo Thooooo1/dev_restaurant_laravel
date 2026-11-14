@@ -209,7 +209,7 @@ class Order extends Model
 
     public function isDelivery(): bool
     {
-        return $this->getChannel() === self::CHANNEL_DELIVERY;
+        return $this->getChannel() === self::CHANNEL_DELIVERY || ($this->delivery_status !== null && !$this->isDineIn() && !$this->isTakeaway() && !$this->isPos());
     }
 
     /**
@@ -401,24 +401,22 @@ class Order extends Model
         $this->save();
 
         // Ghi nhật ký giao dịch hoàn tiền vào PaymentTransaction
-        try {
-            \App\Models\PaymentTransaction::create([
+        \App\Models\PaymentTransaction::create([
+            'order_id' => $this->id,
+            'reference_code' => $refundTxCode ?: ('REFUND_' . $this->id . '_' . time()),
+            'amount' => (int) $this->total_price,
+            'content' => $refundNote,
+            'gateway' => 'vietqr',
+            'status' => 'refunded',
+            'raw_payload' => json_encode([
+                'action' => 'refund',
                 'order_id' => $this->id,
-                'reference_code' => $refundTxCode ?: ('REFUND_' . $this->id . '_' . time()),
-                'amount' => (int) $this->total_price,
-                'content' => $refundNote,
-                'gateway' => 'vietqr',
-                'status' => 'refunded',
-                'raw_payload' => json_encode([
-                    'action' => 'refund',
-                    'order_id' => $this->id,
-                    'reason' => $reason,
-                    'refund_tx' => $refundTxCode,
-                    'timestamp' => now()->toIso8601String(),
-                ]),
-                'created_at' => now(),
-            ]);
-        } catch (\Throwable $e) {}
+                'reason' => $reason,
+                'refund_tx' => $refundTxCode,
+                'timestamp' => now()->toIso8601String(),
+            ]),
+            'created_at' => now(),
+        ]);
     }
 
     /**

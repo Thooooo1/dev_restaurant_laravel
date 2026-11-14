@@ -9,7 +9,23 @@ class Product extends Model
 {
     use SoftDeletes;
     protected $table = 'product';
-    protected $guarded = [];
+
+    protected $fillable = [
+        'category_id',
+        'brand_id',
+        'name',
+        'slug',
+        'content',
+        'description',
+        'price_buy',
+        'price_sale',
+        'qty',
+        'thumbnail',
+        'created_by',
+        'updated_by',
+        'new_p',
+        'status',
+    ];
 
     public function getPriceAttribute(): float
     {

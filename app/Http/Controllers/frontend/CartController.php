@@ -470,79 +470,18 @@ class CartController extends Controller
             'dining_mode' => 'dine_in',
         ]);
 
-        $tableOrderId = session('table_order_id');
-
-        // Lấy hoặc tạo Order cho bàn
-        $order = null;
-        if ($tableOrderId) {
-            $order = Order::where('id', $tableOrderId)
-                ->where('table_id', $tableId)
-                ->whereNull('deleted_at')
-                ->first();
-        }
-
-        if (!$order || !in_array($order->status, [0, 1])) {
-            $order = new Order();
-            $order->user_id = Auth::id() ?? 0;
-            $order->name = Auth::user()->fullname ?? ($table->name . ' (Khách gọi món)');
-            $order->phone = Auth::user()->phone ?? '';
-            $order->email = Auth::user()->email ?? '';
-            $order->address = $table->name;
-            $order->table_id = $tableId;
-            $order->orderStyle = 0; // Tại bàn
-            $order->status = 0; // Chưa thanh toán
-            $order->created_by = Auth::id() ?? 1;
-            $order->order_turn = 1;
-            $order->save();
-
-            session(['table_order_id' => $order->id]);
-        } else {
-            $order->order_turn = ($order->order_turn ?? 1) + 1;
-        }
-
-        // Cập nhật trạng thái bàn sang Có khách (1)
-        if ($table->status != 1) {
-            $table->status = 1;
-            $table->save();
-        }
-
-        // Ghi chi tiết món vào Orderdetail
-        $totalAmountAdded = 0;
+        // Sử dụng TableOrderService để lấy hoặc tạo đơn hàng duy nhất cho bàn, gộp món an toàn
+        $items = [];
         foreach ($cart as $productId => $details) {
-            $price = (float)$details['price'];
-            $quantity = (int)$details['qty'];
-            $amount = $price * $quantity;
-            $totalAmountAdded += $amount;
-
-            $existingDetail = Orderdetail::where('order_id', $order->id)
-                ->where('product_id', $productId)
-                ->first();
-
-            if ($existingDetail) {
-                $existingDetail->qty += $quantity;
-                $existingDetail->amount = $existingDetail->price * $existingDetail->qty;
-                $existingDetail->status = 'pending';
-                $existingDetail->save();
-            } else {
-                Orderdetail::create([
-                    'order_id' => $order->id,
-                    'product_id' => $productId,
-                    'qty' => $quantity,
-                    'price' => $price,
-                    'discount' => 0,
-                    'amount' => $amount,
-                    'order_turn' => $order->order_turn ?? 1,
-                    'status' => 'pending',
-                ]);
-            }
+            $items[] = [
+                'product_id' => $productId,
+                'qty' => (int)$details['qty'],
+                'price' => (float)$details['price'],
+            ];
         }
 
-        // Tính lại tổng tiền đơn hàng
-        $newTotal = Orderdetail::where('order_id', $order->id)->sum('amount');
-        $order->total_price = $newTotal;
-        $order->has_new_items = true;
-        $order->updated_at = now();
-        $order->save();
+        $order = \App\Services\TableOrderService::addItemsToTableOrder($tableId, $items);
+        session(['table_order_id' => $order->id]);
 
         try {
             \App\Services\NotificationService::notifyNewOrder($order);
@@ -586,67 +525,23 @@ class CartController extends Controller
 
         // Nếu giỏ có món, đồng bộ món vào order của bàn trước khi chuyển sang thanh toán
         if (!empty($cart)) {
-            $tableOrderId = session('table_order_id');
-            $table = Table::find($tableId);
-
-            $order = null;
-            if ($tableOrderId) {
-                $order = Order::where('id', $tableOrderId)
-                    ->where('table_id', $tableId)
-                    ->whereNull('deleted_at')
-                    ->first();
-            }
-
-            if (!$order || !in_array($order->status, [0, 1])) {
-                $order = new Order();
-                $order->user_id = Auth::id() ?? 0;
-                $order->name = Auth::user()->fullname ?? ($table->name . ' - Khách thanh toán QR');
-                $order->phone = Auth::user()->phone ?? session('customer_phone', '');
-                $order->email = Auth::user()->email ?? '';
-                $order->address = $table ? $table->name : 'Bàn ' . $tableId;
-                $order->table_id = $tableId;
-                $order->orderStyle = 0;
-                $order->status = 0;
-                $order->created_by = Auth::id() ?? 1;
-                $order->order_turn = 1;
-                $order->save();
-
-                session(['table_order_id' => $order->id]);
-            }
-
+            $items = [];
             foreach ($cart as $productId => $details) {
-                $price = (float)$details['price'];
-                $quantity = (int)$details['qty'];
-                $amount = $price * $quantity;
-
-                $existingDetail = Orderdetail::where('order_id', $order->id)
-                    ->where('product_id', $productId)
-                    ->first();
-
-                if ($existingDetail) {
-                    $existingDetail->qty += $quantity;
-                    $existingDetail->amount = $existingDetail->price * $existingDetail->qty;
-                    $existingDetail->save();
-                } else {
-                    Orderdetail::create([
-                        'order_id' => $order->id,
-                        'product_id' => $productId,
-                        'qty' => $quantity,
-                        'price' => $price,
-                        'discount' => 0,
-                        'amount' => $amount,
-                        'order_turn' => $order->order_turn ?? 1,
-                        'status' => 'pending',
-                    ]);
-                }
+                $items[] = [
+                    'product_id' => $productId,
+                    'qty' => (int)$details['qty'],
+                    'price' => (float)$details['price'],
+                ];
             }
 
-            // Tính lại tổng tiền sau chiết khấu 10% tại bàn qua PricingService
-            $order->total_price = \App\Services\PricingService::recalculateOrderTotal($order->id, true);
-            $order->save();
+            $order = \App\Services\TableOrderService::addItemsToTableOrder($tableId, $items);
+            session(['table_order_id' => $order->id]);
 
             // Xóa session giỏ hàng
             self::clearCartSession();
+        } else {
+            $order = \App\Services\TableOrderService::getOrCreateActiveOrder($tableId);
+            session(['table_order_id' => $order->id]);
         }
 
         return response()->json([
@@ -733,7 +628,7 @@ class CartController extends Controller
             session()->put($cartKey, $cart);
         }
 
-        if (session()->has('table_id') && session()->has('table_order_id')) {
+        if (session()->has('table_id')) {
             return $this->sendToKitchenClassic();
         }
 
@@ -745,50 +640,22 @@ class CartController extends Controller
         $cartKey = $this->getCartKey();
         $cart = session()->get($cartKey, []);
         $tableId = session('table_id');
-        $tableOrderId = session('table_order_id');
 
-        $order = Order::where('id', $tableOrderId)
-            ->where('table_id', $tableId)
-            ->whereNull('deleted_at')
-            ->first();
-
-        if (!$order) {
-            return redirect()->route('site.home')->with('error', 'Đơn hàng không tồn tại.');
+        if (!$tableId) {
+            return redirect()->route('site.home')->with('error', 'Không xác định được bàn ăn.');
         }
 
+        $items = [];
         foreach ($cart as $productId => $details) {
-            $price = $details['price'];
-            $quantity = $details['qty'];
-            $discount = $details['discount'] ?? 0;
-            $amount = ($price - $discount) * $quantity;
-
-            $detail = Orderdetail::where('order_id', $order->id)
-                ->where('product_id', $productId)
-                ->first();
-
-            if ($detail) {
-                $detail->qty = $quantity;
-                $detail->price = $price;
-                $detail->discount = $discount;
-                $detail->amount = $amount;
-                $detail->status = 'pending';
-                $detail->save();
-            } else {
-                Orderdetail::create([
-                    'order_id' => $order->id,
-                    'product_id' => $productId,
-                    'qty' => $quantity,
-                    'price' => $price,
-                    'discount' => $discount,
-                    'amount' => $amount,
-                    'order_turn' => $order->order_turn ?? 1,
-                    'status' => 'pending',
-                ]);
-            }
+            $items[] = [
+                'product_id' => $productId,
+                'qty' => (int)($details['qty'] ?? 1),
+                'price' => (float)($details['price'] ?? 0),
+            ];
         }
 
-        $order->has_new_items = true;
-        $order->save();
+        $order = \App\Services\TableOrderService::addItemsToTableOrder($tableId, $items);
+        session(['table_order_id' => $order->id]);
         session()->forget($cartKey);
 
         return redirect()->back()->with('success', 'Đã gửi thực đơn cho nhân viên! Vui lòng đợi xác nhận.');
