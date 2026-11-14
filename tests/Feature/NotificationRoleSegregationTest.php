@@ -222,5 +222,107 @@ class NotificationRoleSegregationTest extends TestCase
 
         $adminSettingRes = $this->actingAs($admin)->get('/admin/setting');
         $adminSettingRes->assertStatus(200);
+
+        // =========================================================================
+        // 5. BẢO VỆ NGHIỆP VỤ VẬN HÀNH 3 VAI TRÒ (KHÔNG ROLE SHIPPER):
+        // Shipper là metadata trên bảng order do Employee/Admin quản lý.
+        // =========================================================================
+        $customerB = User::create([
+            'username' => 'test_role_cust_b_' . uniqid(),
+            'fullname' => 'Customer B Role Test',
+            'password' => \Illuminate\Support\Facades\Hash::make('123456'),
+            'phone' => '096' . rand(1000000, 9999999),
+            'gender' => 1,
+            'roles' => 'customer',
+            'status' => 1,
+        ]);
+
+        $orderA = \App\Models\Order::create([
+            'user_id' => $customer->id,
+            'name' => 'Đơn Hàng Khách A',
+            'phone' => $customer->phone,
+            'email' => 'khachA@example.com',
+            'address' => '123 Đường Số 1, TP.HCM',
+            'note' => 'Giao trước 12h',
+            'total_amount' => 250000,
+            'order_type' => 'delivery',
+            'payment_method' => 'cod',
+            'delivery_status' => \App\Models\Order::DELIVERY_WAITING,
+            'status' => \App\Enums\OrderStatus::PENDING,
+            'created_by' => $customer->id,
+        ]);
+
+        $orderB = \App\Models\Order::create([
+            'user_id' => $customerB->id,
+            'name' => 'Đơn Hàng Khách B',
+            'phone' => $customerB->phone,
+            'email' => 'khachB@example.com',
+            'address' => '456 Đường Số 2, TP.HCM',
+            'total_amount' => 180000,
+            'order_type' => 'delivery',
+            'payment_method' => 'cod',
+            'delivery_status' => \App\Models\Order::DELIVERY_WAITING,
+            'status' => \App\Enums\OrderStatus::PENDING,
+            'created_by' => $customerB->id,
+        ]);
+
+        // 5.1. Customer không được tự ý sửa thông tin hoặc tài xế shipper
+        $custTamperDelivery = $this->actingAs($customer)->postJson(route('admin.order.updateDelivery', $orderA->id), [
+            'shipper_name' => 'Tài xế Giả mạo',
+            'shipper_phone' => '0999999999',
+            'delivery_status' => 'delivering',
+        ]);
+        $custTamperDelivery->assertRedirect(route('site.home'));
+        $this->assertEquals(\App\Models\Order::DELIVERY_WAITING, $orderA->fresh()->delivery_status);
+
+        // 5.2. Employee được quyền cập nhật thông tin tài xế shipper và trạng thái giao hàng
+        $empAssignShipper = $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $orderA->id), [
+            'shipper_name' => 'Nguyễn Văn Tài Xế',
+            'shipper_phone' => '0912345678',
+            'delivery_status' => 'picked_up',
+            'delivery_note' => 'Đã giao kiện hàng cho shipper',
+        ]);
+        $empAssignShipper->assertStatus(200);
+        $this->assertEquals('Nguyễn Văn Tài Xế', $orderA->fresh()->shipper_name);
+        $this->assertEquals('0912345678', $orderA->fresh()->shipper_phone);
+        $this->assertEquals(\App\Models\Order::DELIVERY_PICKED_UP, $orderA->fresh()->delivery_status);
+
+        // 5.3. Employee không được phép sửa giá món ăn hoặc vào bảng quản trị sản phẩm
+        $empEditProduct = $this->actingAs($employee)->put('/admin/product/1/update', [
+            'price' => 1000,
+        ]);
+        $empEditProduct->assertRedirect(route('admin.table-order.index'));
+
+        // 5.4. Customer chỉ được xem đơn hàng của chính mình (chặn xem đơn của người khác)
+        $custViewOtherOrder = $this->actingAs($customer)->get('/don-hang/' . $orderB->id);
+        $custViewOtherOrder->assertRedirect(route('site.orders'));
+        $custViewOtherOrder->assertSessionHas('error', 'Đơn hàng không tồn tại.');
+
+        $custViewOwnOrder = $this->actingAs($customer)->get('/don-hang/' . $orderA->id);
+        $custViewOwnOrder->assertStatus(200);
+
+        // 5.5. Employee giao thành công đơn hàng (đồng bộ COMPLETED) và bị chặn quay ngược (chống rollback)
+        $empDeliverSuccess = $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $orderA->id), [
+            'shipper_name' => 'Nguyễn Văn Tài Xế',
+            'shipper_phone' => '0912345678',
+            'delivery_status' => 'delivered',
+            'delivery_note' => 'Khách đã nhận hàng và thanh toán đầy đủ',
+        ]);
+        $empDeliverSuccess->assertStatus(200);
+        $this->assertEquals('delivered', $orderA->fresh()->delivery_status);
+        $this->assertEquals(\App\Enums\OrderStatus::COMPLETED, (int)$orderA->fresh()->status);
+
+        // Thử quay ngược trạng thái từ "đã giao" về "đang giao" -> bị từ chối 422
+        $empRollback = $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $orderA->id), [
+            'delivery_status' => 'delivering',
+        ]);
+        $empRollback->assertStatus(422);
+        $this->assertEquals('delivered', $orderA->fresh()->delivery_status);
+        $this->assertEquals(\App\Enums\OrderStatus::COMPLETED, (int)$orderA->fresh()->status);
+
+        // Dọn dẹp dữ liệu kiểm thử
+        $orderA->forceDelete();
+        $orderB->forceDelete();
+        $customerB->forceDelete();
     }
 }
