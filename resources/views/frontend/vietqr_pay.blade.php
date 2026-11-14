@@ -33,21 +33,7 @@
                                 </div>
                                 <h3 class="text-lg font-black text-stone-900">Thanh Toán Thành Công!</h3>
                                 <p class="text-xs text-stone-600 mt-1">Hệ thống đã tự động nhận tiền thành công.</p>
-                                <div class="mt-2.5 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-xl font-semibold space-y-1 text-left w-full max-w-xs mx-auto">
-                                    <div class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-check text-emerald-600"></i>
-                                        <span>Đã gửi thông báo cho Quản trị viên (Admin)</span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-check text-emerald-600"></i>
-                                        <span>Đã gửi thông báo cho Nhân viên (Employee)</span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <i class="fa-solid fa-check text-emerald-600"></i>
-                                        <span>Đã gửi thông báo cho Khách hàng (Customer)</span>
-                                    </div>
-                                </div>
-                                <span class="text-xs text-stone-500 font-semibold mt-3">Đang chuyển trang sau 2 giây...</span>
+                                <span class="text-xs text-stone-500 font-semibold mt-4">Đang chuyển trang sau 2 giây...</span>
                             </div>
                         </div>
                     </div>
