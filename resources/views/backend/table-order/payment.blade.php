@@ -45,7 +45,7 @@
                     <span>In hoá đơn</span>
                 </button>
                 <button type="button" class="ant-btn ant-btn-primary ant-btn-sm font-semibold" onclick="handleConfirmPayment()">
-                    <span>Xác nhận thanh toán</span>
+                    <span>{{ ($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid()) ? 'Hoàn tất & Giải phóng bàn' : 'Xác nhận thanh toán' }}</span>
                 </button>
             </div>
         </div>
@@ -53,6 +53,24 @@
 
     <!-- Main Payment Canvas -->
     <div class="ant-card p-5 shadow-sm">
+        @if($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid())
+            <div class="p-4 mb-5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm shrink-0">✓</span>
+                    <div>
+                        <div class="font-bold text-emerald-900 text-sm">
+                            Khách hàng đã thanh toán thành công qua {{ $order->payment_method == 2 || $order->payment_method === 'VietQR' ? 'Chuyển khoản VietQR' : 'Ngân hàng' }}!
+                        </div>
+                        <div class="text-xs text-emerald-700 mt-0.5">
+                            Thời gian ghi nhận: {{ $order->paid_at ? $order->paid_at->format('H:i:s d/m/Y') : date('H:i:s d/m/Y') }} • Số tiền: {{ number_format($order->total_price ?: $totalAmount, 0, ',', '.') }}₫
+                        </div>
+                    </div>
+                </div>
+                <button type="button" onclick="handleConfirmPayment()" class="py-2 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs">
+                    Chốt & Giải phóng bàn
+                </button>
+            </div>
+        @endif
         <!-- Payment Options & Total Header -->
         <div class="p-5 bg-[#FAFAFA] border border-[#F0F0F0] rounded-xl mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex flex-wrap items-center gap-3.5">

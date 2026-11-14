@@ -62,6 +62,15 @@
                         {{ $order->payment_status_label }}
                     </span>
                 </div>
+                @if($order->payment_status !== 'paid' && !$order->isPaid())
+                    <form action="{{ route('admin.order.confirmPayment', $order->id) }}" method="POST" class="mt-2.5 pt-2 border-t border-gray-100" onsubmit="return confirm('Xác nhận đơn hàng #{{ $order->id }} đã thanh toán đủ?');">
+                        @csrf
+                        <button type="submit" class="w-full py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span>Xác nhận đã thanh toán</span>
+                        </button>
+                    </form>
+                @endif
             </div>
 
             <!-- Card 2: Tổng giá trị hóa đơn -->
@@ -343,6 +352,13 @@
                             <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 space-y-2">
                                 <div class="font-bold">Chưa thể bàn giao món:</div>
                                 <div>Đơn hàng chưa được thanh toán. Nhân viên cần thu tiền hoặc chờ webhook VietQR xác nhận trước khi bàn giao món cho khách.</div>
+                                <form action="{{ route('admin.order.confirmPayment', $order->id) }}" method="POST" class="pt-1" onsubmit="return confirm('Xác nhận đơn hàng #{{ $order->id }} đã thanh toán?');">
+                                    @csrf
+                                    <button type="submit" class="py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-2xs">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        <span>Xác nhận đã thanh toán ngay</span>
+                                    </button>
+                                </form>
                             </div>
                         @endif
                     @elseif((int)$order->status === 3)

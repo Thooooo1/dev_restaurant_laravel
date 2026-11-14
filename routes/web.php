@@ -243,6 +243,7 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::post('/{id}/delivery', [OrderController::class, 'updateDelivery'])->name('admin.order.updateDelivery');
         Route::post('/{id}/handover', [OrderController::class, 'markHandedOver'])->name('admin.order.handover');
         Route::post('/{id}/confirm-cod', [OrderController::class, 'confirmCodCollected'])->name('admin.order.confirmCod');
+        Route::post('/{id}/confirm-payment', [OrderController::class, 'confirmPaymentManual'])->name('admin.order.confirmPayment');
     });
 
     // Table Orders (POS)

@@ -321,6 +321,69 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Đã xác nhận thu đủ tiền COD thành công!');
     }
 
+    /**
+     * Xác nhận thanh toán thủ công cho đơn hàng bất kỳ (VietQR, Chuyển khoản, Tiền mặt)
+     */
+    public function confirmPaymentManual(Request $request, $id)
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isEmployee())) {
+            abort(403, 'Bạn không có quyền thực hiện thao tác này.');
+        }
+
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($id, $user, $request) {
+            $order = Order::where('id', $id)->lockForUpdate()->firstOrFail();
+
+            if ($order->payment_status === Order::PAYMENT_PAID) {
+                return redirect()->back()->with('info', 'Đơn hàng này đã được xác nhận thanh toán trước đó.');
+            }
+
+            $order->payment_status = Order::PAYMENT_PAID;
+            $order->paid_at = $order->paid_at ?: now();
+
+            if ($order->isDineIn()) {
+                $order->status = \App\Enums\OrderStatus::COMPLETED;
+                $order->revenue_recognized_at = now();
+                if ($order->table_id) {
+                    \App\Models\Table::where('id', $order->table_id)->update(['status' => 0, 'locked_order_id' => null]);
+                    \App\Models\Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
+                }
+            } elseif ($order->isPos()) {
+                $order->status = \App\Enums\OrderStatus::COMPLETED;
+                $order->revenue_recognized_at = now();
+            } else {
+                if ((int)$order->status === \App\Enums\OrderStatus::PENDING) {
+                    $order->status = \App\Enums\OrderStatus::PROCESSING;
+                }
+                if ($order->delivery_status === Order::DELIVERY_DELIVERED) {
+                    $order->revenue_recognized_at = now();
+                }
+            }
+
+            $order->updated_by = $user->id;
+            $order->save();
+
+            // Ghi nhận nhật ký PaymentTransaction
+            try {
+                \App\Models\PaymentTransaction::create([
+                    'order_id' => $order->id,
+                    'reference_code' => 'ADMIN_CONFIRM_' . $order->id . '_' . time(),
+                    'amount' => (int) $order->total_price,
+                    'content' => 'Nhân viên/Admin xác nhận đã nhận thanh toán',
+                    'gateway' => $order->payment_method ?: 'manual',
+                    'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+                    'raw_payload' => json_encode([
+                        'actor_id' => $user->id,
+                        'confirmed_at' => (string)now(),
+                        'note' => $request->input('note', 'Xác nhận thanh toán thủ công'),
+                    ]),
+                ]);
+            } catch (\Throwable $e) {}
+
+            return redirect()->back()->with('success', "Đã xác nhận thanh toán thành công cho đơn hàng #{$order->id}!");
+        });
+    }
+
     public function detail($id)
     {
         try {

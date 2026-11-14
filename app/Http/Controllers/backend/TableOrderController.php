@@ -868,7 +868,16 @@ class TableOrderController extends Controller
         return DB::transaction(function () use ($request) {
             $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
 
-            // Chống thanh toán 2 lần & chỉ cho phép thanh toán hóa đơn đang mở (status 0 hoặc 1)
+            // Nếu bàn đã thanh toán hoặc đã hoàn tất trước đó, đảm bảo bàn được giải phóng và trả về thành công
+            if ((int)$order->status === OrderStatus::COMPLETED) {
+                Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
+                if ($order->table_id) {
+                    Table::where('id', $order->table_id)->update(['status' => 0, 'locked_order_id' => null]);
+                }
+                return response()->json(['success' => true, 'message' => 'Hóa đơn đã được thanh toán và bàn đã được giải phóng thành công.']);
+            }
+
+            // Chỉ cho phép thanh toán hóa đơn đang mở (status 0 hoặc 1)
             if (!in_array((int)$order->status, [OrderStatus::PENDING, OrderStatus::PROCESSING])) {
                 return response()->json([
                     'success' => false,

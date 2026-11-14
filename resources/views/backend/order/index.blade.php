@@ -68,9 +68,12 @@
                                 {{ $order->address }}
                             </td>
                             <td class="whitespace-nowrap text-xs">
-                                <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $order->payment_method == 2 ? 'Chuyển khoản VietQR' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}</div>
-                                <div class="text-xs text-[rgba(0,0,0,0.65)] mt-0.5">
-                                    {{ $order->payment_status_label }}
+                                <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $order->payment_method == 2 || $order->payment_method === 'VietQR' ? 'Chuyển khoản VietQR' : ($order->payment_method == 3 ? 'Quẹt thẻ' : ($order->payment_method === 'Momo' ? 'MoMo' : 'Tiền mặt')) }}</div>
+                                <div class="text-xs mt-0.5">
+                                    <span class="inline-flex items-center gap-1 font-semibold {{ $order->payment_status === 'paid' || $order->isPaid() ? 'text-emerald-600' : ($order->payment_status === 'failed' ? 'text-rose-600' : ($order->payment_status === 'refunded' ? 'text-purple-600' : 'text-amber-600')) }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $order->payment_status === 'paid' || $order->isPaid() ? 'bg-emerald-500' : 'bg-amber-500' }}"></span>
+                                        {{ $order->payment_status_label }}
+                                    </span>
                                 </div>
                             </td>
                             <td class="font-mono text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap">

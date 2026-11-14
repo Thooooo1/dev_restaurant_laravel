@@ -178,6 +178,7 @@
                             <!-- THẺ BÀN ĂN: Thiết kế chuẩn POS hiện đại, thanh thoát, không lồng ô bo viền -->
                             <div class="bg-white rounded-lg border transition-all duration-200 flex flex-col justify-between min-h-[210px] relative overflow-hidden shadow-2xs hover:shadow-md hover:-translate-y-0.5
                                 @if($hasNewItems) border-rose-400 ring-1 ring-rose-300
+                                @elseif($isOccupied && ($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid())) border-emerald-300 bg-emerald-50/10
                                 @elseif($isOccupied) border-orange-200 bg-orange-50/10
                                 @elseif($isLocked) border-indigo-200 bg-indigo-50/10
                                 @else border-gray-200 hover:border-gray-300 @endif">
@@ -185,6 +186,7 @@
                                 <!-- Top Color Accent Strip -->
                                 <div class="h-1.5 w-full 
                                     @if($hasNewItems) bg-rose-500 animate-pulse
+                                    @elseif($isOccupied && ($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid())) bg-emerald-500
                                     @elseif($isOccupied) bg-[#F47716]
                                     @elseif($isLocked) bg-indigo-500
                                     @else bg-emerald-500 @endif">
@@ -206,6 +208,11 @@
                                         @if($hasNewItems)
                                             <span class="text-xs font-bold text-rose-600">
                                                 Món mới
+                                            </span>
+                                        @elseif($isOccupied && ($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid()))
+                                            <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                                Đã thanh toán
                                             </span>
                                         @elseif($isOccupied)
                                             <span class="text-xs font-semibold text-gray-700">
@@ -309,10 +316,17 @@
                                            class="flex-1 py-2 px-3 bg-white hover:bg-orange-50 border border-gray-200 hover:border-orange-200 text-gray-800 hover:text-[#F47716] font-bold rounded-md text-xs sm:text-sm text-center transition-colors shadow-2xs">
                                             Gọi món
                                         </a>
-                                        <a href="{{ route('admin.table-order.payment', $table->id) }}" 
-                                           class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-md text-xs sm:text-sm text-center transition-colors shadow-2xs">
-                                            Thanh toán
-                                        </a>
+                                        @if($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid())
+                                            <a href="{{ route('admin.table-order.payment', $table->id) }}" 
+                                               class="flex-1 py-2 px-3 bg-stone-900 hover:bg-stone-800 text-white font-bold rounded-md text-xs sm:text-sm text-center transition-colors shadow-2xs">
+                                                Hoàn tất & Trả bàn
+                                            </a>
+                                        @else
+                                            <a href="{{ route('admin.table-order.payment', $table->id) }}" 
+                                               class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-md text-xs sm:text-sm text-center transition-colors shadow-2xs">
+                                                Thanh toán
+                                            </a>
+                                        @endif
                                     @elseif($isLocked)
                                         <span class="w-full text-center text-xs text-gray-400 py-2">
                                             Đã ghép đơn chung

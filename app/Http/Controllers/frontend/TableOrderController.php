@@ -189,37 +189,81 @@ class TableOrderController extends Controller
      */
     public function confirmPayment(Request $request, $id)
     {
-        if (config('payment.mode') !== 'demo') {
-            return back()->with('error', 'Thanh toán sẽ tự động xác nhận khi hệ thống ngân hàng nhận tiền.');
-        }
-
         $table = Table::find($id);
         $orderId = $request->input('order_id', session('table_order_id'));
 
-        $order = Order::where('id', $orderId)
-            ->where('table_id', $id)
-            ->first();
+        $order = null;
+        if ($orderId) {
+            $order = Order::where('id', $orderId)->first();
+        }
+        if (!$order) {
+            $order = Order::where('table_id', $id)
+                ->whereNull('deleted_at')
+                ->whereIn('status', [0, 1])
+                ->latest('id')
+                ->first();
+        }
 
         if (!$order) {
             return redirect()->route('site.home')->with('error', 'Không tìm thấy hóa đơn cần thanh toán.');
         }
 
-        // Cập nhật đơn hàng thành Đã thanh toán
         $paymentMethod = $request->input('payment_method', 'VietQR');
-        $order->status = 1; // 1: Đã thanh toán / Paid
-        $order->payment_method = $paymentMethod;
-        $order->has_new_items = true; // Báo chuông nhắc nhở thu ngân & bếp
+        $actualTotal = (float) \App\Services\PricingService::recalculateOrderTotal($order->id, true);
+
+        // Cập nhật đơn hàng thành Đã thanh toán
+        $order->payment_status = Order::PAYMENT_PAID;
+        $order->paid_at = now();
+        $order->revenue_recognized_at = now();
+        $order->payment_method = ($paymentMethod === 'VietQR' || $paymentMethod == 2) ? 2 : $paymentMethod;
+        $order->total_price = $actualTotal > 0 ? $actualTotal : $order->total_price;
+        $order->has_new_items = false;
         $order->save();
 
+        // Ghi nhận nhật ký PaymentTransaction
         try {
+            \App\Models\PaymentTransaction::create([
+                'order_id' => $order->id,
+                'reference_code' => 'VIETQR_TABLE_' . $order->id . '_' . time(),
+                'amount' => (int) $order->total_price,
+                'content' => 'Khách hàng xác nhận thanh toán VietQR tại bàn',
+                'gateway' => 'vietqr',
+                'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+                'raw_payload' => json_encode([
+                    'table_id' => $id,
+                    'confirmed_at' => (string)now(),
+                ]),
+            ]);
+        } catch (\Throwable $e) {}
+
+        // Đánh dấu hoàn tất yêu cầu tính tiền của bàn này nếu có
+        try {
+            \App\Models\ServiceCall::where('table_id', $order->table_id)
+                ->where('call_type', 'bill')
+                ->where('status', \App\Models\ServiceCall::STATUS_PENDING)
+                ->update([
+                    'status' => \App\Models\ServiceCall::STATUS_HANDLED,
+                    'handled_at' => now(),
+                ]);
+        } catch (\Throwable $e) {}
+
+        try {
+            $tableName = $table ? $table->name : "Bàn #{$id}";
+            $totalFmt = number_format($order->total_price, 0, ',', '.') . '₫';
             \App\Services\NotificationService::send([
                 'role' => 'employee',
                 'type' => 'payment',
-                'title' => ($table ? $table->name : 'Bàn') . " đã thanh toán {$paymentMethod}!",
-                'message' => "Hóa đơn đơn #" . $order->id . " số tiền " . number_format($order->total_price, 0, ',', '.') . "₫ đã được thanh toán.",
+                'title' => "{$tableName} đã thanh toán VietQR ({$totalFmt})",
+                'message' => "Hóa đơn #{$order->id} đã được khách xác nhận thanh toán qua VietQR.",
                 'url' => route('admin.table-order.payment', $id),
                 'icon' => 'fa-credit-card',
                 'color' => '#10B981',
+                'data' => [
+                    'order_id' => $order->id,
+                    'table_id' => $id,
+                    'is_paid' => true,
+                    'is_vietqr' => true
+                ]
             ]);
         } catch (\Exception $e) {}
 
@@ -251,7 +295,7 @@ class TableOrderController extends Controller
 
         $order = Order::where('table_id', $id)
             ->whereNull('deleted_at')
-            ->whereIn('status', [0, 1])
+            ->whereIn('status', [0, 1, 2])
             ->with(['orderDetails.product', 'table.floor'])
             ->latest('id')
             ->first();
@@ -287,6 +331,21 @@ class TableOrderController extends Controller
      */
     public function endTableOrder()
     {
+        $tableId = session('table_id');
+        if ($tableId) {
+            $order = Order::where('table_id', $tableId)
+                ->whereNull('deleted_at')
+                ->whereIn('status', [0, 1])
+                ->latest('id')
+                ->first();
+            if ($order && ($order->payment_status === Order::PAYMENT_PAID || $order->isPaid())) {
+                $order->status = \App\Enums\OrderStatus::COMPLETED;
+                $order->save();
+                Table::where('id', $tableId)->update(['status' => 0, 'locked_order_id' => null]);
+                Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
+            }
+        }
+
         \App\Http\Controllers\frontend\CartController::clearCartSession();
         session()->forget([
             'table_id',
