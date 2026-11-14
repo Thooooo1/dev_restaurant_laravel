@@ -494,8 +494,10 @@
 
                 <!-- Mobile & Tablet Hamburger Button & Quick Actions -->
                 <div class="flex items-center gap-2 lg:hidden">
-                    <!-- Chuông thông báo trên Mobile / Tablet -->
-                    <x-frontend-notification-bell />
+                    @if (Auth::check())
+                        <!-- Chuông thông báo trên Mobile / Tablet -->
+                        <x-frontend-notification-bell />
+                    @endif
 
                     @php
                         $isStaffUserMobile = Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee());
