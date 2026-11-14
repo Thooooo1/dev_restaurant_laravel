@@ -362,6 +362,7 @@ HTML;
                 Route::get('/', [InquiryController::class, 'index'])->name('admin.inquiry.index');
                 Route::get('/{id}', [InquiryController::class, 'show'])->name('admin.inquiry.show');
                 Route::post('/{id}/update-status', [InquiryController::class, 'updateStatus'])->name('admin.inquiry.updateStatus');
+                Route::delete('/{id}', [InquiryController::class, 'destroy'])->name('admin.inquiry.destroy');
             });
         // Products
         Route::prefix('product')->group(function () {

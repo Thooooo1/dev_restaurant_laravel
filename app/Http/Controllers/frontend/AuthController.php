@@ -336,7 +336,7 @@ class AuthController extends Controller
         session()->forget('table_id');
         session()->forget('table_name');
         Auth::logout();
-        return redirect()->route(route: 'site.login')->with('success', 'Đăng xuất thành công!');
+        return redirect()->route('site.login');
     }
     public function forgotPassword()
     {

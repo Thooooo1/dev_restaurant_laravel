@@ -72,10 +72,17 @@
                                 @endswitch
                             </td>
                             <td class="text-center whitespace-nowrap" style="text-align: center !important;">
-                                <div class="flex items-center justify-center">
+                                <div class="flex items-center justify-center gap-1.5">
                                     <a href="{{ route('admin.inquiry.show', $inquiry->id) }}" class="w-7 h-7 rounded border border-gray-200 hover:bg-gray-100 text-gray-600 flex items-center justify-center text-xs transition-colors" title="Xem chi tiết & xử lý">
                                         <i class="fa-regular fa-eye"></i>
                                     </a>
+                                    <form action="{{ route('admin.inquiry.destroy', $inquiry->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa yêu cầu tư vấn này?')" class="inline-block m-0 p-0">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="w-7 h-7 rounded border border-red-200 hover:bg-red-50 text-red-600 flex items-center justify-center text-xs transition-colors cursor-pointer" title="Xóa yêu cầu tư vấn">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

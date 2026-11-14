@@ -41,4 +41,12 @@ class InquiryController extends Controller
 
         return redirect()->route('admin.inquiry.index')->with('success', 'Cập nhật trạng thái thành công');
     }
+
+    public function destroy($id)
+    {
+        $inquiry = Inquiries::findOrFail($id);
+        $inquiry->delete();
+
+        return redirect()->route('admin.inquiry.index')->with('success', 'Đã xóa yêu cầu tư vấn thành công.');
+    }
 }
