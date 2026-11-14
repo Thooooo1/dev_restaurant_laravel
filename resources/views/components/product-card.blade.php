@@ -29,21 +29,13 @@
             @endif
         </div>
 
-        <!-- Quick Action Overlay -->
-        <div class="absolute inset-0 bg-stone-950/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2 pointer-events-none group-hover:pointer-events-auto p-3">
+        <!-- Quick Action Overlay: Chỉ giữ Xem chi tiết, không lặp lại nút Thêm giỏ hàng -->
+        <div class="absolute inset-0 bg-stone-950/35 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center pointer-events-none group-hover:pointer-events-auto p-3">
             <a href="{{ route('site.product.detail', ['slug' => $product->slug]) }}" 
-               class="px-3 py-1.5 rounded-sm bg-white text-stone-900 hover:bg-stone-900 hover:text-white font-bold text-xs uppercase tracking-wider shadow-md transition-colors duration-200">
-                Chi tiết
+               class="px-3.5 py-1.5 rounded-none sm:rounded-sm bg-white/95 text-stone-900 hover:bg-[#C25E00] hover:text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all duration-200 inline-flex items-center gap-1.5">
+                <i class="fa-regular fa-eye text-xs"></i>
+                <span>Xem chi tiết</span>
             </a>
-
-            <form action="{{ route('site.addcart', ['id' => $product->id]) }}" method="POST" onsubmit="event.preventDefault(); window.addToCartGlobal ? window.addToCartGlobal({{ $product->id }}, this.querySelector('button')) : null;">
-                @csrf
-                <button type="button" 
-                        onclick="window.addToCartGlobal ? window.addToCartGlobal({{ $product->id }}, this) : this.closest('form')?.submit()"
-                        class="px-3 py-1.5 rounded-sm bg-[#C25E00] text-white hover:bg-[#A34E00] font-bold text-xs uppercase tracking-wider shadow-md transition-colors duration-200 cursor-pointer">
-                    + Thêm món
-                </button>
-            </form>
         </div>
     </div>
 
