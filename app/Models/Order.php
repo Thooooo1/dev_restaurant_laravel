@@ -75,6 +75,52 @@ class Order extends Model
         return $this->hasMany(OrderItemLog::class, 'order_id')->orderBy('id', 'desc');
     }
 
+    public function deliveryLogs()
+    {
+        return $this->hasMany(OrderDeliveryLog::class, 'order_id')->orderBy('id', 'desc');
+    }
+
+    /**
+     * Kiểm tra đơn hàng đã thực sự được thanh toán / thu tiền hay chưa
+     */
+    public function isPaid(): bool
+    {
+        $pm = (string)$this->payment_method;
+        $isTableOrder = !empty($this->table_id);
+
+        if ($isTableOrder) {
+            return (int)$this->status === \App\Enums\OrderStatus::COMPLETED
+                || ((int)$this->status === \App\Enums\OrderStatus::PROCESSING && in_array($pm, ['2', 'VietQR']));
+        }
+
+        // Đơn giao hàng / mang về thanh toán trực tuyến (VietQR/Momo) đã nhận webhook xác nhận
+        if (in_array($pm, ['VietQR', 'Momo', '2'])) {
+            return (int)$this->status >= \App\Enums\OrderStatus::PROCESSING;
+        }
+
+        // Đơn giao hàng COD: Chỉ ghi nhận đã thu tiền khi giao thành công (delivered & COMPLETED)
+        if (in_array(strtolower($pm), ['1', 'cod', 'cash', 'tiền mặt', ''])) {
+            return $this->delivery_status === self::DELIVERY_DELIVERED 
+                && (int)$this->status === \App\Enums\OrderStatus::COMPLETED;
+        }
+
+        return (int)$this->status === \App\Enums\OrderStatus::COMPLETED;
+    }
+
+    /**
+     * Scope chỉ lọc các đơn hàng đã thực sự thu tiền / ghi nhận doanh thu
+     */
+    public function scopePaid($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('status', \App\Enums\OrderStatus::COMPLETED)
+              ->orWhere(function ($sub) {
+                  $sub->where('status', \App\Enums\OrderStatus::PROCESSING)
+                      ->whereIn('payment_method', [2, '2', 'VietQR', 'vietqr', 'Momo', 'momo']);
+              });
+        });
+    }
+
     /**
      * Tên và thông tin phương thức thanh toán
      */
@@ -146,7 +192,7 @@ class Order extends Model
      *
      * @throws \DomainException neu trang thai khong hop le hoac vi pham quy tac chuyen doi
      */
-    public function applyDeliveryStatusTransition(string $deliveryStatus): void
+    public function applyDeliveryStatusTransition(string $deliveryStatus, ?string $note = null): void
     {
         // 1. Don hang da bi huy thi tuyet doi khong cho phep cap nhat giao hang
         if ((int)$this->status === \App\Enums\OrderStatus::CANCELLED) {
@@ -158,7 +204,34 @@ class Order extends Model
             throw new \DomainException('Đơn hàng đã giao thành công, không thể chuyển ngược trạng thái.');
         }
 
+        // 3. Quy trinh xu ly giao hang that bai (failed)
+        if ($deliveryStatus === self::DELIVERY_FAILED) {
+            if (empty(trim($note ?? '')) && empty(trim($this->delivery_note ?? ''))) {
+                throw new \DomainException('Vui lòng nhập lý do giao hàng thất bại vào phần ghi chú.');
+            }
+            $this->delivery_status = self::DELIVERY_FAILED;
+            if ($note) {
+                $this->delivery_note = $note;
+            }
+            // Giữ nguyên trạng thái PROCESSING để nhân viên xử lý tiếp (điều phối lại hoặc hủy)
+            $this->status = \App\Enums\OrderStatus::PROCESSING;
+            return;
+        }
+
+        // 4. Quy trinh dieu phoi lai (tu failed ve waiting)
+        if ($this->delivery_status === self::DELIVERY_FAILED && $deliveryStatus === self::DELIVERY_WAITING) {
+            $this->delivery_status = self::DELIVERY_WAITING;
+            $this->status = \App\Enums\OrderStatus::PROCESSING;
+            if ($note) {
+                $this->delivery_note = $note;
+            }
+            return;
+        }
+
         $this->delivery_status = $deliveryStatus;
+        if ($note) {
+            $this->delivery_note = $note;
+        }
 
         if ($deliveryStatus === self::DELIVERY_PICKED_UP || $deliveryStatus === self::DELIVERY_DELIVERING) {
             if (!$this->picked_up_at) {

@@ -341,6 +341,62 @@
                     </form>
                 </div>
 
+                <!-- Thẻ Nhật ký điều phối & Giao hàng (Audit Trail) -->
+                <div class="ant-card p-5">
+                    <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+                        <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider">
+                            Lịch sử điều phối & Giao hàng
+                        </h3>
+                        <span class="text-[11px] text-gray-500 font-mono">
+                            {{ $order->deliveryLogs ? $order->deliveryLogs->count() : 0 }} lượt ghi nhận
+                        </span>
+                    </div>
+
+                    @if($order->deliveryLogs && $order->deliveryLogs->count() > 0)
+                        <div class="space-y-3">
+                            @foreach($order->deliveryLogs as $log)
+                                <div class="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <span class="font-bold text-gray-900">
+                                            {{ $log->user ? ($log->user->fullname ?: $log->user->username) : 'Hệ thống' }}
+                                            <span class="text-[10px] font-normal text-gray-500">
+                                                ({{ $log->user && $log->user->roles === 'admin' ? 'Quản trị viên' : 'Nhân viên' }})
+                                            </span>
+                                        </span>
+                                        <span class="text-[10px] text-gray-400 font-mono">
+                                            {{ $log->created_at ? $log->created_at->format('H:i d/m/Y') : '' }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 text-[11px]">
+                                        <span class="text-gray-500">{{ $log->from_delivery_label }}</span>
+                                        <span class="text-gray-400">→</span>
+                                        <span class="font-bold {{ $log->to_delivery_status === 'delivered' ? 'text-emerald-700' : ($log->to_delivery_status === 'failed' ? 'text-rose-700' : 'text-blue-700') }}">
+                                            {{ $log->to_delivery_label }}
+                                        </span>
+                                    </div>
+                                    @if($log->shipper_name || $log->shipper_phone)
+                                        <div class="text-[11px] text-gray-600">
+                                            Shipper: <span class="font-medium text-gray-800">{{ $log->shipper_name ?: '---' }}</span>
+                                            @if($log->shipper_phone)
+                                                - SĐT: <span class="font-mono text-gray-700">{{ $log->shipper_phone }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
+                                    @if($log->note)
+                                        <div class="p-2 bg-white rounded border border-gray-100 text-[11px] text-gray-700 italic">
+                                            "{{ $log->note }}"
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="py-6 text-center text-gray-400 text-xs">
+                            Chưa có lịch sử cập nhật giao hàng cho đơn này
+                        </div>
+                    @endif
+                </div>
+
                 <script>
                     function setDeliveryQuickStatus(status) {
                         const sel = document.getElementById('deliveryStatusSelect');

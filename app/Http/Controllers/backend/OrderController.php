@@ -79,11 +79,16 @@ class OrderController extends Controller
             'shipper_name' => 'nullable|string|max:255',
             'shipper_phone' => 'nullable|string|max:50',
             'delivery_status' => 'required|string|in:waiting,picked_up,delivering,delivered,failed',
-            'delivery_note' => 'nullable|string|max:1000',
+            'delivery_note' => $request->delivery_status === 'failed' ? 'required|string|max:1000' : 'nullable|string|max:1000',
+        ], [
+            'delivery_note.required' => 'Vui lòng nhập lý do giao hàng thất bại vào ghi chú.',
         ]);
 
+        $fromDeliveryStatus = $order->delivery_status;
+        $fromOrderStatus = (int)$order->status;
+
         try {
-            $order->applyDeliveryStatusTransition($request->delivery_status);
+            $order->applyDeliveryStatusTransition($request->delivery_status, $request->delivery_note);
         } catch (\DomainException $e) {
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
@@ -94,7 +99,28 @@ class OrderController extends Controller
         $order->shipper_name = $request->shipper_name;
         $order->shipper_phone = $request->shipper_phone;
         $order->delivery_note = $request->delivery_note;
+        $order->updated_by = \Illuminate\Support\Facades\Auth::id();
         $order->save();
+
+        // Ghi nhật ký tiến trình giao hàng (Audit Trail)
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('order_delivery_logs')) {
+                \App\Models\OrderDeliveryLog::create([
+                    'order_id' => $order->id,
+                    'user_id' => \Illuminate\Support\Facades\Auth::id(),
+                    'from_delivery_status' => $fromDeliveryStatus,
+                    'to_delivery_status' => $order->delivery_status,
+                    'from_order_status' => $fromOrderStatus,
+                    'to_order_status' => (int)$order->status,
+                    'shipper_name' => $order->shipper_name,
+                    'shipper_phone' => $order->shipper_phone,
+                    'note' => $order->delivery_note,
+                    'created_at' => now(),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Lỗi lưu nhật ký giao hàng: ' . $e->getMessage());
+        }
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
@@ -112,7 +138,7 @@ class OrderController extends Controller
 
     public function detail($id)
     {
-        $order = Order::with(['orderDetails.product.category', 'table.floor', 'user'])->findOrFail($id);
+        $order = Order::with(['orderDetails.product.category', 'table.floor', 'user', 'deliveryLogs.user'])->findOrFail($id);
 
         return view('backend.order.orderdetail', compact('order'));
     }

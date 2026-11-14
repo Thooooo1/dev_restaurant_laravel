@@ -165,6 +165,12 @@
 
                     <!-- Thông tin Shipper nếu đã phân công -->
                     @if($order->shipper_name)
+                        @php
+                            $canContactShipper = in_array($delivStatus, ['picked_up', 'delivering']) 
+                                && (int)$order->status !== \App\Enums\OrderStatus::CANCELLED 
+                                && (int)$order->status !== \App\Enums\OrderStatus::COMPLETED
+                                && !empty($order->shipper_phone);
+                        @endphp
                         <div class="p-4 rounded-lg bg-stone-50 border border-stone-200/90 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-amber-100 text-[#C25E00] flex items-center justify-center font-bold text-sm shrink-0">
@@ -173,13 +179,13 @@
                                 <div>
                                     <span class="text-[10px] uppercase font-bold tracking-wider text-stone-400 block">Nhân viên giao hàng</span>
                                     <strong class="text-stone-900 font-bold text-sm">{{ $order->shipper_name }}</strong>
-                                    @if($delivStatus !== 'delivered' && $order->shipper_phone)
+                                    @if($canContactShipper)
                                         <span class="text-stone-500 font-mono text-xs block">{{ $order->shipper_phone }}</span>
                                     @endif
                                 </div>
                             </div>
 
-                            @if($delivStatus !== 'delivered' && $order->shipper_phone)
+                            @if($canContactShipper)
                                 <div class="flex items-center gap-2 pt-2 sm:pt-0">
                                     <a href="tel:{{ $order->shipper_phone }}" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors shadow-xs">
                                         <i class="fa-solid fa-phone"></i>
@@ -189,9 +195,17 @@
                                         <span>Nhắn Zalo</span>
                                     </a>
                                 </div>
-                            @elseif($delivStatus === 'delivered')
+                            @elseif($delivStatus === 'delivered' || (int)$order->status === \App\Enums\OrderStatus::COMPLETED)
                                 <div class="text-emerald-700 font-semibold text-xs">
                                     Đơn hàng đã hoàn tất giao hàng
+                                </div>
+                            @elseif((int)$order->status === \App\Enums\OrderStatus::CANCELLED)
+                                <div class="text-rose-600 font-semibold text-xs">
+                                    Đơn hàng đã bị hủy
+                                </div>
+                            @elseif($delivStatus === 'failed')
+                                <div class="text-rose-600 font-semibold text-xs">
+                                    Giao hàng không thành công (Đang xử lý tại nhà hàng)
                                 </div>
                             @endif
                         </div>

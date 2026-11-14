@@ -763,7 +763,7 @@ class SecurityAndPaymentTest extends TestCase
             'updated_at' => Carbon::now(),
         ]);
 
-        // Tao don 2: Don giao hang mang ve phat sinh hom nay (status = 1, table_id = null)
+        // Tao don 2: Don giao hang mang ve phat sinh hom nay da giao thanh cong va thu tien COD (status = 2, delivery_status = delivered, table_id = null)
         $orderTodayDelivery = Order::create([
             'user_id' => $admin->id,
             'name' => 'Khach Giao Hang',
@@ -774,7 +774,8 @@ class SecurityAndPaymentTest extends TestCase
             'total_price' => 200000,
             'created_by' => $admin->id,
             'payment_method' => 1,
-            'status' => 1,
+            'delivery_status' => Order::DELIVERY_DELIVERED,
+            'status' => 2,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
@@ -936,5 +937,79 @@ class SecurityAndPaymentTest extends TestCase
         // Don dep
         $deliveredOrder->forceDelete();
         $cancelledOrder->forceDelete();
+    }
+
+    /**
+     * 23. Test HTTP: Audit Trail cho tiến trình giao hàng và quy trình giao thất bại (failed)
+     */
+    public function test_delivery_audit_trail_and_failed_workflow_via_http(): void
+    {
+        $employee = User::where('roles', 'employee')->where('status', 1)->first();
+        if (!$employee) {
+            $employee = User::create([
+                'username' => 'test_emp_audit_' . uniqid(),
+                'fullname' => 'Test Employee Audit',
+                'password' => Hash::make('123456'),
+                'phone' => '0999888775',
+                'roles' => 'employee',
+                'status' => 1,
+            ]);
+        }
+
+        $order = Order::create([
+            'user_id' => $employee->id,
+            'name' => 'Khach Giao Hang Audit',
+            'phone' => '0977112233',
+            'email' => 'audit_deliv@test.com',
+            'address' => '456 Tran Phu, Ha Noi',
+            'total_price' => 180000,
+            'payment_method' => 1,
+            'status' => \App\Enums\OrderStatus::PROCESSING,
+            'delivery_status' => Order::DELIVERY_DELIVERING,
+            'shipper_name' => 'Nguyen Van B',
+            'shipper_phone' => '0912000111',
+            'created_by' => $employee->id,
+        ]);
+
+        // 1. Employee cap nhat sang 'failed' nhung khong nhap note -> bi loi 422
+        $resFailedNoNote = $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $order->id), [
+            'delivery_status' => 'failed',
+            'delivery_note' => '',
+        ]);
+        $resFailedNoNote->assertStatus(422);
+
+        // 2. Employee cap nhat sang 'failed' co note hop le -> thanh cong, status giu PROCESSING
+        $resFailedWithNote = $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $order->id), [
+            'delivery_status' => 'failed',
+            'delivery_note' => 'Khach di vang, khong nhan duoc hang',
+        ]);
+        $resFailedWithNote->assertStatus(200);
+
+        $order->refresh();
+        $this->assertEquals(Order::DELIVERY_FAILED, $order->delivery_status);
+        $this->assertEquals(\App\Enums\OrderStatus::PROCESSING, $order->status);
+        $this->assertEquals($employee->id, $order->updated_by);
+
+        // 3. Kiem tra audit log da ghi lai thay doi
+        $log = \App\Models\OrderDeliveryLog::where('order_id', $order->id)->latest('id')->first();
+        $this->assertNotNull($log);
+        $this->assertEquals($employee->id, $log->user_id);
+        $this->assertEquals('failed', $log->to_delivery_status);
+        $this->assertEquals('Khach di vang, khong nhan duoc hang', $log->note);
+
+        // 4. Dieu phoi lai: Employee chuyen tu failed ve waiting -> thanh cong
+        $resRedispatch = $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $order->id), [
+            'delivery_status' => 'waiting',
+            'delivery_note' => 'Sap xep lai tai xe giao ca tiep theo',
+        ]);
+        $resRedispatch->assertStatus(200);
+
+        $order->refresh();
+        $this->assertEquals(Order::DELIVERY_WAITING, $order->delivery_status);
+        $this->assertEquals(\App\Enums\OrderStatus::PROCESSING, $order->status);
+
+        // Don dep
+        \App\Models\OrderDeliveryLog::where('order_id', $order->id)->delete();
+        $order->forceDelete();
     }
 }

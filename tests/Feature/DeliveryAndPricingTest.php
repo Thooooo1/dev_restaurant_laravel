@@ -137,4 +137,61 @@ class DeliveryAndPricingTest extends TestCase
         $this->expectException(\DomainException::class);
         $order->applyDeliveryStatusTransition(Order::DELIVERY_DELIVERED);
     }
+
+    /**
+     * Kiểm tra quy trình xử lý giao hàng thất bại (failed) và điều phối lại
+     */
+    public function test_failed_delivery_workflow_and_redispatch(): void
+    {
+        $order = new Order();
+        $order->status = \App\Enums\OrderStatus::PROCESSING;
+        $order->delivery_status = Order::DELIVERY_DELIVERING;
+
+        // 1. Chuyển sang failed mà không có ghi chú -> ném DomainException
+        try {
+            $order->applyDeliveryStatusTransition(Order::DELIVERY_FAILED, '');
+            $this->fail('Expected DomainException was not thrown for missing note');
+        } catch (\DomainException $e) {
+            $this->assertStringContainsString('lý do giao hàng thất bại', $e->getMessage());
+        }
+
+        // 2. Chuyển sang failed có lý do -> thành công, status giữ nguyên PROCESSING (để nhân viên xử lý tiếp)
+        $order->applyDeliveryStatusTransition(Order::DELIVERY_FAILED, 'Khách thuê bao không liên lạc được');
+        $this->assertEquals(Order::DELIVERY_FAILED, $order->delivery_status);
+        $this->assertEquals(\App\Enums\OrderStatus::PROCESSING, $order->status);
+        $this->assertEquals('Khách thuê bao không liên lạc được', $order->delivery_note);
+
+        // 3. Điều phối lại (từ failed chuyển về waiting)
+        $order->applyDeliveryStatusTransition(Order::DELIVERY_WAITING, 'Đã liên lạc lại được khách, hẹn giao ca chiều');
+        $this->assertEquals(Order::DELIVERY_WAITING, $order->delivery_status);
+        $this->assertEquals(\App\Enums\OrderStatus::PROCESSING, $order->status);
+    }
+
+    /**
+     * Kiểm tra logic thanh toán COD và VietQR qua helper isPaid
+     */
+    public function test_order_is_paid_logic_for_cod_and_vietqr(): void
+    {
+        // 1. Đơn COD: Chưa giao (status = 1, delivery_status = delivering) -> isPaid = false
+        $codOrder = new Order();
+        $codOrder->payment_method = 'COD';
+        $codOrder->status = \App\Enums\OrderStatus::PROCESSING;
+        $codOrder->delivery_status = Order::DELIVERY_DELIVERING;
+        $this->assertFalse($codOrder->isPaid());
+
+        // Đơn COD: Đã giao thành công (status = 2, delivery_status = delivered) -> isPaid = true
+        $codOrder->delivery_status = Order::DELIVERY_DELIVERED;
+        $codOrder->status = \App\Enums\OrderStatus::COMPLETED;
+        $this->assertTrue($codOrder->isPaid());
+
+        // 2. Đơn VietQR: Mới tạo (status = 0) dù đã quét mã -> isPaid = false
+        $vietqrOrder = new Order();
+        $vietqrOrder->payment_method = 'VietQR';
+        $vietqrOrder->status = \App\Enums\OrderStatus::PENDING;
+        $this->assertFalse($vietqrOrder->isPaid());
+
+        // Đơn VietQR: Webhook xác nhận tiền về (status = 1) -> isPaid = true
+        $vietqrOrder->status = \App\Enums\OrderStatus::PROCESSING;
+        $this->assertTrue($vietqrOrder->isPaid());
+    }
 }

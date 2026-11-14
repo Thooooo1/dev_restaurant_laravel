@@ -72,10 +72,10 @@ class DashboardController extends Controller
         }
 
         // === 2. TÍNH TOÁN 4 CHỈ SỐ KPI CHUẨN DOANH NGHIỆP ===
-        // Hàm lọc đơn hàng phát sinh hoặc hoàn tất thanh toán trong kỳ
+        // Hàm lọc đơn hàng phát sinh hoặc hoàn tất thanh toán trong kỳ (Chỉ tính đơn đã thực thu tiền)
         $buildPeriodOrders = function($start, $end) {
             return Order::whereNull('deleted_at')
-                ->whereIn('status', [1, 2])
+                ->paid()
                 ->where(function($q) use ($start, $end) {
                     $q->whereBetween('created_at', [$start, $end])
                       ->orWhere(function($sub) use ($start, $end) {
@@ -163,7 +163,7 @@ class DashboardController extends Controller
         $lockedTableIds = Table::whereNotNull('locked_order_id')->pluck('id')->toArray();
         $occupiedTables = count(array_unique(array_merge($activeTableIds, $lockedTableIds)));
         $totalActiveDishes = Product::where('status', 1)->count();
-        $totalAllTimeRevenue = Order::whereNull('deleted_at')->whereIn('status', [OrderStatus::PROCESSING, OrderStatus::COMPLETED])->sum('total_price');
+        $totalAllTimeRevenue = Order::whereNull('deleted_at')->paid()->sum('total_price');
 
         // === 4. THỐNG KÊ TRẠNG THÁI ĐƠN HÀNG (BYTEBITE POS STYLE PILLS) ===
         $totalOrdersCount = Order::whereNull('deleted_at')->count();
@@ -200,7 +200,7 @@ class DashboardController extends Controller
                 $hStart = $today->copy()->setHour($hourInt)->setMinute(0)->setSecond(0);
                 $hEnd = $hStart->copy()->addHours(2)->subSecond();
                 $rev = (int) Order::whereNull('deleted_at')
-                    ->whereIn('status', [1, 2])
+                    ->paid()
                     ->where(function($q) use ($hStart, $hEnd) {
                         $q->whereBetween('created_at', [$hStart, $hEnd])
                           ->orWhere(function($sub) use ($hStart, $hEnd) {
@@ -219,7 +219,7 @@ class DashboardController extends Controller
                 $dayStart = $current->copy()->startOfDay();
                 $dayEnd = $current->copy()->endOfDay();
                 $rev = (int) Order::whereNull('deleted_at')
-                    ->whereIn('status', [1, 2])
+                    ->paid()
                     ->where(function($q) use ($dayStart, $dayEnd) {
                         $q->whereBetween('created_at', [$dayStart, $dayEnd])
                           ->orWhere(function($sub) use ($dayStart, $dayEnd) {
@@ -239,7 +239,7 @@ class DashboardController extends Controller
                 $dayStart = $current->copy()->startOfDay();
                 $dayEnd = $current->copy()->endOfDay();
                 $rev = (int) Order::whereNull('deleted_at')
-                    ->whereIn('status', [1, 2])
+                    ->paid()
                     ->where(function($q) use ($dayStart, $dayEnd) {
                         $q->whereBetween('created_at', [$dayStart, $dayEnd])
                           ->orWhere(function($sub) use ($dayStart, $dayEnd) {
@@ -264,7 +264,7 @@ class DashboardController extends Controller
                 $chartLabels[] = $tempDate->format('m/Y');
 
                 $rev = (int) Order::whereNull('deleted_at')
-                    ->whereIn('status', [1, 2])
+                    ->paid()
                     ->where(function($q) use ($monthStart, $monthEnd) {
                         $q->whereBetween('created_at', [$monthStart, $monthEnd])
                           ->orWhere(function($sub) use ($monthStart, $monthEnd) {
