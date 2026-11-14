@@ -901,7 +901,7 @@ class TableOrderController extends Controller
                     'role'    => 'employee',
                     'type'    => 'payment',
                     'title'   => "{$tableName} đã thanh toán {$pmText} ({$actualTotalFormatted})",
-                    'message' => "Hóa đơn {$tableName} (#{$order->id}) đã được thanh toán thành công qua {$pmText}.",
+                    'message' => "Hóa đơn #{$order->id} - Hoàn tất thanh toán.",
                     'url'     => route('admin.table-order.payment', $order->table_id),
                     'icon'    => 'fa-receipt',
                     'color'   => '#10B981',

@@ -20,31 +20,69 @@ class NotificationController extends Controller
 
         $query = Notification::forUser($user)->orderBy('created_at', 'DESC');
 
-        $unreadCount = (clone $query)->where('is_read', false)->count();
-
         if ($filter === 'unread') {
             $query->where('is_read', false);
         }
 
-        $notifications = $query->take(25)->get()->map(function ($noti) {
+        $rawList = $query->take(35)->get();
+
+        // Khử trùng lặp: với mỗi đơn hàng chỉ hiển thị tối đa 1 thông báo cho từng loại sự kiện (tránh admin nhận cả 2 thông báo thanh toán)
+        $uniqueNotifications = collect();
+        $seen = [];
+
+        foreach ($rawList as $noti) {
+            $orderId = $noti->data['order_id'] ?? null;
+            if (!$orderId && preg_match('/#(\d+)/', $noti->title, $m)) {
+                $orderId = $m[1];
+            }
+
+            $dedupKey = ($orderId && in_array($noti->type, ['payment', 'order']))
+                ? "{$noti->type}_{$orderId}"
+                : "id_{$noti->id}";
+
+            if (isset($seen[$dedupKey])) {
+                continue;
+            }
+            $seen[$dedupKey] = true;
+            $uniqueNotifications->push($noti);
+        }
+
+        // Tính unread_count trên tập thông báo thực tế của người dùng
+        $unreadCount = Notification::forUser($user)->where('is_read', false)->count();
+
+        $notifications = $uniqueNotifications->take(25)->map(function ($noti) {
             $title = $noti->title;
             $message = $noti->message;
 
-            // Khử lặp lại số tiền nếu tiêu đề đã nêu số tiền
-            $amount = null;
-            if (preg_match('/(?:\(|\:\s*)(\d{1,3}(?:\.\d{3})+)\s*[₫đ]?\s*(?:\)|\!|$)/ui', $title, $m)) {
-                $amount = $m[1];
-            } elseif (preg_match('/(\d{1,3}(?:\.\d{3})+)\s*(?:₫|đ(?![a-zà-ỹ]))/ui', $title, $m)) {
-                $amount = $m[1];
+            // 1. Trích xuất mã giao dịch nếu có để hiển thị ngắn gọn, không lặp lại tiêu đề
+            if (preg_match('/Mã\s+GD:\s*([^\)\.\,]+)/ui', $message, $mRef)) {
+                $message = "Mã giao dịch: " . trim($mRef[1]);
             }
+            // 2. Nếu lặp lại thông tin hóa đơn đã thanh toán thành công
+            elseif (preg_match('/Hóa\s+đơn.*?(#\d+).*?thanh\s+toán/ui', $message, $mOrder)) {
+                $message = "Hóa đơn " . $mOrder[1] . " - Hoàn tất thanh toán.";
+            }
+            // 3. Nếu lặp lại khách hàng đã thanh toán qua...
+            elseif (preg_match('/Khách\s+hàng.*?thanh\s+toán.*?qua\s+([^\.]+)/ui', $message, $mPm)) {
+                $message = "Thanh toán thành công qua " . trim($mPm[1]) . ".";
+            }
+            // 4. Khử số tiền lặp lại nếu tiêu đề đã nêu số tiền
+            else {
+                $amount = null;
+                if (preg_match('/(?:\(|\:\s*)(\d{1,3}(?:\.\d{3})+)\s*[₫đ]?\s*(?:\)|\!|$)/ui', $title, $m)) {
+                    $amount = $m[1];
+                } elseif (preg_match('/(\d{1,3}(?:\.\d{3})+)\s*(?:₫|đ(?![a-zà-ỹ]))/ui', $title, $m)) {
+                    $amount = $m[1];
+                }
 
-            if ($amount) {
-                $amountPattern = preg_quote($amount, '/') . '\s*(?:₫|đ(?![a-zà-ỹ])|vnd)?';
-                $message = preg_replace('/(thành công\s+)' . $amountPattern . '\s*/ui', '$1', $message);
-                $message = preg_replace('/(nhận\s+(?:được\s+)?)' . $amountPattern . '\s*/ui', '$1thanh toán ', $message);
-                $message = preg_replace('/\s*' . $amountPattern . '\s*/ui', ' ', $message);
-                $message = preg_replace('/số\s+tiền\s+đã\s+/ui', 'đã ', $message);
-                $message = preg_replace('/\s{2,}/', ' ', trim($message));
+                if ($amount) {
+                    $amountPattern = preg_quote($amount, '/') . '\s*(?:₫|đ(?![a-zà-ỹ])|vnd)?';
+                    $message = preg_replace('/(thành công\s+)' . $amountPattern . '\s*/ui', '$1', $message);
+                    $message = preg_replace('/(nhận\s+(?:được\s+)?)' . $amountPattern . '\s*/ui', '$1thanh toán ', $message);
+                    $message = preg_replace('/\s*' . $amountPattern . '\s*/ui', ' ', $message);
+                    $message = preg_replace('/số\s+tiền\s+đã\s+/ui', 'đã ', $message);
+                    $message = preg_replace('/\s{2,}/', ' ', trim($message));
+                }
             }
 
             return [

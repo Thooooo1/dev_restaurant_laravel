@@ -6,8 +6,8 @@
             class="group relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-stone-100 hover:bg-stone-200/80 text-stone-700 hover:text-stone-900 transition-all cursor-pointer focus:outline-none"
             title="Thông báo của bạn">
         <i class="fa-regular fa-bell text-base group-hover:scale-110 transition-transform"></i>
-        <!-- Unread Badge -->
-        <span class="frontNotiBadge hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-stone-900 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-xs border-2 border-white leading-none">
+        <!-- Red Notification Badge / Dot Indicator -->
+        <span class="frontNotiBadge hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-white shadow-xs leading-none">
             0
         </span>
     </button>
@@ -125,25 +125,6 @@
     }
 
     window.frontNotiOnOpen = function() {
-        if (currentUnreadCount > 0) {
-            currentUnreadCount = 0;
-            document.querySelectorAll('.frontNotiBadge').forEach(b => {
-                b.classList.add('hidden');
-                b.textContent = '0';
-            });
-            document.querySelectorAll('.frontNotiHeaderCount').forEach(h => {
-                h.textContent = '0 mới';
-            });
-
-            fetch('{{ route("site.notifications.markAllRead") }}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                keepalive: true
-            }).catch(() => {});
-        }
         window.frontNotiFetch();
     };
 
@@ -171,6 +152,12 @@
         });
         document.querySelectorAll('.frontNotiHeaderCount').forEach(h => {
             h.textContent = '0 mới';
+        });
+        document.querySelectorAll('.frontNotiList [id^="noti-item-"]').forEach(itemEl => {
+            itemEl.classList.remove('bg-stone-50', 'hover:bg-stone-100/70', 'font-medium');
+            itemEl.classList.add('bg-white', 'hover:bg-stone-50');
+            const dot = itemEl.querySelector('.bg-red-500');
+            if (dot) dot.remove();
         });
 
         fetch('{{ route("site.notifications.markAllRead") }}', {
@@ -262,7 +249,7 @@
                             </p>
                         </div>
 
-                        ${isUnread ? '<span class="w-2 h-2 rounded-full bg-stone-900 shrink-0 mt-2" title="Chưa đọc"></span>' : ''}
+                        ${isUnread ? '<span class="w-2 h-2 rounded-full bg-red-500 shrink-0 mt-2" title="Chưa đọc"></span>' : ''}
                     </div>
                 `;
             });
@@ -295,7 +282,7 @@
         items.forEach(itemEl => {
             itemEl.classList.remove('bg-stone-50', 'hover:bg-stone-100/70', 'font-medium');
             itemEl.classList.add('bg-white', 'hover:bg-stone-50');
-            const dot = itemEl.querySelector('.bg-stone-900');
+            const dot = itemEl.querySelector('.bg-red-500');
             if (dot) dot.remove();
         });
 
