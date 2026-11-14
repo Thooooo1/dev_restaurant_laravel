@@ -27,7 +27,8 @@ class PaymentWebhookController extends Controller
     public function handleWebhook(Request $request)
     {
         // 1. Kiểm tra xác thực Token khi ở môi trường Production (Tuyệt đối không miễn trừ dựa trên nội dung payload)
-        $isProduction = config('payment.mode', 'production') === 'production' || app()->environment('production');
+        // Lưu ý: Chỉ dựa vào cấu hình payment.mode để xác định chế độ thanh toán (không phụ thuộc APP_ENV khi demo trên host)
+        $isProduction = config('payment.mode', 'demo') === 'production';
         $expectedToken = config('payment.webhook_token') ?? config('services.payment.webhook_token');
 
         if ($isProduction) {
@@ -42,8 +43,7 @@ class PaymentWebhookController extends Controller
             $authHeader = $request->header('Authorization', '');
             $secureToken = $request->header('secure-token') 
                 ?? $request->header('X-Token') 
-                ?? $request->header('X-Webhook-Token') 
-                ?? $request->input('token');
+                ?? $request->header('X-Webhook-Token');
 
             $tokenFromAuth = '';
             if (str_starts_with($authHeader, 'Apikey ')) {
@@ -478,14 +478,10 @@ class PaymentWebhookController extends Controller
         $user = \Illuminate\Support\Facades\Auth::user();
         $isStaff = $user && in_array($user->roles, ['admin', 'employee']);
         $isOwnerUser = $user && (int)$user->id === (int)$order->user_id;
-        $isSessionOwner = session('last_order_id') == $order->id;
-        $isTableSession = !empty($order->table_id) && (session('table_id') == $order->table_id || $request->input('table_id') == $order->table_id);
-        
-        // Xác thực khách vãng lai bằng số điện thoại nếu được cung cấp
-        $providedPhone = $request->input('phone') ?? $request->header('X-Order-Phone');
-        $isPhoneMatch = !empty($providedPhone) && !empty($order->phone) && $order->phone === $providedPhone;
+        $isSessionOwner = session('last_order_id') == $order->id || session('table_order_id') == $order->id;
+        $isTableSession = !empty($order->table_id) && session('table_id') == $order->table_id;
 
-        if (!$isStaff && !$isOwnerUser && !$isSessionOwner && !$isTableSession && !$isPhoneMatch) {
+        if (!$isStaff && !$isOwnerUser && !$isSessionOwner && !$isTableSession) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bạn không có quyền truy cập trạng thái thanh toán của đơn hàng này.'
@@ -514,8 +510,8 @@ class PaymentWebhookController extends Controller
      */
     public function simulateWebhook(Request $request)
     {
-        // Tuyệt đối không cho phép chạy API giả lập thanh toán trong môi trường Production
-        $isProduction = config('payment.mode', 'production') === 'production' || app()->environment('production');
+        // Tuyệt đối không cho phép chạy API giả lập thanh toán khi ở chế độ Production
+        $isProduction = config('payment.mode', 'demo') === 'production';
         if ($isProduction) {
             return response()->json([
                 'success' => false,

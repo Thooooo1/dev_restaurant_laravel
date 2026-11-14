@@ -95,9 +95,10 @@ class UserController extends Controller
         $user->created_by = Auth::id() ?? 1;
 
         if ($role === 'customer') {
-            // Khách hàng: chỉ lưu trữ thông tin cơ bản, tự động gán username theo sđt và mật khẩu mặc định
+            // Khách hàng: tự động gán username theo sđt, nếu không nhập mật khẩu sẽ sinh ngẫu nhiên bảo mật (không dùng 123456)
             $user->username = $request->filled('username') ? trim($request->username) : $user->phone;
-            $user->password = $request->filled('password') ? Hash::make($request->password) : Hash::make('123456');
+            $rawPass = $request->filled('password') ? $request->password : \Illuminate\Support\Str::random(12);
+            $user->password = Hash::make($rawPass);
             $user->image = 'non_image.png';
             $user->admin_lever = null;
         } else {

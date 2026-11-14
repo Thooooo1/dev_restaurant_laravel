@@ -238,8 +238,8 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('admin.order.index');
         Route::get('/orders/{id}', [OrderController::class, 'detail'])->name('admin.order.orderdetail');
         Route::get('/print/{id}', [OrderController::class, 'print'])->name('admin.order.printorder');
-        Route::get('/{id}/edit', [OrderController::class, 'edit'])->name('admin.order.edit');
-        Route::post('/{id}/update', [OrderController::class, 'update'])->name('admin.order.update');
+        Route::get('/{id}/edit', [OrderController::class, 'edit'])->middleware('admin-access')->name('admin.order.edit');
+        Route::post('/{id}/update', [OrderController::class, 'update'])->middleware('admin-access')->name('admin.order.update');
         Route::post('/{id}/delivery', [OrderController::class, 'updateDelivery'])->name('admin.order.updateDelivery');
         Route::post('/{id}/confirm-cod', [OrderController::class, 'confirmCodCollected'])->name('admin.order.confirmCod');
     });

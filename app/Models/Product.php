@@ -8,7 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Product extends Model
 {
     use SoftDeletes;
-    protected $table ='product';
+    protected $table = 'product';
+    protected $guarded = [];
+
+    public function getPriceAttribute(): float
+    {
+        return (float) ($this->price_sale ?: $this->price_buy ?: 0);
+    }
     public function category():BelongsTo
     {
         return $this->belongsTo(Category::class);

@@ -48,23 +48,31 @@ class OrderController extends Controller
     }
     public function update(Request $request, $id)
     {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if (!$user || !$user->isAdmin()) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Chỉ Quản trị viên (Admin) mới có quyền cập nhật đơn hàng.'], 403);
+            }
+            abort(403, 'Chỉ Quản trị viên (Admin) mới có quyền cập nhật đơn hàng.');
+        }
+
         $order = Order::find($id);
         if (!$order) {
             return redirect()->route('admin.order.index')->with('error', 'Đơn hàng không tồn tại');
         }
 
+        // Chỉ cho phép cập nhật status (0..3). Tuyệt đối không cho phép đổi payment_status hay payment_method qua form này
         $request->validate([
-            'status' => 'required|integer|min:0|max:4',
-            'payment_status' => 'nullable|string|in:pending,paid,failed,refunded',
+            'status' => 'required|integer|in:0,1,2,3',
+        ], [
+            'status.in' => 'Trạng thái đơn hàng không hợp lệ (chỉ chấp nhận từ 0 đến 3).',
         ]);
 
-        $order->status = $request->status;
-        if ($request->has('payment_method')) {
-            $order->payment_method = $request->payment_method;
-        }
-        if ($request->filled('payment_status')) {
-            $order->payment_status = $request->payment_status;
-        }
+        $fromStatus = (int)$order->status;
+        $toStatus = (int)$request->status;
+
+        $order->status = $toStatus;
+        $order->updated_by = $user->id;
         $order->save();
 
         // Release merged tables if order is completed or cancelled
@@ -72,7 +80,21 @@ class OrderController extends Controller
              \App\Models\Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
         }
 
-        return redirect()->back()->with('success', 'Cập nhật thông tin đơn hàng thành công');
+        // Ghi nhật ký kiểm toán (Audit Trail)
+        \App\Models\OrderDeliveryLog::create([
+            'order_id' => $order->id,
+            'user_id' => $user->id,
+            'from_delivery_status' => $order->delivery_status,
+            'to_delivery_status' => $order->delivery_status,
+            'from_order_status' => $fromStatus,
+            'to_order_status' => $toStatus,
+            'shipper_name' => $order->shipper_name,
+            'shipper_phone' => $order->shipper_phone,
+            'note' => 'Admin cập nhật trạng thái đơn hàng từ ' . \App\Enums\OrderStatus::getLabel($fromStatus) . ' sang ' . \App\Enums\OrderStatus::getLabel($toStatus),
+            'created_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Cập nhật trạng thái đơn hàng thành công!');
     }
 
     public function updateDelivery(Request $request, $id)

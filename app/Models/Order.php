@@ -48,6 +48,7 @@ class Order extends Model
         'updated_by',
         'status',
         'note',
+        'channel',
         'orderStyle',
         'table_id',
         'order_turn',
@@ -122,6 +123,24 @@ class Order extends Model
     }
 
     /**
+     * Scope lấy các đơn hàng đang hoạt động tại bàn (status = PENDING hoặc PROCESSING)
+     */
+    public function scopeActiveForTable($query, $tableId)
+    {
+        return $query->where('table_id', $tableId)
+            ->whereNull('deleted_at')
+            ->whereIn('status', [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING]);
+    }
+
+    /**
+     * Helper tìm đơn hàng active duy nhất của bàn
+     */
+    public static function findActiveForTable($tableId): ?self
+    {
+        return static::activeForTable($tableId)->latest('id')->first();
+    }
+
+    /**
      * Phân loại hình thức nghiệp vụ đơn hàng (Single Source of Truth - 4 kênh rõ ràng)
      */
     public function getChannelAttribute(): string
@@ -131,6 +150,11 @@ class Order extends Model
 
     public function getChannel(): string
     {
+        // 1. Ưu tiên giá trị channel được lưu tường minh trong cơ sở dữ liệu
+        if (!empty($this->attributes['channel'])) {
+            return (string)$this->attributes['channel'];
+        }
+
         // Kênh 1: Dùng bữa tại bàn (Dine-in)
         if (!empty($this->table_id)) {
             return self::CHANNEL_DINE_IN;
@@ -141,18 +165,26 @@ class Order extends Model
         $name = trim((string)($this->name ?? ''));
 
         // Kênh 2: Bán tại quầy POS trực tiếp (POS Counter)
-        if ($style === self::STYLE_POS || $addr === 'Tại quán' || $name === 'Khách POS') {
+        if ($style === self::STYLE_POS) {
             return self::CHANNEL_POS;
         }
 
         // Kênh 3: Đặt mang về (Takeaway)
-        if ($style === self::STYLE_TAKEAWAY || str_contains(mb_strtolower($addr), 'mang về') || str_contains(mb_strtolower($addr), 'takeaway')) {
+        if ($style === self::STYLE_TAKEAWAY) {
             return self::CHANNEL_TAKEAWAY;
         }
 
         // Kênh 4: Giao hàng tận nơi (Delivery)
-        // Chỉ chấp nhận là delivery khi có chỉ định rõ ràng hoặc có địa chỉ giao hàng hợp lệ khác 'Tại quán' và có số điện thoại
-        if ($style === self::STYLE_DELIVERY || (!empty($addr) && $addr !== 'Tại quán' && !empty($this->phone))) {
+        if ($style === self::STYLE_DELIVERY) {
+            return self::CHANNEL_DELIVERY;
+        }
+
+        // Fallback duy nhất cho bản ghi cũ (không suy đoán lung tung từ chuỗi người dùng gõ vào địa chỉ)
+        if ($addr === 'Tại quán' || $name === 'Khách POS') {
+            return self::CHANNEL_POS;
+        }
+
+        if (!empty($addr) && $addr !== 'Tại quán' && !empty($this->phone)) {
             return self::CHANNEL_DELIVERY;
         }
 
@@ -218,24 +250,19 @@ class Order extends Model
             return false;
         }
 
-        if ($this->payment_status === self::PAYMENT_PAID) {
-            return true;
+        // Khi có payment_status: Trạng thái thanh toán là nguồn sự thật tuyệt đối
+        if ($this->payment_status !== null) {
+            return $this->payment_status === self::PAYMENT_PAID;
         }
 
-        // Đơn hàng hoàn tất (COMPLETED / 2) và không bị đánh dấu thất bại/hoàn tiền
+        // Fallback duy nhất cho các bản ghi cũ chưa có payment_status
         if ((int)$this->status === \App\Enums\OrderStatus::COMPLETED) {
             return true;
         }
 
-        // Đơn hàng đang xử lý trực tuyến (VietQR/Momo)
+        // Đơn hàng đang xử lý trực tuyến (VietQR/Momo) đối với bản ghi cũ
         $pm = (string)$this->payment_method;
         if (in_array($pm, [2, '2', 'VietQR', 'vietqr', 'Momo', 'momo'])) {
-            if ($this->payment_status === self::PAYMENT_PAID) {
-                return true;
-            }
-            if ($this->payment_status === self::PAYMENT_PENDING) {
-                return false;
-            }
             return (int)$this->status >= \App\Enums\OrderStatus::PROCESSING;
         }
 
@@ -426,40 +453,36 @@ class Order extends Model
         $this->delivery_note = ($this->delivery_note ? $this->delivery_note . ' | ' : '') . $auditNote;
         $this->save();
 
-        // Ghi nhật ký kiểm toán giao nhận (Delivery Audit Log)
-        try {
-            \App\Models\OrderDeliveryLog::create([
-                'order_id' => $this->id,
-                'user_id' => $actorId,
-                'from_delivery_status' => self::DELIVERY_DELIVERED,
-                'to_delivery_status' => self::DELIVERY_DELIVERED,
-                'from_order_status' => (int)$this->status,
-                'to_order_status' => (int)$this->status,
-                'shipper_name' => $this->shipper_name,
-                'shipper_phone' => $this->shipper_phone,
-                'note' => $auditNote,
-                'created_at' => now(),
-            ]);
-        } catch (\Throwable $e) {}
+        // Ghi nhật ký kiểm toán giao nhận (Delivery Audit Log) - Lỗi sẽ nổi lên để DB::transaction rollback
+        \App\Models\OrderDeliveryLog::create([
+            'order_id' => $this->id,
+            'user_id' => $actorId,
+            'from_delivery_status' => self::DELIVERY_DELIVERED,
+            'to_delivery_status' => self::DELIVERY_DELIVERED,
+            'from_order_status' => (int)$this->status,
+            'to_order_status' => (int)$this->status,
+            'shipper_name' => $this->shipper_name,
+            'shipper_phone' => $this->shipper_phone,
+            'note' => $auditNote,
+            'created_at' => now(),
+        ]);
 
         // Ghi nhật ký dòng tiền thanh toán (Payment Transaction Audit)
-        try {
-            \App\Models\PaymentTransaction::create([
-                'order_id' => $this->id,
-                'reference_code' => 'COD_' . $this->id . '_' . time(),
-                'amount' => (int) $this->total_price,
-                'content' => $auditNote,
-                'gateway' => 'cod_cash',
-                'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
-                'raw_payload' => json_encode([
-                    'actor_id' => $actorId,
-                    'delivered_at' => (string)$this->delivered_at,
-                    'confirmed_at' => (string)now(),
-                    'note' => $note,
-                ]),
-                'created_at' => now(),
-            ]);
-        } catch (\Throwable $e) {}
+        \App\Models\PaymentTransaction::create([
+            'order_id' => $this->id,
+            'reference_code' => 'COD_' . $this->id . '_' . time(),
+            'amount' => (int) $this->total_price,
+            'content' => $auditNote,
+            'gateway' => 'cod_cash',
+            'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+            'raw_payload' => json_encode([
+                'actor_id' => $actorId,
+                'delivered_at' => (string)$this->delivered_at,
+                'confirmed_at' => (string)now(),
+                'note' => $note,
+            ]),
+            'created_at' => now(),
+        ]);
     }
 
     /**
@@ -617,14 +640,8 @@ class Order extends Model
             $isCod = in_array((string)$this->payment_method, [1, '1', 'COD', 'cod', 'cash']) 
                 || empty($this->payment_method);
 
-            $hasPaymentNote = $note && (
-                str_contains(mb_strtolower($note), 'thanh toan') || 
-                str_contains(mb_strtolower($note), 'thanh toán') ||
-                str_contains(mb_strtolower($note), 'thu tiền') ||
-                str_contains(mb_strtolower($note), 'thu tien')
-            );
-
-            $isConfirmedCod = $codCollected === true || ($codCollected === null && $hasPaymentNote);
+            // Chỉ chấp nhận COD là đã thanh toán khi có xác nhận tường minh codCollected === true (không dựa vào chuỗi ghi chú)
+            $isConfirmedCod = ($codCollected === true);
 
             if ($isCod) {
                 // Với đơn COD: Chỉ đánh dấu đã thanh toán và ghi nhận doanh thu khi ĐÃ XÁC NHẬN thu tiền mặt

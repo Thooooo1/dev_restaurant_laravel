@@ -898,6 +898,55 @@ class CartController extends Controller
                 $finalTotal = $pricing['total'];
 
                 $userId = Auth::id() ?? 0;
+                $tableId = session('table_id');
+
+                // Nếu đang ngồi tại bàn, kiểm tra đơn hàng đang hoạt động để gộp món (Single Active Table Order)
+                $existingOrder = $tableId ? \App\Services\TableOrderService::getActiveOrder($tableId) : null;
+
+                if ($existingOrder) {
+                    $order = $existingOrder;
+                    if ($request->payment_method == 'TaiBan') {
+                        $order->payment_method = 'TaiBan';
+                    }
+                    $order->channel = \App\Models\Order::CHANNEL_DINE_IN;
+
+                    // Thêm hoặc gộp số lượng món ăn vào đơn hàng hiện tại
+                    foreach ($cart as $productId => $details) {
+                        $existingDetail = \App\Models\Orderdetail::where('order_id', $order->id)
+                            ->where('product_id', $productId)
+                            ->first();
+
+                        if ($existingDetail) {
+                            $existingDetail->qty += $details['qty'];
+                            $existingDetail->amount = ($existingDetail->price - ($existingDetail->discount ?? 0)) * $existingDetail->qty;
+                            $existingDetail->save();
+                        } else {
+                            $orderDetail = new \App\Models\Orderdetail();
+                            $orderDetail->order_id = $order->id;
+                            $orderDetail->product_id = $productId;
+                            $orderDetail->qty = $details['qty'];
+                            $orderDetail->price = $details['price'];
+                            $orderDetail->discount = $details['discount'] ?? 0;
+                            $orderDetail->amount = ($details['price'] - ($details['discount'] ?? 0)) * $details['qty'];
+                            $orderDetail->order_turn = ($order->order_turn ?? 1) + 1;
+                            $orderDetail->status = 'pending';
+                            $orderDetail->save();
+                        }
+
+                        // Trừ tồn kho sản phẩm đã lock
+                        $lockedProduct = $lockedProducts[$productId];
+                        $lockedProduct->qty = max(0, $lockedProduct->qty - $details['qty']);
+                        $lockedProduct->save();
+                    }
+
+                    $order->total_price = \App\Services\PricingService::recalculateOrderTotal($order->id, true);
+                    $order->has_new_items = true;
+                    $order->save();
+
+                    session(['table_order_id' => $order->id]);
+                    return $order;
+                }
+
                 $newOrder = new Order();
                 $newOrder->user_id = $userId;
                 $newOrder->name = strip_tags(trim($request->name ?? (Auth::user()->fullname ?? Auth::user()->username ?? 'Khách gọi món')));
@@ -908,16 +957,31 @@ class CartController extends Controller
                 $newOrder->address = strip_tags(trim($request->address ?? (session('table_name') ?: 'Tại quán')));
                 $newOrder->created_by = $userId ?: 1;
                 $newOrder->status = 0; // 0: Chờ xử lý / Tiếp nhận
-                $newOrder->orderStyle = session('table_id') ? 0 : 1;
-                $newOrder->total_price = $finalTotal;
+                $newOrder->payment_status = \App\Models\Order::PAYMENT_PENDING;
 
-                if (session('table_id')) {
-                    $newOrder->table_id = session('table_id');
+                if ($tableId) {
+                    $newOrder->table_id = $tableId;
+                    $newOrder->orderStyle = 0;
+                    $newOrder->channel = \App\Models\Order::CHANNEL_DINE_IN;
                     if ($request->payment_method == 'TaiBan') {
                         $newOrder->payment_method = 'TaiBan';
                     }
+                } else {
+                    $reqStyle = (int)($request->orderStyle ?? 0);
+                    $diningMode = session('dining_mode');
+                    if ($reqStyle === \App\Models\Order::STYLE_TAKEAWAY || $diningMode === 'takeaway') {
+                        $newOrder->orderStyle = \App\Models\Order::STYLE_TAKEAWAY;
+                        $newOrder->channel = \App\Models\Order::CHANNEL_TAKEAWAY;
+                    } elseif ($reqStyle === \App\Models\Order::STYLE_POS) {
+                        $newOrder->orderStyle = \App\Models\Order::STYLE_POS;
+                        $newOrder->channel = \App\Models\Order::CHANNEL_POS;
+                    } else {
+                        $newOrder->orderStyle = \App\Models\Order::STYLE_DELIVERY;
+                        $newOrder->channel = \App\Models\Order::CHANNEL_DELIVERY;
+                    }
                 }
 
+                $newOrder->total_price = $finalTotal;
                 $newOrder->save();
 
                 // 4. Lưu chi tiết đơn hàng và trừ kho an toàn
@@ -935,6 +999,10 @@ class CartController extends Controller
                     $lockedProduct = $lockedProducts[$productId];
                     $lockedProduct->qty = max(0, $lockedProduct->qty - $details['qty']);
                     $lockedProduct->save();
+                }
+
+                if ($tableId) {
+                    session(['table_order_id' => $newOrder->id]);
                 }
 
                 return $newOrder;

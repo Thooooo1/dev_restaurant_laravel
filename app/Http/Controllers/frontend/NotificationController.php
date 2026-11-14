@@ -66,6 +66,14 @@ class NotificationController extends Controller
             return response()->json(['success' => false, 'message' => 'Thông báo không tồn tại.'], 404);
         }
 
+        // Kiểm tra quyền sở hữu thông báo: người dùng chỉ được đánh dấu thông báo của chính mình hoặc thông báo chung của vai trò mình
+        if ($notification->user_id !== null && (!$user || (int)$notification->user_id !== (int)$user->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không có quyền thao tác trên thông báo này.'
+            ], 403);
+        }
+
         $notification->markAsRead();
 
         return response()->json([

@@ -298,10 +298,18 @@ class AuthController extends Controller
 
         $request->validate([
             'fullname' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => [
+                'required',
+                'string',
+                'regex:/^(0[35789])[0-9]{8}$/',
+                \Illuminate\Validation\Rule::unique('user', 'phone')->ignore($user->id),
+            ],
             'address' => 'nullable|string|max:500',
             'gender' => 'nullable|in:0,1',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ], [
+            'phone.regex' => 'Số điện thoại không đúng định dạng (10 chữ số, đầu số Việt Nam 03, 05, 07, 08, 09).',
+            'phone.unique' => 'Số điện thoại này đã được sử dụng bởi một tài khoản khác.',
         ]);
 
         $user->fullname = $request->fullname;

@@ -277,42 +277,29 @@
                         </div>
                     @endif
 
-                    <!-- Form cập nhật trạng thái & phương thức thanh toán -->
+                    @if(auth()->user() && auth()->user()->isAdmin())
+                    <!-- Form cập nhật trạng thái đơn hàng (Dành riêng cho Quản trị viên) -->
                     <form action="{{ route('admin.order.update', $order->id) }}" method="POST" class="mt-4 pt-4 border-t border-gray-100 space-y-3">
                         @csrf
-                        <div class="text-xs font-bold text-gray-700">Cập nhật đơn hàng:</div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                            <div>
-                                <label class="block text-[11px] text-gray-500 mb-1">Trạng thái đơn:</label>
-                                <select name="status" class="polaris-select w-full text-xs font-medium">
-                                    <option value="0" {{ (int)$order->status === 0 ? 'selected' : '' }}>Chờ xử lý</option>
-                                    <option value="1" {{ (int)$order->status === 1 ? 'selected' : '' }}>Đang chế biến</option>
-                                    <option value="2" {{ (int)$order->status === 2 ? 'selected' : '' }}>Hoàn tất</option>
-                                    <option value="3" {{ (int)$order->status === 3 ? 'selected' : '' }}>Đã hủy đơn</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] text-gray-500 mb-1">Thanh toán:</label>
-                                <select name="payment_status" class="polaris-select w-full text-xs font-medium">
-                                    <option value="pending" {{ $order->payment_status === 'pending' ? 'selected' : '' }}>Chưa thanh toán</option>
-                                    <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>Đã thanh toán</option>
-                                    <option value="failed" {{ $order->payment_status === 'failed' ? 'selected' : '' }}>Thất bại</option>
-                                    <option value="refunded" {{ $order->payment_status === 'refunded' ? 'selected' : '' }}>Đã hoàn tiền</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] text-gray-500 mb-1">Phương thức TT:</label>
-                                <select name="payment_method" class="polaris-select w-full text-xs font-medium">
-                                    <option value="1" {{ ($order->payment_method == 1 || $order->payment_method == 'COD') ? 'selected' : '' }}>Tiền mặt / COD</option>
-                                    <option value="2" {{ ($order->payment_method == 2 || $order->payment_method == 'VietQR') ? 'selected' : '' }}>Chuyển khoản VietQR</option>
-                                    <option value="3" {{ ($order->payment_method == 3 || $order->payment_method == 'card') ? 'selected' : '' }}>Quẹt thẻ POS</option>
-                                </select>
-                            </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-gray-700">Điều chỉnh trạng thái (Admin):</span>
+                            <span class="text-[10px] text-gray-400">Chỉ Admin mới có quyền can thiệp</span>
                         </div>
-                        <button type="submit" class="ant-btn ant-btn-primary w-full text-xs font-bold py-2 justify-center">
-                            Lưu thay đổi
-                        </button>
+                        <div class="flex gap-2 items-center">
+                            <div class="flex-1">
+                                <select name="status" class="polaris-select w-full text-xs font-medium">
+                                    <option value="0" {{ (int)$order->status === 0 ? 'selected' : '' }}>0 - Chờ xử lý</option>
+                                    <option value="1" {{ (int)$order->status === 1 ? 'selected' : '' }}>1 - Đang chế biến / Giao hàng</option>
+                                    <option value="2" {{ (int)$order->status === 2 ? 'selected' : '' }}>2 - Hoàn tất</option>
+                                    <option value="3" {{ (int)$order->status === 3 ? 'selected' : '' }}>3 - Đã hủy đơn</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="ant-btn ant-btn-primary text-xs font-bold py-2 px-4 justify-center">
+                                Cập nhật
+                            </button>
+                        </div>
                     </form>
+                    @endif
                 </div>
 
                 @if(!$isTableOrder)
