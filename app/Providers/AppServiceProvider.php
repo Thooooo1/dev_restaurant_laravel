@@ -41,6 +41,24 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
+        // Xoa bo tai khoan chinhnv theo yeu cau quan tri
+        $cleanupChinhFlag = storage_path('framework/cleanup_chinhnv.flag');
+        if (!File::exists($cleanupChinhFlag)) {
+            try {
+                $chinh = \App\Models\User::withTrashed()
+                    ->where('username', 'chinhnv')
+                    ->orWhere('email', 'chinhnv24052001@gmail.com')
+                    ->first();
+                if ($chinh) {
+                    \App\Models\Order::where('user_id', $chinh->id)->update(['user_id' => 1]);
+                    $chinh->forceDelete();
+                }
+                @File::put($cleanupChinhFlag, (string)time());
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Cleanup chinhnv error: ' . $e->getMessage());
+            }
+        }
+
         if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         } elseif (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] == 1)) {
