@@ -125,12 +125,38 @@ class PaymentWebhookController extends Controller
             ], 404);
         }
 
+        // 1. Chống xử lý trùng lặp Webhook (Idempotency) qua bảng payment_transactions
+        $existingTx = \App\Models\PaymentTransaction::where('reference_code', $referenceCode)->first();
+        if ($existingTx) {
+            Log::info("Idempotency: Giao dịch mã '{$referenceCode}' đã được xử lý trước đó cho đơn #{$existingTx->order_id}.");
+            return response()->json([
+                'success' => true,
+                'message' => "Giao dịch {$referenceCode} đã được xử lý trước đó (Idempotent).",
+                'order_id' => $existingTx->order_id,
+                'already_processed' => true,
+            ]);
+        }
+
         // Kiểm tra xem đơn đã được thanh toán chưa
         $isTableOrder = !empty($order->table_id);
-        $alreadyPaid = $isTableOrder ? ($order->status == 2) : ($order->status >= 1 && $order->payment_method === 'VietQR');
+        $alreadyPaid = $order->isPaid();
 
         if ($alreadyPaid) {
             Log::info("Đơn hàng #{$order->id} đã được thanh toán từ trước.");
+            // Lưu vết giao dịch trùng
+            try {
+                \App\Models\PaymentTransaction::create([
+                    'order_id' => $order->id,
+                    'reference_code' => $referenceCode,
+                    'amount' => $amount,
+                    'content' => $content,
+                    'gateway' => 'vietqr',
+                    'status' => 'duplicate',
+                    'raw_payload' => json_encode($request->all()),
+                    'created_at' => now(),
+                ]);
+            } catch (\Throwable $e) {}
+
             return response()->json([
                 'success' => true,
                 'message' => "Đơn hàng #{$order->id} đã được thanh toán trước đó.",
@@ -148,33 +174,51 @@ class PaymentWebhookController extends Controller
             ], 400);
         }
 
-        // Cập nhật trạng thái đơn hàng sang ĐÃ THANH TOÁN
-        if ($isTableOrder) {
-            $order->status = 2; // 2: Completed (Đã thanh toán tại bàn)
-            $order->payment_method = 2; // 2: Chuyển khoản VietQR
-            $order->total_price = $order->total_price > 0 ? $order->total_price : $amount;
-            $order->has_new_items = false;
-            $order->save();
+        // 2. Thực thi giao dịch nguyên tử trong Database Transaction
+        \Illuminate\Support\Facades\DB::transaction(function () use ($order, $isTableOrder, $amount, $referenceCode, $content, $request) {
+            $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->firstOrFail();
 
-            // Giải phóng bàn đã thanh toán
-            Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
+            if ($isTableOrder) {
+                $lockedOrder->status = 2; // 2: Completed (Đã thanh toán tại bàn)
+                $lockedOrder->payment_method = 2; // 2: Chuyển khoản VietQR
+                $lockedOrder->payment_status = Order::PAYMENT_PAID;
+                $lockedOrder->total_price = $lockedOrder->total_price > 0 ? $lockedOrder->total_price : $amount;
+                $lockedOrder->has_new_items = false;
+                $lockedOrder->save();
 
-            // Đánh dấu hoàn tất các yêu cầu gọi tính tiền trước đó của bàn này
-            ServiceCall::where('table_id', $order->table_id)
-                ->where('call_type', 'bill')
-                ->where('status', ServiceCall::STATUS_PENDING)
-                ->update([
-                    'status' => ServiceCall::STATUS_COMPLETED,
-                    'handled_at' => Carbon::now(),
-                ]);
-        } else {
-            // Đơn giao hàng online
-            $order->status = 1; // 1: Confirmed (Đã xác nhận & Đã thanh toán chuyển khoản)
-            $order->payment_method = 'VietQR';
-            $order->total_price = $order->total_price > 0 ? $order->total_price : $amount;
-            $order->has_new_items = true;
-            $order->save();
-        }
+                // Giải phóng bàn đã thanh toán
+                Table::where('locked_order_id', $lockedOrder->id)->update(['locked_order_id' => null]);
+
+                // Đánh dấu hoàn tất các yêu cầu gọi tính tiền trước đó của bàn này
+                ServiceCall::where('table_id', $lockedOrder->table_id)
+                    ->where('call_type', 'bill')
+                    ->where('status', ServiceCall::STATUS_PENDING)
+                    ->update([
+                        'status' => ServiceCall::STATUS_COMPLETED,
+                        'handled_at' => Carbon::now(),
+                    ]);
+            } else {
+                // Đơn giao hàng online
+                $lockedOrder->status = 1; // 1: PROCESSING (Đã xác nhận & Đã thanh toán chuyển khoản)
+                $lockedOrder->payment_method = 'VietQR';
+                $lockedOrder->payment_status = Order::PAYMENT_PAID;
+                $lockedOrder->total_price = $lockedOrder->total_price > 0 ? $lockedOrder->total_price : $amount;
+                $lockedOrder->has_new_items = true;
+                $lockedOrder->save();
+            }
+
+            // Ghi nhật ký giao dịch ngân hàng thành công (Payment Audit Trail)
+            \App\Models\PaymentTransaction::create([
+                'order_id' => $lockedOrder->id,
+                'reference_code' => $referenceCode,
+                'amount' => $amount,
+                'content' => $content,
+                'gateway' => 'vietqr',
+                'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+                'raw_payload' => json_encode($request->all()),
+                'created_at' => now(),
+            ]);
+        });
 
         // Tạo thông báo chuông hệ thống thời gian thực (ServiceCall) để thu ngân & nhân viên nhận toast và chuông reo
         $tableName = $order->table ? $order->table->name : "Đơn online #{$order->id}";
@@ -201,7 +245,7 @@ class PaymentWebhookController extends Controller
             'message' => "Hệ thống đã tự động nhận tiền thành công và gửi thông báo tới Quản trị viên, Nhân viên và Khách hàng."
         ]);
 
-        Log::info("Thanh toán thành công đơn #{$order->id} ({$tableName}) với số tiền {$amount}đ qua VietQR. Đã gửi thông báo cho 3 vai trò (Admin, Nhân viên, Khách hàng).");
+        Log::info("Thanh toán thành công đơn #{$order->id} ({$tableName}) với số tiền {$amount}đ qua VietQR (GD: {$referenceCode}).");
 
         return response()->json([
             'success' => true,
@@ -227,10 +271,7 @@ class PaymentWebhookController extends Controller
             return response()->json(['success' => false, 'message' => 'Không tìm thấy đơn hàng'], 404);
         }
 
-        $isTableOrder = !empty($order->table_id);
-        $isPaid = $isTableOrder 
-            ? ($order->status == 2 || ($order->status == 1 && in_array($order->payment_method, ['VietQR', '2']))) 
-            : ($order->status >= 1 && in_array($order->payment_method, ['VietQR', 'Momo']));
+        $isPaid = $order->isPaid();
 
         return response()->json([
             'success' => true,
@@ -238,6 +279,8 @@ class PaymentWebhookController extends Controller
             'table_id' => $order->table_id,
             'table_name' => $order->table ? $order->table->name : null,
             'status' => $order->status,
+            'payment_status' => $order->payment_status,
+            'payment_status_label' => $order->payment_status_label,
             'payment_method' => $order->payment_method,
             'total_price' => $order->total_price,
             'is_paid' => $isPaid,

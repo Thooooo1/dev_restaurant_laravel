@@ -68,7 +68,12 @@
                                 {{ $order->address }}
                             </td>
                             <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
-                                {{ $order->payment_method == 2 ? 'Chuyển khoản VietQR' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}
+                                <div>{{ $order->payment_method == 2 ? 'Chuyển khoản VietQR' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}</div>
+                                <div class="text-[10px] mt-0.5">
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded font-semibold {{ $order->payment_status === 'paid' ? 'bg-emerald-50 text-emerald-700' : ($order->payment_status === 'refunded' ? 'bg-purple-50 text-purple-700' : ($order->payment_status === 'failed' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700')) }}">
+                                        {{ $order->payment_status_label }}
+                                    </span>
+                                </div>
                             </td>
                             <td class="font-mono text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap">
                                 {{ date('H:i d/m/Y', strtotime($order->created_at)) }}

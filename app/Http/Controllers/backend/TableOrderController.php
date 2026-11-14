@@ -883,6 +883,7 @@ class TableOrderController extends Controller
 
             $order->status = OrderStatus::COMPLETED; // Đã thanh toán / Hoàn tất dùng bữa
             $order->payment_method = $request->payment_method;
+            $order->payment_status = Order::PAYMENT_PAID; // Đã thanh toán thành công
             $order->total_price = $actualTotal;
             $order->has_new_items = false;
             $order->save();

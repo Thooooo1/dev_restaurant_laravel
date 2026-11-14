@@ -1012,4 +1012,151 @@ class SecurityAndPaymentTest extends TestCase
         \App\Models\OrderDeliveryLog::where('order_id', $order->id)->delete();
         $order->forceDelete();
     }
+
+    /**
+     * 24. Test Vòng đời payment_status (pending -> paid -> refunded) và loại khỏi doanh thu khi hoàn tiền
+     */
+    public function test_payment_status_lifecycle_and_revenue_exclusion_on_refund(): void
+    {
+        $admin = User::where('roles', 'admin')->where('status', 1)->first();
+
+        // 1. Tao don hang ban dau: payment_status = pending
+        $order = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Khach Test Doanh Thu',
+            'phone' => '0933445566',
+            'email' => 'refund_test@test.com',
+            'address' => 'Ha Noi',
+            'total_price' => 350000,
+            'payment_method' => 2, // VietQR
+            'status' => \App\Enums\OrderStatus::PROCESSING,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => $admin->id,
+        ]);
+
+        $this->assertFalse($order->isPaid());
+        $this->assertFalse(Order::paid()->where('id', $order->id)->exists());
+
+        // 2. Chuyen sang da thanh toan (PAID)
+        $order->payment_status = Order::PAYMENT_PAID;
+        $order->status = \App\Enums\OrderStatus::COMPLETED;
+        $order->save();
+
+        $this->assertTrue($order->fresh()->isPaid());
+        $this->assertTrue(Order::paid()->where('id', $order->id)->exists());
+
+        // 3. Hoan tien (REFUNDED)
+        $order->markAsRefunded('Giao hang that bai - Hoan tien VietQR');
+        $order->refresh();
+
+        $this->assertEquals(Order::PAYMENT_REFUNDED, $order->payment_status);
+        $this->assertEquals('Đã hoàn tiền', $order->payment_status_label);
+        $this->assertFalse($order->isPaid());
+        // Tuyet doi khong con nam trong doanh thu ghi nhan (scopePaid)
+        $this->assertFalse(Order::paid()->where('id', $order->id)->exists());
+
+        // Don dep
+        $order->forceDelete();
+    }
+
+    /**
+     * 25. Test Webhook VietQR: Chống xử lý trùng lặp (Idempotency) và chống Replay Attack
+     */
+    public function test_vietqr_webhook_idempotency_and_replay_protection(): void
+    {
+        Config::set('services.payment.webhook_token', 'test_secret_token_123');
+
+        $order = Order::create([
+            'user_id' => 1,
+            'name' => 'Khach Test Webhook',
+            'phone' => '0911223344',
+            'email' => 'webhook_test@test.com',
+            'address' => 'Ha Noi',
+            'total_price' => 250000,
+            'payment_method' => 2,
+            'status' => \App\Enums\OrderStatus::PENDING,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => 1,
+        ]);
+
+        $referenceCode = 'TEST_REF_' . uniqid();
+        $payload = [
+            'order_id' => $order->id,
+            'amount' => 250000,
+            'content' => 'Thanh toan don #' . $order->id,
+            'referenceCode' => $referenceCode,
+        ];
+
+        // 1. Gui Webhook lan 1 -> Thanh cong ghi nhan thanh toan va tao PaymentTransaction
+        $res1 = $this->postJson(route('api.payment.webhook'), $payload, [
+            'X-Webhook-Token' => 'test_secret_token_123',
+        ]);
+        $res1->assertStatus(200);
+        $res1->assertJson(['success' => true]);
+
+        $order->refresh();
+        $this->assertEquals(Order::PAYMENT_PAID, $order->payment_status);
+        $this->assertEquals(\App\Enums\OrderStatus::PROCESSING, $order->status);
+
+        $txCount = \App\Models\PaymentTransaction::where('reference_code', $referenceCode)->count();
+        $this->assertEquals(1, $txCount);
+
+        // 2. Gui lai cung webhook lan 2 (Replay / Network retry) -> He thong phat hien da xu ly (Idempotent)
+        $res2 = $this->postJson(route('api.payment.webhook'), $payload, [
+            'X-Webhook-Token' => 'test_secret_token_123',
+        ]);
+        $res2->assertStatus(200);
+        $res2->assertJson(['success' => true, 'already_processed' => true]);
+
+        // So luong giao dich van la 1, khong bi duplicate hoac ghi de
+        $this->assertEquals(1, \App\Models\PaymentTransaction::where('reference_code', $referenceCode)->count());
+
+        // Don dep
+        \App\Models\PaymentTransaction::where('reference_code', $referenceCode)->delete();
+        $order->forceDelete();
+    }
+
+    /**
+     * 26. Test COD: Chi ghi nhan paid khi trang thai giao hang la delivered
+     */
+    public function test_cod_payment_marked_paid_only_upon_successful_delivery(): void
+    {
+        $employee = User::where('roles', 'employee')->where('status', 1)->first();
+
+        $codOrder = Order::create([
+            'user_id' => $employee->id,
+            'name' => 'Khach COD',
+            'phone' => '0966554433',
+            'email' => 'cod_test@test.com',
+            'address' => 'Ha Noi',
+            'total_price' => 150000,
+            'payment_method' => 1, // COD
+            'status' => \App\Enums\OrderStatus::PROCESSING,
+            'delivery_status' => Order::DELIVERY_WAITING,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => $employee->id,
+        ]);
+
+        // Khi dang giao -> payment_status van la pending
+        $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $codOrder->id), [
+            'delivery_status' => Order::DELIVERY_DELIVERING,
+            'shipper_name' => 'Shipper A',
+            'shipper_phone' => '0901234567',
+        ]);
+        $codOrder->refresh();
+        $this->assertEquals(Order::PAYMENT_PENDING, $codOrder->payment_status);
+
+        // Khi da giao thanh cong (delivered) -> payment_status tu dong chuyen sang paid va order status la COMPLETED
+        $this->actingAs($employee)->postJson(route('admin.order.updateDelivery', $codOrder->id), [
+            'delivery_status' => Order::DELIVERY_DELIVERED,
+        ]);
+        $codOrder->refresh();
+        $this->assertEquals(Order::DELIVERY_DELIVERED, $codOrder->delivery_status);
+        $this->assertEquals(Order::PAYMENT_PAID, $codOrder->payment_status);
+        $this->assertEquals(\App\Enums\OrderStatus::COMPLETED, $codOrder->status);
+
+        // Don dep
+        \App\Models\OrderDeliveryLog::where('order_id', $codOrder->id)->delete();
+        $codOrder->forceDelete();
+    }
 }

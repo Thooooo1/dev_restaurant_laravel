@@ -57,9 +57,9 @@
                 <div class="text-base font-bold text-gray-900">{{ $paymentInfo['name'] }}</div>
                 <div class="text-[11px] text-gray-500 mt-0.5 truncate">{{ $paymentInfo['desc'] }}</div>
                 <div class="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between text-xs">
-                    <span class="text-gray-400">Trạng thái:</span>
-                    <span class="font-bold {{ (int)$order->status === 2 ? 'text-emerald-600' : 'text-amber-600' }}">
-                        {{ (int)$order->status === 2 ? 'Đã thanh toán' : 'Chưa thanh toán' }}
+                    <span class="text-gray-400">Trạng thái TT:</span>
+                    <span class="font-bold {{ $order->payment_status === 'paid' ? 'text-emerald-600' : ($order->payment_status === 'refunded' ? 'text-purple-600' : ($order->payment_status === 'failed' ? 'text-rose-600' : 'text-amber-600')) }}">
+                        {{ $order->payment_status_label }}
                     </span>
                 </div>
             </div>
@@ -246,24 +246,64 @@
                         </div>
                     @endif
 
+                    @if($order->paymentTransactions && $order->paymentTransactions->count() > 0)
+                        <!-- Lịch sử giao dịch điện tử VietQR / Gateway -->
+                        <div class="mt-4 pt-3 border-t border-gray-100">
+                            <div class="text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-2 flex items-center justify-between">
+                                <span>Lịch sử giao dịch VietQR</span>
+                                <span class="font-mono text-gray-500">{{ $order->paymentTransactions->count() }} giao dịch</span>
+                            </div>
+                            <div class="space-y-2">
+                                @foreach($order->paymentTransactions as $tx)
+                                    <div class="p-2.5 bg-gray-50 border border-gray-200 rounded text-xs space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-mono font-bold text-gray-800">{{ $tx->reference_code }}</span>
+                                            <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold {{ $tx->status === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                                                {{ strtoupper($tx->status) }}
+                                            </span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-[11px] text-gray-600">
+                                            <span>Số tiền: <strong class="font-mono text-emerald-700">{{ number_format($tx->amount, 0, ',', '.') }} ₫</strong></span>
+                                            <span class="text-gray-400 font-mono">{{ $tx->created_at ? $tx->created_at->format('H:i d/m/Y') : '' }}</span>
+                                        </div>
+                                        @if($tx->content)
+                                            <div class="text-[10px] text-gray-500 font-mono truncate">
+                                                Nội dung: {{ $tx->content }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Form cập nhật trạng thái & phương thức thanh toán -->
                     <form action="{{ route('admin.order.update', $order->id) }}" method="POST" class="mt-4 pt-4 border-t border-gray-100 space-y-3">
                         @csrf
                         <div class="text-xs font-bold text-gray-700">Cập nhật đơn hàng:</div>
-                        <div class="grid grid-cols-2 gap-2">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                             <div>
                                 <label class="block text-[11px] text-gray-500 mb-1">Trạng thái đơn:</label>
                                 <select name="status" class="polaris-select w-full text-xs font-medium">
                                     <option value="0" {{ (int)$order->status === 0 ? 'selected' : '' }}>Chờ xử lý</option>
                                     <option value="1" {{ (int)$order->status === 1 ? 'selected' : '' }}>Đang chế biến</option>
-                                    <option value="2" {{ (int)$order->status === 2 ? 'selected' : '' }}>Hoàn tất / Đã thanh toán</option>
+                                    <option value="2" {{ (int)$order->status === 2 ? 'selected' : '' }}>Hoàn tất</option>
                                     <option value="3" {{ (int)$order->status === 3 ? 'selected' : '' }}>Đã hủy đơn</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-gray-500 mb-1">Thanh toán:</label>
+                                <select name="payment_status" class="polaris-select w-full text-xs font-medium">
+                                    <option value="pending" {{ $order->payment_status === 'pending' ? 'selected' : '' }}>Chưa thanh toán</option>
+                                    <option value="paid" {{ $order->payment_status === 'paid' ? 'selected' : '' }}>Đã thanh toán</option>
+                                    <option value="failed" {{ $order->payment_status === 'failed' ? 'selected' : '' }}>Thất bại</option>
+                                    <option value="refunded" {{ $order->payment_status === 'refunded' ? 'selected' : '' }}>Đã hoàn tiền</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-[11px] text-gray-500 mb-1">Phương thức TT:</label>
                                 <select name="payment_method" class="polaris-select w-full text-xs font-medium">
-                                    <option value="1" {{ ($order->payment_method == 1 || $order->payment_method == 'COD') ? 'selected' : '' }}>Tiền mặt</option>
+                                    <option value="1" {{ ($order->payment_method == 1 || $order->payment_method == 'COD') ? 'selected' : '' }}>Tiền mặt / COD</option>
                                     <option value="2" {{ ($order->payment_method == 2 || $order->payment_method == 'VietQR') ? 'selected' : '' }}>Chuyển khoản VietQR</option>
                                     <option value="3" {{ ($order->payment_method == 3 || $order->payment_method == 'card') ? 'selected' : '' }}>Quẹt thẻ POS</option>
                                 </select>

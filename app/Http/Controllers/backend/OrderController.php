@@ -55,11 +55,15 @@ class OrderController extends Controller
 
         $request->validate([
             'status' => 'required|integer|min:0|max:4',
+            'payment_status' => 'nullable|string|in:pending,paid,failed,refunded',
         ]);
 
         $order->status = $request->status;
         if ($request->has('payment_method')) {
             $order->payment_method = $request->payment_method;
+        }
+        if ($request->filled('payment_status')) {
+            $order->payment_status = $request->payment_status;
         }
         $order->save();
 
@@ -73,8 +77,6 @@ class OrderController extends Controller
 
     public function updateDelivery(Request $request, $id)
     {
-        $order = Order::findOrFail($id);
-
         $request->validate([
             'shipper_name' => 'nullable|string|max:255',
             'shipper_phone' => 'nullable|string|max:50',
@@ -84,27 +86,30 @@ class OrderController extends Controller
             'delivery_note.required' => 'Vui lòng nhập lý do giao hàng thất bại vào ghi chú.',
         ]);
 
-        $fromDeliveryStatus = $order->delivery_status;
-        $fromOrderStatus = (int)$order->status;
-
         try {
-            $order->applyDeliveryStatusTransition($request->delivery_status, $request->delivery_note);
-        } catch (\DomainException $e) {
-            if ($request->wantsJson() || $request->ajax()) {
-                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
-            }
-            return redirect()->back()->with('error', $e->getMessage());
-        }
+            $order = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $id) {
+                // 1. Khóa bi quan hàng đơn hàng (Pessimistic Locking) để chống race-condition
+                $order = Order::where('id', $id)->lockForUpdate()->firstOrFail();
 
-        $order->shipper_name = $request->shipper_name;
-        $order->shipper_phone = $request->shipper_phone;
-        $order->delivery_note = $request->delivery_note;
-        $order->updated_by = \Illuminate\Support\Facades\Auth::id();
-        $order->save();
+                $fromDeliveryStatus = $order->delivery_status;
+                $fromOrderStatus = (int)$order->status;
+                $oldShipperName = $order->shipper_name;
+                $oldShipperPhone = $order->shipper_phone;
 
-        // Ghi nhật ký tiến trình giao hàng (Audit Trail)
-        try {
-            if (\Illuminate\Support\Facades\Schema::hasTable('order_delivery_logs')) {
+                // 2. Kiểm tra tính hợp lệ của State Machine (ném DomainException nếu vi phạm)
+                $order->applyDeliveryStatusTransition($request->delivery_status, $request->delivery_note);
+
+                // 3. Cập nhật thông tin giao hàng
+                $newShipperName = $request->has('shipper_name') ? $request->shipper_name : $oldShipperName;
+                $newShipperPhone = $request->has('shipper_phone') ? $request->shipper_phone : $oldShipperPhone;
+
+                $order->shipper_name = $newShipperName;
+                $order->shipper_phone = $newShipperPhone;
+                $order->delivery_note = $request->delivery_note;
+                $order->updated_by = \Illuminate\Support\Facades\Auth::id();
+                $order->save();
+
+                // 4. Ghi nhật ký kiểm toán (Audit Trail) trong CÙNG transaction nguyên tử
                 \App\Models\OrderDeliveryLog::create([
                     'order_id' => $order->id,
                     'user_id' => \Illuminate\Support\Facades\Auth::id(),
@@ -117,9 +122,20 @@ class OrderController extends Controller
                     'note' => $order->delivery_note,
                     'created_at' => now(),
                 ]);
+
+                return $order;
+            });
+        } catch (\DomainException $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
             }
+            return redirect()->back()->with('error', $e->getMessage());
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error('Lỗi lưu nhật ký giao hàng: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Lỗi transaction cập nhật giao hàng: ' . $e->getMessage());
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Lỗi hệ thống khi cập nhật giao hàng.'], 500);
+            }
+            return redirect()->back()->with('error', 'Lỗi hệ thống khi cập nhật giao hàng: ' . $e->getMessage());
         }
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -130,6 +146,7 @@ class OrderController extends Controller
                 'delivery_status_label' => $order->delivery_status_label,
                 'order_status' => (int)$order->status,
                 'order_status_label' => $order->status_label,
+                'payment_status' => $order->payment_status,
             ]);
         }
 
@@ -138,7 +155,7 @@ class OrderController extends Controller
 
     public function detail($id)
     {
-        $order = Order::with(['orderDetails.product.category', 'table.floor', 'user', 'deliveryLogs.user'])->findOrFail($id);
+        $order = Order::with(['orderDetails.product.category', 'table.floor', 'user', 'deliveryLogs.user', 'paymentTransactions'])->findOrFail($id);
 
         return view('backend.order.orderdetail', compact('order'));
     }

@@ -190,8 +190,9 @@ class DeliveryAndPricingTest extends TestCase
         $vietqrOrder->status = \App\Enums\OrderStatus::PENDING;
         $this->assertFalse($vietqrOrder->isPaid());
 
-        // Đơn VietQR: Webhook xác nhận tiền về (status = 1) -> isPaid = true
+        // Đơn VietQR: Webhook xác nhận tiền về (status = 1, payment_status = paid) -> isPaid = true
         $vietqrOrder->status = \App\Enums\OrderStatus::PROCESSING;
+        $vietqrOrder->payment_status = Order::PAYMENT_PAID;
         $this->assertTrue($vietqrOrder->isPaid());
     }
 }
