@@ -12,27 +12,27 @@
         />
 
         <div class="container mx-auto px-4 max-w-xl pt-6 sm:pt-10">
-            
 
-
-            <!-- THẺ HÓA ĐƠN ĐIỆN TỬ (Mô phỏng tờ bill thanh lịch) -->
-            <div class="bg-white rounded-xl sm:rounded-2xl border border-stone-200/90 shadow-xl overflow-hidden mb-6">
+            <!-- THẺ HÓA ĐƠN ĐIỆN TỬ (Giao diện biên lai tối giản, trang nhã) -->
+            <div class="bg-white rounded-xl sm:rounded-2xl border border-stone-200 shadow-md overflow-hidden mb-6">
                 
                 <!-- Header Bill -->
-                <div class="p-6 bg-stone-900 text-white text-center border-b border-stone-800 relative">
-                    <h2 class="text-xs uppercase tracking-[0.25em] text-orange-400 font-extrabold">NHÀ HÀNG CIVILIZE PHÚC THỌ</h2>
-                    <h1 class="text-2xl font-serif font-black text-white mt-1">{{ $table->name }}</h1>
-                    <p class="text-xs text-stone-400 mt-0.5">
+                <div class="p-6 bg-white text-stone-900 text-center border-b border-dashed border-stone-300 relative">
+                    <h2 class="text-xs uppercase tracking-[0.2em] text-stone-500 font-bold">NHÀ HÀNG CIVILIZE PHÚC THỌ</h2>
+                    <h1 class="text-2xl font-bold text-stone-900 mt-1">{{ $table->name }}</h1>
+                    <p class="text-xs text-stone-500 mt-1">
                         {{ $table->floor ? $table->floor->name : 'Sảnh' }} • Hóa đơn #{{ $order->id }} • {{ $order->created_at ? $order->created_at->format('H:i - d/m/Y') : date('H:i - d/m/Y') }}
                     </p>
 
                     <!-- Dấu Mộc Đã Thanh Toán (nếu status = 1 hoặc 2) -->
                     @if ($order->status == 1 || $order->status == 2)
-                        <div class="mt-4 inline-flex items-center px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-black uppercase tracking-wider">
+                        <div class="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-700 border border-stone-200 text-xs font-semibold">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>ĐÃ THANH TOÁN ({{ $order->payment_method ?: 'VietQR' }})</span>
                         </div>
                     @else
-                        <div class="mt-4 inline-flex items-center px-4 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-black uppercase tracking-wider">
+                        <div class="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-700 border border-stone-200 text-xs font-semibold">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                             <span>CHƯA THANH TOÁN</span>
                         </div>
                     @endif
@@ -60,12 +60,12 @@
                             </div>
 
                             <div class="flex items-center gap-3 shrink-0">
-                                <!-- Badge Trạng thái món ăn -->
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold {{ $item->status == 'completed' ? 'bg-emerald-100 text-emerald-700' : ($item->status == 'cooking' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700') }}">
+                                <!-- Badge Trạng thái món ăn: Tối giản, không sặc sỡ -->
+                                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-700 border border-stone-200">
                                     {{ $item->status == 'completed' ? 'Đã lên bàn' : ($item->status == 'cooking' ? 'Đang nấu' : 'Chờ bếp') }}
                                 </span>
 
-                                <span class="font-extrabold text-stone-900 w-20 text-right text-xs sm:text-sm">
+                                <span class="font-bold text-stone-900 w-20 text-right text-xs sm:text-sm">
                                     {{ number_format($item->amount, 0, ',', '.') }}₫
                                 </span>
                             </div>
@@ -74,20 +74,20 @@
                 </div>
 
                 <!-- Bảng Tính Tiền -->
-                <div class="p-5 sm:p-6 bg-stone-50/80 border-t border-stone-200 space-y-2 text-xs">
+                <div class="p-5 sm:p-6 bg-stone-50/70 border-t border-stone-200 space-y-2 text-xs">
                     <div class="flex items-center justify-between text-stone-600">
                         <span>Tạm tính các món:</span>
                         <span class="font-bold text-stone-800">{{ number_format($subtotal, 0, ',', '.') }}₫</span>
                     </div>
 
-                    <div class="flex items-center justify-between text-emerald-700">
+                    <div class="flex items-center justify-between text-stone-600">
                         <span>Ưu đãi quét QR tại bàn (-10%):</span>
-                        <span class="font-bold">-{{ number_format($discountAmount, 0, ',', '.') }}₫</span>
+                        <span class="font-bold text-stone-800">-{{ number_format($discountAmount, 0, ',', '.') }}₫</span>
                     </div>
 
                     <div class="pt-3 border-t border-stone-200 flex items-center justify-between text-sm sm:text-base">
                         <span class="font-bold text-stone-900">Tổng thanh toán:</span>
-                        <span class="text-xl sm:text-2xl font-black text-[#C25E00]">
+                        <span class="text-xl sm:text-2xl font-bold text-stone-900">
                             {{ number_format($finalAmount, 0, ',', '.') }}₫
                         </span>
                     </div>
@@ -95,12 +95,12 @@
 
                 <!-- NẾU CHƯA THANH TOÁN: HIỂN THỊ KHUNG QUÉT MÃ VIETQR NHANH -->
                 @if ($order->status == 0)
-                    <div class="p-6 bg-amber-50/50 border-t border-amber-200/80 text-center">
+                    <div class="p-6 bg-stone-50 border-t border-stone-200 text-center">
                         <span class="text-xs font-bold text-stone-800 block mb-3">
                             Quét mã VietQR chuyển khoản thanh toán hóa đơn:
                         </span>
                         
-                        <div class="inline-block p-3 bg-white rounded-xl border border-orange-300 shadow-md mb-3">
+                        <div class="inline-block p-3 bg-white rounded-xl border border-stone-200 shadow-xs mb-3">
                             <img src="{{ $qrUrl }}" alt="VietQR" class="w-48 h-48 mx-auto object-contain">
                         </div>
 
@@ -112,7 +112,7 @@
                             @csrf
                             <input type="hidden" name="order_id" value="{{ $order->id }}">
                             <input type="hidden" name="payment_method" value="VietQR">
-                            <button type="submit" class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-md transition-colors flex items-center justify-center cursor-pointer">
+                            <button type="submit" class="w-full py-3 px-4 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center cursor-pointer">
                                 <span>Xác nhận đã chuyển khoản thành công</span>
                             </button>
                         </form>
@@ -120,12 +120,12 @@
                 @endif
 
                 <!-- Footer Nút Bấm -->
-                <div class="p-4 bg-stone-100/70 border-t border-stone-200 flex items-center justify-between gap-3 text-xs flex-wrap">
+                <div class="p-4 bg-stone-50 border-t border-stone-200 flex items-center justify-between gap-3 text-xs flex-wrap">
                     <div class="flex items-center gap-2">
-                        <a href="{{ route('site.product.gridview') }}" class="py-2 px-3 rounded bg-white hover:bg-stone-200 border border-stone-300 font-bold text-stone-800 transition-colors">
+                        <a href="{{ route('site.product.gridview') }}" class="py-2 px-3.5 rounded bg-white hover:bg-stone-100 border border-stone-300 font-semibold text-stone-800 transition-colors">
                             Gọi thêm món
                         </a>
-                        <a href="{{ route('site.table.scan', $table->id) }}" class="text-stone-500 hover:text-stone-800 font-semibold underline">
+                        <a href="{{ route('site.table.scan', $table->id) }}" class="py-2 px-3.5 rounded bg-stone-100 hover:bg-stone-200 border border-stone-200 font-semibold text-stone-700 transition-colors">
                             Quay lại bàn ăn
                         </a>
                     </div>
