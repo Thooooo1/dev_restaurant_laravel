@@ -249,7 +249,6 @@ document.addEventListener('DOMContentLoaded', function() {
             statusMsg.textContent = '';
         }
     }
-    }
 
     // Xử lý chạm nhanh các thẻ nhu cầu (Service Chips) - Hỗ trợ chọn nhiều cùng lúc (Multi-select)
     chips.forEach(chip => {
@@ -398,6 +397,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tableSelect) {
         tableSelect.addEventListener('change', syncTableSelection);
         tableSelect.addEventListener('input', syncTableSelection);
+        tableSelect.addEventListener('focus', clearStatusMsg);
+        tableSelect.addEventListener('click', clearStatusMsg);
+    }
+    if (noteInput) {
+        noteInput.addEventListener('focus', clearStatusMsg);
+        noteInput.addEventListener('input', clearStatusMsg);
     }
 
     // Hàm toàn cục cho phép đồng bộ số bàn từ Giỏ hàng / Table Picker sang Chuông gọi phục vụ

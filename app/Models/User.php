@@ -71,18 +71,29 @@ class User extends Authenticatable
     }
 
     /**
-     * Kiểm tra xem người dùng có phải là quản lý không
+     * Kiểm tra xem người dùng có phải là Quản trị viên (Admin) không.
+     * Nguồn sự thật chính: cột roles. admin_lever=1 chỉ dùng để tương thích dữ liệu cũ.
      */
     public function isAdmin(): bool
     {
-        return $this->roles == 'admin'; // Hoặc giá trị tương ứng trong database của bạn
+        return $this->roles === 'admin';
     }
 
     /**
-     * Kiểm tra xem người dùng có phải là nhân viên không
+     * Kiểm tra xem người dùng có phải là Nhân viên (Employee) không.
+     * Nguồn sự thật chính: cột roles. admin_lever=2 chỉ dùng để tương thích dữ liệu cũ.
      */
     public function isEmployee(): bool
     {
-        return $this->roles == 'employee'; // Hoặc giá trị tương ứng trong database của bạn
+        return $this->roles === 'employee';
+    }
+
+    /**
+     * Kiểm tra xem người dùng có phải là Khách hàng / Thành viên (Customer) không.
+     * Bất kỳ tài khoản nào không phải admin hoặc employee đều là customer.
+     */
+    public function isCustomer(): bool
+    {
+        return !$this->isAdmin() && !$this->isEmployee();
     }
 }

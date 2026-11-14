@@ -51,7 +51,7 @@ class AuthController extends Controller
         }
 
         // CHẶN TUYỆT ĐỐI KHÁCH HÀNG / THÀNH VIÊN VÀO ADMIN
-        if ($user->roles !== 'admin' && $user->roles !== 'employee') {
+        if (!$user->isAdmin() && !$user->isEmployee()) {
             return redirect()->route('admin.login')->with('error', 'Tài khoản này là Khách hàng / Thành viên, không có quyền truy cập trang quản trị!')->withInput();
         }
 
@@ -68,13 +68,16 @@ class AuthController extends Controller
         $redirectUrl = $request->input('redirect');
         if ($redirectUrl && is_string($redirectUrl)) {
             if (str_starts_with($redirectUrl, '/admin') && !str_starts_with($redirectUrl, '//') && !str_contains($redirectUrl, '\\') && !str_contains($redirectUrl, ':')) {
-                return redirect($redirectUrl);
+                // Nếu là nhân viên mà URL đích đòi hỏi quyền Admin, bỏ qua để redirect về POS
+                if (!$user->isEmployee() || str_starts_with($redirectUrl, '/admin/table-order') || str_starts_with($redirectUrl, '/admin/order') || str_starts_with($redirectUrl, '/admin/booking') || str_starts_with($redirectUrl, '/admin/notifications')) {
+                    return redirect($redirectUrl);
+                }
             }
         }
 
         // Điều hướng chính xác theo phân quyền:
-        // Nhân viên (admin_lever = 2 hoặc roles = employee) vào màn hình POS gọi món tại bàn
-        if ($user->admin_lever == 2 || $user->roles === 'employee') {
+        // Nhân viên vào màn hình POS gọi món tại bàn
+        if ($user->isEmployee()) {
             return redirect()->route('admin.table-order.index');
         }
 

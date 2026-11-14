@@ -290,7 +290,7 @@ class TableOrderController extends Controller
             $newUser->gender = $request->input('gender', '1');
             $newUser->phone = $request->phone;
             $newUser->roles = 'customer';
-            $newUser->admin_lever = 2;
+            $newUser->admin_lever = null;
             $newUser->status = 1;
             $newUser->created_by = Auth::id() ?? 1;
             $newUser->save();

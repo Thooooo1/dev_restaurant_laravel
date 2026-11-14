@@ -115,7 +115,7 @@
                                 </td>
                                 <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.65)]">{{ $user->email ?: '---' }}</td>
                                 <td class="whitespace-nowrap text-center">
-                                    @if (Auth::user()->admin_lever == 1 || Auth::user()->id == $user->id)
+                                    @if (Auth::user()->isAdmin() || Auth::user()->id == $user->id)
                                         <form action="{{ route('admin.user.toggleLine', $user->id) }}" method="POST" class="inline">
                                             @csrf
                                             <button type="submit" class="text-gray-700 hover:text-black text-xs font-medium cursor-pointer" title="{{ $user->line == 1 ? 'Online (Bấm để tắt)' : 'Offline (Bấm để bật)' }}">

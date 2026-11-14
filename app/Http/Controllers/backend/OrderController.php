@@ -30,6 +30,9 @@ class OrderController extends Controller
 
     public function export(Request $request)
     {
+        if (!\Illuminate\Support\Facades\Auth::user() || !\Illuminate\Support\Facades\Auth::user()->isAdmin()) {
+            return redirect()->route('admin.order.index')->with('error', 'Chỉ Quản trị viên mới có quyền xuất dữ liệu đơn hàng!');
+        }
         $status = $request->query('status');
         return \App\Services\ExcelExporter::download(new \App\Exports\OrderExport($status, true), 'danh-sach-don-hang.xls');
     }

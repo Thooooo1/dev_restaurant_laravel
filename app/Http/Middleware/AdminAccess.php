@@ -15,12 +15,12 @@ class AdminAccess
         }
 
         // Quản trị viên tối cao: toàn quyền truy cập
-        if (Auth::user()->roles === 'admin') {
+        if (Auth::user()->isAdmin()) {
             return $next($request);
         }
 
         // Nhân viên: chỉ được thao tác trên màn hình POS và vận hành bán hàng, không được vào trang quản trị
-        if (Auth::user()->roles === 'employee') {
+        if (Auth::user()->isEmployee()) {
             return redirect()->route('admin.table-order.index')->with('error', 'Nhân viên không có quyền truy cập vào chức năng quản trị này!');
         }
 

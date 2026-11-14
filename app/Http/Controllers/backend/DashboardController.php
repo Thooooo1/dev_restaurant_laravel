@@ -16,8 +16,8 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         // Nhân viên vận hành không xem bảng doanh thu tổng quan, điều hướng trực tiếp sang POS bán hàng
-        if (\Illuminate\Support\Facades\Auth::user() && \Illuminate\Support\Facades\Auth::user()->roles === 'employee') {
-            return redirect()->route('admin.table-order.index');
+        if (\Illuminate\Support\Facades\Auth::user() && \Illuminate\Support\Facades\Auth::user()->isEmployee()) {
+            return redirect()->route('admin.table-order.index')->with('info', 'Chào mừng bạn đến với khu vực Bán hàng & Vận hành POS.');
         }
 
         // Bộ lọc thời gian: 'today', '7day', '30day', '12month' (mặc định 'today')
@@ -353,6 +353,9 @@ class DashboardController extends Controller
 
     public function exportBestSelling(Request $request)
     {
+        if (!\Illuminate\Support\Facades\Auth::user() || !\Illuminate\Support\Facades\Auth::user()->isAdmin()) {
+            return redirect()->route('admin.table-order.index')->with('error', 'Chỉ Quản trị viên mới có quyền xuất báo cáo món bán chạy!');
+        }
         $type = $request->get('type', 'all');
         return \App\Services\ExcelExporter::download(
             new \App\Exports\BestSellingExport($type),

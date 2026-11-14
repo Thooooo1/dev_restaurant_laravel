@@ -228,7 +228,6 @@ Route::post('/admin/logout', [AuthController::class, 'logout'])->name('admin.log
 // Admin Dashboard (Protected)
 Route::prefix('admin')->middleware('login-admin')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('/export-best-selling', [DashboardController::class, 'exportBestSelling'])->name('admin.dashboard.exportBestSelling');
 
     // ==============================
     // ROUTE CHO CẢ ADMIN VÀ EMPLOYEE
@@ -237,7 +236,6 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
     // Orders
     Route::prefix('order')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('admin.order.index');
-        Route::get('/export', [OrderController::class, 'export'])->name('admin.order.export');
         Route::get('/orders/{id}', [OrderController::class, 'detail'])->name('admin.order.orderdetail');
         Route::get('/print/{id}', [OrderController::class, 'print'])->name('admin.order.printorder');
         Route::get('/{id}/edit', [OrderController::class, 'edit'])->name('admin.order.edit');
@@ -297,6 +295,10 @@ Route::prefix('admin')->middleware('login-admin')->group(function () {
     // ROUTE CHỈ CHO ADMIN
     // ==============================
     Route::middleware('admin-access')->group(function () {
+        // Báo cáo & Doanh thu xuất Excel (Dành riêng cho Admin)
+        Route::get('/export-best-selling', [DashboardController::class, 'exportBestSelling'])->name('admin.dashboard.exportBestSelling');
+        Route::get('/order/export', [OrderController::class, 'export'])->name('admin.order.export');
+
         // System Migration Runner: Chi kich hoat khi ALLOW_SYSTEM_MIGRATE=true trong .env (doc qua config app)
         if (config('app.allow_system_migrate', false)) {
         // System Migration Runner (Yêu cầu xác nhận POST với CSRF token, chỉ tài khoản Admin thực hiện)

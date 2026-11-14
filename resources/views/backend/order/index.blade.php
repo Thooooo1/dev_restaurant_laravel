@@ -6,9 +6,11 @@
             <h1 class="text-lg font-bold text-[rgba(0,0,0,0.85)] tracking-tight">Đơn hàng giao</h1>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
+            @if(Auth::user()->isAdmin())
             <a href="{{ route('admin.order.export', request()->all()) }}" class="ant-btn ant-btn-sm font-medium bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
                 <span>Xuất Excel đơn hàng</span>
             </a>
+            @endif
             <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-primary ant-btn-sm font-bold uppercase tracking-wider">
                 <span>+ Tạo đơn tại quầy</span>
             </a>

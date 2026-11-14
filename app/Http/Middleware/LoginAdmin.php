@@ -22,7 +22,7 @@ class LoginAdmin
         $user = Auth::user();
 
         // Khách hàng / thành viên tuyệt đối không được vào backend
-        if($user->roles !== 'admin' && $user->roles !== 'employee')
+        if (!$user->isAdmin() && !$user->isEmployee())
         {
             return redirect()->route('site.home')->with('error','Tài khoản của bạn là Khách hàng / Thành viên, không có quyền truy cập trang quản trị!');
         }

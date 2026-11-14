@@ -254,16 +254,29 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        $user =User::withTrashed()->where('id',$id)->first();
-        if($user != null){
+        $user = User::withTrashed()->where('id', $id)->first();
+        if ($user != null) {
+            // Chốt chặn: Không được tự xóa vĩnh viễn tài khoản của chính mình
+            if (Auth::id() == $user->id) {
+                return redirect()->route("admin.user.trash")->with('error', 'Bạn không thể tự xóa vĩnh viễn tài khoản của chính mình!');
+            }
+
+            // Chốt chặn: Không được xóa Quản trị viên duy nhất của hệ thống
+            if ($user->isAdmin()) {
+                $adminCount = User::where('roles', 'admin')->whereNull('deleted_at')->where('status', 1)->count();
+                if ($adminCount <= 1) {
+                    return redirect()->route("admin.user.trash")->with('error', 'Không thể xóa Quản trị viên duy nhất của hệ thống!');
+                }
+            }
+
             // xóa hình
-            if($user -> image && File::exists(public_path("images/user/" . $user->image))){
+            if ($user->image && File::exists(public_path("images/user/" . $user->image))) {
                 File::delete(public_path("images/user/" . $user->image));
             }
             $user->forceDelete();
-            return redirect()->route("admin.user.trash")->with('success','Xóa thành công');
+            return redirect()->route("admin.user.trash")->with('success', 'Xóa thành công');
         }
-        return redirect()->route("admin.user.trash")->with('error','Mẫu tin không tồn tại');
+        return redirect()->route("admin.user.trash")->with('error', 'Mẫu tin không tồn tại');
     }
     //danhsachsanphamrac
     public function trash()
@@ -337,11 +350,13 @@ class UserController extends Controller
     {
         $currentUser = Auth::user();
 
-        if ($currentUser->admin_lever == 2 && $currentUser->id != $user->id) {
+        // Nhân viên chỉ được tự toggle trạng thái của chính mình
+        if ($currentUser->isEmployee() && $currentUser->id != $user->id) {
             return redirect()->route('admin.user.employees')->with('error', 'Bạn không có quyền thay đổi trạng thái của người khác!');
         }
 
-        if ($currentUser->admin_lever == 1 || $currentUser->id == $user->id) {
+        // Admin hoặc chính tài khoản đó: được phép
+        if ($currentUser->isAdmin() || $currentUser->id == $user->id) {
             $user->line = $user->line == 1 ? 0 : 1;
             $user->save();
             return redirect()->route('admin.user.employees')->with('success', 'Cập nhật trạng thái thành công!');
