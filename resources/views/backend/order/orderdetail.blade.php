@@ -258,7 +258,7 @@
                                     <div class="p-2.5 bg-gray-50 border border-gray-200 rounded text-xs space-y-1">
                                         <div class="flex items-center justify-between">
                                             <span class="font-mono font-bold text-gray-800">{{ $tx->reference_code }}</span>
-                                            <span class="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold {{ $tx->status === 'success' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                                            <span class="text-xs font-semibold text-[rgba(0,0,0,0.85)]">
                                                 {{ strtoupper($tx->status) }}
                                             </span>
                                         </div>
@@ -310,7 +310,7 @@
                 <div class="ant-card p-5">
                     <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
                         <span>Bàn giao món ({{ $order->isTakeaway() ? 'Đơn mang về' : 'Đơn tại quầy' }})</span>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold {{ (int)$order->status === 2 ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800' }}">
+                        <span class="text-xs font-semibold text-[rgba(0,0,0,0.85)]">
                             {{ $order->status_label }}
                         </span>
                     </h3>
@@ -360,7 +360,7 @@
                 <div class="ant-card p-5">
                     <h3 class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
                         <span>Tiến trình giao hàng & Shipper</span>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold {{ $order->delivery_status === 'delivered' ? 'bg-emerald-100 text-emerald-800' : ($order->delivery_status === 'failed' ? 'bg-rose-100 text-rose-800' : 'bg-blue-100 text-blue-800') }}">
+                        <span class="text-xs font-semibold text-[rgba(0,0,0,0.85)]">
                             {{ $order->delivery_status_label }}
                         </span>
                     </h3>

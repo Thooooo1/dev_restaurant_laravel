@@ -67,37 +67,37 @@
                             <td class="text-xs text-[rgba(0,0,0,0.65)] max-w-[200px] truncate" title="{{ $order->address }}">
                                 {{ $order->address }}
                             </td>
-                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
-                                <div>{{ $order->payment_method == 2 ? 'Chuyển khoản VietQR' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}</div>
-                                <div class="text-[10px] mt-0.5">
-                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded font-semibold {{ $order->payment_status === 'paid' ? 'bg-emerald-50 text-emerald-700' : ($order->payment_status === 'refunded' ? 'bg-purple-50 text-purple-700' : ($order->payment_status === 'failed' ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700')) }}">
-                                        {{ $order->payment_status_label }}
-                                    </span>
+                            <td class="whitespace-nowrap text-xs">
+                                <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $order->payment_method == 2 ? 'Chuyển khoản VietQR' : ($order->payment_method == 3 ? 'Quẹt thẻ' : 'Tiền mặt') }}</div>
+                                <div class="text-xs text-[rgba(0,0,0,0.65)] mt-0.5">
+                                    {{ $order->payment_status_label }}
                                 </div>
                             </td>
                             <td class="font-mono text-xs text-[rgba(0,0,0,0.85)] whitespace-nowrap">
                                 {{ date('H:i d/m/Y', strtotime($order->created_at)) }}
                             </td>
-                            <td class="whitespace-nowrap text-xs text-[rgba(0,0,0,0.85)] font-medium">
-                                @switch((int)$order->status)
-                                    @case(1)
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700">Đang chuẩn bị / vận chuyển</span>
-                                        @break
-                                    @case(2)
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700">Đã giao hàng</span>
-                                        @break
-                                    @case(3)
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-700">Đã hủy</span>
-                                        @break
-                                    @default
-                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700">Đang chờ xử lý</span>
-                                @endswitch
+                            <td class="whitespace-nowrap text-xs">
+                                <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">
+                                    @switch((int)$order->status)
+                                        @case(1)
+                                            Đang chuẩn bị / vận chuyển
+                                            @break
+                                        @case(2)
+                                            Đã giao hàng
+                                            @break
+                                        @case(3)
+                                            Đã hủy
+                                            @break
+                                        @default
+                                            Đang chờ xử lý
+                                    @endswitch
+                                </div>
 
                                 @if(empty($order->table_id))
-                                    <div class="text-[10px] text-gray-500 font-normal mt-0.5">
+                                    <div class="text-xs text-[rgba(0,0,0,0.65)] mt-0.5">
                                         <span>Giao: {{ $order->delivery_status_label }}</span>
                                         @if($order->shipper_name)
-                                            <span class="text-gray-700 font-medium">({{ $order->shipper_name }})</span>
+                                            <span class="font-medium text-[rgba(0,0,0,0.85)]">({{ $order->shipper_name }})</span>
                                         @endif
                                     </div>
                                 @endif
