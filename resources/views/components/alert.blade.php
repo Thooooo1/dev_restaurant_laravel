@@ -41,9 +41,7 @@
     }
 
     .app-toast-item.toast-success {
-        border-color: #D1FAE5 !important;
-        background: #FFFFFF !important;
-        color: #065F46 !important;
+        display: none !important;
     }
 
     .app-toast-item.toast-error {
@@ -105,13 +103,15 @@
     (function() {
         window.showAppToast = function(message, type = 'success', duration = null) {
             if (!message) return;
+            // Xóa hoàn toàn các thông báo success dạng popup nổi
+            if (type === 'success') return;
             const isAdmin = window.location.pathname.startsWith('/admin') || window.location.pathname.includes('/admin/');
             const effectiveDuration = duration !== null ? duration : (isAdmin ? 2000 : 1600);
             const container = document.getElementById('app-toast-container');
             if (!container) return;
 
             const toast = document.createElement('div');
-            toast.className = 'app-toast-item toast-' + (type || 'success');
+            toast.className = 'app-toast-item toast-' + (type || 'info');
             // THUẦN CHỮ TỰ NHIÊN, KHÔNG CHÈN ICON HAY NÚT TẮT RƯỜM RÀ
             toast.textContent = message;
 
@@ -127,7 +127,7 @@
                 toast.classList.add('show');
             });
 
-            // Tự động biến mất sau đúng duration (Admin: 2 giây ở góc dưới; Khách: 1.6 giây ở góc trên)
+            // Tự động biến mất sau đúng duration
             let timer = setTimeout(() => {
                 dismissToast(toast);
             }, effectiveDuration);
@@ -146,7 +146,7 @@
 
         // Ghi đè Toastr toàn cục để tương thích 100% với toàn bộ code cũ
         window.toastr = {
-            success: (msg) => window.showAppToast(msg, 'success'),
+            success: (msg) => { /* Xóa bỏ toàn bộ popup toast success */ },
             error: (msg) => window.showAppToast(msg, 'error', 1800),
             warning: (msg) => window.showAppToast(msg, 'warning', 1600),
             info: (msg) => window.showAppToast(msg, 'info'),
@@ -162,14 +162,6 @@
         };
     })();
 </script>
-
-@if(session('success'))
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            window.showAppToast("{!! addslashes(session('success')) !!}", 'success', {{ request()->is('admin*') ? 2000 : 1600 }});
-        });
-    </script>
-@endif
 
 @if(session('error'))
     <script>
