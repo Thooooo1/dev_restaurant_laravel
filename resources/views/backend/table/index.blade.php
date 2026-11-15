@@ -252,7 +252,7 @@
                                         <!-- Nút Thanh toán (Chuyển sang trang thanh toán POS) -->
                                         <a href="{{ route('admin.table-order.payment', $table->id) }}" 
                                            class="ant-btn ant-btn-sm ant-btn-success !bg-emerald-600 !text-white hover:!bg-emerald-700 !border-emerald-600 font-bold shadow-xs uppercase tracking-wider"
-                                           title="Thanh toán hóa đơn cho bàn này (VietQR / Tiền mặt / Quẹt thẻ)">
+                                           title="Thanh toán hóa đơn cho bàn này (VietQR / Tiền mặt)">
                                             <span>Thanh toán</span>
                                         </a>
 

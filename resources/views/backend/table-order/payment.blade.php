@@ -75,15 +75,15 @@
         <div class="p-5 bg-[#FAFAFA] border border-[#F0F0F0] rounded-xl mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex flex-wrap items-center gap-3.5">
                 <label for="paymentMethodSelect" class="text-sm font-bold text-gray-700 uppercase tracking-wide">Phương thức thanh toán:</label>
-                <select class="polaris-select text-sm font-semibold py-2 px-3.5 rounded-lg border-gray-300 bg-white" name="payment_method" id="paymentMethodSelect">
+                <select class="h-10 text-sm font-semibold text-gray-800 bg-white border border-gray-300 rounded-lg pl-3.5 pr-10 py-2 focus:outline-none focus:border-stone-500 focus:ring-1 focus:ring-stone-400 shadow-2xs cursor-pointer min-w-[210px]" name="payment_method" id="paymentMethodSelect">
                     <option value="1" {{ ($order->payment_method == 1 || !$order->payment_method) ? 'selected' : '' }}>Tiền mặt</option>
                     <option value="2" {{ $order->payment_method == 2 ? 'selected' : '' }}>Chuyển khoản VietQR</option>
-                    <option value="3" {{ $order->payment_method == 3 ? 'selected' : '' }}>Quẹt thẻ POS (ATM / Visa / Master)</option>
                 </select>
                 <button type="button" 
                         id="openVietQrModalBtn" 
                         onclick="openVietQrModal()" 
-                        class="px-3.5 py-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 rounded-lg text-xs font-bold shadow-2xs flex items-center justify-center cursor-pointer transition-colors">
+                        class="h-10 px-4 border border-gray-300 bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-800 rounded-lg text-xs font-bold shadow-2xs inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
+                    <i class="fa-solid fa-qrcode text-gray-600 text-sm"></i>
                     <span>Mở mã QR</span>
                 </button>
             </div>
@@ -699,7 +699,7 @@
         // In hoá đơn tạm tính hoặc hoá đơn thanh toán
         function printProvisionalBill(isFinal = false) {
             const paymentMethodValue = document.getElementById('paymentMethodSelect').value;
-            const paymentMethodText = paymentMethodValue === '2' ? 'Chuyển khoản VietQR' : (paymentMethodValue === '3' ? 'Quẹt thẻ POS' : 'Tiền mặt');
+            const paymentMethodText = paymentMethodValue === '2' ? 'Chuyển khoản VietQR' : 'Tiền mặt';
 
             const items = [];
             let total = 0;
@@ -753,7 +753,7 @@
             }
 
             const paymentMethod = document.getElementById('paymentMethodSelect').value;
-            const paymentMethodText = paymentMethod === '2' ? 'Chuyển khoản VietQR' : (paymentMethod === '3' ? 'Quẹt thẻ POS' : 'Tiền mặt');
+            const paymentMethodText = paymentMethod === '2' ? 'Chuyển khoản VietQR' : 'Tiền mặt';
 
             if (!confirm(`Xác nhận thanh toán cho bàn ${@json($table->name ?? '')} bằng hình thức ${paymentMethodText}?`)) {
                 return;

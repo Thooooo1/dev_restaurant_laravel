@@ -902,7 +902,7 @@ class TableOrderController extends Controller
             // Clear table lock cho các bàn liên kết
             Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
 
-            $pmText = $request->payment_method == 2 ? 'Chuyển khoản VietQR' : ($request->payment_method == 3 ? 'Quẹt thẻ POS' : 'Tiền mặt');
+            $pmText = $request->payment_method == 2 ? 'Chuyển khoản VietQR' : 'Tiền mặt';
             $refCode = 'POS_' . $order->id . '_' . time();
 
             // Ghi nhận nhật ký dòng tiền giao dịch (PaymentTransaction)
@@ -912,7 +912,7 @@ class TableOrderController extends Controller
                     'reference_code' => $refCode,
                     'amount' => (int) $actualTotal,
                     'content' => "Thu ngân thanh toán tại quầy POS ({$pmText})",
-                    'gateway' => $request->payment_method == 2 ? 'vietqr' : ($request->payment_method == 3 ? 'card' : 'cash'),
+                    'gateway' => $request->payment_method == 2 ? 'vietqr' : 'cash',
                     'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
                     'raw_payload' => json_encode([
                         'table_id' => $order->table_id,
