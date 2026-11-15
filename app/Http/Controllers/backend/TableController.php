@@ -102,6 +102,10 @@ class TableController extends Controller
         }
 
         $finalTotal = $order->total_price > 0 ? $order->total_price : $subtotal;
+        $isPaid = $order->payment_status === Order::PAYMENT_PAID || $order->isPaid();
+        $hasNewItems = !empty($order->has_new_items);
+        $statusText = $isPaid ? 'Đã thanh toán' : ($order->status == 1 ? 'Đang phục vụ (Chưa thanh toán)' : 'Chưa thanh toán');
+        $statusColor = $isPaid ? 'emerald' : ($hasNewItems ? 'rose' : 'amber');
 
         return response()->json([
             'success' => true,
@@ -115,7 +119,11 @@ class TableController extends Controller
             'order' => [
                 'id' => $order->id,
                 'status' => $order->status,
-                'status_text' => $order->status == 1 ? 'Đã tạm tính / Đang phục vụ' : 'Chưa thanh toán',
+                'payment_status' => $order->payment_status,
+                'is_paid' => $isPaid,
+                'has_new_items' => $hasNewItems,
+                'status_color' => $statusColor,
+                'status_text' => $statusText,
                 'created_at' => $order->created_at ? $order->created_at->format('H:i d/m/Y') : 'Vừa xong',
                 'time_seated' => $order->created_at ? $order->created_at->locale('vi')->diffForHumans() : 'Vừa xong',
                 'customer_name' => $order->customer_name,

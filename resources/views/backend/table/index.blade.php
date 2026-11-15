@@ -37,7 +37,7 @@
         <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div class="min-w-0">
                 <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
+                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
                     Đang có khách
                 </span>
                 <span class="text-xl sm:text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['serving'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
@@ -51,7 +51,7 @@
         <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div class="min-w-0">
                 <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                     Bàn sẵn sàng
                 </span>
                 <span class="text-xl sm:text-2xl font-black text-gray-900 mt-0.5 block">{{ $stats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
@@ -180,7 +180,8 @@
                             <td class="py-3.5 px-3">
                                 @if ($hasActive)
                                     <div>
-                                        <span class="text-xs font-semibold text-gray-800 block">
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                             Đang có khách
                                         </span>
                                         <div class="mt-1.5 flex items-center gap-2 text-[11px] text-gray-500">
@@ -194,7 +195,8 @@
                                     </div>
                                 @else
                                     <div>
-                                        <span class="text-xs font-medium text-gray-500 block">
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                             Bàn trống
                                         </span>
                                         <p class="text-[11px] text-gray-400 mt-1">Sẵn sàng đón khách</p>
@@ -324,6 +326,8 @@
 
         <div class="flex min-h-full items-center justify-center p-3 text-center sm:p-4">
             <div class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-2xl transition-all sm:my-6 sm:w-full sm:max-w-xl border border-gray-150">
+                <!-- Thanh trang thai dinh Modal dong bo mau theo dau cham trang thai -->
+                <div id="modalTopAccentStrip" class="h-1.5 w-full bg-amber-500 transition-colors duration-200"></div>
                 
                 <!-- Modal Header: Tinh gọn, thanh lịch -->
                 <div class="px-5 py-3.5 bg-white text-gray-900 flex items-center justify-between border-b border-gray-100">
@@ -456,8 +460,18 @@
 
                 if (!data.success || data.is_empty) {
                     emptyState.classList.remove('hidden');
+                    const strip = document.getElementById('modalTopAccentStrip');
+                    if (strip) strip.className = 'h-1.5 w-full bg-emerald-500 transition-colors duration-200';
+
                     document.getElementById('modalTableTitle').innerText = data.table ? `${data.table.name} (${data.table.floor_name})` : 'Bàn #' + tableId;
-                    document.getElementById('modalTableSub').innerText = 'Trạng thái: Bàn trống (Sẵn sàng phục vụ)';
+                    document.getElementById('modalTableSub').innerHTML = `
+                        <span>Bàn ${data.table ? data.table.seats : 4} chỗ ngồi</span>
+                        <span class="text-gray-300">•</span>
+                        <span class="inline-flex items-center gap-1.5 font-semibold text-emerald-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            Trạng thái: Bàn trống (Sẵn sàng phục vụ)
+                        </span>
+                    `;
                     document.getElementById('modalEmptyMessage').innerText = data.message || 'Bàn này hiện đang trống';
                     
                     const emptyBtn = document.getElementById('modalEmptyOrderBtn');
@@ -478,9 +492,37 @@
                 document.getElementById('modalOrderMoreBtn').classList.remove('hidden');
                 document.getElementById('modalBillLink').classList.remove('hidden');
 
-                // Header data
+                // Header data & Thanh trạng thái đỉnh modal theo màu dấu chấm
+                const strip = document.getElementById('modalTopAccentStrip');
+                const isPaid = data.order.is_paid || (data.order.status_text && data.order.status_text.includes('Đã thanh toán'));
+                const hasNew = data.order.has_new_items;
+                let stripColor = 'bg-amber-500';
+                let dotColor = 'bg-amber-500';
+                let textColor = 'text-amber-700';
+
+                if (isPaid) {
+                    stripColor = 'bg-emerald-500';
+                    dotColor = 'bg-emerald-500';
+                    textColor = 'text-emerald-700';
+                } else if (hasNew) {
+                    stripColor = 'bg-rose-500';
+                    dotColor = 'bg-rose-500';
+                    textColor = 'text-rose-700';
+                }
+
+                if (strip) {
+                    strip.className = `h-1.5 w-full ${stripColor} transition-colors duration-200`;
+                }
+
                 document.getElementById('modalTableTitle').innerText = `${data.table.name} — ${data.table.floor_name}`;
-                document.getElementById('modalTableSub').innerText = `Bàn ${data.table.seats} chỗ ngồi • Trạng thái: ${data.order.status_text}`;
+                document.getElementById('modalTableSub').innerHTML = `
+                    <span>Bàn ${data.table.seats} chỗ ngồi</span>
+                    <span class="text-gray-300">•</span>
+                    <span class="inline-flex items-center gap-1.5 font-semibold ${textColor}">
+                        <span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>
+                        Trạng thái: ${data.order.status_text}
+                    </span>
+                `;
 
                 // Meta data
                 document.getElementById('modalOrderCode').innerText = '#' + data.order.id;

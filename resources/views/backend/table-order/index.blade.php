@@ -44,8 +44,8 @@
         <!-- Đang có khách -->
         <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div class="min-w-0">
-                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
+                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-wider block truncate flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
                     Đang có khách
                 </span>
                 <span class="text-xl sm:text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['occupied'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
@@ -58,8 +58,8 @@
         <!-- Bàn còn trống -->
         <div class="bg-white p-3 sm:p-4 rounded-lg border border-gray-200/80 shadow-2xs flex items-center justify-between">
             <div class="min-w-0">
-                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider block truncate flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
+                <span class="text-[10px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-wider block truncate flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                     Bàn sẵn sàng
                 </span>
                 <span class="text-xl sm:text-2xl font-black text-gray-900 mt-0.5 block">{{ $posStats['empty'] ?? 0 }} <span class="text-xs font-normal text-gray-400">bàn</span></span>
@@ -183,11 +183,11 @@
                                 @elseif($isLocked) border-indigo-200 bg-indigo-50/10
                                 @else border-gray-200 hover:border-gray-300 @endif">
 
-                                <!-- Top Color Accent Strip -->
+                                <!-- Top Color Accent Strip (Thanh trạng thái đầu thẻ bàn) -->
                                 <div class="h-1.5 w-full 
                                     @if($hasNewItems) bg-rose-500 animate-pulse
                                     @elseif($isOccupied && ($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid())) bg-emerald-500
-                                    @elseif($isOccupied) bg-[#F47716]
+                                    @elseif($isOccupied) bg-amber-500
                                     @elseif($isLocked) bg-indigo-500
                                     @else bg-emerald-500 @endif">
                                 </div>
@@ -203,10 +203,11 @@
                                         </span>
                                     </div>
 
-                                    <!-- Status Text & Actions (Thanh lịch, không lồng khung) -->
+                                    <!-- Status Text & Actions (Thanh lịch, dấu chấm đồng bộ màu với thanh trạng thái) -->
                                     <div class="flex items-center gap-2">
                                         @if($hasNewItems)
-                                            <span class="text-xs font-bold text-rose-600">
+                                            <span class="inline-flex items-center gap-1 text-xs font-bold text-rose-600">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
                                                 Món mới
                                             </span>
                                         @elseif($isOccupied && ($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid()))
@@ -215,15 +216,18 @@
                                                 Đã thanh toán
                                             </span>
                                         @elseif($isOccupied)
-                                            <span class="text-xs font-semibold text-gray-700">
+                                            <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-600">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                                 Có khách
                                             </span>
                                         @elseif($isLocked)
-                                            <span class="text-xs font-medium text-gray-500">
+                                            <span class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                                                 Đã ghép
                                             </span>
                                         @else
-                                            <span class="text-xs font-normal text-gray-400">
+                                            <span class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                                 Trống
                                             </span>
                                         @endif
@@ -880,8 +884,18 @@
 
                 if (!data.success || data.is_empty) {
                     emptyState.classList.remove('hidden');
+                    const strip = document.getElementById('modalTopAccentStrip');
+                    if (strip) strip.className = 'h-1.5 w-full bg-emerald-500 transition-colors duration-200';
+
                     document.getElementById('modalTableTitle').innerText = data.table ? `${data.table.name} (${data.table.floor_name})` : 'Bàn #' + tableId;
-                    document.getElementById('modalTableSub').innerText = 'Trạng thái: Bàn trống (Sẵn sàng phục vụ)';
+                    document.getElementById('modalTableSub').innerHTML = `
+                        <span>Bàn ${data.table ? data.table.seats : 4} chỗ ngồi</span>
+                        <span class="text-gray-300">•</span>
+                        <span class="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            Trạng thái: Bàn trống (Sẵn sàng phục vụ)
+                        </span>
+                    `;
                     document.getElementById('modalEmptyMessage').innerText = data.message || 'Bàn này hiện đang trống';
                     
                     const emptyBtn = document.getElementById('modalEmptyOrderBtn');
@@ -900,9 +914,37 @@
                 document.getElementById('modalOrderMoreBtn').classList.remove('hidden');
                 document.getElementById('modalBillLink').classList.remove('hidden');
 
-                // Header data
+                // Header data & Thanh trạng thái đỉnh modal theo màu dấu chấm
+                const strip = document.getElementById('modalTopAccentStrip');
+                const isPaid = data.order.is_paid || (data.order.status_text && data.order.status_text.includes('Đã thanh toán'));
+                const hasNew = data.order.has_new_items;
+                let stripColor = 'bg-amber-500';
+                let dotColor = 'bg-amber-500';
+                let textColor = 'text-amber-700';
+
+                if (isPaid) {
+                    stripColor = 'bg-emerald-500';
+                    dotColor = 'bg-emerald-500';
+                    textColor = 'text-emerald-700';
+                } else if (hasNew) {
+                    stripColor = 'bg-rose-500';
+                    dotColor = 'bg-rose-500';
+                    textColor = 'text-rose-700';
+                }
+
+                if (strip) {
+                    strip.className = `h-1.5 w-full ${stripColor} transition-colors duration-200`;
+                }
+
                 document.getElementById('modalTableTitle').innerText = `${data.table.name} — ${data.table.floor_name}`;
-                document.getElementById('modalTableSub').innerText = `Bàn ${data.table.seats} chỗ ngồi • Trạng thái: ${data.order.status_text}`;
+                document.getElementById('modalTableSub').innerHTML = `
+                    <span>Bàn ${data.table.seats} chỗ ngồi</span>
+                    <span class="text-gray-300">•</span>
+                    <span class="inline-flex items-center gap-1 font-semibold ${textColor}">
+                        <span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>
+                        Trạng thái: ${data.order.status_text}
+                    </span>
+                `;
 
                 // Meta data
                 document.getElementById('modalOrderCode').innerText = '#' + data.order.id;
@@ -991,6 +1033,8 @@
 
         <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
             <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl border border-gray-100">
+                <!-- Thanh trang thai dinh Modal dong bo mau theo dau cham trang thai -->
+                <div id="modalTopAccentStrip" class="h-1.5 w-full bg-amber-500 transition-colors duration-200"></div>
                 
                 <!-- Modal Header: Nền trắng chữ đen thanh lịch, hiện đại -->
                 <div class="px-6 py-4 bg-white text-gray-900 flex items-center justify-between border-b border-gray-100">
