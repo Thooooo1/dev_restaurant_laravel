@@ -27,7 +27,7 @@ jobs:
       uses: shivammathur/setup-php@v2
       with:
         php-version: '8.2'
-        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath, curl
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, pdo_sqlite, bcmath, curl, gd, zip
         coverage: none
 
     - name: Copy .env
@@ -63,4 +63,10 @@ jobs:
         DB_USERNAME: root
         DB_PASSWORD: root
         PAYMENT_WEBHOOK_TOKEN: testing_ci_webhook_secret_key
-      run: php artisan test
+      run: php artisan test --verbose
+
+    - name: Dump Logs on Failure
+      if: failure()
+      run: |
+        echo "=== LARAVEL LOG ==="
+        tail -n 100 storage/logs/laravel.log || true
