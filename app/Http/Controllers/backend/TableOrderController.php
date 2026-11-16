@@ -868,13 +868,16 @@ class TableOrderController extends Controller
         return DB::transaction(function () use ($request) {
             $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
 
-            // Nếu bàn đã thanh toán hoặc đã hoàn tất trước đó, đảm bảo bàn được giải phóng và trả về thành công
-            if ((int)$order->status === OrderStatus::COMPLETED) {
+            // Nếu đơn hàng đã hoàn tất hoặc đã thanh toán trước đó, từ chối thanh toán trùng lặp (chống thanh toán 2 lần)
+            if ((int)$order->status === OrderStatus::COMPLETED || $order->payment_status === Order::PAYMENT_PAID) {
                 Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
                 if ($order->table_id) {
                     Table::where('id', $order->table_id)->update(['status' => 0, 'locked_order_id' => null]);
                 }
-                return response()->json(['success' => true, 'message' => 'Hóa đơn đã được thanh toán và bàn đã được giải phóng thành công.']);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hóa đơn này đã được thanh toán hoàn tất trước đó.'
+                ], 400);
             }
 
             // Chỉ cho phép thanh toán hóa đơn đang mở (status 0 hoặc 1)
@@ -949,8 +952,17 @@ class TableOrderController extends Controller
             return response()->json(['success' => false, 'message' => 'Không thể huỷ bàn vì đã có món ăn']);
         }
 
+        $tableId = $order->table_id;
+        $orderId = $order->id;
+
         // Xoá order
         $order->delete();
+
+        // Giải phóng bàn ăn và xóa khóa bàn
+        if ($tableId) {
+            Table::where('id', $tableId)->update(['status' => 0, 'locked_order_id' => null]);
+        }
+        Table::where('locked_order_id', $orderId)->update(['locked_order_id' => null]);
 
         return response()->json(['success' => true, 'message' => 'Huỷ bàn thành công']);
     }
@@ -984,9 +996,20 @@ class TableOrderController extends Controller
             return response()->json(['success' => false, 'message' => 'Bàn này đã có người ngồi hoặc bị khóa']);
         }
 
+        $oldTableId = $order->table_id;
+
         // Cập nhật order sang bàn mới
         $order->table_id = $newTable->id;
         $order->save();
+
+        // Giải phóng bàn cũ và kích hoạt bàn mới
+        if ($oldTableId) {
+            Table::where('id', $oldTableId)->update(['status' => 0, 'locked_order_id' => null]);
+        }
+        Table::where('locked_order_id', $order->id)->where('id', '!=', $newTable->id)->update(['locked_order_id' => null]);
+        $newTable->status = 1;
+        $newTable->locked_order_id = $order->id;
+        $newTable->save();
 
         return response()->json(['success' => true, 'message' => 'Đổi bàn thành công']);
     }

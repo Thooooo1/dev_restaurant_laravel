@@ -16,9 +16,9 @@ use App\Services\TableOrderService;
 
 class TableOrderSingleActiveTest extends TestCase
 {
-    protected Table $table;
-    protected Product $productA;
-    protected Product $productB;
+    protected ?Table $table = null;
+    protected ?Product $productA = null;
+    protected ?Product $productB = null;
 
     protected function setUp(): void
     {
@@ -36,43 +36,45 @@ class TableOrderSingleActiveTest extends TestCase
             'seats' => 4,
         ]);
 
-        $this->productA = Product::first();
-        if (!$this->productA) {
-            $this->productA = new Product();
-            $this->productA->category_id = 1;
-            $this->productA->brand_id = 1;
-            $this->productA->name = 'Món Test A';
-            $this->productA->slug = 'mon-test-a';
-            $this->productA->content = 'Content';
-            $this->productA->description = 'Desc';
-            $this->productA->price_buy = 40000;
-            $this->productA->price_sale = 50000;
-            $this->productA->qty = 100;
-            $this->productA->thumbnail = 'thumb.png';
-            $this->productA->created_by = 1;
-            $this->productA->new_p = 1;
-            $this->productA->status = 1;
-            $this->productA->save();
+        $prodA = Product::first();
+        if (!$prodA) {
+            $prodA = new Product();
+            $prodA->category_id = 1;
+            $prodA->brand_id = 1;
+            $prodA->name = 'Món Test A';
+            $prodA->slug = 'mon-test-a';
+            $prodA->content = 'Content';
+            $prodA->description = 'Desc';
+            $prodA->price_buy = 40000;
+            $prodA->price_sale = 50000;
+            $prodA->qty = 100;
+            $prodA->thumbnail = 'thumb.png';
+            $prodA->created_by = 1;
+            $prodA->new_p = 1;
+            $prodA->status = 1;
+            $prodA->save();
         }
+        $this->productA = $prodA;
 
-        $this->productB = Product::where('id', '!=', $this->productA->id)->first();
-        if (!$this->productB) {
-            $this->productB = new Product();
-            $this->productB->category_id = 1;
-            $this->productB->brand_id = 1;
-            $this->productB->name = 'Món Test B';
-            $this->productB->slug = 'mon-test-b';
-            $this->productB->content = 'Content';
-            $this->productB->description = 'Desc';
-            $this->productB->price_buy = 60000;
-            $this->productB->price_sale = 75000;
-            $this->productB->qty = 100;
-            $this->productB->thumbnail = 'thumb.png';
-            $this->productB->created_by = 1;
-            $this->productB->new_p = 1;
-            $this->productB->status = 1;
-            $this->productB->save();
+        $prodB = Product::where('id', '!=', $this->productA->id)->first();
+        if (!$prodB) {
+            $prodB = new Product();
+            $prodB->category_id = 1;
+            $prodB->brand_id = 1;
+            $prodB->name = 'Món Test B';
+            $prodB->slug = 'mon-test-b';
+            $prodB->content = 'Content';
+            $prodB->description = 'Desc';
+            $prodB->price_buy = 60000;
+            $prodB->price_sale = 75000;
+            $prodB->qty = 100;
+            $prodB->thumbnail = 'thumb.png';
+            $prodB->created_by = 1;
+            $prodB->new_p = 1;
+            $prodB->status = 1;
+            $prodB->save();
         }
+        $this->productB = $prodB;
 
         // Xóa sạch các order thử nghiệm cũ của bàn này
         Orderdetail::whereIn('order_id', Order::where('table_id', $this->table->id)->pluck('id'))->delete();
@@ -264,8 +266,10 @@ class TableOrderSingleActiveTest extends TestCase
                 'phone' => '0988001001',
                 'email' => 'adminsingle@example.com',
                 'gender' => 'Nam',
+                'image' => 'avatar.png',
+                'address' => 'Hà Nội',
+                'created_by' => 1,
                 'roles' => 'admin',
-                'admin_lever' => 1,
                 'status' => 1,
             ]);
         }
@@ -283,8 +287,10 @@ class TableOrderSingleActiveTest extends TestCase
                 'phone' => '0988002002',
                 'email' => 'empsingle@example.com',
                 'gender' => 'Nam',
+                'image' => 'avatar.png',
+                'address' => 'Hà Nội',
+                'created_by' => 1,
                 'roles' => 'employee',
-                'admin_lever' => 0,
                 'status' => 1,
             ]);
         }
@@ -302,8 +308,10 @@ class TableOrderSingleActiveTest extends TestCase
                 'phone' => '0988003003',
                 'email' => 'custsingle@example.com',
                 'gender' => 'Nam',
+                'image' => 'avatar.png',
+                'address' => 'Hà Nội',
+                'created_by' => 1,
                 'roles' => 'customer',
-                'admin_lever' => 0,
                 'status' => 1,
             ]);
         }

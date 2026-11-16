@@ -58,7 +58,9 @@ class CustomerExport
             });
 
             $orderCount = $custOrders->count();
-            $totalSpent = (float)$custOrders->whereIn('status', [1, 2])->sum('total_price');
+            $totalSpent = (float)$custOrders->filter(function($o) {
+                return $o->payment_status === Order::PAYMENT_PAID && (int)$o->status !== \App\Enums\OrderStatus::CANCELLED;
+            })->sum('total_price');
 
             $grandTotalSpent += $totalSpent;
             $grandTotalOrders += $orderCount;

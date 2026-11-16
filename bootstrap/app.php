@@ -46,6 +46,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('admin-access', [
             AdminAccess::class,
         ]);
+
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('admin') || $request->is('admin/*')) {
+                return route('admin.login');
+            }
+            return route('site.login');
+        });
     })
     
     ->withExceptions(function (Exceptions $exceptions) {

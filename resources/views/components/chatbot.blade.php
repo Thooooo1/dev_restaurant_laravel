@@ -377,8 +377,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                 return `
                                 <div class="bg-stone-50/80 rounded-xl border border-stone-200/90 overflow-hidden shadow-2xs hover:shadow-xs transition group flex flex-col justify-between">
                                     <div>
-                                        <a href="${pUrl}" target="_blank" class="block overflow-hidden h-24 bg-stone-100">
-                                            <img src="${pImg}" alt="${pName}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                        <a href="${pUrl}" target="_blank" class="block overflow-hidden h-28 bg-stone-100 relative">
+                                            <img src="${pImg}" alt="${pName}" onerror="this.onerror=null;this.src='/images/default-product.png'" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                            <span class="absolute bottom-1 right-1 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded backdrop-blur-xs flex items-center gap-1 font-medium">
+                                                <i class="fas fa-camera text-[8px]"></i> Ảnh món
+                                            </span>
                                         </a>
                                         <div class="p-2.5 pb-1">
                                             <a href="${pUrl}" target="_blank" class="font-bold text-xs text-stone-800 hover:text-[#C25E00] line-clamp-1 block" title="${pName}">
@@ -505,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function () {
         sendBtn.disabled = true;
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 18000);
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
 
         fetch('{{ route("chatbot.message", [], false) }}', {
             method: 'POST',

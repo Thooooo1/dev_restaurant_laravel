@@ -72,16 +72,19 @@ class OrderController extends Controller
                 $toStatus = (int)$request->status;
 
                 if ($toStatus === \App\Enums\OrderStatus::CANCELLED) {
-                    // Nếu đơn hàng đã thanh toán, phải thực hiện quy trình hoàn tiền chính thức
-                    if ($order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
-                        $reason = $request->input('reason') ?: 'Admin hủy đơn hàng đã thanh toán';
-                        $order->markAsRefunded($reason);
-                    }
+                    // Chống hủy lặp lại (Idempotent): nếu đơn đã bị hủy trước đó thì không xử lý hoàn tiền hoặc hoàn kho lần 2
+                    if ($fromStatus !== \App\Enums\OrderStatus::CANCELLED) {
+                        // Nếu đơn hàng đã thanh toán, phải thực hiện quy trình hoàn tiền chính thức
+                        if ($order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
+                            $reason = $request->input('reason') ?: 'Admin hủy đơn hàng đã thanh toán';
+                            $order->markAsRefunded($reason);
+                        }
 
-                    // Hoàn trả tồn kho cho tất cả sản phẩm trong đơn hàng
-                    foreach ($order->orderDetails as $detail) {
-                        if ($detail->product) {
-                            $detail->product->increment('qty', $detail->qty);
+                        // Hoàn trả tồn kho cho tất cả sản phẩm trong đơn hàng
+                        foreach ($order->orderDetails as $detail) {
+                            if ($detail->product) {
+                                $detail->product->increment('qty', $detail->qty);
+                            }
                         }
                     }
                 } elseif ($toStatus === \App\Enums\OrderStatus::COMPLETED) {
@@ -97,6 +100,9 @@ class OrderController extends Controller
                 // Release merged tables if order is completed or cancelled
                 if (!in_array((int)$order->status, [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])) {
                     \App\Models\Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
+                    if ($order->table_id) {
+                        \App\Models\Table::where('id', $order->table_id)->update(['status' => 0, 'locked_order_id' => null]);
+                    }
                 }
 
                 // Ghi nhật ký kiểm toán (Audit Trail)
@@ -334,8 +340,25 @@ class OrderController extends Controller
         return \Illuminate\Support\Facades\DB::transaction(function () use ($id, $user, $request) {
             $order = Order::where('id', $id)->lockForUpdate()->firstOrFail();
 
+            if ((int)$order->status === \App\Enums\OrderStatus::CANCELLED) {
+                return redirect()->back()->with('error', 'Không thể xác nhận thanh toán cho đơn hàng đã bị huỷ.');
+            }
+
+            if ($order->payment_status === Order::PAYMENT_REFUNDED) {
+                return redirect()->back()->with('error', 'Không thể xác nhận thanh toán cho đơn hàng đã hoàn tiền.');
+            }
+
             if ($order->payment_status === Order::PAYMENT_PAID) {
                 return redirect()->back()->with('info', 'Đơn hàng này đã được xác nhận thanh toán trước đó.');
+            }
+
+            $isVietQrOrTransfer = in_array((string)$order->payment_method, ['2', 'VietQR', 'vietqr', 'bank_transfer', 'banking']);
+            if ($isVietQrOrTransfer && !$user->isAdmin()) {
+                return redirect()->back()->with('error', 'Chỉ Quản trị viên (Admin) mới có quyền duyệt thủ công cho đơn thanh toán chuyển khoản VietQR.');
+            }
+
+            if ($request->filled('payment_method')) {
+                $order->payment_method = $request->input('payment_method');
             }
 
             $order->payment_status = Order::PAYMENT_PAID;
@@ -367,22 +390,21 @@ class OrderController extends Controller
             $pmInfo = $order->payment_method_info;
             $pmText = $pmInfo['name'] ?? 'Thủ công';
 
-            // Ghi nhận nhật ký PaymentTransaction
-            try {
-                \App\Models\PaymentTransaction::create([
-                    'order_id' => $order->id,
-                    'reference_code' => $refCode,
-                    'amount' => (int) $order->total_price,
-                    'content' => 'Nhân viên/Admin xác nhận đã nhận thanh toán (' . $pmText . ')',
-                    'gateway' => $order->payment_method ?: 'manual',
-                    'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
-                    'raw_payload' => json_encode([
-                        'actor_id' => $user->id,
-                        'confirmed_at' => (string)now(),
-                        'note' => $request->input('note', 'Xác nhận thanh toán thủ công'),
-                    ]),
-                ]);
-            } catch (\Throwable $e) {}
+            // Ghi nhận nhật ký PaymentTransaction bắt buộc lưu thành công
+            \App\Models\PaymentTransaction::create([
+                'order_id' => $order->id,
+                'reference_code' => $refCode,
+                'amount' => (int) $order->total_price,
+                'content' => 'Nhân viên/Admin xác nhận đã nhận thanh toán (' . $pmText . ')',
+                'gateway' => (string)($order->payment_method ?: 'manual'),
+                'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+                'raw_payload' => json_encode([
+                    'actor_id' => $user->id,
+                    'actor_name' => $user->name ?? $user->username,
+                    'confirmed_at' => (string)now(),
+                    'note' => $request->input('note', 'Xác nhận thanh toán thủ công'),
+                ]),
+            ]);
 
             // Báo dòng tiền cho Admin, Nhân viên và Khách hàng
             try {

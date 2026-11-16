@@ -211,6 +211,32 @@ class TableOrderController extends Controller
         $paymentMethod = $request->input('payment_method', 'VietQR');
         $actualTotal = (float) \App\Services\PricingService::recalculateOrderTotal($order->id, true);
 
+        // Chặn khách tự xác nhận đã thanh toán trên môi trường production nếu ngân hàng chưa gửi webhook
+        if (config('payment.mode') !== 'demo') {
+            $hasSuccessTx = \App\Models\PaymentTransaction::where('order_id', $order->id)
+                ->where('status', \App\Models\PaymentTransaction::STATUS_SUCCESS)
+                ->exists();
+
+            if (!$hasSuccessTx && $order->payment_status !== Order::PAYMENT_PAID) {
+                \App\Models\ServiceCall::firstOrCreate([
+                    'table_id' => $id,
+                    'call_type' => 'bill',
+                    'status' => \App\Models\ServiceCall::STATUS_PENDING,
+                ], [
+                    'note' => 'Khách bàn ' . $id . ' báo đã chuyển khoản VietQR đơn #' . $order->id . ' - Vui lòng nhân viên kiểm tra tài khoản.',
+                ]);
+
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Hệ thống đang chờ ngân hàng xác nhận giao dịch hoặc nhân viên sẽ đối soát tại bàn. Vui lòng đợi trong giây lát!',
+                        'pending_verification' => true,
+                    ]);
+                }
+                return redirect()->back()->with('warning', 'Hệ thống đang chờ ngân hàng xác nhận giao dịch hoặc nhân viên sẽ đối soát tại bàn. Vui lòng đợi trong giây lát!');
+            }
+        }
+
         // Cập nhật đơn hàng thành Đã thanh toán
         $order->payment_status = Order::PAYMENT_PAID;
         $order->paid_at = now();

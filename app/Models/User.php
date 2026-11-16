@@ -24,6 +24,19 @@ class User extends Authenticatable
         return $this->hasMany(Favorite::class);
     }
 
+    protected static function booted(): void
+    {
+        static::creating(function ($user) {
+            $user->gender = $user->gender ?: 'Khác';
+            $user->image = $user->image ?: 'default.png';
+            $user->address = $user->address ?: 'Hà Nội';
+            $user->created_by = $user->created_by ?: 1;
+            if ($user->status === null) {
+                $user->status = 1;
+            }
+        });
+    }
+
     protected $fillable = [
         'username',
         'email',
@@ -33,10 +46,13 @@ class User extends Authenticatable
         'phone',
         'address',
         'roles',
+        'status',
+        'created_by',
+        'updated_by',
         'google_id',  
         'image', 
-        'otp_code' ,
-        'otp_expires_at	'    
+        'otp_code',
+        'otp_expires_at'    
     ];
 
     /**
@@ -90,10 +106,10 @@ class User extends Authenticatable
 
     /**
      * Kiểm tra xem người dùng có phải là Khách hàng / Thành viên (Customer) không.
-     * Bất kỳ tài khoản nào không phải admin hoặc employee đều là customer.
+     * Xác định tường minh theo roles === 'customer' hoặc để trống (mặc định khách đăng ký mới).
      */
     public function isCustomer(): bool
     {
-        return !$this->isAdmin() && !$this->isEmployee();
+        return $this->roles === 'customer' || empty($this->roles);
     }
 }

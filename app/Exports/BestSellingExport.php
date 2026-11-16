@@ -51,7 +51,7 @@ class BestSellingExport
             )
             ->whereHas('order', function($q) use ($startDate, $endDate) {
                 $q->whereNull('deleted_at')
-                  ->whereIn('status', [1, 2]);
+                  ->paid();
                 if ($startDate && $endDate) {
                     $q->whereBetween('created_at', [$startDate, $endDate]);
                 }

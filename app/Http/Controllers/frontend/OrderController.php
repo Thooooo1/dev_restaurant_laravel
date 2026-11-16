@@ -64,29 +64,42 @@ class OrderController extends Controller
             return redirect()->route('site.login')->with('error', 'Bạn cần đăng nhập để hủy đơn hàng.');
         }
 
-        $order = Order::where('id', $id)->where('user_id', $userId)->first();
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($id, $userId, $request) {
+            $order = Order::with('orderDetails.product')
+                ->where('id', $id)
+                ->where('user_id', $userId)
+                ->lockForUpdate()
+                ->first();
 
-        if (!$order) {
-            return redirect()->route('site.orders')->with('error', 'Đơn hàng không tồn tại.');
-        }
+            if (!$order) {
+                return redirect()->route('site.orders')->with('error', 'Đơn hàng không tồn tại.');
+            }
 
-        if ($order->status != 0) {
-            return redirect()->route('site.orders.detail', $id)->with('error', 'Đơn hàng không thể hủy vì đã được xử lý.');
-        }
+            if ((int)$order->status !== 0) {
+                return redirect()->route('site.orders.detail', $id)->with('error', 'Đơn hàng không thể hủy vì đã được xử lý hoặc đã bị hủy trước đó.');
+            }
 
-        $reasons = $request->input('reasons', []);
-        $otherReason = $request->input('other_reason', '');
+            $reasons = $request->input('reasons', []);
+            $otherReason = $request->input('other_reason', '');
 
-        $reasonText = implode(', ', $reasons);
-        if ($otherReason && in_array('Lý do khác', $reasons)) {
-            $reasonText .= " ($otherReason)";
-        }
+            $reasonText = implode(', ', $reasons);
+            if ($otherReason && in_array('Lý do khác', $reasons)) {
+                $reasonText .= " ($otherReason)";
+            }
 
-        $order->status = 3; 
-        $order->note = $reasonText; 
-        $order->save();
+            $order->status = \App\Enums\OrderStatus::CANCELLED; 
+            $order->note = $reasonText; 
+            $order->save();
 
-        return redirect()->route('site.orders')->with('success', 'Đơn hàng đã được hủy.');
+            // Hoàn trả tồn kho cho tất cả sản phẩm trong đơn đã bị trừ kho khi đặt hàng
+            foreach ($order->orderDetails as $detail) {
+                if ($detail->product) {
+                    $detail->product->increment('qty', $detail->qty);
+                }
+            }
+
+            return redirect()->route('site.orders')->with('success', 'Đơn hàng đã được hủy và hoàn trả tồn kho.');
+        });
     }
 
 

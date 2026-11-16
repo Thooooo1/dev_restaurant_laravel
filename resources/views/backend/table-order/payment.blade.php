@@ -141,8 +141,7 @@
                     <i class="fa-solid fa-print text-xs"></i>
                     <span>In hoá đơn</span>
                 </button>
-                <button type="button" class="ant-btn ant-btn-primary px-6 py-2.5 text-base font-bold flex items-center gap-2 shadow-xs" onclick="handleConfirmPayment()">
-                    <i class="fa-solid fa-check text-sm"></i>
+                <button type="button" class="ant-btn ant-btn-primary px-6 py-2.5 text-base font-bold shadow-xs" onclick="handleConfirmPayment()">
                     <span>Xác nhận thu tiền</span>
                 </button>
             </div>

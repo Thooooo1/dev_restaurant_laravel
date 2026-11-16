@@ -362,11 +362,12 @@ class SecurityAndPaymentTest extends TestCase
     public function test_delivery_order_list_excludes_dine_in_table_orders(): void
     {
         $admin = User::where('roles', 'admin')->where('status', 1)->first();
+        $realTable = Table::firstOrCreate(['name' => 'Bàn Test 18'], ['seats' => 4, 'status' => 1]);
 
         // Tạo 1 đơn ăn tại bàn
         $tableOrder = Order::create([
             'user_id' => $admin->id ?? 1,
-            'table_id' => 14,
+            'table_id' => $realTable->id,
             'name' => 'Bàn 18 (Ăn tại quán)',
             'email' => 'ban18@gmail.com',
             'phone' => '0912345678',
@@ -744,8 +745,8 @@ class SecurityAndPaymentTest extends TestCase
         $resEmp->assertRedirect(route('admin.table-order.index'));
 
         // Tao 1 ban test neu chua co
-        $table = Table::first();
-        $tableId = $table ? $table->id : 1;
+        $table = Table::firstOrCreate(['name' => 'Bàn Test POS'], ['seats' => 4, 'status' => 1]);
+        $tableId = $table->id;
 
         // Tao don 1: Tao tu hom qua nhung hoan tat/thanh toan hom nay (status = 2, updated_at = today)
         $orderYesterdayPaidToday = Order::create([
@@ -1174,5 +1175,135 @@ class SecurityAndPaymentTest extends TestCase
         // Don dep
         \App\Models\OrderDeliveryLog::where('order_id', $codOrder->id)->delete();
         $codOrder->forceDelete();
+    }
+
+    /**
+     * 27. Test Huy don idempotent: Admin huy don 2 lan khong lam hoan kho 2 lan
+     */
+    public function test_order_cancellation_is_idempotent_and_does_not_double_restore_inventory(): void
+    {
+        $admin = User::where('roles', 'admin')->where('status', 1)->first();
+        $product = Product::where('id', 1)->first();
+        $initialQty = $product->qty;
+
+        $order = Order::create([
+            'user_id' => $admin->id,
+            'name' => 'Khach Test Huy',
+            'phone' => '0988776655',
+            'address' => 'Ha Noi',
+            'total_price' => 100000,
+            'payment_method' => 'COD',
+            'status' => \App\Enums\OrderStatus::PROCESSING,
+            'created_by' => $admin->id,
+        ]);
+
+        \App\Models\Orderdetail::create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'qty' => 3,
+            'price' => 50000,
+            'amount' => 150000,
+            'status' => 'pending',
+        ]);
+
+        // Huy don lan 1 -> Kho tang 3
+        $this->actingAs($admin)->post(route('admin.order.update', $order->id), [
+            'status' => \App\Enums\OrderStatus::CANCELLED,
+            'reason' => 'Khach doi y',
+        ]);
+
+        $product->refresh();
+        $this->assertEquals($initialQty + 3, $product->qty);
+
+        // Gui lai request huy don lan 2 -> Kho KHONG duoc tang tiep (idempotency)
+        $this->actingAs($admin)->post(route('admin.order.update', $order->id), [
+            'status' => \App\Enums\OrderStatus::CANCELLED,
+            'reason' => 'Khach doi y gui lai',
+        ]);
+
+        $product->refresh();
+        $this->assertEquals($initialQty + 3, $product->qty);
+    }
+
+    /**
+     * 28. Test Huy ban trong giai phong status va lock_order_id cua ban
+     */
+    public function test_cancel_table_frees_table_status_and_lock(): void
+    {
+        $employee = User::where('roles', 'employee')->where('status', 1)->first();
+        $table = Table::create([
+            'name' => 'Ban Test Cancel',
+            'seats' => 4,
+            'status' => 1,
+        ]);
+
+        $order = Order::create([
+            'user_id' => $employee->id,
+            'table_id' => $table->id,
+            'name' => 'Ban An',
+            'phone' => '',
+            'address' => $table->name,
+            'total_price' => 0,
+            'status' => \App\Enums\OrderStatus::PENDING,
+            'created_by' => $employee->id,
+        ]);
+
+        $table->locked_order_id = $order->id;
+        $table->status = 1;
+        $table->save();
+
+        $response = $this->actingAs($employee)->postJson(route('admin.table-order.cancelTable'), [
+            'order_id' => $order->id,
+        ]);
+
+        $response->assertJson(['success' => true]);
+
+        $table->refresh();
+        $this->assertEquals(0, $table->status);
+        $this->assertNull($table->locked_order_id);
+    }
+
+    /**
+     * 29. Test Khach hang huy don pending tu dong hoan tra ton kho
+     */
+    public function test_customer_cancel_order_restores_inventory(): void
+    {
+        $customer = User::where('roles', 'customer')->where('status', 1)->first();
+        $product = Product::where('id', 1)->first();
+        $initialQty = $product->qty;
+
+        $order = Order::create([
+            'user_id' => $customer->id,
+            'name' => 'Khach Online',
+            'phone' => '0912345678',
+            'email' => 'customer@test.com',
+            'address' => 'Ha Noi',
+            'total_price' => 90000,
+            'payment_method' => 'COD',
+            'status' => 0, // Pending
+            'created_by' => $customer->id,
+        ]);
+
+        \App\Models\Orderdetail::create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'qty' => 2,
+            'price' => 45000,
+            'amount' => 90000,
+            'discount' => 0,
+            'status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($customer)->post(route('site.orders.cancel', $order->id), [
+            'reasons' => ['Đổi ý không mua nữa'],
+        ]);
+
+        $response->assertRedirect(route('site.orders'));
+
+        $order->refresh();
+        $this->assertEquals(\App\Enums\OrderStatus::CANCELLED, $order->status);
+
+        $product->refresh();
+        $this->assertEquals($initialQty + 2, $product->qty);
     }
 }

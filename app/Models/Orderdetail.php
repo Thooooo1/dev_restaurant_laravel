@@ -11,6 +11,18 @@ class Orderdetail extends Model
 
     protected $fillable = ['order_id', 'product_id', 'qty', 'price', 'discount', 'amount', 'order_turn', 'status'];
 
+    protected static function booted(): void
+    {
+        static::creating(function ($detail) {
+            if ($detail->discount === null) {
+                $detail->discount = 0;
+            }
+            if ($detail->order_turn === null) {
+                $detail->order_turn = 1;
+            }
+        });
+    }
+
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');

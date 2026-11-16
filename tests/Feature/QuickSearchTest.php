@@ -9,6 +9,31 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class QuickSearchTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $category = Category::firstOrCreate(['id' => 1], [
+            'name' => 'Lẩu Đặc Biệt',
+            'slug' => 'lau-dac-biet',
+            'status' => 1,
+            'sort_order' => 1,
+            'created_by' => 1,
+        ]);
+
+        Product::firstOrCreate(['slug' => 'lau-thai-hai-san'], [
+            'category_id' => $category->id,
+            'name' => 'Lẩu Thái Hải Sản',
+            'slug' => 'lau-thai-hai-san',
+            'price_buy' => 250000,
+            'price_sale' => 220000,
+            'qty' => 50,
+            'status' => 1,
+            'new_p' => 1,
+            'created_by' => 1,
+        ]);
+    }
+
     public function test_quick_search_returns_accent_insensitive_results(): void
     {
         $responseLau = $this->getJson('/tim-kiem-nhanh?q=lau');

@@ -18,8 +18,12 @@ return new class extends Migration
             $table->integer('rating'); 
             $table->text('comment')->nullable(); 
             $table->text('response')->nullable(); 
-            $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP')); 
-            $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')); 
+            $table->timestamp('created_at')->useCurrent(); 
+            if (\Illuminate\Support\Facades\DB::getDriverName() === 'mysql') {
+                $table->timestamp('updated_at')->default(\Illuminate\Support\Facades\DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP')); 
+            } else {
+                $table->timestamp('updated_at')->useCurrent();
+            } 
             $table->unsignedInteger('likes')->default(0); 
             $table->unsignedInteger('dislikes')->default(0); 
             $table->softDeletes();

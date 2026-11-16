@@ -34,7 +34,7 @@ class TableOrderService
     public static function getOrCreateActiveOrder(int|string $tableId, array $attributes = []): Order
     {
         return DB::transaction(function () use ($tableId, $attributes) {
-            $table = Table::findOrFail($tableId);
+            $table = Table::where('id', $tableId)->lockForUpdate()->firstOrFail();
 
             $order = Order::where('table_id', $tableId)
                 ->whereNull('deleted_at')
@@ -55,16 +55,17 @@ class TableOrderService
                 'status' => OrderStatus::PENDING,
                 'payment_status' => Order::PAYMENT_PENDING,
                 'name' => $table->name,
-                'phone' => session('customer_phone') ?? '0900000000',
-                'email' => 'table' . $tableId . '@restaurant.local',
+                'phone' => session('customer_phone') ?: '',
+                'email' => session('customer_email') ?: '',
                 'address' => $table->name,
                 'created_by' => auth()->id() ?? 1,
                 'order_turn' => 1,
                 'total_price' => 0,
             ], $attributes));
 
-            if ($table->status != 1) {
+            if ($table->status != 1 || $table->locked_order_id !== $order->id) {
                 $table->status = 1;
+                $table->locked_order_id = $order->id;
                 $table->save();
             }
 
@@ -79,29 +80,43 @@ class TableOrderService
     {
         return DB::transaction(function () use ($tableId, $items, $turn) {
             $order = static::getOrCreateActiveOrder($tableId);
+            if ($order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
+                throw new \DomainException('Đơn hàng của bàn này đã thanh toán xong, không thể gọi thêm món.');
+            }
 
             $hasExisting = $order->orderDetails()->exists();
             if ($hasExisting && $turn === null) {
                 $order->order_turn = ($order->order_turn ?? 1) + 1;
             }
 
+            $currentTurn = $turn ?? $order->order_turn ?? 1;
+
             foreach ($items as $item) {
                 $productId = $item['product_id'] ?? $item['id'];
                 $qty = (int)($item['qty'] ?? $item['quantity'] ?? 1);
-                $price = (float)($item['price'] ?? 0);
-                if ($price <= 0) {
-                    $prod = \App\Models\Product::find($productId);
-                    $price = $prod ? (float)$prod->price : 0;
+                if ($qty <= 0) {
+                    continue;
                 }
 
-                $existingDetail = Orderdetail::where('order_id', $order->id)
+                $prod = \App\Models\Product::find($productId);
+                if (!$prod || (int)$prod->status !== 1) {
+                    continue; // Bỏ qua món ngừng bán hoặc không tồn tại (D-09)
+                }
+
+                // Cập nhật giá bán mới nhất từ DB
+                $price = (float)$prod->price;
+
+                // D-03: Chỉ gộp vào dòng có trạng thái 'pending' (chưa gửi bếp).
+                // Nếu món đã served/cooking/cancelled, tạo dòng mới theo đúng order_turn.
+                $pendingDetail = Orderdetail::where('order_id', $order->id)
                     ->where('product_id', $productId)
+                    ->where('status', 'pending')
                     ->first();
 
-                if ($existingDetail) {
-                    $existingDetail->qty += $qty;
-                    $existingDetail->amount = $existingDetail->price * $existingDetail->qty;
-                    $existingDetail->save();
+                if ($pendingDetail) {
+                    $pendingDetail->qty += $qty;
+                    $pendingDetail->amount = $pendingDetail->price * $pendingDetail->qty;
+                    $pendingDetail->save();
                 } else {
                     Orderdetail::create([
                         'order_id' => $order->id,
@@ -110,7 +125,7 @@ class TableOrderService
                         'price' => $price,
                         'discount' => 0,
                         'amount' => $price * $qty,
-                        'order_turn' => $turn ?? $order->order_turn ?? 1,
+                        'order_turn' => $currentTurn,
                         'status' => 'pending',
                     ]);
                 }

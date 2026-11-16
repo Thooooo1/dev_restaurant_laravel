@@ -278,26 +278,24 @@ class NotificationService
             $customer = User::where('email', $order->email)->first();
         }
 
-        // Chỉ gửi thông báo cho khách hàng nếu đơn hàng này gắn liền với tài khoản khách hàng cụ thể
-        if ($customer) {
-            self::send([
-                'user_id' => $customer->id,
-                'role'    => 'customer',
-                'type'    => 'payment',
-                'title'   => "Thanh toán thành công: {$amountFormatted}!",
-                'message' => "Nhà hàng CIVILIZE đã xác nhận thanh toán cho {$orderContext} qua {$paymentMethodName}. Cảm ơn bạn đã lựa chọn dùng bữa tại CIVILIZE!",
-                'url'     => $isTable ? route('site.table.bill', $order->table_id) : route('site.orders'),
-                'icon'    => 'fa-circle-check',
-                'color'   => '#10B981',
-                'data'    => [
-                    'order_id'       => $order->id,
-                    'table_id'       => $order->table_id,
-                    'amount'         => $amount,
-                    'reference_code' => $referenceCode,
-                    'payment_method' => $paymentMethodName,
-                    'target_role'    => 'customer'
-                ],
-            ]);
-        }
+        // 3. Vai trò Khách hàng (Customer)
+        self::send([
+            'user_id' => $customer ? $customer->id : ($order->user_id ?: null),
+            'role'    => 'customer',
+            'type'    => 'payment',
+            'title'   => "Thanh toán thành công: {$amountFormatted}!",
+            'message' => "Nhà hàng CIVILIZE đã xác nhận thanh toán cho {$orderContext} qua {$paymentMethodName}. Cảm ơn bạn đã lựa chọn dùng bữa tại CIVILIZE!",
+            'url'     => $isTable ? route('site.table.bill', $order->table_id) : route('site.orders'),
+            'icon'    => 'fa-circle-check',
+            'color'   => '#10B981',
+            'data'    => [
+                'order_id'       => $order->id,
+                'table_id'       => $order->table_id,
+                'amount'         => $amount,
+                'reference_code' => $referenceCode,
+                'payment_method' => $paymentMethodName,
+                'target_role'    => 'customer'
+            ],
+        ]);
     }
 }

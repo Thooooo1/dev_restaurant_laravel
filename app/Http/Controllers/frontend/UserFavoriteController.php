@@ -96,9 +96,24 @@ class UserFavoriteController extends Controller
                 $query->orderBy('created_at', 'desc');
                 break;
             default:
-                $reversedIds = array_reverse($favoriteProductIds);
-                $idsOrder = implode(',', $reversedIds);
-                $query->orderByRaw("FIELD(id, {$idsOrder}) DESC");
+                $cleanIds = array_filter(array_map('intval', $favoriteProductIds));
+                if (!empty($cleanIds)) {
+                    $reversedIds = array_reverse($cleanIds);
+                    $driver = \Illuminate\Support\Facades\DB::getDriverName();
+                    if ($driver === 'mysql') {
+                        $placeholders = implode(',', array_fill(0, count($reversedIds), '?'));
+                        $query->orderByRaw("FIELD(id, {$placeholders}) DESC", $reversedIds);
+                    } else {
+                        $cases = [];
+                        foreach ($reversedIds as $idx => $idVal) {
+                            $cases[] = "WHEN id = ? THEN {$idx}";
+                        }
+                        $caseSql = "CASE " . implode(' ', $cases) . " ELSE 999999 END";
+                        $query->orderByRaw($caseSql, $reversedIds);
+                    }
+                } else {
+                    $query->orderBy('id', 'desc');
+                }
                 break;
         }
 

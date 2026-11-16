@@ -14,8 +14,12 @@ return new class extends Migration
         Schema::table('user', function (Blueprint $table) {
             // Đổi tên cột thumbnail thành image nếu tồn tại
             if (Schema::hasColumn('user', 'thumbnail') && !Schema::hasColumn('user', 'image')) {
-                // Sử dụng DB raw query để đổi tên cột (an toàn hơn với mọi database)
-                \DB::statement('ALTER TABLE `user` CHANGE `thumbnail` `image` VARCHAR(1000) NULL');
+                if (\DB::getDriverName() === 'mysql') {
+                    $prefix = \DB::getTablePrefix();
+                    \DB::statement("ALTER TABLE `{$prefix}user` CHANGE `thumbnail` `image` VARCHAR(1000) NULL");
+                } else {
+                    $table->renameColumn('thumbnail', 'image');
+                }
             }
             
             // Cho phép nullable cho các cột cần thiết

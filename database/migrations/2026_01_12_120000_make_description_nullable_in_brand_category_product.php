@@ -10,16 +10,18 @@ return new class extends Migration
     {
         $prefix = DB::getTablePrefix();
 
-        if (Schema::hasTable('brand')) {
-            DB::statement("ALTER TABLE `{$prefix}brand` MODIFY `description` TEXT NULL");
-        }
+        if (DB::getDriverName() === 'mysql') {
+            if (Schema::hasTable('brand')) {
+                DB::statement("ALTER TABLE `{$prefix}brand` MODIFY `description` TEXT NULL");
+            }
 
-        if (Schema::hasTable('category')) {
-            DB::statement("ALTER TABLE `{$prefix}category` MODIFY `description` TEXT NULL");
-        }
+            if (Schema::hasTable('category')) {
+                DB::statement("ALTER TABLE `{$prefix}category` MODIFY `description` TEXT NULL");
+            }
 
-        if (Schema::hasTable('product')) {
-            DB::statement("ALTER TABLE `{$prefix}product` MODIFY `description` TEXT NULL");
+            if (Schema::hasTable('product')) {
+                DB::statement("ALTER TABLE `{$prefix}product` MODIFY `description` TEXT NULL");
+            }
         }
     }
 

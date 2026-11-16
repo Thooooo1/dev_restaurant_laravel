@@ -163,7 +163,7 @@
          });
      
          // Gán nội dung cũ vào Quill
-         var oldContent = `{!! old('content', $product->content) !!}`;
+         var oldContent = {!! json_encode(old('content', $product->content)) !!};
          quill.root.innerHTML = oldContent;
      
          // Cập nhật nội dung vào input hidden khi submit

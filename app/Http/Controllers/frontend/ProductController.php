@@ -57,13 +57,17 @@ class ProductController extends Controller
         // Tối ưu truy vấn SQL trực tiếp thay vì nạp toàn bộ sản phẩm vào bộ nhớ
         $tablePrefix = \Illuminate\Support\Facades\DB::connection()->getTablePrefix();
         $fullProductTable = $tablePrefix . (new Product)->getTable();
+        $slugQ = \Illuminate\Support\Str::slug($q);
 
         $products = Product::where('product.status', 1)
             ->join('category', 'product.category_id', '=', 'category.id')
             ->where('category.status', 1)
-            ->where(function ($query) use ($q) {
+            ->where(function ($query) use ($q, $slugQ) {
                 $query->where('product.name', 'like', "%{$q}%")
                       ->orWhere('category.name', 'like', "%{$q}%");
+                if (!empty($slugQ)) {
+                    $query->orWhere('product.slug', 'like', "%{$slugQ}%");
+                }
             })
             ->select('product.*', 'category.name as category_name')
             ->orderByRaw("CASE WHEN {$fullProductTable}.name LIKE ? THEN 1 WHEN {$fullProductTable}.name LIKE ? THEN 2 ELSE 3 END", ["{$q}%", "%{$q}%"])

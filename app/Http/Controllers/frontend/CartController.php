@@ -121,11 +121,18 @@ class CartController extends Controller
     {
         $product = Product::find($id);
 
-        if (!$product) {
+        if (!$product || (int)$product->status !== 1) {
             if ($request->wantsJson() || $request->ajax() || $request->input('ajax') || $request->header('X-Requested-With') === 'XMLHttpRequest') {
                 return response()->json(['success' => false, 'message' => 'Món ăn không tồn tại hoặc đã ngừng kinh doanh.'], 404);
             }
-            return redirect()->back()->with('error', 'Sản phẩm không tồn tại.');
+            return redirect()->back()->with('error', 'Món ăn không tồn tại hoặc đã ngừng kinh doanh.');
+        }
+
+        if ($product->qty <= 0) {
+            if ($request->wantsJson() || $request->ajax() || $request->input('ajax') || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                return response()->json(['success' => false, 'message' => 'Món "' . $product->name . '" hiện đã tạm hết hàng.'], 400);
+            }
+            return redirect()->back()->with('error', 'Món ăn hiện đã tạm hết hàng.');
         }
 
         $cartKey = $this->getCartKey();
@@ -459,6 +466,18 @@ class CartController extends Controller
         $table = Table::with('floor')->find($tableId);
         if (!$table) {
             return response()->json(['success' => false, 'message' => 'Không tìm thấy bàn ăn trên hệ thống.'], 404);
+        }
+
+        // Khóa gọi thêm món khi bàn đang trong trạng thái chờ thanh toán hóa đơn
+        $isBillRequested = \App\Models\ServiceCall::where('table_id', $tableId)
+            ->where('call_type', 'bill')
+            ->where('status', \App\Models\ServiceCall::STATUS_PENDING)
+            ->exists();
+        if ($isBillRequested) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bàn này đang yêu cầu thanh toán hóa đơn. Nếu muốn gọi thêm món, quý khách vui lòng báo nhân viên phục vụ hỗ trợ.'
+            ], 400);
         }
 
         // Tự động kích hoạt session bàn phục vụ tại quán
@@ -839,7 +858,7 @@ class CartController extends Controller
                     if ($reqStyle === \App\Models\Order::STYLE_TAKEAWAY || $diningMode === 'takeaway') {
                         $newOrder->orderStyle = \App\Models\Order::STYLE_TAKEAWAY;
                         $newOrder->channel = \App\Models\Order::CHANNEL_TAKEAWAY;
-                    } elseif ($reqStyle === \App\Models\Order::STYLE_POS) {
+                    } elseif ($reqStyle === \App\Models\Order::STYLE_POS && auth()->check() && (auth()->user()->isAdmin() || auth()->user()->isEmployee())) {
                         $newOrder->orderStyle = \App\Models\Order::STYLE_POS;
                         $newOrder->channel = \App\Models\Order::CHANNEL_POS;
                     } else {

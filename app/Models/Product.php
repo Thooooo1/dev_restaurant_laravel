@@ -21,11 +21,99 @@ class Product extends Model
         'price_sale',
         'qty',
         'thumbnail',
+        'image',
         'created_by',
         'updated_by',
         'new_p',
         'status',
     ];
+
+    protected static ?bool $hasImageColumn = null;
+    protected static ?bool $hasThumbnailColumn = null;
+
+    protected function detectColumns(): void
+    {
+        if (static::$hasImageColumn === null) {
+            try {
+                static::$hasImageColumn = \Illuminate\Support\Facades\Schema::hasColumn('product', 'image');
+                static::$hasThumbnailColumn = \Illuminate\Support\Facades\Schema::hasColumn('product', 'thumbnail');
+            } catch (\Throwable $e) {
+                static::$hasImageColumn = true;
+                static::$hasThumbnailColumn = false;
+            }
+        }
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function ($product) {
+            $product->detectColumns();
+            if ($product->brand_id === null) {
+                $product->brand_id = 1;
+            }
+            if ($product->new_p === null) {
+                $product->new_p = 1;
+            }
+            if ($product->status === null) {
+                $product->status = 1;
+            }
+            if ($product->created_by === null) {
+                $product->created_by = 1;
+            }
+            if ($product->content === null) {
+                $product->content = '';
+            }
+            if ($product->description === null) {
+                $product->description = '';
+            }
+            if (empty($product->attributes['image']) && empty($product->attributes['thumbnail'])) {
+                if (static::$hasImageColumn) {
+                    $product->attributes['image'] = 'default.png';
+                }
+                if (static::$hasThumbnailColumn) {
+                    $product->attributes['thumbnail'] = 'default.png';
+                }
+            }
+        });
+    }
+
+    public function getImageAttribute()
+    {
+        return $this->attributes['image'] ?? $this->attributes['thumbnail'] ?? null;
+    }
+
+    public function getThumbnailAttribute()
+    {
+        return $this->attributes['image'] ?? $this->attributes['thumbnail'] ?? null;
+    }
+
+    public function setImageAttribute($value)
+    {
+        $this->detectColumns();
+        if (static::$hasImageColumn) {
+            $this->attributes['image'] = $value;
+        }
+        if (static::$hasThumbnailColumn) {
+            $this->attributes['thumbnail'] = $value;
+        }
+        if (!static::$hasImageColumn && !static::$hasThumbnailColumn) {
+            $this->attributes['image'] = $value;
+        }
+    }
+
+    public function setThumbnailAttribute($value)
+    {
+        $this->detectColumns();
+        if (static::$hasThumbnailColumn) {
+            $this->attributes['thumbnail'] = $value;
+        }
+        if (static::$hasImageColumn) {
+            $this->attributes['image'] = $value;
+        }
+        if (!static::$hasImageColumn && !static::$hasThumbnailColumn) {
+            $this->attributes['thumbnail'] = $value;
+        }
+    }
 
     public function getPriceAttribute(): float
     {

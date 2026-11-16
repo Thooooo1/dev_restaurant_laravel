@@ -239,6 +239,7 @@
                 .catch(err => console.log('Checking table payment status:', err));
             }, 3000);
 
+            @if(config('payment.mode') === 'demo')
             // Tự động nhận tiền sau 3 giây cho demo (không cần thao tác thủ công)
             setTimeout(function() {
                 if (isPaidCompleted) return;
@@ -272,6 +273,7 @@
                 })
                 .catch(err => console.log('Auto table payment error:', err));
             }, 3000);
+            @endif
         });
     </script>
 </x-layout-frontend>

@@ -20,10 +20,7 @@ class OrderHistoryController extends Controller
 
         $query = Order::query()
             ->whereNull('deleted_at')
-            ->where(function ($q) {
-                $q->where('status', 2)
-                  ->orWhere('payment_status', Order::PAYMENT_PAID);
-            })
+            ->paid()
             ->with(['user', 'orderDetails']);
 
         // Filter by Year
@@ -44,11 +41,9 @@ class OrderHistoryController extends Controller
             $query->whereMonth('created_at', $month);
         }
 
-        // Calculate total revenue for the filtered set
-        // Use clone to avoid modifying the base query for pagination
+        // Calculate total revenue for the filtered set using final recognized total_price
         $totalQuery = clone $query;
-        $orderIds = $totalQuery->pluck('id');
-        $totalRevenue = Orderdetail::whereIn('order_id', $orderIds)->sum('amount');
+        $totalRevenue = (float)$totalQuery->sum('total_price');
 
         // Get paginated results
         $orders = $query->orderBy('created_at', 'desc')

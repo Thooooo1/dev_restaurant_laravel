@@ -35,7 +35,7 @@
                 </div>
             
                 <h3 class="text-lg sm:text-xl font-bold font-serif text-stone-900 mb-4 pb-2 border-b border-stone-200">Gửi Tin Nhắn Cho Nhà Hàng</h3>
-                <form action="{{ route('site.contact.submit') }}" method="POST" class="space-y-4">
+                <form action="{{ route('inquiries.store') }}" method="POST" class="space-y-4">
                     @csrf
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>

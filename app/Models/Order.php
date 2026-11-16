@@ -59,12 +59,41 @@ class Order extends Model
         'total_price',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function ($order) {
+            if ($order->email === null) {
+                $order->email = '';
+            }
+            if ($order->delivery_status === null && empty($order->table_id)) {
+                $order->delivery_status = self::DELIVERY_WAITING;
+            }
+        });
+    }
+
     protected $casts = [
         'picked_up_at' => 'datetime',
         'delivered_at' => 'datetime',
         'paid_at' => 'datetime',
         'revenue_recognized_at' => 'datetime',
     ];
+
+    public function setPaymentMethodAttribute($value): void
+    {
+        if (is_numeric($value)) {
+            $this->attributes['payment_method'] = (int) $value;
+            return;
+        }
+
+        $str = strtolower((string) $value);
+        if (in_array($str, ['vietqr', 'bank', 'transfer', 'qr', 'momo'])) {
+            $this->attributes['payment_method'] = \App\Enums\PaymentMethod::VIETQR;
+        } elseif (in_array($str, ['card', 'pos', 'the'])) {
+            $this->attributes['payment_method'] = \App\Enums\PaymentMethod::CARD;
+        } else {
+            $this->attributes['payment_method'] = \App\Enums\PaymentMethod::CASH;
+        }
+    }
 
     public function getPaymentStatusLabelAttribute(): string
     {
@@ -323,6 +352,7 @@ class Order extends Model
     {
         return $query->where('payment_status', self::PAYMENT_PAID)
             ->whereNotNull('revenue_recognized_at')
+            ->where('status', '!=', \App\Enums\OrderStatus::CANCELLED)
             ->where(function ($q) {
                 $q->whereNull('delivery_status')
                   ->orWhere('delivery_status', '!=', self::DELIVERY_FAILED);
@@ -383,7 +413,7 @@ class Order extends Model
         })->where(function ($w) {
             $w->where('payment_status', '!=', self::PAYMENT_REFUNDED)
               ->orWhereNull('payment_status');
-        });
+        })->where('status', '!=', \App\Enums\OrderStatus::CANCELLED);
     }
 
     /**
@@ -396,6 +426,7 @@ class Order extends Model
         }
 
         $this->payment_status = self::PAYMENT_REFUNDED;
+        $this->revenue_recognized_at = null; // Huỷ ghi nhận doanh thu khi hoàn tiền
         $refundNote = 'Hoàn tiền' . ($refundTxCode ? " (Mã GD hoàn: {$refundTxCode})" : '') . ($reason ? ": {$reason}" : '');
         $this->delivery_note = ($this->delivery_note ? $this->delivery_note . ' | ' : '') . $refundNote;
         $this->save();
@@ -406,7 +437,7 @@ class Order extends Model
             'reference_code' => $refundTxCode ?: ('REFUND_' . $this->id . '_' . time()),
             'amount' => (int) $this->total_price,
             'content' => $refundNote,
-            'gateway' => 'vietqr',
+            'gateway' => (string)($this->payment_method ?: 'vietqr'),
             'status' => 'refunded',
             'raw_payload' => json_encode([
                 'action' => 'refund',

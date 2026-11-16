@@ -22,14 +22,14 @@ class PostNew extends Component
      */
     public function render(): View|Closure|string
     {
-        $args =[
-            ['status','=',1],
-            ['new','=',1],
-        ];
-        $posts = Post::where($args)
-            ->orderBy('created_at', 'desc')
+        $query = Post::where('status', 1);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('post', 'new')) {
+            $query->where('new', 1);
+        }
+        $posts = $query->orderBy('created_at', 'desc')
             ->limit(3)
             ->get();
+
         if ($posts->isEmpty()) {
             $posts = Post::where('status', 1)
                 ->orderBy('created_at', 'desc')

@@ -70,6 +70,7 @@ Route::get('/hinh-anh', [HinhAnhController::class, 'index'])->name('site.image')
 
 // Contact
 Route::get('/lien-he', [LienheController::class, 'index'])->name('site.contact');
+Route::post('/lien-he', [\App\Http\Controllers\frontend\InquiryController::class, 'store'])->name('site.contact.submit');
 
 // About
 Route::get('/gioi-thieu', [GioithieuController::class, 'index'])->name('site.about');
@@ -177,8 +178,10 @@ Route::get('/chinh-sach-lien-he', [ChinhsachController::class, 'cslh'])->name('s
 
 // Authentication
 Route::get('/dang-ky', [ThanhVienController::class, 'register'])->name('site.register');
+Route::get('/register', [ThanhVienController::class, 'register'])->name('register');
 Route::post('/dang-ky', [ThanhVienController::class, 'doregister'])->middleware('throttle:10,1')->name('site.doregister');
 Route::get('/dang-nhap', [ThanhVienController::class, 'login'])->name('site.login');
+Route::get('/login', [ThanhVienController::class, 'login'])->name('login');
 Route::post('/check-phone', [ThanhVienController::class, 'checkPhone'])->middleware('throttle:20,1')->name('site.check_phone');
 Route::post('/dang-nhap', [ThanhVienController::class, 'dologin'])->middleware('throttle:15,1')->name('site.dologin');
 Route::get('/dang-xuat', function () {

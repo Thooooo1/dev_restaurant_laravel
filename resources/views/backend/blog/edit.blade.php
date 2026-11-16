@@ -121,8 +121,8 @@
         }
     });
 
-    // Gán nội dung cũ vào Quill
-    var oldContent = `{!! old('content', $post->content) !!}`;
+    // Gán nội dung cũ vào Quill an toàn tránh XSS
+    var oldContent = {!! json_encode(old('content', $post->content)) !!};
     quill.root.innerHTML = oldContent;
 
     // Cập nhật nội dung vào input hidden khi submit

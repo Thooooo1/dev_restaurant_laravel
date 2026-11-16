@@ -22,7 +22,7 @@ class PaymentReportExport
     {
         $query = Order::query()
             ->whereNull('deleted_at')
-            ->whereIn('status', [1, 2])
+            ->paid()
             ->with(['table', 'user']);
 
         if ($this->year) {

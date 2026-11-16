@@ -20,6 +20,25 @@ class Table extends Model
         'status',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function ($table) {
+            if (empty($table->floor_id)) {
+                $firstFloor = Floor::first();
+                if (!$firstFloor) {
+                    $firstFloor = Floor::create(['name' => 'Tầng 1', 'status' => 1]);
+                }
+                $table->floor_id = $firstFloor->id;
+            }
+            if (empty($table->seats)) {
+                $table->seats = $table->capacity ?? 4;
+            }
+            if (!isset($table->sort_order)) {
+                $table->sort_order = 1;
+            }
+        });
+    }
+
     public function floor()
     {
         return $this->belongsTo(Floor::class, 'floor_id');
