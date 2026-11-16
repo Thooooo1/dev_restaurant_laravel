@@ -46,6 +46,13 @@ abstract class TestCase extends BaseTestCase
         ]);
         \App\Models\Floor::firstOrCreate(['id' => 1], [
             'name' => 'Tầng 1',
+        ]);
+
+        \App\Models\Table::firstOrCreate(['id' => 1], [
+            'floor_id' => 1,
+            'name' => 'Bàn 1.01',
+            'seats' => 4,
+            'sort_order' => 1,
             'status' => 1,
         ]);
 

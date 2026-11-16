@@ -433,6 +433,21 @@ class SecurityAndPaymentTest extends TestCase
 
         $product = Product::first();
         if (!$product) {
+            $product = Product::create([
+                'category_id' => 1,
+                'brand_id' => 1,
+                'name' => 'Món Review Test',
+                'slug' => 'mon-review-test',
+                'price_buy' => 45000,
+                'price_sale' => 50000,
+                'qty' => 100,
+                'thumbnail' => 'default.png',
+                'content' => 'Content',
+                'status' => 1,
+                'created_by' => 1,
+            ]);
+        }
+        if (!$product) {
             $this->markTestSkipped('No product available');
         }
 
@@ -473,6 +488,21 @@ class SecurityAndPaymentTest extends TestCase
         ]);
 
         $product = Product::first();
+        if (!$product) {
+            $product = Product::create([
+                'category_id' => 1,
+                'brand_id' => 1,
+                'name' => 'Món Review Test',
+                'slug' => 'mon-review-test',
+                'price_buy' => 45000,
+                'price_sale' => 50000,
+                'qty' => 100,
+                'thumbnail' => 'default.png',
+                'content' => 'Content',
+                'status' => 1,
+                'created_by' => 1,
+            ]);
+        }
 
         // Rating = 6 vuot qua 5 sao
         $response = $this->actingAs($user)->post(route('reviews.store'), [
@@ -657,6 +687,21 @@ class SecurityAndPaymentTest extends TestCase
         }
 
         $product = Product::first();
+        if (!$product) {
+            $product = Product::create([
+                'category_id' => 1,
+                'brand_id' => 1,
+                'name' => 'Món Review Test',
+                'slug' => 'mon-review-test',
+                'price_buy' => 45000,
+                'price_sale' => 50000,
+                'qty' => 100,
+                'thumbnail' => 'default.png',
+                'content' => 'Content',
+                'status' => 1,
+                'created_by' => 1,
+            ]);
+        }
         if (!$product) {
             $this->markTestSkipped('No product');
         }
