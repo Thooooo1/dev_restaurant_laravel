@@ -63,10 +63,49 @@ jobs:
         DB_USERNAME: root
         DB_PASSWORD: root
         PAYMENT_WEBHOOK_TOKEN: testing_ci_webhook_secret_key
-      run: php artisan test --verbose
+      run: php artisan test
 
-    - name: Dump Logs on Failure
+    - name: Post Failure Comment
       if: failure()
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        echo "=== LARAVEL LOG ==="
-        tail -n 100 storage/logs/laravel.log || true
+        node -e '
+          const https = require("https");
+          const fs = require("fs");
+          const { execSync } = require("child_process");
+          let output = "";
+          try {
+            output = execSync("php artisan test --stop-on-failure", {
+              env: {
+                ...process.env,
+                DB_CONNECTION: "mysql",
+                DB_HOST: "127.0.0.1",
+                DB_PORT: "3306",
+                DB_DATABASE: "test_civilize",
+                DB_USERNAME: "root",
+                DB_PASSWORD: "root",
+                PAYMENT_WEBHOOK_TOKEN: "testing_ci_webhook_secret_key"
+              }
+            }).toString();
+          } catch (e) {
+            output = (e.stdout ? e.stdout.toString() : "") + "\n" + (e.stderr ? e.stderr.toString() : "");
+          }
+          const cleanOutput = output.split("\n").slice(-35).join("\n");
+          const body = JSON.stringify({ body: "```\n" + cleanOutput + "\n```" });
+          const req = https.request({
+            hostname: "api.github.com",
+            path: `/repos/${process.env.GITHUB_REPOSITORY}/commits/${process.env.GITHUB_SHA}/comments`,
+            method: "POST",
+            headers: {
+              "User-Agent": "Node",
+              "Authorization": `Bearer ${process.env.GH_TOKEN}`,
+              "Content-Type": "application/json",
+              "Content-Length": Buffer.byteLength(body)
+            }
+          }, (res) => {
+            console.log("Status: " + res.statusCode);
+          });
+          req.write(body);
+          req.end();
+        '
