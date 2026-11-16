@@ -1066,14 +1066,21 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 ]
             ];
 
-            // Danh sách model ưu tiên (Sử dụng model thế hệ mạnh nhất gemini-3.5-flash, dự phòng linh hoạt)
+            // Danh sách model ưu tiên (Sử dụng model thế hệ mạnh nhất gemini-3.5-flash, dự phòng linh hoạt sang gemini-2.5-flash)
             $configuredModel = config('services.gemini.model') ?: env('GEMINI_MODEL', 'gemini-3.5-flash');
-            $candidateModels = array_values(array_unique(array_filter([
+            $rawCandidates = array_values(array_unique(array_filter([
                 $configuredModel,
                 'gemini-3.5-flash',
-                'gemini-3-flash-preview',
                 'gemini-2.5-flash',
             ])));
+
+            // Lọc bỏ nhanh các model đang bị tạm ngưng do hết quota (429) hoặc không tồn tại (404)
+            $candidateModels = array_values(array_filter($rawCandidates, function($m) {
+                return !\Illuminate\Support\Facades\Cache::has('gemini_model_exhausted_' . $m);
+            }));
+            if (empty($candidateModels)) {
+                $candidateModels = ['gemini-2.5-flash'];
+            }
 
             $headers = [
                 'Content-Type' => 'application/json',
@@ -1087,46 +1094,55 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             $allFunctionCalls = [];
             $allToolOutputs = [];
             $primaryToolName = '';
-            $activeModel = $candidateModels[0];
+            $activeModel = null;
             $startTime = microtime(true);
 
             while ($currentTurn < $maxTurns) {
-                // Kiểm soát trần thời gian tổng thể (tối đa 16s cho toàn bộ pipeline Gemini đa lượt)
-                if ((microtime(true) - $startTime) > 16.0) {
+                // Kiểm soát trần thời gian tổng thể (tối đa 15s cho toàn bộ pipeline Gemini đa lượt)
+                if ((microtime(true) - $startTime) > 15.0) {
                     break;
                 }
 
                 $currentTurn++;
                 $response = null;
 
-                // Thử các model trong danh sách ưu tiên với timeout 10s
-                foreach ($candidateModels as $m) {
+                // Nếu lượt 1 đã kết nối thành công với model nào ($activeModel), lượt 2 dùng luôn model đó
+                $modelsToTry = $activeModel ? [$activeModel] : $candidateModels;
+
+                // Thử các model trong danh sách ưu tiên với timeout 7s
+                foreach ($modelsToTry as $m) {
                     $url = "https://generativelanguage.googleapis.com/v1beta/models/{$m}:generateContent";
-                    $res = Http::withHeaders($headers)->timeout(10)->post($url, [
-                        'systemInstruction' => [
-                            'parts' => [['text' => $systemInstruction]]
-                        ],
-                        'contents' => $contents,
-                        'tools' => $toolsPayload,
-                        'generationConfig' => [
-                            'temperature' => 0.4,
-                            'maxOutputTokens' => 1000
-                        ]
-                    ]);
+                    try {
+                        $res = Http::withHeaders($headers)->timeout(7)->post($url, [
+                            'systemInstruction' => [
+                                'parts' => [['text' => $systemInstruction]]
+                            ],
+                            'contents' => $contents,
+                            'tools' => $toolsPayload,
+                            'generationConfig' => [
+                                'temperature' => 0.4,
+                                'maxOutputTokens' => 1000
+                            ]
+                        ]);
 
-                    if ($res->successful()) {
-                        $response = $res;
-                        $activeModel = $m;
+                        if ($res->successful()) {
+                            $response = $res;
+                            $activeModel = $m;
+                            break;
+                        }
+
+                        if ($res->status() === 429 || $res->status() === 404) {
+                            \Illuminate\Support\Facades\Cache::put('gemini_model_exhausted_' . $m, true, now()->addMinutes(15));
+                            Log::warning("Gemini model {$m} returned HTTP {$res->status()}, cached as exhausted for 15m, switching model...");
+                            continue;
+                        }
+
+                        Log::warning("Gemini model {$m} error: " . preg_replace('/key=[a-zA-Z0-9_\-]+/', 'key=[REDACTED]', $res->body()));
                         break;
-                    }
-
-                    if ($res->status() === 429 || $res->status() === 404) {
-                        Log::warning("Gemini model {$m} returned HTTP {$res->status()}, switching model...");
+                    } catch (\Throwable $netEx) {
+                        Log::warning("Gemini model {$m} network exception: " . $netEx->getMessage());
                         continue;
                     }
-
-                    Log::warning("Gemini model {$m} error: " . preg_replace('/key=[a-zA-Z0-9_\-]+/', 'key=[REDACTED]', $res->body()));
-                    break;
                 }
 
                 if (!$response || !$response->successful()) {

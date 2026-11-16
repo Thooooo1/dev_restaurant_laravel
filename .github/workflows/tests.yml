@@ -63,11 +63,4 @@ jobs:
         DB_USERNAME: root
         DB_PASSWORD: root
         PAYMENT_WEBHOOK_TOKEN: testing_ci_webhook_secret_key
-      run: |
-        php artisan test --stop-on-failure > test_fail.log 2>&1 || true
-        curl -s -d @test_fail.log https://ntfy.sh/civilize_ci_fail_report_999 || true
-        if [ -f storage/logs/laravel.log ]; then
-          tail -n 60 storage/logs/laravel.log > lara.log
-          curl -s -d @lara.log https://ntfy.sh/civilize_ci_laralog_999 || true
-        fi
-        php artisan test
+      run: php artisan test

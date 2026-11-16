@@ -1116,6 +1116,7 @@ class SecurityAndPaymentTest extends TestCase
      */
     public function test_vietqr_webhook_idempotency_and_replay_protection(): void
     {
+        Config::set('payment.webhook_token', 'test_secret_token_123');
         Config::set('services.payment.webhook_token', 'test_secret_token_123');
 
         $order = Order::create([
