@@ -23,8 +23,12 @@ class QuickSearchTest extends TestCase
 
         Product::firstOrCreate(['slug' => 'lau-thai-hai-san'], [
             'category_id' => $category->id,
+            'brand_id' => 1,
             'name' => 'Lẩu Thái Hải Sản',
             'slug' => 'lau-thai-hai-san',
+            'content' => 'Lẩu thái hải sản tươi ngon',
+            'description' => 'Món lẩu hấp dẫn',
+            'thumbnail' => 'default.png',
             'price_buy' => 250000,
             'price_sale' => 220000,
             'qty' => 50,

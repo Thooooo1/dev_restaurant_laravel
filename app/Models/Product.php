@@ -38,8 +38,8 @@ class Product extends Model
                 static::$hasImageColumn = \Illuminate\Support\Facades\Schema::hasColumn('product', 'image');
                 static::$hasThumbnailColumn = \Illuminate\Support\Facades\Schema::hasColumn('product', 'thumbnail');
             } catch (\Throwable $e) {
-                static::$hasImageColumn = true;
-                static::$hasThumbnailColumn = false;
+                static::$hasImageColumn = false;
+                static::$hasThumbnailColumn = true;
             }
         }
     }
@@ -93,25 +93,19 @@ class Product extends Model
         if (static::$hasImageColumn) {
             $this->attributes['image'] = $value;
         }
-        if (static::$hasThumbnailColumn) {
+        if (static::$hasThumbnailColumn || !static::$hasImageColumn) {
             $this->attributes['thumbnail'] = $value;
-        }
-        if (!static::$hasImageColumn && !static::$hasThumbnailColumn) {
-            $this->attributes['image'] = $value;
         }
     }
 
     public function setThumbnailAttribute($value)
     {
         $this->detectColumns();
-        if (static::$hasThumbnailColumn) {
+        if (static::$hasThumbnailColumn || !static::$hasImageColumn) {
             $this->attributes['thumbnail'] = $value;
         }
         if (static::$hasImageColumn) {
             $this->attributes['image'] = $value;
-        }
-        if (!static::$hasImageColumn && !static::$hasThumbnailColumn) {
-            $this->attributes['thumbnail'] = $value;
         }
     }
 
