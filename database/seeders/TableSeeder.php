@@ -9,6 +9,10 @@ class TableSeeder extends Seeder
 {
     public function run(): void
     {
+        if (DB::table('tables')->count() > 0) {
+            return;
+        }
+
         $tables = [];
         
         // Tầng 1 (8 bàn)

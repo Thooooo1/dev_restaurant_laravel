@@ -9,6 +9,10 @@ class BrandSeeder extends Seeder
 {
     public function run(): void
     {
+        if (DB::table('brand')->count() > 0) {
+            return;
+        }
+
         DB::table('brand')->insert([
             [
                 'name' => 'Nhà hàng Ẩm thực Việt',

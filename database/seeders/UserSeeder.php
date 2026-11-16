@@ -13,12 +13,18 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        if (DB::table('user')->where('username', 'admin')->exists()) {
+            return;
+        }
+
+        $imageCol = \Illuminate\Support\Facades\Schema::hasColumn('user', 'image') ? 'image' : 'thumbnail';
+
         DB::table('user')->insert([
             'username' => 'admin',
             'password' => Hash::make(env('SEEDER_ADMIN_PASSWORD', 'CivilizeAdmin@2026!')), // Hash mật khẩu mạnh
             'fullname' => 'Administrator',
             'gender' => 'Male',
-            'thumbnail' => 'images/users/default.png',
+            $imageCol => 'images/users/default.png',
             'email' => 'admin@civilize.vn',
             'phone' => '0988123456',
             'address' => 'Cụm 1, TT. Phúc Thọ, Huyện Phúc Thọ, TP. Hà Nội',

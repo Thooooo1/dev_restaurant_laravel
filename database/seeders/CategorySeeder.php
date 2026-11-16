@@ -12,6 +12,9 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
+        if (\Illuminate\Support\Facades\DB::table('category')->count() > 0) {
+            return;
+        }
         DB::table('category')->insert([
             [
                 'name' => 'Khai vị',

@@ -12,6 +12,9 @@ class ProductSeeder extends Seeder
      */
     public function run(): void
     {
+        if (DB::table('product')->count() > 0) {
+            return;
+        }
         for ($i = 1; $i <= 50; $i++) {
             $sale = rand(30, 150) * 1000;
             $cost = round(($sale * rand(32, 40) / 100) / 1000) * 1000;
