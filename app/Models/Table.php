@@ -18,6 +18,9 @@ class Table extends Model
         'seats',
         'sort_order',
         'status',
+        'qr_token',
+        'visit_token',
+        'visit_started_at',
     ];
 
     protected static function booted(): void
@@ -71,6 +74,14 @@ class Table extends Model
     }
 
     /**
+     * Alias tương thích ngược cho getQrToken
+     */
+    public function getOrCreateQrToken(): string
+    {
+        return $this->getQrToken();
+    }
+
+    /**
      * V4-P1-36: Xác thực token QR của khách quét tại bàn
      */
     public function isValidQrToken(?string $token): bool
@@ -79,6 +90,38 @@ class Table extends Model
             return false;
         }
         return hash_equals($this->getQrToken(), (string)$token);
+    }
+
+    /**
+     * V5: Khởi tạo lượt khách mới (visit session) với token riêng biệt
+     */
+    public function startNewVisit(): string
+    {
+        $this->visit_token = bin2hex(random_bytes(16));
+        $this->visit_started_at = now();
+        $this->save();
+        return $this->visit_token;
+    }
+
+    /**
+     * V5: Đóng lượt khách (thu hồi token, khách cũ không thể truy cập đơn mới)
+     */
+    public function closeVisit(): void
+    {
+        $this->visit_token = null;
+        $this->visit_started_at = null;
+        $this->save();
+    }
+
+    /**
+     * V5: Kiểm tra token lượt khách có khớp với phiên đang phục vụ
+     */
+    public function isValidVisitToken(?string $token): bool
+    {
+        if (empty($this->visit_token) || empty($token)) {
+            return false;
+        }
+        return hash_equals($this->visit_token, (string)$token);
     }
 }
 

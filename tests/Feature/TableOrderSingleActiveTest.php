@@ -355,6 +355,7 @@ class TableOrderSingleActiveTest extends TestCase
 
         $response = $this->actingAs($customer)->withSession([
             'table_id' => $this->table->id,
+            'table_verified_' . $this->table->id => true,
             $cartKey => $cartData,
         ])->postJson(route('site.cart.sendKitchenAjax'), [
             'table_id' => $this->table->id,

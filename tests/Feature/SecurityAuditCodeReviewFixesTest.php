@@ -158,7 +158,11 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
 
         $txCountBefore = PaymentTransaction::where('order_id', $order->id)->count();
 
-        $responseIdempotent = $this->withSession(['table_id' => $otherTable->id, 'table_order_id' => $order->id])
+        $responseIdempotent = $this->withSession([
+            'table_id' => $otherTable->id,
+            'table_order_id' => $order->id,
+            'table_verified_' . $otherTable->id => true,
+        ])
             ->postJson(route('site.table.payment.confirm', $otherTable->id), [
                 'order_id' => $order->id,
             ]);
@@ -342,8 +346,9 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
      */
     public function test_v2_p1_19_service_call_sanitizes_html_and_validates_type(): void
     {
-        // 1. Gửi HTML độc hại trong note và customer_name
-        $response = $this->postJson(route('site.service-call.store'), [
+        // 1. Gửi HTML độc hại trong note và customer_name (đã quét mã QR bàn)
+        $response = $this->withSession(['table_verified_' . $this->table->id => true])
+            ->postJson(route('site.service-call.store'), [
             'table_id' => $this->table->id,
             'call_type' => 'call_waiter',
             'note' => 'Cần hỗ trợ <script>alert("xss")</script> ngay',
@@ -960,12 +965,12 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
         $billResponse = $this->get(route('site.table.bill', $table->id));
         $billResponse->assertStatus(403);
 
-        // 2. Gửi POST service-call với table_id không kèm token -> Cũng không cấp quyền xem bill
+        // 2. Gửi POST service-call với table_id không kèm token -> Bị chặn 403 Forbidden
         $callResponse = $this->postJson(route('site.service-call.store'), [
             'table_id' => $table->id,
             'call_type' => 'call_waiter',
         ]);
-        $callResponse->assertStatus(200);
+        $callResponse->assertStatus(403);
 
         $billResponse2 = $this->get(route('site.table.bill', $table->id));
         $billResponse2->assertStatus(403);

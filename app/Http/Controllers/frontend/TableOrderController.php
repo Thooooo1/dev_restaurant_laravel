@@ -140,15 +140,8 @@ class TableOrderController extends Controller
             return redirect()->route('site.product.gridview')->with('error', 'Chưa có món ăn nào để thanh toán. Mời quý khách chọn món trước.');
         }
 
-        // V4-P1-35 & V4-P1-36: Kiểm tra quyền sở hữu TRƯỚC, tuyệt đối không tự gán session('table_order_id') để bypass quyền
-        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id && session('table_verified_' . $id));
-        $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
-        $isOrderOwner = (Auth::check() && $order->user_id && (int)Auth::id() === (int)$order->user_id);
-        $isSessionOrder = (session('table_order_id') && (int)session('table_order_id') === (int)$order->id && session('table_verified_' . $id));
-
-        if (!$isTableSession && !$isStaffOrAdmin && !$isOrderOwner && !$isSessionOrder) {
-            abort(403, 'Bạn không có quyền truy cập thanh toán của bàn này.');
-        }
+        // V5 Invariant: Kiểm tra quyền truy cập bàn tập trung qua TableAccessService
+        \App\Services\TableAccessService::assertTableAccess($table, null, 'Bạn không có quyền truy cập thanh toán của bàn này.');
 
         // Tải chi tiết đơn hàng
         $orderDetails = Orderdetail::where('order_id', $order->id)
@@ -217,11 +210,8 @@ class TableOrderController extends Controller
             return redirect()->back()->with('error', 'Hóa đơn không thuộc bàn này.');
         }
 
-        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id && (session('table_verified_' . $id) || (session('table_order_id') && (int)session('table_order_id') === (int)$order->id)));
-        $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
-        $isOrderOwner = (Auth::check() && (int)Auth::id() === (int)$order->user_id);
-
-        if (!$isTableSession && !$isStaffOrAdmin && !$isOrderOwner) {
+        // V5 Invariant: TableAccessService kiểm tra chặt chẽ bàn và visit session
+        if (!\App\Services\TableAccessService::authorizeTableAccess($table, $request)) {
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => 'Bạn không có quyền thực hiện thao tác trên bàn này.'], 403);
             }
@@ -364,15 +354,8 @@ class TableOrderController extends Controller
             return redirect()->route('site.table.scan', $id)->with('info', 'Bàn hiện chưa có đơn hàng đang hoạt động.');
         }
 
-        // P2-10 & V4-P1-36: Kiểm tra quyền xem hóa đơn (Phiên bàn đã xác thực, chủ đơn hàng, hoặc quản trị viên/nhân viên)
-        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id && session('table_verified_' . $id));
-        $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
-        $isOrderOwner = (Auth::check() && (int)Auth::id() === (int)$order->user_id);
-        $isSessionOrder = (session('table_order_id') && (int)session('table_order_id') === (int)$order->id && session('table_verified_' . $id));
-
-        if (!$isTableSession && !$isStaffOrAdmin && !$isOrderOwner && !$isSessionOrder) {
-            abort(403, 'Bạn không có quyền xem hóa đơn của bàn này.');
-        }
+        // V5 Invariant: TableAccessService kiểm tra chặt chẽ bàn và visit session
+        \App\Services\TableAccessService::assertTableAccess($table, null, 'Bạn không có quyền xem hóa đơn của bàn này.');
 
         $orderDetails = $order->orderDetails;
         $subtotal = \App\Services\PricingService::getOrderSubtotal($order->id);
@@ -397,23 +380,13 @@ class TableOrderController extends Controller
     }
 
     /**
-     * Kết thúc phiên gọi món tại bàn
+     * Kết thúc phiên gọi món tại bàn của khách (Chỉ xóa session phía browser, KHÔNG thay đổi trạng thái đơn/bàn trong DB)
      */
     public function endTableOrder()
     {
         $tableId = session('table_id');
         if ($tableId) {
-            $order = Order::where('table_id', $tableId)
-                ->whereNull('deleted_at')
-                ->whereIn('status', [0, 1])
-                ->latest('id')
-                ->first();
-            if ($order && ($order->payment_status === Order::PAYMENT_PAID || $order->isPaid())) {
-                $order->status = \App\Enums\OrderStatus::COMPLETED;
-                $order->save();
-                Table::where('id', $tableId)->update(['status' => 0, 'locked_order_id' => null]);
-                Table::where('locked_order_id', $order->id)->update(['locked_order_id' => null]);
-            }
+            \App\Services\TableAccessService::clearTableSession($tableId);
         }
 
         \App\Http\Controllers\frontend\CartController::clearCartSession();

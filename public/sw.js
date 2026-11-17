@@ -1,68 +1,50 @@
-const CACHE_NAME = 'civilize-cache-v3';
+const CACHE_NAME = 'civilize-cache-v5-nocache';
 const STATIC_ASSETS = [
-    '/',
     '/images/logo/logo.png',
     '/manifest.json'
 ];
 
-// Install: Cache initial shell assets
+// Install: Skip waiting immediately
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(STATIC_ASSETS).catch(() => {
-                // Ignore individual asset failure to ensure SW installs
-            });
-        }).then(() => self.skipWaiting())
-    );
+    self.skipWaiting();
 });
 
-// Activate: Clean up old caches immediately
+// Activate: Clean up ALL old caches immediately and claim clients
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => {
-            return Promise.all(
-                keys.map((key) => caches.delete(key))
-            );
+            return Promise.all(keys.map((key) => caches.delete(key)));
         }).then(() => self.clients.claim())
     );
 });
 
-// Fetch: Network-first for dynamic routes, cache-first for static media
+// Fetch: NEVER cache HTML pages or navigation requests so UI changes appear instantly
 self.addEventListener('fetch', (event) => {
     const request = event.request;
     const url = new URL(request.url);
 
-    // Skip non-GET requests, browser extensions, and local development (always fresh on localhost)
+    // Skip non-GET requests, local development, APIs, admin, and HTML navigation
     if (
         request.method !== 'GET' ||
         !url.protocol.startsWith('http') ||
+        request.mode === 'navigate' ||
+        url.pathname.startsWith('/api') ||
+        url.pathname.startsWith('/admin') ||
+        url.pathname.includes('webhook') ||
         url.hostname === 'localhost' ||
         url.hostname === '127.0.0.1'
     ) {
         return;
     }
 
-    // Never intercept API routes, webhooks, or admin actions
-    if (url.pathname.startsWith('/api') || url.pathname.startsWith('/admin') || url.pathname.includes('webhook')) {
-        return;
-    }
-
-    // Static assets: Cache-first with network fallback
+    // Static media only: Cache-first with network fallback
     if (
         request.destination === 'image' ||
-        request.destination === 'font' ||
-        request.destination === 'style' ||
-        request.destination === 'script'
+        request.destination === 'font'
     ) {
         event.respondWith(
             caches.match(request).then((cachedResponse) => {
                 if (cachedResponse) {
-                    // Return cached response and update cache in background
-                    fetch(request).then((networkResponse) => {
-                        if (networkResponse && networkResponse.status === 200) {
-                            caches.open(CACHE_NAME).then((cache) => cache.put(request, networkResponse));
-                        }
-                    }).catch(() => {});
                     return cachedResponse;
                 }
                 return fetch(request).then((networkResponse) => {
@@ -71,25 +53,6 @@ self.addEventListener('fetch', (event) => {
                         caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
                     }
                     return networkResponse;
-                });
-            })
-        );
-        return;
-    }
-
-    // HTML Pages: Network-first with cache fallback
-    if (request.mode === 'navigate') {
-        event.respondWith(
-            fetch(request).then((networkResponse) => {
-                if (networkResponse && networkResponse.status === 200) {
-                    const responseClone = networkResponse.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-                }
-                return networkResponse;
-            }).catch(() => {
-                return caches.match(request).then((cachedResponse) => {
-                    if (cachedResponse) return cachedResponse;
-                    return caches.match('/');
                 });
             })
         );

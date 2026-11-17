@@ -526,6 +526,14 @@ class TableOrderController extends Controller
                 ], 422);
             }
 
+            // V5: Ngăn chặn hủy món lần 2 trên cùng một orderDetail
+            if ($orderDetail->status === 'cancelled') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Món ăn này đã bị hủy trước đó.'
+                ], 422);
+            }
+
             $userId = Auth::id();
             $kitchenStatus = $orderDetail->status ?? 'pending';
             $productName = $orderDetail->product->name ?? ('Món #' . $orderDetail->product_id);
@@ -545,11 +553,14 @@ class TableOrderController extends Controller
                 'kitchen_status' => $kitchenStatus,
             ]);
 
-            // V4-P1-37: Hoàn lại tồn kho khi xóa/hủy món tại POS
-            $product = Product::where('id', $orderDetail->product_id)->lockForUpdate()->first();
-            if ($product) {
-                $product->increment('qty', (int)$orderDetail->qty);
-            }
+            // V4-P1-37 & V5: Hoàn lại tồn kho thông qua Sổ giao dịch (Inventory Ledger)
+            \App\Services\InventoryService::applyMovement(
+                $orderDetail->product_id,
+                (int)$orderDetail->qty,
+                'pos_cancel_item',
+                "pos_cancel_item_{$orderDetail->id}",
+                ['order_id' => $order->id, 'order_detail_id' => $orderDetail->id]
+            );
 
             // Nếu món đã gửi bếp (cooking / served / confirmed): KHÔNG xóa cứng, chỉ đổi status='cancelled' và amount=0
             if (in_array($kitchenStatus, ['cooking', 'served', 'confirmed'])) {
@@ -593,26 +604,39 @@ class TableOrderController extends Controller
                 ], 422);
             }
 
+            // V5: Ngăn chặn cập nhật số lượng món đã bị hủy
+            if ($orderDetail->status === 'cancelled') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Không thể cập nhật số lượng món đã bị hủy.'
+                ], 422);
+            }
+
             $oldQty = $orderDetail->qty;
             $newQty = (int)$request->qty;
 
             if ($oldQty !== $newQty) {
-                // V4-P1-37: Đồng bộ tồn kho theo chênh lệch delta
+                // V4-P1-37 & V5: Đồng bộ tồn kho theo chênh lệch delta qua Sổ giao dịch (Inventory Ledger)
                 $diff = $newQty - $oldQty;
-                $product = Product::where('id', $orderDetail->product_id)->lockForUpdate()->first();
-                if ($product) {
-                    if ($diff > 0) {
-                        if ($product->qty < $diff) {
-                            return response()->json([
-                                'success' => false,
-                                'message' => "Món '{$product->name}' không đủ số lượng để tăng thêm (còn {$product->qty}, yêu cầu thêm {$diff})."
-                            ], 422);
-                        }
-                        $product->decrement('qty', $diff);
-                    } elseif ($diff < 0) {
-                        $product->increment('qty', abs($diff));
+                if ($diff > 0) {
+                    $product = Product::where('id', $orderDetail->product_id)->lockForUpdate()->first();
+                    if (!$product || $product->qty < $diff) {
+                        $pName = $product->name ?? ('Món #' . $orderDetail->product_id);
+                        $pQty = $product->qty ?? 0;
+                        return response()->json([
+                            'success' => false,
+                            'message' => "Món '{$pName}' không đủ số lượng để tăng thêm (còn {$pQty}, yêu cầu thêm {$diff})."
+                        ], 422);
                     }
                 }
+
+                \App\Services\InventoryService::applyMovement(
+                    $orderDetail->product_id,
+                    -$diff,
+                    'pos_update_item_qty',
+                    "pos_update_qty_{$orderDetail->id}_{$oldQty}_{$newQty}_" . time(),
+                    ['order_id' => $order->id, 'order_detail_id' => $orderDetail->id]
+                );
 
                 $productName = $orderDetail->product->name ?? ('Món #' . $orderDetail->product_id);
                 $reason = trim($request->reason ?? 'Điều chỉnh số lượng tại POS');
@@ -659,79 +683,92 @@ class TableOrderController extends Controller
             'items.*.qty' => 'required|integer|min:1',
         ]);
 
-        return DB::transaction(function () use ($request) {
-            $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
+        try {
+            return DB::transaction(function () use ($request) {
+                $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
 
-            if (!in_array((int)$order->status, [0, 1]) || $order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Hóa đơn bàn này đã thanh toán xong hoặc đã hoàn tất, không thể chỉnh sửa số lượng món.'
-                ], 422);
-            }
+                if (!in_array((int)$order->status, [0, 1]) || $order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
+                    throw new \DomainException('Hóa đơn bàn này đã thanh toán xong hoặc đã hoàn tất, không thể chỉnh sửa số lượng món.');
+                }
 
-            $userId = Auth::id();
+                $userId = Auth::id();
 
-            foreach ($request->items as $item) {
-                $detail = Orderdetail::where('id', $item['id'])
-                    ->where('order_id', $order->id)
-                    ->lockForUpdate()
-                    ->first();
+                foreach ($request->items as $item) {
+                    $detail = Orderdetail::where('id', $item['id'])
+                        ->where('order_id', $order->id)
+                        ->lockForUpdate()
+                        ->first();
 
-                if ($detail && (int)$detail->qty !== (int)$item['qty']) {
-                    $oldQty = (int)$detail->qty;
-                    $newQty = (int)$item['qty'];
-                    $diff = $newQty - $oldQty;
+                    if (!$detail) continue;
 
-                    // V4-P1-37: Đồng bộ tồn kho theo chênh lệch delta
-                    $product = Product::where('id', $detail->product_id)->lockForUpdate()->first();
-                    if ($product) {
-                        if ($diff > 0) {
-                            if ($product->qty < $diff) {
-                                return response()->json([
-                                    'success' => false,
-                                    'message' => "Món '{$product->name}' không đủ số lượng để tăng thêm (còn {$product->qty}, yêu cầu thêm {$diff})."
-                                ], 422);
-                            }
-                            $product->decrement('qty', $diff);
-                        } elseif ($diff < 0) {
-                            $product->increment('qty', abs($diff));
-                        }
+                    // V5: Chặn chỉnh sửa số lượng món đã bị hủy
+                    if ($detail->status === 'cancelled') {
+                        throw new \DomainException('Không thể chỉnh sửa số lượng món đã bị hủy.');
                     }
 
-                    $productName = $detail->product->name ?? ('Món #' . $detail->product_id);
+                    if ((int)$detail->qty !== (int)$item['qty']) {
+                        $oldQty = (int)$detail->qty;
+                        $newQty = (int)$item['qty'];
+                        $diff = $newQty - $oldQty;
 
-                    OrderItemLog::create([
-                        'order_id' => $order->id,
-                        'order_detail_id' => $detail->id,
-                        'product_id' => $detail->product_id,
-                        'product_name' => $productName,
-                        'action' => 'quantity_changed',
-                        'old_qty' => $oldQty,
-                        'new_qty' => $newQty,
-                        'reason' => 'Cập nhật hàng loạt số lượng tại POS',
-                        'user_id' => $userId,
-                        'kitchen_status' => $detail->status,
-                    ]);
+                        // V4-P1-37 & V5: Ném ngoại lệ bên trong transaction để rollback toàn bộ nếu thiếu hàng
+                        if ($diff > 0) {
+                            $product = Product::where('id', $detail->product_id)->lockForUpdate()->first();
+                            if (!$product || $product->qty < $diff) {
+                                $pName = $product->name ?? ('Món #' . $detail->product_id);
+                                $pQty = $product->qty ?? 0;
+                                throw new \DomainException("Món '{$pName}' không đủ số lượng để tăng thêm (còn {$pQty}, yêu cầu thêm {$diff}).");
+                            }
+                        }
 
-                    $detail->qty = $newQty;
-                    $detail->amount = ($detail->price - $detail->discount) * $newQty;
-                    $detail->save();
+                        \App\Services\InventoryService::applyMovement(
+                            $detail->product_id,
+                            -$diff,
+                            'pos_batch_update_qty',
+                            "pos_batch_qty_{$detail->id}_{$oldQty}_{$newQty}_" . time(),
+                            ['order_id' => $order->id, 'order_detail_id' => $detail->id]
+                        );
+
+                        $productName = $detail->product->name ?? ('Món #' . $detail->product_id);
+
+                        OrderItemLog::create([
+                            'order_id' => $order->id,
+                            'order_detail_id' => $detail->id,
+                            'product_id' => $detail->product_id,
+                            'product_name' => $productName,
+                            'action' => 'quantity_changed',
+                            'old_qty' => $oldQty,
+                            'new_qty' => $newQty,
+                            'reason' => 'Cập nhật hàng loạt số lượng tại POS',
+                            'user_id' => $userId,
+                            'kitchen_status' => $detail->status,
+                        ]);
+
+                        $detail->qty = $newQty;
+                        $detail->amount = ($detail->price - $detail->discount) * $newQty;
+                        $detail->save();
+                    }
                 }
-            }
 
-            // Tính lại tổng tiền qua PricingService
-            $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
-            $order->save();
+                // Tính lại tổng tiền qua PricingService
+                $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
+                $order->save();
 
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Cập nhật số lượng thành công'
+                ]);
+            });
+        } catch (\DomainException $e) {
             return response()->json([
-                'success' => true,
-                'message' => 'Cập nhật số lượng thành công'
-            ]);
-        });
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        }
     }
 
     /**
-     * Lưu toàn bộ order (Batch Save có Transaction + Lock + Audit Log)
+     * Lưu toàn bộ order (Batch Save có Transaction + Lock + Audit Log + Rollback an toàn)
      */
     public function saveTableOrder(Request $request)
     {
@@ -743,105 +780,131 @@ class TableOrderController extends Controller
             'note' => 'nullable|string',
         ]);
 
-        return DB::transaction(function () use ($request) {
-            $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
+        try {
+            return DB::transaction(function () use ($request) {
+                $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
 
-            if (!in_array((int)$order->status, [0, 1]) || $order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
+                if (!in_array((int)$order->status, [0, 1]) || $order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
+                    throw new \DomainException('Hóa đơn bàn này đã thanh toán xong hoặc đã hoàn tất, không thể chỉnh sửa số lượng món.');
+                }
+
+                if ($request->has('note')) {
+                    $order->note = $request->note;
+                }
+
+                $userId = Auth::id();
+
+                foreach ($request->items as $item) {
+                    $productId = $item['product_id'];
+                    $qty = (int)$item['qty'];
+
+                    $product = Product::where('id', $productId)->whereNull('deleted_at')->lockForUpdate()->first();
+                    if (!$product) {
+                        throw new \DomainException("Sản phẩm ID #{$productId} không tồn tại hoặc đã bị xóa.");
+                    }
+
+                    // V5-Invariant: Ném ngoại lệ bên trong transaction để buộc DB rollback toàn bộ nếu thiếu hàng
+                    if ($product->qty < $qty) {
+                        throw new \DomainException("Món '{$product->name}' không đủ số lượng phục vụ (còn {$product->qty}, yêu cầu {$qty}).");
+                    }
+
+                    $price = $product->price_sale > 0 ? $product->price_sale : $product->price_buy;
+                    $discount = 0;
+                    $amount = ($price - $discount) * $qty;
+
+                    $existing = Orderdetail::where('order_id', $order->id)
+                        ->where('product_id', $productId)
+                        ->where('status', '!=', 'cancelled')
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($existing) {
+                        $oldQty = $existing->qty;
+                        $newQty = $oldQty + $qty;
+                        $existing->qty = $newQty;
+                        $existing->price = $price;
+                        $existing->discount = $discount;
+                        $existing->amount = ($price - $discount) * $newQty;
+                        $existing->save();
+
+                        // Sổ giao dịch tồn kho
+                        \App\Services\InventoryService::applyMovement(
+                            $product,
+                            -$qty,
+                            'pos_order_add',
+                            $order->id,
+                            $existing->id,
+                            null,
+                            "pos_save_order_{$order->id}_{$existing->id}_" . uniqid(),
+                            $userId
+                        );
+
+                        OrderItemLog::create([
+                            'order_id' => $order->id,
+                            'order_detail_id' => $existing->id,
+                            'product_id' => $productId,
+                            'product_name' => $product->name,
+                            'action' => 'quantity_changed',
+                            'old_qty' => $oldQty,
+                            'new_qty' => $newQty,
+                            'reason' => 'Thêm món từ lưu bàn',
+                            'user_id' => $userId,
+                            'kitchen_status' => $existing->status,
+                        ]);
+                    } else {
+                        $detail = Orderdetail::create([
+                            'order_id' => $order->id,
+                            'product_id' => $productId,
+                            'qty' => $qty,
+                            'price' => $price,
+                            'discount' => $discount,
+                            'amount' => $amount,
+                            'order_turn' => $order->order_turn ?? 1,
+                            'status' => 'confirmed',
+                        ]);
+
+                        // Sổ giao dịch tồn kho
+                        \App\Services\InventoryService::applyMovement(
+                            $product,
+                            -$qty,
+                            'pos_order_add',
+                            $order->id,
+                            $detail->id,
+                            null,
+                            "pos_save_order_new_{$order->id}_{$detail->id}_" . uniqid(),
+                            $userId
+                        );
+
+                        OrderItemLog::create([
+                            'order_id' => $order->id,
+                            'order_detail_id' => $detail->id,
+                            'product_id' => $productId,
+                            'product_name' => $product->name,
+                            'action' => 'created',
+                            'old_qty' => 0,
+                            'new_qty' => $qty,
+                            'reason' => 'Tạo món từ lưu bàn',
+                            'user_id' => $userId,
+                            'kitchen_status' => 'confirmed',
+                        ]);
+                    }
+                }
+
+                // Tính lại tổng tiền qua PricingService
+                $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
+                $order->save();
+
                 return response()->json([
-                    'success' => false,
-                    'message' => 'Hóa đơn bàn này đã thanh toán xong hoặc đã hoàn tất, không thể chỉnh sửa số lượng món.'
-                ], 422);
-            }
-
-            if ($request->has('note')) {
-                $order->note = $request->note;
-            }
-
-            $userId = Auth::id();
-
-            foreach ($request->items as $item) {
-                $productId = $item['product_id'];
-                $qty = (int)$item['qty'];
-
-                $product = Product::where('id', $productId)->whereNull('deleted_at')->lockForUpdate()->first();
-                if (!$product) continue;
-
-                // V4-P1-37: Kiểm tra và trừ tồn kho cho lượng gọi thêm tại POS
-                if ($product->qty < $qty) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "Món '{$product->name}' không đủ số lượng phục vụ (còn {$product->qty}, yêu cầu {$qty})."
-                    ], 422);
-                }
-                $product->decrement('qty', $qty);
-
-                $price = $product->price_sale > 0 ? $product->price_sale : $product->price_buy;
-                $discount = 0;
-                $amount = ($price - $discount) * $qty;
-
-                $existing = Orderdetail::where('order_id', $order->id)
-                    ->where('product_id', $productId)
-                    ->where('status', '!=', 'cancelled')
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($existing) {
-                    $oldQty = $existing->qty;
-                    $newQty = $oldQty + $qty;
-                    $existing->qty = $newQty;
-                    $existing->price = $price;
-                    $existing->discount = $discount;
-                    $existing->amount = ($price - $discount) * $newQty;
-                    $existing->save();
-
-                    OrderItemLog::create([
-                        'order_id' => $order->id,
-                        'order_detail_id' => $existing->id,
-                        'product_id' => $productId,
-                        'product_name' => $product->name,
-                        'action' => 'quantity_changed',
-                        'old_qty' => $oldQty,
-                        'new_qty' => $newQty,
-                        'reason' => 'Thêm món từ lưu bàn',
-                        'user_id' => $userId,
-                        'kitchen_status' => $existing->status,
-                    ]);
-                } else {
-                    $detail = Orderdetail::create([
-                        'order_id' => $order->id,
-                        'product_id' => $productId,
-                        'qty' => $qty,
-                        'price' => $price,
-                        'discount' => $discount,
-                        'amount' => $amount,
-                        'order_turn' => $order->order_turn ?? 1,
-                        'status' => 'confirmed',
-                    ]);
-
-                    OrderItemLog::create([
-                        'order_id' => $order->id,
-                        'order_detail_id' => $detail->id,
-                        'product_id' => $productId,
-                        'product_name' => $product->name,
-                        'action' => 'created',
-                        'old_qty' => 0,
-                        'new_qty' => $qty,
-                        'reason' => 'Tạo món từ lưu bàn',
-                        'user_id' => $userId,
-                        'kitchen_status' => 'confirmed',
-                    ]);
-                }
-            }
-
-            // Tính lại tổng tiền qua PricingService
-            $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
-            $order->save();
-
+                    'success' => true,
+                    'message' => 'Lưu đơn hàng thành công'
+                ]);
+            });
+        } catch (\DomainException $e) {
             return response()->json([
-                'success' => true,
-                'message' => 'Lưu đơn hàng thành công'
-            ]);
-        });
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        }
     }
 
     public function incrementOrderTurn(Request $request)

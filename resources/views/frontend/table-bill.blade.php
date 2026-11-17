@@ -131,9 +131,12 @@
                     </div>
 
                     @if ($order->status == 1 || $order->status == 2)
-                        <a href="{{ route('site.table.end') }}" class="py-2 px-3.5 rounded bg-stone-900 hover:bg-stone-800 text-white font-bold uppercase tracking-wider text-[11px] transition-colors">
-                            Hoàn tất & Rời bàn
-                        </a>
+                        <form method="POST" action="{{ route('site.table.end') }}" class="inline">
+                            @csrf
+                            <button type="submit" class="py-2 px-3.5 rounded bg-stone-900 hover:bg-stone-800 text-white font-bold uppercase tracking-wider text-[11px] transition-colors cursor-pointer">
+                                Hoàn tất & Rời bàn
+                            </button>
+                        </form>
                     @endif
                 </div>
 

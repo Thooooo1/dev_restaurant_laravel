@@ -27,6 +27,7 @@ class PaymentTransaction extends Model
 
     protected $casts = [
         'amount' => 'float',
+        'raw_payload' => 'array',
         'created_at' => 'datetime',
     ];
 

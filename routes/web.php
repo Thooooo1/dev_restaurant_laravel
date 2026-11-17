@@ -140,7 +140,7 @@ Route::get('/ban/{id}/thanh-toan-qr', [App\Http\Controllers\frontend\TableOrderC
 Route::post('/ban/{id}/xac-nhan-thanh-toan', [App\Http\Controllers\frontend\TableOrderController::class, 'confirmPayment'])->name('site.table.payment.confirm');
 Route::get('/ban/{id}/hoa-don', [App\Http\Controllers\frontend\TableOrderController::class, 'viewBill'])->name('site.table.bill');
 Route::post('/clear-kitchen-session', [App\Http\Controllers\frontend\CartController::class, 'clearKitchenSession'])->name('site.clear.kitchen.session');
-Route::get('/ket-thuc-goi-mon', [App\Http\Controllers\frontend\TableOrderController::class, 'endTableOrder'])->name('site.table.end');
+Route::match(['get', 'post'], '/ket-thuc-goi-mon', [App\Http\Controllers\frontend\TableOrderController::class, 'endTableOrder'])->name('site.table.end');
 
 // Service Call (Gọi nhân viên phục vụ)
 Route::post('/api/call-waiter', [ServiceCallController::class, 'store'])->name('site.service-call.store');

@@ -33,10 +33,13 @@
                                 class="text-xs font-bold text-white bg-[#C25E00] hover:bg-[#A34E00] px-3.5 py-1.5 rounded-none sm:rounded-sm shadow-xs transition-colors flex items-center cursor-pointer">
                             <span>Gọi phục vụ</span>
                         </button>
-                        <a href="{{ route('site.table.end') }}" 
-                           class="text-xs font-semibold text-rose-700 hover:text-rose-800 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-none sm:rounded-sm border border-rose-200 transition-colors">
-                            Kết thúc gọi món
-                        </a>
+                        <form method="POST" action="{{ route('site.table.end') }}" class="inline">
+                            @csrf
+                            <button type="submit" 
+                                    class="text-xs font-semibold text-rose-700 hover:text-rose-800 bg-white hover:bg-rose-50 px-3 py-1.5 rounded-none sm:rounded-sm border border-rose-200 transition-colors cursor-pointer">
+                                Kết thúc gọi món
+                            </button>
+                        </form>
                     </div>
                 </div>
             @endif

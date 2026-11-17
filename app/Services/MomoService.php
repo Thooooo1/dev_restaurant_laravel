@@ -92,6 +92,19 @@ class MomoService
             'autoCapture' => true
         ];
 
+        // V5 Invariant: Lưu Payment Intent trước khi gửi yêu cầu sang cổng thanh toán
+        $orderModel = \App\Models\Order::find($orderId);
+        if ($orderModel) {
+            \App\Services\PaymentIntentService::createIntent(
+                $orderModel,
+                'momo',
+                $requestId,
+                (float)$amount,
+                $partnerCode,
+                $data
+            );
+        }
+
         try {
             $httpClient = Http::withHeaders([
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',

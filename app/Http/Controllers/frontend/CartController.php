@@ -476,6 +476,14 @@ class CartController extends Controller
             return response()->json(['success' => false, 'message' => 'Không tìm thấy bàn ăn trên hệ thống.'], 404);
         }
 
+        // V5 Invariant: Bắt buộc xác thực quyền truy cập bàn bằng QR hoặc là nhân viên/quản trị
+        if (!\App\Services\TableAccessService::authorizeTableAccess($table, $request)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn chưa quét mã QR tại bàn hoặc phiên gọi món đã hết hạn. Vui lòng quét mã QR tại bàn để gửi món.'
+            ], 403);
+        }
+
         // Khóa gọi thêm món khi bàn đang trong trạng thái chờ thanh toán hóa đơn
         $isBillRequested = \App\Models\ServiceCall::where('table_id', $tableId)
             ->where('call_type', 'bill')
@@ -672,6 +680,11 @@ class CartController extends Controller
             return redirect()->route('site.home')->with('error', 'Không xác định được bàn ăn.');
         }
 
+        $table = Table::find($tableId);
+        if (!$table || !\App\Services\TableAccessService::authorizeTableAccess($table)) {
+            abort(403, 'Bạn không có quyền thao tác trên bàn ăn này. Vui lòng quét mã QR tại bàn.');
+        }
+
         $items = [];
         foreach ($cart as $productId => $details) {
             $items[] = [
@@ -798,6 +811,14 @@ class CartController extends Controller
 
                 $userId = Auth::id() ?? 0;
                 $tableId = session('table_id');
+
+                // V5 Invariant: Nếu đơn hàng tại bàn, phải được xác thực qua TableAccessService
+                if ($tableId) {
+                    $table = Table::find($tableId);
+                    if (!$table || !\App\Services\TableAccessService::authorizeTableAccess($table, $request)) {
+                        throw new \DomainException('Bạn chưa quét mã QR tại bàn hoặc phiên gọi món đã hết hạn. Vui lòng quét mã QR tại bàn.');
+                    }
+                }
 
                 // Nếu đang ngồi tại bàn, kiểm tra đơn hàng đang hoạt động để gộp món (Single Active Table Order)
                 // Áp dụng lockForUpdate và kiểm tra trạng thái thanh toán để chống race condition và không cho gộp món vào đơn đã thanh toán
@@ -1055,11 +1076,30 @@ class CartController extends Controller
                 return response()->json(['message' => 'Order not found'], 404);
             }
 
-            // V4-P1-40: Kiểm chứng số tiền thực nhận từ MoMo khớp với giá trị đơn hàng
+            $requestId = (string)($data['requestId'] ?? '');
+            $transId = (string)($data['transId'] ?? ($data['requestId'] ?? ('MOMO_' . $order->id . '_' . time())));
             $callbackAmount = (float)($data['amount'] ?? 0);
-            if ($callbackAmount < (float)$order->total_price) {
-                \Log::warning("MoMo IPN amount mismatch for Order #{$order->id}: expected {$order->total_price}, received {$callbackAmount}");
-                return response()->json(['message' => 'Amount mismatch'], 400);
+
+            // V5 Invariant: Đối soát với Payment Intent Engine nếu có intent
+            $hasIntent = \App\Models\PaymentIntent::where('request_id', $requestId)->exists();
+            if ($hasIntent) {
+                $reconcileRes = \App\Services\PaymentIntentService::reconcileIpn(
+                    'momo',
+                    $requestId,
+                    $transId,
+                    $callbackAmount,
+                    $data
+                );
+                if (!$reconcileRes['success'] && ($reconcileRes['code'] ?? 200) !== 200) {
+                    \Log::warning("MoMo IPN PaymentIntent reconciliation failed for Order #{$order->id}: " . json_encode($reconcileRes));
+                    return response()->json(['message' => $reconcileRes['message']], $reconcileRes['code'] ?? 400);
+                }
+            } else {
+                // V4-P1-40: Kiểm chứng số tiền thực nhận từ MoMo khớp với giá trị đơn hàng
+                if ($callbackAmount < (float)$order->total_price) {
+                    \Log::warning("MoMo IPN amount mismatch for Order #{$order->id}: expected {$order->total_price}, received {$callbackAmount}");
+                    return response()->json(['message' => 'Amount mismatch'], 400);
+                }
             }
 
             if ((int)$data['resultCode'] !== 0) {

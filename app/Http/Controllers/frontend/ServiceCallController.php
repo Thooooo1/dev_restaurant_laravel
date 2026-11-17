@@ -37,16 +37,19 @@ class ServiceCallController extends Controller
             ], 404);
         }
 
-        // V4-P1-36: Chỉ lưu table_id vào session nếu đã xác thực bằng token QR hoặc là nhân viên/quản trị
-        $token = $request->input('token');
-        if ($table->isValidQrToken($token) || session('table_verified_' . $table->id) || (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()))) {
-            session([
-                'table_id' => $table->id,
-                'table_name' => $table->name,
-                'table_floor_name' => $table->floor ? $table->floor->name : null,
-                'table_verified_' . $table->id => true,
-            ]);
+        // V5 Invariant: Bắt buộc QR/staff mới được gọi phục vụ cho bàn
+        if (!\App\Services\TableAccessService::authorizeTableAccess($table, $request)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn không có quyền gửi yêu cầu phục vụ cho bàn này. Vui lòng quét mã QR tại bàn.'
+            ], 403);
         }
+
+        session([
+            'table_id' => $table->id,
+            'table_name' => $table->name,
+            'table_floor_name' => $table->floor ? $table->floor->name : null,
+        ]);
 
         // V2-P1-19: Validate input và chống Stored XSS triệt để
         $types = ServiceCall::TYPES;

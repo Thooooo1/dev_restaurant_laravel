@@ -19,28 +19,24 @@
     <link rel="apple-touch-icon" href="{{ asset('images/logo/logo.png') }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/logo/logo.png') }}">
     
-    <!-- PWA Service Worker Registration (Tự động xóa cache trên localhost để luôn hiển thị giao diện mới nhất) -->
+    <!-- PWA Service Worker Cache Killer (Tự động xóa mọi cache cũ để luôn thấy giao diện mới nhất) -->
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                        for (let registration of registrations) {
-                            registration.unregister();
-                        }
-                    });
-                    if (window.caches) {
-                        caches.keys().then(function(names) {
-                            for (let name of names) caches.delete(name);
-                        });
+        (function() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for (let registration of registrations) {
+                        registration.unregister();
                     }
-                } else {
-                    navigator.serviceWorker.register('/sw.js').then(function(reg) {
-                        reg.update();
-                    }).catch(function() {});
-                }
-            });
-        }
+                });
+            }
+            if (window.caches) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                });
+            }
+        })();
     </script>
     <!-- jQuery -->
     {{--
