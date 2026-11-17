@@ -237,6 +237,7 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
         ]);
 
         // Mock MomoService verifyPayment trả về true
+        config(['payment.mode' => 'demo']);
         $momoMock = $this->createMock(MomoService::class);
         $momoMock->method('verifyPayment')->willReturn(true);
         $this->app->instance(MomoService::class, $momoMock);
@@ -994,6 +995,7 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
         ]);
 
         // 1. GET return tuyệt đối KHÔNG mutate payment_status thành paid
+        config(['payment.mode' => 'demo']);
         $momoService = app(\App\Services\MomoService::class);
         $returnParams = [
             'orderId' => $order->id,
@@ -1030,6 +1032,12 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
         $validIpnResponse = $this->postJson(route('site.momo.ipn'), $returnParams);
         $validIpnResponse->assertStatus(200);
         $this->assertTrue($order->fresh()->isPaid());
+
+        // 4. Nếu ở môi trường production mà không có merchant secret key cấu hình -> Bị từ chối HTTP 403 (V4-P0-34)
+        config(['payment.mode' => 'production']);
+        $prodIpnResponse = $this->postJson(route('site.momo.ipn'), $returnParams);
+        $this->assertEquals(403, $prodIpnResponse->status());
+        config(['payment.mode' => 'demo']);
     }
 
     /**

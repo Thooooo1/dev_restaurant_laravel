@@ -26,6 +26,7 @@
         <!-- <env name="DB_DATABASE" value=":memory:"/> -->
         <env name="MAIL_MAILER" value="array"/>
         <env name="PULSE_ENABLED" value="false"/>
+        <env name="PAYMENT_MODE" value="demo"/>
         <env name="PAYMENT_WEBHOOK_TOKEN" value="testing_ci_webhook_secret_key"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
