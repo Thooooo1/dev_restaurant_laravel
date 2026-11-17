@@ -411,10 +411,11 @@ class TableOrderController extends Controller
             // Khóa hàng Order để tuần tự hóa các thao tác đồng thời trên cùng một hóa đơn
             $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
 
-            if (!in_array((int)$order->status, [0, 1])) {
+            // V3-P1-28: Chặn thêm món nếu đơn hàng đã thanh toán hoặc đã hoàn tất/hủy
+            if (!in_array((int)$order->status, [0, 1]) || $order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Hóa đơn bàn này đã hoàn tất hoặc đã hủy, không thể thêm món.'
+                    'message' => 'Hóa đơn bàn này đã thanh toán xong hoặc đã hoàn tất, không thể thêm món.'
                 ], 422);
             }
 
@@ -506,10 +507,10 @@ class TableOrderController extends Controller
             $orderDetail = Orderdetail::where('id', $request->order_detail_id)->lockForUpdate()->firstOrFail();
             $order = Order::where('id', $orderDetail->order_id)->lockForUpdate()->firstOrFail();
 
-            if (!in_array((int)$order->status, [0, 1])) {
+            if (!in_array((int)$order->status, [0, 1]) || $order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Hóa đơn bàn này đã hoàn tất hoặc đã hủy, không thể chỉnh sửa.'
+                    'message' => 'Hóa đơn bàn này đã thanh toán xong hoặc đã hoàn tất, không thể xóa hoặc chỉnh sửa món.'
                 ], 422);
             }
 
@@ -567,10 +568,10 @@ class TableOrderController extends Controller
             $orderDetail = Orderdetail::where('id', $request->order_detail_id)->lockForUpdate()->firstOrFail();
             $order = Order::where('id', $orderDetail->order_id)->lockForUpdate()->firstOrFail();
 
-            if (!in_array((int)$order->status, [0, 1])) {
+            if (!in_array((int)$order->status, [0, 1]) || $order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Hóa đơn bàn này đã hoàn tất hoặc đã hủy, không thể chỉnh sửa.'
+                    'message' => 'Hóa đơn bàn này đã thanh toán xong hoặc đã hoàn tất, không thể xóa hoặc chỉnh sửa món.'
                 ], 422);
             }
 
@@ -626,10 +627,10 @@ class TableOrderController extends Controller
         return DB::transaction(function () use ($request) {
             $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
 
-            if (!in_array((int)$order->status, [0, 1])) {
+            if (!in_array((int)$order->status, [0, 1]) || $order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Hóa đơn bàn này đã hoàn tất hoặc đã hủy, không thể chỉnh sửa.'
+                    'message' => 'Hóa đơn bàn này đã thanh toán xong hoặc đã hoàn tất, không thể chỉnh sửa số lượng món.'
                 ], 422);
             }
 
@@ -692,10 +693,10 @@ class TableOrderController extends Controller
         return DB::transaction(function () use ($request) {
             $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
 
-            if (!in_array((int)$order->status, [0, 1])) {
+            if (!in_array((int)$order->status, [0, 1]) || $order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Hóa đơn bàn này đã hoàn tất hoặc đã hủy, không thể chỉnh sửa.'
+                    'message' => 'Hóa đơn bàn này đã thanh toán xong hoặc đã hoàn tất, không thể chỉnh sửa số lượng món.'
                 ], 422);
             }
 
@@ -968,7 +969,7 @@ class TableOrderController extends Controller
     }
 
     /**
-     * Đổi bàn
+     * Đổi bàn (V3-P1-29: Áp dụng Pessimistic Locking và Transaction để chống race condition khi đổi bàn đồng thời)
      */
     public function changeTable(Request $request)
     {
@@ -977,41 +978,70 @@ class TableOrderController extends Controller
             'new_table_id' => 'required|exists:tables,id',
         ]);
 
-        $order = Order::findOrFail($request->order_id);
-        $newTable = Table::findOrFail($request->new_table_id);
+        return DB::transaction(function () use ($request) {
+            $order = Order::where('id', $request->order_id)->lockForUpdate()->firstOrFail();
 
-        // Kiểm tra xem order có món ăn không
-        $orderDetails = Orderdetail::where('order_id', $order->id)->count();
-        if ($orderDetails > 0) {
-            return response()->json(['success' => false, 'message' => 'Không thể đổi bàn vì đã có món ăn']);
-        }
+            if (!in_array((int)$order->status, [0, 1]) || $order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Hóa đơn này đã hoàn tất, đã hủy hoặc đã thanh toán, không thể đổi bàn.'
+                ], 422);
+            }
 
-        // Kiểm tra xem bàn mới có trống không
-        $activeOrder = Order::where('table_id', $newTable->id)
-            ->whereNull('deleted_at')
-            ->whereIn('status', [0, 1])
-            ->first();
-        
-        if ($activeOrder || !is_null($newTable->locked_order_id)) {
-            return response()->json(['success' => false, 'message' => 'Bàn này đã có người ngồi hoặc bị khóa']);
-        }
+            // Kiểm tra xem order có món ăn không
+            $orderDetails = Orderdetail::where('order_id', $order->id)->count();
+            if ($orderDetails > 0) {
+                return response()->json(['success' => false, 'message' => 'Không thể đổi bàn vì đã có món ăn']);
+            }
 
-        $oldTableId = $order->table_id;
+            $newTableId = (int)$request->new_table_id;
+            $oldTableId = (int)$order->table_id;
 
-        // Cập nhật order sang bàn mới
-        $order->table_id = $newTable->id;
-        $order->save();
+            if ($oldTableId === $newTableId) {
+                return response()->json(['success' => false, 'message' => 'Bàn mới phải khác bàn hiện tại.'], 422);
+            }
 
-        // Giải phóng bàn cũ và kích hoạt bàn mới
-        if ($oldTableId) {
-            Table::where('id', $oldTableId)->update(['status' => 0, 'locked_order_id' => null]);
-        }
-        Table::where('locked_order_id', $order->id)->where('id', '!=', $newTable->id)->update(['locked_order_id' => null]);
-        $newTable->status = 1;
-        $newTable->locked_order_id = $order->id;
-        $newTable->save();
+            // Khóa các bàn theo thứ tự ID để tránh Deadlock
+            $tableIds = array_values(array_unique(array_filter([$oldTableId, $newTableId])));
+            sort($tableIds);
+            $lockedTables = Table::whereIn('id', $tableIds)->lockForUpdate()->get()->keyBy('id');
 
-        return response()->json(['success' => true, 'message' => 'Đổi bàn thành công']);
+            $newTable = $lockedTables->get($newTableId);
+            if (!$newTable) {
+                return response()->json(['success' => false, 'message' => 'Bàn mới không tồn tại.'], 404);
+            }
+
+            // Kiểm tra xem bàn mới có đơn active hoặc bị khóa không
+            $activeOrder = Order::where('table_id', $newTableId)
+                ->where('id', '!=', $order->id)
+                ->whereNull('deleted_at')
+                ->whereIn('status', [0, 1])
+                ->lockForUpdate()
+                ->first();
+
+            if ($activeOrder || (!is_null($newTable->locked_order_id) && (int)$newTable->locked_order_id !== (int)$order->id)) {
+                return response()->json(['success' => false, 'message' => 'Bàn này đã có người ngồi hoặc bị khóa'], 422);
+            }
+
+            // Cập nhật order sang bàn mới
+            $order->table_id = $newTable->id;
+            $order->save();
+
+            // Giải phóng bàn cũ và kích hoạt bàn mới
+            if ($oldTableId && $lockedTables->has($oldTableId)) {
+                $oldTable = $lockedTables->get($oldTableId);
+                $oldTable->status = 0;
+                $oldTable->locked_order_id = null;
+                $oldTable->save();
+            }
+
+            Table::where('locked_order_id', $order->id)->where('id', '!=', $newTable->id)->update(['locked_order_id' => null]);
+            $newTable->status = 1;
+            $newTable->locked_order_id = $order->id;
+            $newTable->save();
+
+            return response()->json(['success' => true, 'message' => 'Đổi bàn thành công']);
+        });
     }
 
     public function markItemAsServed(Request $request)

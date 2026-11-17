@@ -17,6 +17,13 @@ abstract class TestCase extends BaseTestCase
             throw new \RuntimeException('Tuyệt đối không được chạy test suite trên môi trường Production để bảo vệ dữ liệu vận hành!');
         }
 
+        // V3-P1-32: Bảo vệ cơ sở dữ liệu vận hành - Chặn test suite nếu cấu hình trỏ vào database production
+        $defaultConn = config('database.default', 'mysql');
+        $dbName = (string)config("database.connections.{$defaultConn}.database", '');
+        if (str_contains(strtolower($dbName), 'production') || str_contains(strtolower($dbName), 'prod_live')) {
+            throw new \RuntimeException('Bảo vệ an toàn dữ liệu: Tuyệt đối không được chạy automated test suite trên cơ sở dữ liệu Production!');
+        }
+
         // Đảm bảo luôn có 3 role cơ bản sẵn sàng cho mọi test case
         \App\Models\User::firstOrCreate(['roles' => 'admin', 'username' => 'system_test_admin'], [
             'fullname' => 'System Test Admin',

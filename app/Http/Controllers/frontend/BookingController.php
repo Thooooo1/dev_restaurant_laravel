@@ -34,6 +34,25 @@ class BookingController extends Controller
             'booking_time.regex' => 'Định dạng giờ đặt bàn không hợp lệ (HH:mm).',
         ]);
 
+        // V3-P2-30: Đồng bộ kiểm tra giờ mở cửa và thời gian đặt trước ít nhất 15 phút với Chatbot
+        $timeParts = explode(':', $request->booking_time);
+        $timeMinutes = (int)($timeParts[0] ?? 0) * 60 + (int)($timeParts[1] ?? 0);
+        if ($timeMinutes < 540 || $timeMinutes > 1290) { // 09:00 -> 21:30
+            return back()->withInput()->withErrors([
+                'booking_time' => 'Giờ đặt bàn ngoài khung giờ tiếp nhận (nhà hàng phục vụ nhận bàn từ 09:00 đến 21:30).'
+            ]);
+        }
+
+        $bookingDate = \Carbon\Carbon::parse($request->booking_date);
+        if ($bookingDate->isToday()) {
+            $nowMinutes = \Carbon\Carbon::now()->hour * 60 + \Carbon\Carbon::now()->minute;
+            if ($timeMinutes < $nowMinutes + 15) {
+                return back()->withInput()->withErrors([
+                    'booking_time' => 'Quý khách vui lòng đặt bàn trước giờ đến ít nhất 15 phút để nhà hàng kịp chuẩn bị bàn chu đáo.'
+                ]);
+            }
+        }
+
         // Tạo đơn đặt bàn an toàn, chống mass-assignment
         $booking = Booking::create([
             'name' => strip_tags(trim($request->name)),

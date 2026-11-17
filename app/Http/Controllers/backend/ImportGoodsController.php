@@ -96,7 +96,7 @@ class ImportGoodsController extends Controller
             'items' => 'required|array|min:1',
             'items.*.name' => 'required|string|max:255',
             'items.*.unit' => 'required|string|max:50',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.quantity' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric|min:0',
         ], [
             'code.required' => 'Mã phiếu nhập không được để trống.',
@@ -108,6 +108,8 @@ class ImportGoodsController extends Controller
             'items.*.name.required' => 'Tên hàng hoá không được để trống.',
             'items.*.unit.required' => 'Vui lòng chọn đơn vị tính.',
             'items.*.quantity.required' => 'Số lượng không được để trống.',
+            'items.*.quantity.integer' => 'Số lượng nhập phải là số nguyên dương (phù hợp đơn vị quản lý tồn kho).',
+            'items.*.quantity.min' => 'Số lượng nhập tối thiểu là 1.',
             'items.*.price.required' => 'Đơn giá không được để trống.',
         ]);
 
@@ -118,7 +120,7 @@ class ImportGoodsController extends Controller
             $itemsData = [];
 
             foreach ($request->items as $item) {
-                $qty = (float) $item['quantity'];
+                $qty = (int) $item['quantity'];
                 $price = (float) $item['price'];
                 $amount = $qty * $price;
                 $totalAmount += $amount;
@@ -154,7 +156,7 @@ class ImportGoodsController extends Controller
                 $it['import_receipt_id'] = $receipt->id;
 
                 // Đồng bộ tăng tồn kho cho món ăn / sản phẩm tương ứng nếu có
-                $matchedProduct = \App\Models\Product::where('name', $it['name'])->first();
+                $matchedProduct = \App\Models\Product::where('name', $it['name'])->lockForUpdate()->first();
                 if ($matchedProduct) {
                     $matchedProduct->increment('qty', (int)$it['quantity']);
                 }
@@ -218,8 +220,13 @@ class ImportGoodsController extends Controller
             'items' => 'required|array|min:1',
             'items.*.name' => 'required|string|max:255',
             'items.*.unit' => 'required|string|max:50',
-            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.quantity' => 'required|integer|min:1',
             'items.*.price' => 'required|numeric|min:0',
+        ], [
+            'code.required' => 'Mã phiếu nhập không được để trống.',
+            'code.unique' => 'Mã phiếu nhập này đã tồn tại trong hệ thống.',
+            'items.*.quantity.integer' => 'Số lượng nhập phải là số nguyên dương.',
+            'items.*.quantity.min' => 'Số lượng nhập tối thiểu là 1.',
         ]);
 
         DB::beginTransaction();
@@ -228,7 +235,7 @@ class ImportGoodsController extends Controller
             $itemsData = [];
 
             foreach ($request->items as $item) {
-                $qty = (float) $item['quantity'];
+                $qty = (int) $item['quantity'];
                 $price = (float) $item['price'];
                 $amount = $qty * $price;
                 $totalAmount += $amount;
@@ -244,6 +251,23 @@ class ImportGoodsController extends Controller
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ];
+            }
+
+            // Hoàn trả số lượng tồn kho của danh sách mặt hàng cũ trước khi cập nhật mới (V3-P1-26)
+            $oldItems = ImportGoods::where('import_receipt_id', $receipt->id)->get();
+            foreach ($oldItems as $oldItem) {
+                $matchedProduct = \App\Models\Product::where('name', $oldItem->name)->lockForUpdate()->first();
+                if ($matchedProduct) {
+                    $matchedProduct->decrement('qty', min((int)$matchedProduct->qty, (int)$oldItem->quantity));
+                }
+            }
+
+            // Cập nhật tăng số lượng tồn kho theo danh sách mặt hàng mới
+            foreach ($itemsData as $newItem) {
+                $matchedProduct = \App\Models\Product::where('name', $newItem['name'])->lockForUpdate()->first();
+                if ($matchedProduct) {
+                    $matchedProduct->increment('qty', (int)$newItem['quantity']);
+                }
             }
 
             // Cập nhật thông tin phiếu
@@ -277,10 +301,18 @@ class ImportGoodsController extends Controller
      */
     public function destroy(string $id)
     {
-        $receipt = ImportReceipt::findOrFail($id);
+        $receipt = ImportReceipt::with('items')->findOrFail($id);
         $code = $receipt->code;
 
         DB::transaction(function() use ($receipt) {
+            // Hoàn trừ số lượng tồn kho của các mặt hàng trong phiếu nhập trước khi xóa (V3-P1-26)
+            foreach ($receipt->items as $item) {
+                $matchedProduct = \App\Models\Product::where('name', $item->name)->lockForUpdate()->first();
+                if ($matchedProduct) {
+                    $matchedProduct->decrement('qty', min((int)$matchedProduct->qty, (int)$item->quantity));
+                }
+            }
+
             ImportGoods::where('import_receipt_id', $receipt->id)->delete();
             $receipt->delete();
         });

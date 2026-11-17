@@ -601,17 +601,30 @@ class ChatbotService
         $date = !empty($args['booking_date']) ? $args['booking_date'] : Carbon::today()->toDateString();
         $time = !empty($args['booking_time']) ? $args['booking_time'] : '19:00';
 
-        // 1. Kiểm tra tổng số bàn trong nhà hàng có sức chứa phù hợp
+        // 1. Kiểm tra tổng số bàn trong nhà hàng có sức chứa phù hợp (V3-P2-33)
+        $totalSeats = Table::where('status', 1)->sum('seats');
+        if ($totalSeats > 0 && $people > $totalSeats) {
+            return [
+                'available' => false,
+                'is_large_group' => true,
+                'requires_staff_confirmation' => true,
+                'status' => 'qua_tai_suc_chua',
+                'message' => "Đoàn của mình gồm {$people} khách vượt quá tổng sức chứa tối đa của nhà hàng ({$totalSeats} chỗ). Quý khách vui lòng liên hệ hotline trực tiếp để quản lý nhà hàng tư vấn phương án tiệc phù hợp nhất ạ."
+            ];
+        }
+
         $matchingTables = Table::where('status', 1)
             ->where('seats', '>=', $people)
             ->get();
 
         if ($matchingTables->isEmpty()) {
-            // Trường hợp khách quá đông (ví dụ > 30 người) -> cần ghép bàn hoặc phòng VIP
+            // Trường hợp khách quá đông mà không có bàn đơn lẻ nào đủ ghế -> Cần ghép bàn và nhân viên xác nhận
             return [
-                'available' => true,
+                'available' => false,
                 'is_large_group' => true,
-                'message' => "Đoàn của mình đi {$people} khách. Nhà hàng có hệ thống phòng tiệc VIP và không gian hội trường lớn sẵn sàng ghép bàn rộng rãi để phục vụ quý đoàn chu đáo nhất ạ."
+                'requires_staff_confirmation' => true,
+                'status' => 'can_xac_nhan_ghep_ban',
+                'message' => "Đoàn của mình gồm {$people} khách là đoàn đông. Hiện nhà hàng không có bàn đơn lẻ đủ {$people} ghế nhưng có thể ghép bàn hoặc mở phòng VIP tiệc riêng. Để chu đáo nhất, nhân viên nhà hàng sẽ liên hệ xác nhận phương án bố trí cụ thể trước khi giữ chỗ nhé ạ."
             ];
         }
 

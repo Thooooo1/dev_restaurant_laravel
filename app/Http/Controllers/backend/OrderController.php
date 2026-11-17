@@ -71,6 +71,15 @@ class OrderController extends Controller
                 $fromStatus = (int)$order->status;
                 $toStatus = (int)$request->status;
 
+                // V3-P1-27: Ngăn chặn quy trình hủy -> mở lại -> hủy để nhân đôi hoàn tồn kho (State Machine Guard)
+                if ($fromStatus === \App\Enums\OrderStatus::CANCELLED && $toStatus !== \App\Enums\OrderStatus::CANCELLED) {
+                    throw new \DomainException('Đơn hàng đã hủy không thể mở lại hoặc chuyển sang trạng thái khác để bảo toàn tính toàn vẹn tồn kho. Vui lòng tạo đơn hàng mới.');
+                }
+
+                if ($fromStatus === \App\Enums\OrderStatus::COMPLETED && $toStatus !== \App\Enums\OrderStatus::COMPLETED) {
+                    throw new \DomainException('Đơn hàng đã hoàn thành phục vụ không thể chuyển đổi trạng thái.');
+                }
+
                 if ($toStatus === \App\Enums\OrderStatus::CANCELLED) {
                     // Chống hủy lặp lại (Idempotent): nếu đơn đã bị hủy trước đó thì không xử lý hoàn tiền hoặc hoàn kho lần 2
                     if ($fromStatus !== \App\Enums\OrderStatus::CANCELLED) {

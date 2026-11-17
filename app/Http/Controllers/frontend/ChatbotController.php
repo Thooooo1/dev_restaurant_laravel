@@ -41,7 +41,7 @@ class ChatbotController extends Controller
             ], 422);
         }
 
-        $sessionId = $payload['session_id'] ?? $request->input('session_id') ?: session()->getId();
+        $sessionId = $this->getAuthoritativeSessionId($request);
         $user = Auth::user();
 
         $context = [
@@ -94,11 +94,33 @@ class ChatbotController extends Controller
     }
 
     /**
+     * Xác thực và phân giải session_id hợp lệ cho client (V1-P2-11: Chống giả mạo session_id để đọc/xóa tin nhắn của người khác)
+     */
+    protected function getAuthoritativeSessionId(Request $request): string
+    {
+        $currentSessionId = session()->getId();
+        $clientSessionId = $request->input('session_id');
+
+        if ($clientSessionId && is_string($clientSessionId)) {
+            $allowedSessions = session('chatbot_authorized_sessions', []);
+            if ($clientSessionId === $currentSessionId || in_array($clientSessionId, $allowedSessions, true)) {
+                return $clientSessionId;
+            }
+        }
+
+        $allowed = session('chatbot_authorized_sessions', []);
+        $allowed[] = $currentSessionId;
+        session(['chatbot_authorized_sessions' => array_values(array_unique($allowed))]);
+
+        return $currentSessionId;
+    }
+
+    /**
      * Get initial greeting and starter questions
      */
     public function getSuggestions(Request $request)
     {
-        $sessionId = $request->input('session_id') ?: session()->getId();
+        $sessionId = $this->getAuthoritativeSessionId($request);
         $user = Auth::user();
         $userName = $user ? ($user->fullname ?? $user->username) : null;
 
@@ -125,7 +147,7 @@ class ChatbotController extends Controller
      */
     public function clearSession(Request $request)
     {
-        $sessionId = $request->input('session_id') ?: session()->getId();
+        $sessionId = $this->getAuthoritativeSessionId($request);
         ChatbotMessage::where('session_id', $sessionId)->delete();
         session()->forget('chatbot_state');
 
