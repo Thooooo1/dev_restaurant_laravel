@@ -85,14 +85,19 @@ class PaymentWebhookController extends Controller
 
         $rawRef = $request->input('referenceCode') 
             ?? $request->input('referenceNumber') 
-            ?? $request->input('id');
+            ?? $request->input('id')
+            ?? $request->input('transId')
+            ?? $request->input('transactionId')
+            ?? $request->input('payment_id');
 
         if (!empty($rawRef)) {
             $referenceCode = (string)$rawRef;
         } else {
-            // P2-17: Nếu gateway không gửi transaction ID, sinh fingerprint ổn định từ payload
-            // thay vì uniqid() ngẫu nhiên, giúp cơ chế idempotency không bị bypass khi webhook retry
-            $referenceCode = 'FP_' . substr(hash('sha256', $amount . '_' . trim($content) . '_' . ($request->input('transactionDate') ?? date('YmdH'))), 0, 24);
+            // P2-17 & V4-P2-43: Ưu tiên transaction ID từ gateway. Nếu gateway không gửi ID, sinh fingerprint ổn định
+            // kết hợp số tiền, nội dung, tài khoản và thời điểm giao dịch gốc (tránh collision giữa các giao dịch cùng giờ)
+            $accountNo = $request->input('subAccount') ?? $request->input('accountNumber') ?? '';
+            $txDate = $request->input('transactionDate') ?? $request->input('when') ?? $request->input('createdAt') ?? '';
+            $referenceCode = 'FP_' . substr(hash('sha256', $amount . '_' . trim($content) . '_' . $accountNo . '_' . $txDate), 0, 32);
         }
 
         Log::info('Nhận Webhook Thanh Toán Hợp Lệ:', [

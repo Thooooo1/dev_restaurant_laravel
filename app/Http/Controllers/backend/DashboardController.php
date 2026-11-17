@@ -72,40 +72,11 @@ class DashboardController extends Controller
         }
 
         // === 2. TÍNH TOÁN 4 CHỈ SỐ KPI CHUẨN DOANH NGHIỆP ===
-        // Hàm lọc đơn hàng phát sinh hoặc hoàn tất thanh toán trong kỳ (Chỉ tính đơn đã thực thu tiền và hoàn tất bán hàng)
+        // V4-P2-42 & P2-13: Thống nhất mốc tính doanh thu theo chuẩn dồn tích đồng bộ với OrderHistoryController
         $buildPeriodOrders = function($start, $end) {
             return Order::whereNull('deleted_at')
                 ->paid()
-                ->where(function($q) use ($start, $end) {
-                    // Ưu tiên chuẩn xác theo mốc ghi nhận doanh thu hoàn tất nghĩa vụ bán hàng
-                    $q->whereBetween('revenue_recognized_at', [$start, $end])
-                      ->orWhere(function($sub) use ($start, $end) {
-                          // Fallback cho dữ liệu cũ chưa có revenue_recognized_at
-                          $sub->whereNull('revenue_recognized_at')
-                              ->where(function($fallback) use ($start, $end) {
-                                  // Đơn giao hàng: Căn cứ vào thời điểm giao thành công (delivered_at) hoặc updated_at
-                                  $fallback->whereBetween('delivered_at', [$start, $end])
-                                           ->orWhere(function($deliv) use ($start, $end) {
-                                               $deliv->where('delivery_status', Order::DELIVERY_DELIVERED)
-                                                     ->whereBetween('updated_at', [$start, $end]);
-                                           })
-                                           // Đơn tại bàn / tại quầy: Căn cứ vào thời điểm hoàn tất hoặc thanh toán
-                                           ->orWhere(function($dinePos) use ($start, $end) {
-                                               $dinePos->where(function($t) {
-                                                   $t->whereNotNull('table_id')
-                                                     ->orWhere('address', 'Tại quán')
-                                                     ->orWhere('name', 'Khách POS');
-                                               })->where(function($times) use ($start, $end) {
-                                                   $times->whereBetween('paid_at', [$start, $end])
-                                                         ->orWhere(function($s2) use ($start, $end) {
-                                                             $s2->where('status', \App\Enums\OrderStatus::COMPLETED)
-                                                                ->whereBetween('updated_at', [$start, $end]);
-                                                         });
-                                               });
-                                           });
-                              });
-                      });
-                });
+                ->whereRaw('COALESCE(revenue_recognized_at, paid_at, created_at) BETWEEN ? AND ?', [$start, $end]);
         };
 
         // KPI 1: DOANH THU
@@ -128,21 +99,18 @@ class DashboardController extends Controller
             })
             ->sum('total_price');
 
-        // KPI 2: ĐƠN HÀNG
-        $orderCount = $buildPeriodOrders($currentStart, $currentEnd)->count();
+        // KPI 2: ĐƠN HÀNG (V1-P2-14: Phân tách chuẩn xác từng kênh qua getChannel)
+        $currentOrdersCollection = $buildPeriodOrders($currentStart, $currentEnd)->get();
+        $orderCount = $currentOrdersCollection->count();
         $prevOrderCount = $buildPeriodOrders($prevStart, $prevEnd)->count();
 
         $orderGrowth = $prevOrderCount > 0 
             ? round((($orderCount - $prevOrderCount) / $prevOrderCount) * 100, 1) 
             : ($orderCount > 0 ? 100.0 : 0.0);
 
-        $dineInCount = $buildPeriodOrders($currentStart, $currentEnd)
-            ->whereNotNull('table_id')
-            ->count();
-
-        $takeawayCount = $buildPeriodOrders($currentStart, $currentEnd)
-            ->whereNull('table_id')
-            ->count();
+        $dineInCount = $currentOrdersCollection->filter(fn($o) => $o->isDineIn())->count();
+        $takeawayCount = $currentOrdersCollection->filter(fn($o) => $o->isTakeaway() || $o->isPos() || $o->isDelivery())->count();
+        $deliveryCount = $currentOrdersCollection->filter(fn($o) => $o->isDelivery())->count();
 
         // KPI 3: GIÁ TRỊ ĐƠN TRUNG BÌNH (AOV)
         $avgOrderValue = $orderCount > 0 ? round($revenue / $orderCount) : 0;
@@ -224,13 +192,7 @@ class DashboardController extends Controller
                 $hEnd = $hStart->copy()->addHours(2)->subSecond();
                 $rev = (int) Order::whereNull('deleted_at')
                     ->paid()
-                    ->where(function($q) use ($hStart, $hEnd) {
-                        $q->whereBetween('created_at', [$hStart, $hEnd])
-                          ->orWhere(function($sub) use ($hStart, $hEnd) {
-                              $sub->where('status', 2)
-                                  ->whereBetween('updated_at', [$hStart, $hEnd]);
-                          });
-                    })
+                    ->whereRaw('COALESCE(revenue_recognized_at, paid_at, created_at) BETWEEN ? AND ?', [$hStart, $hEnd])
                     ->sum('total_price');
                 $chartRevenueData[] = $rev;
             }
@@ -243,13 +205,7 @@ class DashboardController extends Controller
                 $dayEnd = $current->copy()->endOfDay();
                 $rev = (int) Order::whereNull('deleted_at')
                     ->paid()
-                    ->where(function($q) use ($dayStart, $dayEnd) {
-                        $q->whereBetween('created_at', [$dayStart, $dayEnd])
-                          ->orWhere(function($sub) use ($dayStart, $dayEnd) {
-                              $sub->where('status', 2)
-                                  ->whereBetween('updated_at', [$dayStart, $dayEnd]);
-                          });
-                    })
+                    ->whereRaw('COALESCE(revenue_recognized_at, paid_at, created_at) BETWEEN ? AND ?', [$dayStart, $dayEnd])
                     ->sum('total_price');
                 $chartRevenueData[] = $rev;
                 $current->addDay();
@@ -263,13 +219,7 @@ class DashboardController extends Controller
                 $dayEnd = $current->copy()->endOfDay();
                 $rev = (int) Order::whereNull('deleted_at')
                     ->paid()
-                    ->where(function($q) use ($dayStart, $dayEnd) {
-                        $q->whereBetween('created_at', [$dayStart, $dayEnd])
-                          ->orWhere(function($sub) use ($dayStart, $dayEnd) {
-                              $sub->where('status', 2)
-                                  ->whereBetween('updated_at', [$dayStart, $dayEnd]);
-                          });
-                    })
+                    ->whereRaw('COALESCE(revenue_recognized_at, paid_at, created_at) BETWEEN ? AND ?', [$dayStart, $dayEnd])
                     ->sum('total_price');
                 $chartRevenueData[] = $rev;
                 $current->addDay();
@@ -288,13 +238,7 @@ class DashboardController extends Controller
 
                 $rev = (int) Order::whereNull('deleted_at')
                     ->paid()
-                    ->where(function($q) use ($monthStart, $monthEnd) {
-                        $q->whereBetween('created_at', [$monthStart, $monthEnd])
-                          ->orWhere(function($sub) use ($monthStart, $monthEnd) {
-                              $sub->where('status', 2)
-                                  ->whereBetween('updated_at', [$monthStart, $monthEnd]);
-                          });
-                    })
+                    ->whereRaw('COALESCE(revenue_recognized_at, paid_at, created_at) BETWEEN ? AND ?', [$monthStart, $monthEnd])
                     ->sum('total_price');
 
                 $chartRevenueData[] = $rev;
@@ -331,6 +275,7 @@ class DashboardController extends Controller
             'orderGrowth' => $orderGrowth,
             'dineInCount' => $dineInCount,
             'takeawayCount' => $takeawayCount,
+            'deliveryCount' => $deliveryCount,
 
             // KPI 3: AOV
             'avgOrderValue' => $avgOrderValue,

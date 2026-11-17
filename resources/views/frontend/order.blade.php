@@ -156,11 +156,14 @@
 
                                             <div class="flex items-center gap-2.5">
                                                 @if ($order->status == 2 || $order->status == 3)
-                                                    <a href="{{ route('site.orders.reorder', $order->id) }}" 
-                                                       class="px-4 py-2 rounded-none sm:rounded-sm bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold transition-colors">
-                                                        <i class="fa-solid fa-rotate-right mr-1 text-stone-500"></i>
-                                                        <span>Đặt lại món</span>
-                                                    </a>
+                                                    <form action="{{ route('site.orders.reorder', $order->id) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        <button type="submit" 
+                                                                class="px-4 py-2 rounded-none sm:rounded-sm bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold transition-colors cursor-pointer inline-flex items-center">
+                                                            <i class="fa-solid fa-rotate-right mr-1 text-stone-500"></i>
+                                                            <span>Đặt lại món</span>
+                                                        </button>
+                                                    </form>
                                                 @endif
                                                 <a href="{{ route('site.orders.detail', $order->id) }}" 
                                                    class="px-5 py-2.5 rounded-none sm:rounded-sm bg-stone-900 hover:bg-[#C25E00] text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-2xs">

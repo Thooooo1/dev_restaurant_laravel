@@ -37,12 +37,16 @@ class ServiceCallController extends Controller
             ], 404);
         }
 
-        // Lưu lại table_id vào session để các lần gọi tiếp theo và đặt món được đồng bộ
-        session([
-            'table_id' => $table->id,
-            'table_name' => $table->name,
-            'table_floor_name' => $table->floor ? $table->floor->name : null,
-        ]);
+        // V4-P1-36: Chỉ lưu table_id vào session nếu đã xác thực bằng token QR hoặc là nhân viên/quản trị
+        $token = $request->input('token');
+        if ($table->isValidQrToken($token) || session('table_verified_' . $table->id) || (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()))) {
+            session([
+                'table_id' => $table->id,
+                'table_name' => $table->name,
+                'table_floor_name' => $table->floor ? $table->floor->name : null,
+                'table_verified_' . $table->id => true,
+            ]);
+        }
 
         // V2-P1-19: Validate input và chống Stored XSS triệt để
         $types = ServiceCall::TYPES;

@@ -337,6 +337,25 @@ class AuthController extends Controller
             'phone' => 'required|string|exists:user,phone',
         ]);
 
+        $phone = preg_replace('/[^0-9]/', '', (string)$request->phone);
+
+        // V4-P1-39: Rate limit OTP theo số điện thoại (chống spam từ nhiều phiên khác nhau)
+        $throttleKey = 'otp_request_throttle_' . $phone;
+        $attempts = (int) \Illuminate\Support\Facades\Cache::get($throttleKey, 0);
+        if ($attempts >= 5) {
+            return back()->with('error', 'Bạn đã yêu cầu gửi OTP quá 5 lần cho số điện thoại này. Vui lòng thử lại sau 15 phút.');
+        }
+
+        // Rate limit OTP theo IP
+        $ipThrottleKey = 'otp_request_ip_' . $request->ip();
+        $ipAttempts = (int) \Illuminate\Support\Facades\Cache::get($ipThrottleKey, 0);
+        if ($ipAttempts >= 10) {
+            return back()->with('error', 'Địa chỉ IP của bạn đã gửi quá nhiều yêu cầu OTP. Vui lòng thử lại sau 15 phút.');
+        }
+
+        \Illuminate\Support\Facades\Cache::put($throttleKey, $attempts + 1, now()->addMinutes(15));
+        \Illuminate\Support\Facades\Cache::put($ipThrottleKey, $ipAttempts + 1, now()->addMinutes(15));
+
         /** @var \App\Models\User $user */
         $user = User::where('phone', $request->phone)->first();
 
@@ -362,8 +381,19 @@ class AuthController extends Controller
 
         session()->put('otp_attempts', 0);
 
-        // P0-01: Chỉ hiển thị nhãn mô phỏng SMS OTP khi chạy môi trường local/testing kín và chế độ demo
-        $isLocalDemo = (app()->environment('local', 'testing') && config('payment.mode') === 'demo');
+        // Gửi OTP qua email (out-of-band) nếu tài khoản có email
+        if ($user->email) {
+            try {
+                \Illuminate\Support\Facades\Mail::raw("Mã OTP xác thực đặt lại mật khẩu của bạn tại CIVILIZE Restaurant là: {$otpCode}. Mã có hiệu lực trong vòng 10 phút.", function ($msg) use ($user) {
+                    $msg->to($user->email)->subject('[CIVILIZE] Mã OTP Đặt Lại Mật Khẩu');
+                });
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Không thể gửi email OTP: ' . $e->getMessage());
+            }
+        }
+
+        // P0-01 & V4-P1-39: Chỉ hiển thị nhãn mô phỏng SMS OTP khi chạy môi trường local/testing kín VÀ không phải production
+        $isLocalDemo = (!app()->isProduction() && app()->environment('local', 'testing') && config('payment.mode') === 'demo');
         $viewData = [
             'phone' => $user->phone,
         ];
@@ -390,8 +420,11 @@ class AuthController extends Controller
             return redirect()->route('site.login')->with('error', 'Thao tác không được phép với tài khoản quản trị.');
         }
 
-        // Giới hạn số lần thử OTP (tối đa 5 lần) chống brute-force
-        $attempts = session()->get('otp_attempts', 0);
+        $phone = preg_replace('/[^0-9]/', '', (string)$request->phone);
+
+        // V4-P1-39: Giới hạn số lần thử OTP chống brute-force qua Cache theo số điện thoại (bảo vệ trên mọi phiên)
+        $verifyThrottleKey = 'otp_verify_attempts_' . $phone;
+        $attempts = (int) \Illuminate\Support\Facades\Cache::get($verifyThrottleKey, 0);
         if ($attempts >= 5) {
             return redirect()->route('site.forgot_password')->with('error', 'Bạn đã nhập sai mã OTP quá 5 lần. Vui lòng yêu cầu mã mới.');
         }
@@ -411,6 +444,7 @@ class AuthController extends Controller
         }
 
         if ($storedCode === null || $storedCode !== (string)$request->otp_code) {
+            \Illuminate\Support\Facades\Cache::put($verifyThrottleKey, $attempts + 1, now()->addMinutes(15));
             session()->put('otp_attempts', $attempts + 1);
             $remaining = 5 - ($attempts + 1);
             return back()->with('error', "Mã OTP không đúng. Bạn còn {$remaining} lần thử.");
@@ -420,6 +454,14 @@ class AuthController extends Controller
             return back()->with('error', 'Mã OTP đã hết hạn.');
         }
 
+        // V4-P1-39: Hủy ngay mã OTP đã xác thực thành công (Single-use)
+        if (\Illuminate\Support\Facades\Schema::hasColumn('user', 'otp_code')) {
+            $user->otp_code = null;
+            $user->otp_expires_at = null;
+            $user->save();
+        }
+        \Illuminate\Support\Facades\Cache::forget('otp_' . $user->phone);
+        \Illuminate\Support\Facades\Cache::forget($verifyThrottleKey);
         session()->forget('otp_attempts');
         session()->put('reset_password_phone', $user->phone);
         return redirect()->route('site.show_reset_password')->with('success', 'OTP xác thực thành công. Vui lòng đặt lại mật khẩu.');

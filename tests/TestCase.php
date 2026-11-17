@@ -17,10 +17,21 @@ abstract class TestCase extends BaseTestCase
             throw new \RuntimeException('Tuyệt đối không được chạy test suite trên môi trường Production để bảo vệ dữ liệu vận hành!');
         }
 
-        // V3-P1-32: Bảo vệ cơ sở dữ liệu vận hành - Chặn test suite nếu cấu hình trỏ vào database production
+        // V3-P1-32 & V4: Bảo vệ cơ sở dữ liệu vận hành - Chặn test suite nếu cấu hình trỏ vào database hoặc host production
         $defaultConn = config('database.default', 'mysql');
         $dbName = (string)config("database.connections.{$defaultConn}.database", '');
-        if (str_contains(strtolower($dbName), 'production') || str_contains(strtolower($dbName), 'prod_live')) {
+        $dbHost = (string)config("database.connections.{$defaultConn}.host", '');
+        $dbUsername = (string)config("database.connections.{$defaultConn}.username", '');
+
+        if (
+            str_contains(strtolower($dbName), 'production') || 
+            str_contains(strtolower($dbName), 'prod_live') ||
+            str_contains(strtolower($dbName), 'live') ||
+            str_contains(strtolower($dbHost), 'prod') ||
+            str_contains(strtolower($dbHost), 'rds.amazonaws.com') ||
+            str_contains(strtolower($dbHost), 'cloudsql') ||
+            $dbUsername === 'production'
+        ) {
             throw new \RuntimeException('Bảo vệ an toàn dữ liệu: Tuyệt đối không được chạy automated test suite trên cơ sở dữ liệu Production!');
         }
 

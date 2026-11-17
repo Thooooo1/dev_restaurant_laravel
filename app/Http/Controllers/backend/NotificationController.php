@@ -312,7 +312,7 @@ class NotificationController extends Controller
             }
             return response()->json(['success' => false, 'message' => 'Thông báo không tồn tại.'], 404);
         }
-        $noti->markAsRead();
+        $noti->markAsRead($user ? $user->id : null);
         return response()->json(['success' => true]);
     }
 
@@ -322,11 +322,16 @@ class NotificationController extends Controller
     public function markAllAsRead(Request $request)
     {
         $user = Auth::user();
-        SystemNotification::forUser($user)->where('is_read', false)->update([
+        SystemNotification::forUser($user)->where('user_id', $user->id)->where('is_read', false)->update([
             'is_read' => true,
             'read_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
+
+        $sharedList = SystemNotification::forUser($user)->whereNull('user_id')->get();
+        foreach ($sharedList as $shared) {
+            $shared->markAsRead($user ? $user->id : null);
+        }
 
         // Đánh dấu tất cả thông báo thanh toán hiện tại là đã xem
         $pendingPaymentIds = SystemNotification::forUser($user)->where('type', 'payment')->pluck('id')->toArray();

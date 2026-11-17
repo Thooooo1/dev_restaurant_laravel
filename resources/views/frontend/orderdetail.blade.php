@@ -277,11 +277,14 @@
                         @endif
 
                         @if ((int)$order->status === 2 || (int)$order->status === 3)
-                            <a href="{{ route('site.orders.reorder', $order->id) }}" 
-                               class="px-5 py-2.5 rounded-none sm:rounded-sm bg-[#C25E00] hover:bg-[#A34E00] text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer">
-                                <i class="fa-solid fa-rotate-right mr-1"></i>
-                                <span>Đặt lại đơn này</span>
-                            </a>
+                            <form action="{{ route('site.orders.reorder', $order->id) }}" method="POST" class="inline">
+                                @csrf
+                                <button type="submit" 
+                                        class="px-5 py-2.5 rounded-none sm:rounded-sm bg-[#C25E00] hover:bg-[#A34E00] text-white font-semibold text-xs shadow-xs transition-colors cursor-pointer inline-flex items-center">
+                                    <i class="fa-solid fa-rotate-right mr-1"></i>
+                                    <span>Đặt lại đơn này</span>
+                                </button>
+                            </form>
                         @endif
                     </div>
                 </div>

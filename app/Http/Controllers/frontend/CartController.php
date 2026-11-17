@@ -1025,70 +1025,74 @@ class CartController extends Controller
     {
         $data = $request->all();
         if (isset($data['signature']) && $momoService->verifyPayment($data)) {
-            $order = Order::find($data['orderId']);
-            if ($order && $data['resultCode'] == 0) {
-                // P1-08: Đồng bộ trạng thái thanh toán và ghi transaction
-                $order->payment_status = Order::PAYMENT_PAID;
-                $order->paid_at = $order->paid_at ?? now();
-                $order->revenue_recognized_at = $order->revenue_recognized_at ?? now();
-                $order->status = 1;
-                $order->payment_method = 'Momo';
-                $order->save();
-
-                $transId = $data['transId'] ?? ($data['requestId'] ?? ('MOMO_' . $order->id));
-                try {
-                    \App\Models\PaymentTransaction::firstOrCreate([
-                        'order_id' => $order->id,
-                        'reference_code' => (string)$transId,
-                    ], [
-                        'amount' => (int)$order->total_price,
-                        'content' => 'Thanh toan MoMo truc tuyen',
-                        'gateway' => 'momo',
-                        'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
-                    ]);
-                } catch (\Throwable $e) {
-                    \Log::warning('MoMo Return transaction log error: ' . $e->getMessage());
-                }
-
+            $order = Order::find($data['orderId'] ?? null);
+            if ($order && (int)($data['resultCode'] ?? -1) === 0) {
+                // V4-P0-34: GET return chỉ hiển thị kết quả và dọn dẹp session giỏ hàng,
+                // tuyệt đối KHÔNG mutate trạng thái thanh toán order (việc này do IPN webhook đảm nhiệm)
                 self::clearCartSession();
-                return redirect()->route('site.thanks')->with('success', 'Thanh toán Momo thành công!');
+                return redirect()->route('site.thanks')->with('success', 'Thanh toán MoMo thành công! Đơn hàng của bạn đang được xử lý.');
             }
         }
-        return redirect()->route('site.product.gridview')->with('error', 'Thanh toán Momo thất bại!');
+        return redirect()->route('site.product.gridview')->with('error', 'Thanh toán MoMo không thành công hoặc chữ ký không hợp lệ!');
     }
 
     public function momoIpn(Request $request, MomoService $momoService)
     {
         $data = $request->all();
-        if (isset($data['signature']) && $momoService->verifyPayment($data)) {
-            $order = Order::find($data['orderId']);
-            if ($order && $data['resultCode'] == 0) {
-                // P1-08: Đồng bộ trạng thái thanh toán và ghi transaction
-                $order->payment_status = Order::PAYMENT_PAID;
-                $order->paid_at = $order->paid_at ?? now();
-                $order->revenue_recognized_at = $order->revenue_recognized_at ?? now();
-                $order->status = 1;
-                $order->payment_method = 'Momo';
-                $order->save();
 
-                $transId = $data['transId'] ?? ($data['requestId'] ?? ('MOMO_' . $order->id));
-                try {
-                    \App\Models\PaymentTransaction::firstOrCreate([
-                        'order_id' => $order->id,
-                        'reference_code' => (string)$transId,
-                    ], [
-                        'amount' => (int)$order->total_price,
-                        'content' => 'Thanh toan MoMo IPN',
-                        'gateway' => 'momo',
-                        'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
-                    ]);
-                } catch (\Throwable $e) {
-                    \Log::warning('MoMo IPN transaction log error: ' . $e->getMessage());
-                }
-            }
-            return response()->json(['message' => 'Success']);
+        // V4-P0-34: Nếu ở môi trường production mà chưa cấu hình key bí mật thật của merchant -> Chặn
+        if (config('payment.mode') === 'production' && !$momoService->getSecretKey()) {
+            return response()->json(['message' => 'MoMo payment gateway is not securely configured for production.'], 403);
         }
-        return response()->json(['message' => 'Error'], 400);
+
+        if (!isset($data['signature']) || !$momoService->verifyPayment($data)) {
+            return response()->json(['message' => 'Invalid signature'], 400);
+        }
+
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
+            $order = Order::where('id', $data['orderId'])->lockForUpdate()->first();
+            if (!$order) {
+                return response()->json(['message' => 'Order not found'], 404);
+            }
+
+            // V4-P1-40: Kiểm chứng số tiền thực nhận từ MoMo khớp với giá trị đơn hàng
+            $callbackAmount = (float)($data['amount'] ?? 0);
+            if ($callbackAmount < (float)$order->total_price) {
+                \Log::warning("MoMo IPN amount mismatch for Order #{$order->id}: expected {$order->total_price}, received {$callbackAmount}");
+                return response()->json(['message' => 'Amount mismatch'], 400);
+            }
+
+            if ((int)$data['resultCode'] !== 0) {
+                return response()->json(['message' => 'Payment failed at gateway'], 400);
+            }
+
+            // Chống xử lý lặp lại (Idempotency)
+            if ($order->isPaid() || $order->payment_status === Order::PAYMENT_PAID) {
+                return response()->json(['message' => 'Already processed', 'order_id' => $order->id]);
+            }
+
+            // Đồng bộ trạng thái thanh toán và ghi nhận doanh thu
+            $order->payment_status = Order::PAYMENT_PAID;
+            $order->paid_at = now();
+            if ($order->status == 2) {
+                $order->revenue_recognized_at = now();
+            }
+            $order->payment_method = 'Momo';
+            $order->save();
+
+            $transId = (string)($data['transId'] ?? ($data['requestId'] ?? ('MOMO_' . $order->id . '_' . time())));
+            \App\Models\PaymentTransaction::firstOrCreate([
+                'order_id' => $order->id,
+                'reference_code' => $transId,
+            ], [
+                'amount' => (int)$order->total_price,
+                'content' => 'Thanh toan MoMo IPN',
+                'gateway' => 'momo',
+                'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+            ]);
+
+            return response()->json(['message' => 'Success']);
+        });
     }
 
     public function thanks()

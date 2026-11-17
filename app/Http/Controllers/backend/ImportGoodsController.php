@@ -253,20 +253,41 @@ class ImportGoodsController extends Controller
                 ];
             }
 
-            // Hoàn trả số lượng tồn kho của danh sách mặt hàng cũ trước khi cập nhật mới (V3-P1-26)
+            // V4-P1-38: Tính toán biến động ròng và đối chiếu tồn kho trước khi cập nhật phiếu nhập
             $oldItems = ImportGoods::where('import_receipt_id', $receipt->id)->get();
+            $oldQuantities = [];
             foreach ($oldItems as $oldItem) {
-                $matchedProduct = \App\Models\Product::where('name', $oldItem->name)->lockForUpdate()->first();
-                if ($matchedProduct) {
-                    $matchedProduct->decrement('qty', min((int)$matchedProduct->qty, (int)$oldItem->quantity));
-                }
+                $name = trim($oldItem->name);
+                $oldQuantities[$name] = ($oldQuantities[$name] ?? 0) + (int)$oldItem->quantity;
             }
 
-            // Cập nhật tăng số lượng tồn kho theo danh sách mặt hàng mới
+            $newQuantities = [];
             foreach ($itemsData as $newItem) {
-                $matchedProduct = \App\Models\Product::where('name', $newItem['name'])->lockForUpdate()->first();
-                if ($matchedProduct) {
-                    $matchedProduct->increment('qty', (int)$newItem['quantity']);
+                $name = trim($newItem['name']);
+                $newQuantities[$name] = ($newQuantities[$name] ?? 0) + (int)$newItem['quantity'];
+            }
+
+            // Tập hợp tất cả các mặt hàng có liên quan
+            $allProductNames = array_unique(array_merge(array_keys($oldQuantities), array_keys($newQuantities)));
+
+            foreach ($allProductNames as $prodName) {
+                $oldQty = $oldQuantities[$prodName] ?? 0;
+                $newQty = $newQuantities[$prodName] ?? 0;
+                $netDelta = $newQty - $oldQty;
+
+                if ($netDelta !== 0) {
+                    $matchedProduct = \App\Models\Product::where('name', $prodName)->lockForUpdate()->first();
+                    if ($matchedProduct) {
+                        if ($netDelta < 0) {
+                            $reductionNeeded = abs($netDelta);
+                            if ((int)$matchedProduct->qty < $reductionNeeded) {
+                                throw new \DomainException("Không thể giảm số lượng nhập của '{$prodName}' (yêu cầu giảm {$reductionNeeded}): Mặt hàng này đã được xuất bán, tồn kho hiện tại chỉ còn {$matchedProduct->qty}, không đủ để điều chỉnh giảm.");
+                            }
+                            $matchedProduct->decrement('qty', $reductionNeeded);
+                        } else {
+                            $matchedProduct->increment('qty', $netDelta);
+                        }
+                    }
                 }
             }
 
@@ -305,11 +326,15 @@ class ImportGoodsController extends Controller
         $code = $receipt->code;
 
         DB::transaction(function() use ($receipt) {
-            // Hoàn trừ số lượng tồn kho của các mặt hàng trong phiếu nhập trước khi xóa (V3-P1-26)
+            // V4-P1-38: Kiểm tra tồn kho trước khi hoàn trừ toàn bộ phiếu nhập đã xóa
             foreach ($receipt->items as $item) {
                 $matchedProduct = \App\Models\Product::where('name', $item->name)->lockForUpdate()->first();
                 if ($matchedProduct) {
-                    $matchedProduct->decrement('qty', min((int)$matchedProduct->qty, (int)$item->quantity));
+                    $itemQty = (int)$item->quantity;
+                    if ((int)$matchedProduct->qty < $itemQty) {
+                        throw new \DomainException("Không thể xóa phiếu nhập kho #{$receipt->code}: Mặt hàng '{$item->name}' đã được xuất bán (tồn kho hiện tại: {$matchedProduct->qty}, số lượng cần hủy nhập: {$itemQty}).");
+                    }
+                    $matchedProduct->decrement('qty', $itemQty);
                 }
             }
 

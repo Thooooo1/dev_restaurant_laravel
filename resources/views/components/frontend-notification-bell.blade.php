@@ -241,12 +241,13 @@
                 const safeTypeLabel = escapeHtml(getTypeLabel(item.type));
                 const safeTimeAgo = escapeHtml(item.time_ago);
                 const safeId = parseInt(item.id, 10) || 0;
-                const safeUrl = escapeHtml(item.url || 'javascript:void(0)');
+                const safeUrl = item.url ? encodeURIComponent(item.url) : '';
                 
                 html += `
-                    <div class="p-3.5 flex items-start gap-3 transition-colors cursor-pointer ${bgClass} relative group border-b border-stone-100 last:border-b-0" 
+                    <div class="noti-item p-3.5 flex items-start gap-3 transition-colors cursor-pointer ${bgClass} relative group border-b border-stone-100 last:border-b-0" 
                          id="noti-item-${safeId}"
-                         onclick="window.handleNotificationClick(${safeId}, '${safeUrl.replace(/'/g, "\\'")}', event)">
+                         data-noti-id="${safeId}"
+                         data-noti-url="${safeUrl}">
                         
                         <div class="flex-1 min-w-0 pr-2">
                             <div class="flex items-center justify-between gap-2 mb-1">
@@ -269,11 +270,23 @@
                     </div>
                 `;
             });
+            });
         }
 
         document.querySelectorAll('.frontNotiList').forEach(container => {
             container.innerHTML = html;
         });
+    }
+
+    function isSafeRedirectUrl(url) {
+        if (!url) return false;
+        try {
+            if (url.startsWith('/') && !url.startsWith('//')) return true;
+            const parsed = new URL(url, window.location.origin);
+            return parsed.origin === window.location.origin;
+        } catch (e) {
+            return false;
+        }
     }
 
     window.handleNotificationClick = function(id, targetUrl, event) {
@@ -312,13 +325,23 @@
         }).catch(() => {});
 
         setTimeout(() => {
-            if (targetUrl && targetUrl !== 'javascript:void(0)') {
+            if (targetUrl && isSafeRedirectUrl(targetUrl)) {
                 window.location.href = targetUrl;
             } else {
                 window.frontNotiFetch();
             }
         }, 80);
     };
+
+    // V4-P2-44: Sử dụng Event Delegation thay vì inline onclick attributes
+    document.addEventListener('click', function(e) {
+        const item = e.target.closest('.noti-item[data-noti-id]');
+        if (item) {
+            const notiId = parseInt(item.getAttribute('data-noti-id'), 10);
+            const rawUrl = item.getAttribute('data-noti-url') ? decodeURIComponent(item.getAttribute('data-noti-url')) : '';
+            window.handleNotificationClick(notiId, rawUrl, e);
+        }
+    });
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {

@@ -422,7 +422,19 @@ class TableOrderController extends Controller
             $product = Product::where('id', $request->product_id)
                 ->whereNull('deleted_at')
                 ->where('status', 1)
+                ->lockForUpdate()
                 ->firstOrFail();
+
+            // V4-P1-37: Đồng bộ chính sách tồn kho giữa POS và QR
+            $addQty = (int)$request->qty;
+            if ($product->qty < $addQty) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Món '{$product->name}' không đủ số lượng phục vụ (còn {$product->qty}, yêu cầu {$addQty})."
+                ], 422);
+            }
+            $product->qty = max(0, $product->qty - $addQty);
+            $product->save();
 
             $price = $product->price_sale > 0 ? $product->price_sale : $product->price_buy;
             $discount = 0;
@@ -533,6 +545,12 @@ class TableOrderController extends Controller
                 'kitchen_status' => $kitchenStatus,
             ]);
 
+            // V4-P1-37: Hoàn lại tồn kho khi xóa/hủy món tại POS
+            $product = Product::where('id', $orderDetail->product_id)->lockForUpdate()->first();
+            if ($product) {
+                $product->increment('qty', (int)$orderDetail->qty);
+            }
+
             // Nếu món đã gửi bếp (cooking / served / confirmed): KHÔNG xóa cứng, chỉ đổi status='cancelled' và amount=0
             if (in_array($kitchenStatus, ['cooking', 'served', 'confirmed'])) {
                 $orderDetail->status = 'cancelled';
@@ -579,6 +597,23 @@ class TableOrderController extends Controller
             $newQty = (int)$request->qty;
 
             if ($oldQty !== $newQty) {
+                // V4-P1-37: Đồng bộ tồn kho theo chênh lệch delta
+                $diff = $newQty - $oldQty;
+                $product = Product::where('id', $orderDetail->product_id)->lockForUpdate()->first();
+                if ($product) {
+                    if ($diff > 0) {
+                        if ($product->qty < $diff) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => "Món '{$product->name}' không đủ số lượng để tăng thêm (còn {$product->qty}, yêu cầu thêm {$diff})."
+                            ], 422);
+                        }
+                        $product->decrement('qty', $diff);
+                    } elseif ($diff < 0) {
+                        $product->increment('qty', abs($diff));
+                    }
+                }
+
                 $productName = $orderDetail->product->name ?? ('Món #' . $orderDetail->product_id);
                 $reason = trim($request->reason ?? 'Điều chỉnh số lượng tại POS');
 
@@ -643,8 +678,26 @@ class TableOrderController extends Controller
                     ->first();
 
                 if ($detail && (int)$detail->qty !== (int)$item['qty']) {
-                    $oldQty = $detail->qty;
+                    $oldQty = (int)$detail->qty;
                     $newQty = (int)$item['qty'];
+                    $diff = $newQty - $oldQty;
+
+                    // V4-P1-37: Đồng bộ tồn kho theo chênh lệch delta
+                    $product = Product::where('id', $detail->product_id)->lockForUpdate()->first();
+                    if ($product) {
+                        if ($diff > 0) {
+                            if ($product->qty < $diff) {
+                                return response()->json([
+                                    'success' => false,
+                                    'message' => "Món '{$product->name}' không đủ số lượng để tăng thêm (còn {$product->qty}, yêu cầu thêm {$diff})."
+                                ], 422);
+                            }
+                            $product->decrement('qty', $diff);
+                        } elseif ($diff < 0) {
+                            $product->increment('qty', abs($diff));
+                        }
+                    }
+
                     $productName = $detail->product->name ?? ('Món #' . $detail->product_id);
 
                     OrderItemLog::create([
@@ -710,8 +763,17 @@ class TableOrderController extends Controller
                 $productId = $item['product_id'];
                 $qty = (int)$item['qty'];
 
-                $product = Product::where('id', $productId)->whereNull('deleted_at')->first();
+                $product = Product::where('id', $productId)->whereNull('deleted_at')->lockForUpdate()->first();
                 if (!$product) continue;
+
+                // V4-P1-37: Kiểm tra và trừ tồn kho cho lượng gọi thêm tại POS
+                if ($product->qty < $qty) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Món '{$product->name}' không đủ số lượng phục vụ (còn {$product->qty}, yêu cầu {$qty})."
+                    ], 422);
+                }
+                $product->decrement('qty', $qty);
 
                 $price = $product->price_sale > 0 ? $product->price_sale : $product->price_buy;
                 $discount = 0;

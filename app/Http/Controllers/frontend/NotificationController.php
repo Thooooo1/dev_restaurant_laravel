@@ -47,10 +47,14 @@ class NotificationController extends Controller
             $uniqueNotifications->push($noti);
         }
 
-        // Tính unread_count trên tập thông báo thực tế của người dùng
-        $unreadCount = Notification::forUser($user)->where('is_read', false)->count();
+        $userId = $user ? $user->id : null;
 
-        $notifications = $uniqueNotifications->take(25)->map(function ($noti) {
+        // V2-20 & V4: Tính unread_count trên tập thông báo thực tế theo từng người dùng (tính cả per-user read của shared notification)
+        $unreadCount = Notification::forUser($user)->get()->filter(function ($n) use ($userId) {
+            return !$n->isReadBy($userId);
+        })->count();
+
+        $notifications = $uniqueNotifications->take(25)->map(function ($noti) use ($userId) {
             $title = $noti->title;
             $message = $noti->message;
 
@@ -93,7 +97,7 @@ class NotificationController extends Controller
                 'url' => $noti->url ?: 'javascript:void(0)',
                 'icon' => $noti->icon ?: 'fa-bell',
                 'color' => '#1C1917',
-                'is_read' => (bool)$noti->is_read,
+                'is_read' => $noti->isReadBy($userId),
                 'time_ago' => $noti->created_at ? $noti->created_at->locale('vi')->diffForHumans() : 'Vừa xong',
                 'created_at' => $noti->created_at ? $noti->created_at->toIso8601String() : null,
                 'data' => $noti->data,
@@ -131,7 +135,7 @@ class NotificationController extends Controller
             return response()->json(['success' => false, 'message' => 'Thông báo không tồn tại.'], 404);
         }
 
-        $notification->markAsRead();
+        $notification->markAsRead($user ? $user->id : null);
 
         return response()->json([
             'success' => true,
@@ -146,14 +150,24 @@ class NotificationController extends Controller
     public function markAllAsRead(Request $request)
     {
         $user = Auth::user();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Chưa đăng nhập'], 401);
+        }
 
         Notification::forUser($user)
+            ->where('user_id', $user->id)
             ->where('is_read', false)
             ->update([
                 'is_read' => true,
                 'read_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
             ]);
+
+        // Đánh dấu các thông báo chung là đã đọc cho riêng user này
+        $sharedList = Notification::forUser($user)->whereNull('user_id')->get();
+        foreach ($sharedList as $shared) {
+            $shared->markAsRead($user->id);
+        }
 
         return response()->json([
             'success' => true,

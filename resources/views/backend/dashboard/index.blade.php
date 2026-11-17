@@ -94,6 +94,8 @@
                     <span>Tại bàn: <strong class="text-[rgba(0,0,0,0.85)] font-semibold">{{ $dineInCount }}</strong></span>
                     <span class="text-gray-300">|</span>
                     <span>Mang về: <strong class="text-[rgba(0,0,0,0.85)] font-semibold">{{ $takeawayCount }}</strong></span>
+                    <span class="text-gray-300">|</span>
+                    <span>Giao hàng: <strong class="text-[rgba(0,0,0,0.85)] font-semibold">{{ $deliveryCount ?? 0 }}</strong></span>
                 </div>
             </div>
 

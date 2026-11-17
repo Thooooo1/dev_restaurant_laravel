@@ -129,7 +129,7 @@ Route::get('/payment/check-status/{orderId}', [App\Http\Controllers\api\PaymentW
 // Orders
 Route::get('/don-hang', [DonHangController::class, 'index'])->name('site.orders');
 Route::get('/don-hang/{id}', [DonHangController::class, 'detail'])->name('site.orders.detail');
-Route::match(['get', 'post'], '/don-hang/reorder/{id}', [DonHangController::class, 'reorder'])->name('site.orders.reorder');
+Route::post('/don-hang/reorder/{id}', [DonHangController::class, 'reorder'])->name('site.orders.reorder');
 Route::post('/don-hang/{id}/huy', [DonHangController::class, 'cancel'])->name('site.orders.cancel');
 
 // Table QR Scan, Order & Pay (Quẹt QR Gọi Món & Thanh Toán Trực Tiếp)

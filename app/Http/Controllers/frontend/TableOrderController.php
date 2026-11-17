@@ -16,7 +16,7 @@ class TableOrderController extends Controller
     /**
      * Khách quét mã QR tại bàn (URL: /ban/{id}/goi-mon)
      */
-    public function scan($id)
+    public function scan(Request $request, $id)
     {
         // 1. Kiểm tra bàn tồn tại
         $table = Table::with('floor')->find($id);
@@ -24,23 +24,33 @@ class TableOrderController extends Controller
             return redirect()->route('site.home')->with('error', 'Bàn ăn không tồn tại hoặc đã bị xóa.');
         }
 
-        // 2. Tìm đơn hàng đang hoạt động của bàn này (status = 0: chờ xử lý, 1: đang phục vụ)
-        $activeOrder = Order::where('table_id', $id)
-            ->whereNull('deleted_at')
-            ->whereIn('status', [0, 1])
-            ->with(['orderDetails.product', 'table.floor'])
-            ->latest('id')
-            ->first();
+        $token = $request->query('token');
+        $isStaffOrAdmin = Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee());
+        $hasValidToken = $table->isValidQrToken($token);
 
-        // 3. Khởi tạo session bàn ăn
-        session([
-            'table_id' => $id,
-            'table_name' => $table->name,
-            'is_table_order' => true,
-        ]);
+        // V4-P1-36: Chỉ cấp quyền phiên bàn và tải order nếu quét đúng token QR hoặc là nhân viên/quản trị
+        if ($hasValidToken || $isStaffOrAdmin) {
+            session([
+                'table_id' => $id,
+                'table_name' => $table->name,
+                'is_table_order' => true,
+                'table_verified_' . $id => true,
+            ]);
 
-        if ($activeOrder) {
-            session(['table_order_id' => $activeOrder->id]);
+            // 2. Tìm đơn hàng đang hoạt động của bàn này (status = 0: chờ xử lý, 1: đang phục vụ)
+            $activeOrder = Order::where('table_id', $id)
+                ->whereNull('deleted_at')
+                ->whereIn('status', [0, 1])
+                ->with(['orderDetails.product', 'table.floor'])
+                ->latest('id')
+                ->first();
+
+            if ($activeOrder) {
+                session(['table_order_id' => $activeOrder->id]);
+            }
+        } else {
+            // Không có token QR hợp lệ -> Không cấp quyền truy cập phiên bàn cho khách vãng lai
+            $activeOrder = null;
         }
 
         return view('frontend.table-scan', compact('table', 'activeOrder'));
@@ -75,23 +85,31 @@ class TableOrderController extends Controller
             session(['customer_name' => trim($customerName)]);
         }
 
+        $token = $request->input('token') ?: $request->query('token');
+        $isStaffOrAdmin = Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee());
+        $isVerified = session('table_verified_' . $id) || $isStaffOrAdmin || $table->isValidQrToken($token);
+
         session([
             'table_id' => $id,
             'table_name' => $table->name,
             'is_table_order' => true,
         ]);
 
-        // Kiểm tra xem bàn đã có đơn hàng nào chưa
-        $activeOrder = Order::where('table_id', $id)
-            ->whereNull('deleted_at')
-            ->whereIn('status', [0, 1])
-            ->first();
+        if ($isVerified) {
+            session(['table_verified_' . $id => true]);
 
-        if ($activeOrder) {
-            session(['table_order_id' => $activeOrder->id]);
-            if ($phone && empty($activeOrder->phone)) {
-                $activeOrder->phone = $phone;
-                $activeOrder->save();
+            // V4-P1-36: Chỉ gắn table_order_id nếu phiên bàn đã được xác thực bằng token QR
+            $activeOrder = Order::where('table_id', $id)
+                ->whereNull('deleted_at')
+                ->whereIn('status', [0, 1])
+                ->first();
+
+            if ($activeOrder) {
+                session(['table_order_id' => $activeOrder->id]);
+                if ($phone && empty($activeOrder->phone)) {
+                    $activeOrder->phone = $phone;
+                    $activeOrder->save();
+                }
             }
         }
 
@@ -116,25 +134,20 @@ class TableOrderController extends Controller
             return redirect()->route('site.home')->with('error', 'Bàn không tồn tại.');
         }
 
-        // P2-10: Kiểm tra quyền sở hữu và phiên truy cập bàn ăn
-        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id);
-        $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
-
         // P2-12: Phương thức GET thuần túy hiển thị mã QR, không tạo side effect làm thay đổi DB
         $order = \App\Services\TableOrderService::getActiveOrder($id);
-        if ($order) {
-            session(['table_order_id' => $order->id]);
-        }
-
         if (!$order) {
             return redirect()->route('site.product.gridview')->with('error', 'Chưa có món ăn nào để thanh toán. Mời quý khách chọn món trước.');
         }
 
-        $isOrderOwner = (Auth::check() && (int)Auth::id() === (int)$order->user_id);
-        $isSessionOrder = (session('table_order_id') && (int)session('table_order_id') === (int)$order->id);
+        // V4-P1-35 & V4-P1-36: Kiểm tra quyền sở hữu TRƯỚC, tuyệt đối không tự gán session('table_order_id') để bypass quyền
+        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id && session('table_verified_' . $id));
+        $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
+        $isOrderOwner = (Auth::check() && $order->user_id && (int)Auth::id() === (int)$order->user_id);
+        $isSessionOrder = (session('table_order_id') && (int)session('table_order_id') === (int)$order->id && session('table_verified_' . $id));
 
         if (!$isTableSession && !$isStaffOrAdmin && !$isOrderOwner && !$isSessionOrder) {
-            return redirect()->route('site.home')->with('error', 'Bạn không có quyền truy cập thanh toán của bàn này.');
+            abort(403, 'Bạn không có quyền truy cập thanh toán của bàn này.');
         }
 
         // Tải chi tiết đơn hàng
@@ -204,7 +217,7 @@ class TableOrderController extends Controller
             return redirect()->back()->with('error', 'Hóa đơn không thuộc bàn này.');
         }
 
-        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id);
+        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id && (session('table_verified_' . $id) || (session('table_order_id') && (int)session('table_order_id') === (int)$order->id)));
         $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
         $isOrderOwner = (Auth::check() && (int)Auth::id() === (int)$order->user_id);
 
@@ -212,7 +225,7 @@ class TableOrderController extends Controller
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json(['success' => false, 'message' => 'Bạn không có quyền thực hiện thao tác trên bàn này.'], 403);
             }
-            return redirect()->back()->with('error', 'Bạn không có quyền thực hiện thao tác trên bàn này.');
+            abort(403, 'Bạn không có quyền thực hiện thao tác trên bàn này.');
         }
 
         // P0-04 Idempotency: Nếu đơn hàng ĐÃ THANH TOÁN, giữ nguyên paid_at và không tạo transaction thừa
@@ -351,14 +364,14 @@ class TableOrderController extends Controller
             return redirect()->route('site.table.scan', $id)->with('info', 'Bàn hiện chưa có đơn hàng đang hoạt động.');
         }
 
-        // P2-10: Kiểm tra quyền xem hóa đơn (Phiên bàn hiện tại, chủ đơn hàng, hoặc quản trị viên/nhân viên)
-        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id);
+        // P2-10 & V4-P1-36: Kiểm tra quyền xem hóa đơn (Phiên bàn đã xác thực, chủ đơn hàng, hoặc quản trị viên/nhân viên)
+        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id && session('table_verified_' . $id));
         $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
         $isOrderOwner = (Auth::check() && (int)Auth::id() === (int)$order->user_id);
-        $isSessionOrder = (session('table_order_id') && (int)session('table_order_id') === (int)$order->id);
+        $isSessionOrder = (session('table_order_id') && (int)session('table_order_id') === (int)$order->id && session('table_verified_' . $id));
 
         if (!$isTableSession && !$isStaffOrAdmin && !$isOrderOwner && !$isSessionOrder) {
-            return redirect()->route('site.home')->with('error', 'Bạn không có quyền xem hóa đơn của bàn này.');
+            abort(403, 'Bạn không có quyền xem hóa đơn của bàn này.');
         }
 
         $orderDetails = $order->orderDetails;

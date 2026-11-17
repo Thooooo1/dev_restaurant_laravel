@@ -312,8 +312,8 @@ class TableController extends Controller
             ->latest('id')
             ->first();
 
-        // Hướng người dùng đến trang quét QR của bàn đó
-        $url = route('site.table.scan', $id);
+        // Hướng người dùng đến trang quét QR của bàn đó kèm token bảo mật (V4-P1-36)
+        $url = route('site.table.scan', ['id' => $id, 'token' => $table->getQrToken()]);
         
         // Tạo QR Code kích thước vừa vặn cho Standee để bàn (160px)
         $qrcode = QrCode::size(160)->generate($url);

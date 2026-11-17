@@ -103,8 +103,13 @@ class OrderController extends Controller
     }
 
 
-    public function reorder($id)
+    public function reorder(Request $request, $id)
     {
+        // V4-P2-41: Chặn triệt để mọi yêu cầu GET làm thay đổi giỏ hàng (chỉ cho phép POST CSRF)
+        if (!$request->isMethod('post')) {
+            abort(405, 'Phương thức không được hỗ trợ. Vui lòng gửi yêu cầu POST.');
+        }
+
         $userId = Auth::id();
 
         if (!$userId) {

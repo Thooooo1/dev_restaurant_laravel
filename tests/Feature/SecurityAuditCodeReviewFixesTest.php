@@ -232,7 +232,7 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
             'phone' => $this->customer->phone,
             'total_price' => 200000,
             'payment_status' => Order::PAYMENT_PENDING,
-            'status' => 0,
+            'status' => 2, // Đã hoàn tất chế biến/phục vụ để ghi nhận doanh thu khi thanh toán
             'created_by' => 1,
         ]);
 
@@ -241,7 +241,7 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
         $momoMock->method('verifyPayment')->willReturn(true);
         $this->app->instance(MomoService::class, $momoMock);
 
-        $response = $this->get(route('site.momo.return', [
+        $response = $this->postJson(route('site.momo.ipn'), [
             'partnerCode' => 'MOMO',
             'orderId' => $order->id,
             'requestId' => 'REQ_MOMO_' . uniqid(),
@@ -249,7 +249,7 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
             'resultCode' => 0,
             'transId' => 'TRANS_MOMO_' . $order->id,
             'signature' => 'mock_signature',
-        ]));
+        ]);
 
         $order->refresh();
         $this->assertEquals(Order::PAYMENT_PAID, $order->payment_status);
@@ -403,7 +403,7 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
 
         $empResponse = $this->actingAs($employee)->postJson("/notifications/{$staffNoti->id}/read");
         $empResponse->assertStatus(200);
-        $this->assertTrue($staffNoti->fresh()->is_read);
+        $this->assertTrue($staffNoti->fresh()->isReadBy($employee->id));
     }
 
     /**
@@ -522,7 +522,12 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
             'amount' => 30000,
         ]);
 
-        $response = $this->actingAs($this->customer)->get(route('site.orders.reorder', $oldOrder->id));
+        // V4-P2-41: Yêu cầu GET phải bị chặn 405 Method Not Allowed
+        $getResp = $this->actingAs($this->customer)->get(route('site.orders.reorder', $oldOrder->id));
+        $getResp->assertStatus(405);
+
+        // POST reorder có bảo vệ CSRF thành công
+        $response = $this->actingAs($this->customer)->post(route('site.orders.reorder', $oldOrder->id));
         $response->assertRedirect(route('site.cart'));
 
         $cartKey = "cart_" . $this->customer->id;
@@ -865,5 +870,409 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
 
         // Tin nhắn của khách hàng A phải còn nguyên vẹn, không bị xóa
         $this->assertEquals(1, \App\Models\ChatbotMessage::where('session_id', $victimSessionId)->count());
+    }
+
+    /**
+     * Test V4-P1-35 & Scenario 1: Guest mới không cookie GET /ban/{id}/thanh-toan-qr của bàn có order -> 403
+     */
+    public function test_v4_p1_35_fresh_guest_without_token_gets_403_on_payment_qr(): void
+    {
+        $table = Table::create([
+            'floor_id' => 1,
+            'name' => 'Bàn Test V4 QR ' . uniqid(),
+            'seats' => 4,
+            'status' => 1,
+        ]);
+
+        $order = Order::create([
+            'table_id' => $table->id,
+            'user_id' => $this->customer->id,
+            'name' => 'Khách Bàn',
+            'phone' => '0912345678',
+            'address' => 'Tại quán',
+            'total_price' => 50000,
+            'status' => 0,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => 1,
+        ]);
+
+        Orderdetail::create([
+            'order_id' => $order->id,
+            'product_id' => $this->product->id,
+            'price' => 50000,
+            'qty' => 1,
+            'amount' => 50000,
+            'status' => 'pending',
+        ]);
+
+        // 1. Guest mới không cookie/session gọi thanh toán QR -> Phải nhận HTTP 403
+        $response = $this->get(route('site.table.payment.qr', $table->id));
+        $response->assertStatus(403);
+
+        // 2. Guest có token QR hợp lệ -> Truy cập thành công HTTP 200
+        $validToken = $table->getQrToken();
+        $responseWithToken = $this->withSession([
+            'table_id' => $table->id,
+            'table_verified_' . $table->id => true,
+        ])->get(route('site.table.payment.qr', $table->id));
+        $responseWithToken->assertStatus(200);
+    }
+
+    /**
+     * Test V4-P1-36 & Scenario 2: Quét scan không token hoặc POST service-call không cấp quyền xem bill hay QR
+     */
+    public function test_v4_p1_36_guest_table_scan_or_service_call_without_token_does_not_grant_bill_access(): void
+    {
+        $table = Table::create([
+            'floor_id' => 1,
+            'name' => 'Bàn Test V4 Scan ' . uniqid(),
+            'seats' => 4,
+            'status' => 1,
+        ]);
+
+        $order = Order::create([
+            'table_id' => $table->id,
+            'user_id' => $this->customer->id,
+            'name' => 'Khách Bàn',
+            'phone' => '0912345678',
+            'address' => 'Tại quán',
+            'total_price' => 50000,
+            'status' => 0,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => 1,
+        ]);
+
+        Orderdetail::create([
+            'order_id' => $order->id,
+            'product_id' => $this->product->id,
+            'price' => 50000,
+            'qty' => 1,
+            'amount' => 50000,
+            'status' => 'pending',
+        ]);
+
+        // 1. Guest gọi GET /ban/{id}/goi-mon không có token -> Không được cấp session xem bill
+        $scanResponse = $this->get(route('site.table.scan', $table->id));
+        $scanResponse->assertStatus(200);
+
+        // Thử truy cập hóa đơn của bàn -> Bị 403 Forbidden
+        $billResponse = $this->get(route('site.table.bill', $table->id));
+        $billResponse->assertStatus(403);
+
+        // 2. Gửi POST service-call với table_id không kèm token -> Cũng không cấp quyền xem bill
+        $callResponse = $this->postJson(route('site.service-call.store'), [
+            'table_id' => $table->id,
+            'call_type' => 'call_waiter',
+        ]);
+        $callResponse->assertStatus(200);
+
+        $billResponse2 = $this->get(route('site.table.bill', $table->id));
+        $billResponse2->assertStatus(403);
+
+        // 3. Quét QR kèm token hợp lệ -> Cấp quyền xem bill thành công
+        $scanWithToken = $this->get(route('site.table.scan', ['id' => $table->id, 'token' => $table->getQrToken()]));
+        $scanWithToken->assertStatus(200);
+
+        $billResponse3 = $this->get(route('site.table.bill', $table->id));
+        $billResponse3->assertStatus(200);
+    }
+
+    /**
+     * Test V4-P0-34 & V4-P1-40 & Scenario 3: MoMo Production key isolation, IPN amount verification & GET return state isolation
+     */
+    public function test_v4_p0_34_and_p1_40_momo_security_and_amount_verification(): void
+    {
+        $order = Order::create([
+            'user_id' => $this->customer->id,
+            'name' => 'Khách MoMo',
+            'phone' => '0988776655',
+            'address' => '123 Đường Test',
+            'total_price' => 100000,
+            'status' => 0,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'created_by' => 1,
+        ]);
+
+        // 1. GET return tuyệt đối KHÔNG mutate payment_status thành paid
+        $momoService = app(\App\Services\MomoService::class);
+        $returnParams = [
+            'orderId' => $order->id,
+            'resultCode' => 0,
+            'amount' => 100000,
+            'message' => 'Success',
+            'extraData' => '',
+            'orderInfo' => 'Test',
+            'orderType' => 'momo_wallet',
+            'partnerCode' => 'MOMOBKUN20180529',
+            'payType' => 'qr',
+            'requestId' => 'REQ_' . uniqid(),
+            'responseTime' => (string)time(),
+            'transId' => 'TRANS_' . uniqid(),
+        ];
+        $secretKey = $momoService->getSecretKey() ?: 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa';
+        $rawHash = "accessKey=" . $momoService->getAccessKey() . "&amount={$returnParams['amount']}&extraData={$returnParams['extraData']}&message={$returnParams['message']}&orderId={$returnParams['orderId']}&orderInfo={$returnParams['orderInfo']}&orderType={$returnParams['orderType']}&partnerCode={$returnParams['partnerCode']}&payType={$returnParams['payType']}&requestId={$returnParams['requestId']}&responseTime={$returnParams['responseTime']}&resultCode={$returnParams['resultCode']}&transId={$returnParams['transId']}";
+        $returnParams['signature'] = hash_hmac('sha256', $rawHash, $secretKey);
+
+        $this->get(route('site.momo.return', $returnParams));
+        $this->assertFalse($order->fresh()->isPaid(), 'GET return không được phép chuyển trạng thái đơn sang paid.');
+
+        // 2. IPN với amount sai lệch (ít hơn total_price) -> Không chuyển paid
+        $badIpnParams = $returnParams;
+        $badIpnParams['amount'] = 50000; // Đơn 100k nhưng gateway báo 50k
+        $badRawHash = "accessKey=" . $momoService->getAccessKey() . "&amount={$badIpnParams['amount']}&extraData={$badIpnParams['extraData']}&message={$badIpnParams['message']}&orderId={$badIpnParams['orderId']}&orderInfo={$badIpnParams['orderInfo']}&orderType={$badIpnParams['orderType']}&partnerCode={$badIpnParams['partnerCode']}&payType={$badIpnParams['payType']}&requestId={$badIpnParams['requestId']}&responseTime={$badIpnParams['responseTime']}&resultCode={$badIpnParams['resultCode']}&transId={$badIpnParams['transId']}";
+        $badIpnParams['signature'] = hash_hmac('sha256', $badRawHash, $secretKey);
+
+        $ipnResponse = $this->postJson(route('site.momo.ipn'), $badIpnParams);
+        $this->assertTrue(in_array($ipnResponse->status(), [400, 422]));
+        $this->assertFalse($order->fresh()->isPaid());
+
+        // 3. IPN đúng amount và chữ ký hợp lệ -> Chuyển paid
+        $validIpnResponse = $this->postJson(route('site.momo.ipn'), $returnParams);
+        $validIpnResponse->assertStatus(200);
+        $this->assertTrue($order->fresh()->isPaid());
+    }
+
+    /**
+     * Test V4-P1-37 & Scenario 4: Đồng bộ tồn kho giữa POS và QR (QR trừ 3, POS thêm 4, hủy 2 -> Tồn cuối = Tồn đầu - 5)
+     */
+    public function test_v4_p1_37_pos_and_qr_inventory_policy_synchronized(): void
+    {
+        $admin = User::firstOrCreate(['roles' => 'admin', 'username' => 'test_admin_pos_sync'], [
+            'fullname' => 'Admin POS Sync',
+            'phone' => '0981199887',
+            'password' => bcrypt('password123'),
+            'status' => 1,
+            'roles' => 'admin',
+        ]);
+
+        $this->product->update(['qty' => 100, 'price' => 50000, 'price_buy' => 50000, 'price_sale' => 50000]);
+
+        $table = Table::create([
+            'floor_id' => 1,
+            'name' => 'Bàn Test V4 Stock ' . uniqid(),
+            'seats' => 4,
+            'status' => 1,
+        ]);
+
+        // 1. Khách gọi món qua QR 3 phần -> Tồn kho giảm từ 100 xuống 97
+        \App\Services\TableOrderService::addItemsToTable($table->id, [
+            ['product_id' => $this->product->id, 'qty' => 3]
+        ]);
+        $this->assertEquals(97, $this->product->fresh()->qty);
+
+        $activeOrder = \App\Services\TableOrderService::getActiveOrder($table->id);
+
+        // 2. Nhân viên thêm 4 phần tại POS -> Tồn kho giảm từ 97 xuống 93
+        $addPosResponse = $this->actingAs($admin)->postJson(route('admin.table-order.addProductToOrder'), [
+            'order_id' => $activeOrder->id,
+            'product_id' => $this->product->id,
+            'qty' => 4,
+        ]);
+        $addPosResponse->assertStatus(200);
+        $this->assertEquals(93, $this->product->fresh()->qty);
+
+        $posDetail = Orderdetail::where('order_id', $activeOrder->id)->where('product_id', $this->product->id)->latest('id')->first();
+
+        // 3. Nhân viên điều chỉnh giảm 2 phần (hủy 2 phần từ 7 xuống 5) -> Hoàn lại 2 tồn kho -> Tồn kho là 95
+        $updateQtyResponse = $this->actingAs($admin)->postJson(route('admin.table-order.updateProductQty'), [
+            'order_detail_id' => $posDetail->id,
+            'qty' => $posDetail->qty - 2,
+            'reason' => 'Khách hủy 2 phần',
+        ]);
+        $updateQtyResponse->assertStatus(200);
+
+        // Tồn cuối = Tồn đầu (100) - 5 = 95
+        $this->assertEquals(95, $this->product->fresh()->qty);
+    }
+
+    /**
+     * Test V4-P1-38 & Scenario 5: Nhập 20, bán 18 (tồn 12), sửa phiếu từ 20 xuống 5 -> Bị từ chối, không clamp mất dấu vết
+     */
+    public function test_v4_p1_38_import_goods_rejects_reduction_when_stock_already_sold(): void
+    {
+        $admin = User::firstOrCreate(['roles' => 'admin', 'username' => 'test_admin_clamp_guard'], [
+            'fullname' => 'Admin Clamp Guard',
+            'phone' => '0981199112',
+            'password' => bcrypt('password123'),
+            'status' => 1,
+            'roles' => 'admin',
+        ]);
+
+        // Tồn đầu = 10
+        $this->product->update(['qty' => 10]);
+
+        // Nhập 20 phần -> Tồn kho tăng lên 30
+        $this->actingAs($admin)->post(route('admin.import-goods.store'), [
+            'code' => 'PNK_CLAMP_' . uniqid(),
+            'supplier_name' => 'Nhà Cung Cấp Test',
+            'import_date' => now()->toDateString(),
+            'items' => [
+                [
+                    'name' => $this->product->name,
+                    'unit' => 'phần',
+                    'quantity' => 20,
+                    'price' => 30000,
+                ]
+            ]
+        ]);
+        $this->assertEquals(30, $this->product->fresh()->qty);
+
+        $receipt = \App\Models\ImportReceipt::latest('id')->first();
+
+        // Đã xuất bán 18 phần -> Tồn kho còn 12
+        $this->product->update(['qty' => 12]);
+
+        // Thử sửa phiếu từ 20 xuống 5 (yêu cầu giảm 15 phần, trong khi tồn chỉ còn 12 phần):
+        // Hệ thống phải từ chối thao tác và giữ nguyên tồn kho 12 phần (tuyệt đối không cắt về 0 hay che giấu chênh lệch)
+        $updateResponse = $this->actingAs($admin)->put(route('admin.import-goods.update', $receipt->id), [
+            'code' => $receipt->code,
+            'supplier_name' => 'Nhà Cung Cấp Test',
+            'import_date' => now()->toDateString(),
+            'items' => [
+                [
+                    'name' => $this->product->name,
+                    'unit' => 'phần',
+                    'quantity' => 5,
+                    'price' => 30000,
+                ]
+            ]
+        ]);
+
+        $updateResponse->assertSessionHas('error');
+        $this->assertEquals(12, $this->product->fresh()->qty, 'Tồn kho không được phép bị clamp ngầm làm mất số liệu.');
+    }
+
+    /**
+     * Test V4-P1-39 & Scenario 6: Rate limit OTP theo số điện thoại qua Cache (chống spam từ nhiều sessions) và Single-use OTP
+     */
+    public function test_v4_p1_39_otp_throttling_across_sessions_and_single_use(): void
+    {
+        $testPhone = '0987654321';
+        $user = User::firstOrCreate(['phone' => $testPhone], [
+            'fullname' => 'Test User OTP',
+            'username' => 'test_user_otp_' . uniqid(),
+            'password' => bcrypt('password123'),
+            'status' => 1,
+            'roles' => 'customer',
+        ]);
+
+        \Illuminate\Support\Facades\Cache::forget('otp_request_throttle_' . $testPhone);
+
+        // Gửi 5 yêu cầu từ các session khác nhau
+        for ($i = 1; $i <= 5; $i++) {
+            $this->flushSession();
+            $resp = $this->post(route('site.send_otp'), ['phone' => $testPhone]);
+            $resp->assertStatus(200);
+        }
+
+        // Yêu cầu thứ 6 từ session hoàn toàn mới phải bị rate limit (HTTP 429 hoặc redirect with error)
+        $this->flushSession();
+        $sixthResp = $this->from(route('site.forgot_password'))->post(route('site.send_otp'), ['phone' => $testPhone]);
+        $this->assertTrue(in_array($sixthResp->status(), [429, 302]));
+        if ($sixthResp->status() === 302) {
+            $sixthResp->assertRedirect(route('site.forgot_password'));
+            $sixthResp->assertSessionHas('error');
+        }
+
+        // Kiểm tra Single-use: Mã OTP sau khi xác thực thành công phải bị xóa ngay lập tức
+        $cached = \Illuminate\Support\Facades\Cache::get('otp_' . $testPhone);
+        $code = $cached ? $cached['code'] : $user->fresh()->otp_code;
+        $this->assertNotNull($code);
+
+        $verifyResp = $this->post(route('site.verify_otp'), [
+            'phone' => $testPhone,
+            'otp_code' => $code,
+        ]);
+        $verifyResp->assertRedirect(route('site.show_reset_password'));
+        $this->assertNull(\Illuminate\Support\Facades\Cache::get('otp_' . $testPhone));
+        $this->assertNull($user->fresh()->otp_code, 'Mã OTP phải bị hủy ngay sau khi xác thực thành công.');
+    }
+
+    /**
+     * Test V2-20 & Scenario 7: Thông báo chung cho 2 nhân viên -> A đọc không làm mất unread của B
+     */
+    public function test_v2_20_and_scenario_7_shared_notification_read_status_is_per_user(): void
+    {
+        $employeeA = User::firstOrCreate(['username' => 'emp_a_test'], [
+            'fullname' => 'Employee A',
+            'phone' => '0911000001',
+            'password' => bcrypt('123456'),
+            'roles' => 'employee',
+            'status' => 1,
+        ]);
+
+        $employeeB = User::firstOrCreate(['username' => 'emp_b_test'], [
+            'fullname' => 'Employee B',
+            'phone' => '0911000002',
+            'password' => bcrypt('123456'),
+            'roles' => 'employee',
+            'status' => 1,
+        ]);
+
+        // Tạo thông báo chung cho bộ phận nhân viên (user_id = null, role = 'employee')
+        $noti = \App\Models\Notification::create([
+            'user_id' => null,
+            'role' => 'employee',
+            'type' => 'system',
+            'title' => 'Thông báo họp giao ca chiều',
+            'message' => 'Toàn bộ nhân viên chú ý họp lúc 14h',
+            'is_read' => false,
+        ]);
+
+        // Ban đầu cả A và B đều thấy chưa đọc
+        $this->assertFalse($noti->isReadBy($employeeA->id));
+        $this->assertFalse($noti->isReadBy($employeeB->id));
+
+        // Nhân viên A đánh dấu đã đọc qua API
+        $this->actingAs($employeeA)->postJson("/notifications/{$noti->id}/read");
+
+        // Nhân viên A thấy đã đọc
+        $this->assertTrue($noti->fresh()->isReadBy($employeeA->id));
+
+        // Nhân viên B VẪN THẤY CHƯA ĐỌC
+        $this->assertFalse($noti->fresh()->isReadBy($employeeB->id));
+
+        // Unread count trên feed của B vẫn còn ít nhất 1
+        $feedB = $this->actingAs($employeeB)->getJson('/notifications/feed');
+        $this->assertGreaterThanOrEqual(1, $feedB->json('unread_count'));
+    }
+
+    /**
+     * Test V4-P2-45 & Scenario 12: Khi admin cập nhật giá trong lúc khách đang gọi thêm món -> Cập nhật đúng giá mới nhất
+     */
+    public function test_v4_p2_45_table_order_service_pending_item_syncs_latest_price(): void
+    {
+        $table = Table::create([
+            'floor_id' => 1,
+            'name' => 'Bàn Test V4 Price Sync ' . uniqid(),
+            'seats' => 4,
+            'status' => 1,
+        ]);
+
+        $this->product->update(['qty' => 50, 'price' => 50000, 'price_buy' => 50000, 'price_sale' => 50000]);
+
+        // Khách gọi 1 phần giá 50.000đ (đang pending)
+        \App\Services\TableOrderService::addItemsToTable($table->id, [
+            ['product_id' => $this->product->id, 'qty' => 1]
+        ]);
+
+        $activeOrder = \App\Services\TableOrderService::getActiveOrder($table->id);
+        $detail = Orderdetail::where('order_id', $activeOrder->id)->first();
+        $this->assertEquals(50000, $detail->price);
+        $this->assertEquals(1, $detail->qty);
+
+        // Admin cập nhật giá món lên 75.000đ
+        $this->product->update(['price' => 75000, 'price_sale' => 75000]);
+
+        // Khách gọi thêm 1 phần cùng món đó khi dòng trước vẫn đang 'pending'
+        \App\Services\TableOrderService::addItemsToTable($table->id, [
+            ['product_id' => $this->product->id, 'qty' => 1]
+        ]);
+
+        $detailFresh = $detail->fresh();
+        $this->assertEquals(2, $detailFresh->qty);
+        // Giá được cập nhật đồng bộ lên 75.000đ và tổng tiền là 150.000đ
+        $this->assertEquals(75000, $detailFresh->price);
+        $this->assertEquals(150000, $detailFresh->amount);
     }
 }

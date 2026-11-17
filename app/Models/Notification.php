@@ -24,12 +24,14 @@ class Notification extends Model
         'data',
         'is_read',
         'read_at',
+        'read_by_users',
     ];
 
     protected $casts = [
         'data' => 'array',
         'is_read' => 'boolean',
         'read_at' => 'datetime',
+        'read_by_users' => 'array',
     ];
 
     public function user()
@@ -103,13 +105,45 @@ class Notification extends Model
     }
 
     /**
-     * Đánh dấu đã đọc
+     * V2-20 & V4: Đánh dấu đã đọc theo từng cá nhân người dùng đối với thông báo chung
      */
-    public function markAsRead()
+    public function markAsRead(?int $userId = null)
     {
-        $this->update([
-            'is_read' => true,
-            'read_at' => Carbon::now(),
-        ]);
+        if ($this->user_id !== null) {
+            $this->update([
+                'is_read' => true,
+                'read_at' => Carbon::now(),
+            ]);
+            return;
+        }
+
+        if ($userId) {
+            $reads = is_array($this->read_by_users) ? $this->read_by_users : [];
+            if (!in_array($userId, $reads)) {
+                $reads[] = $userId;
+                $this->read_by_users = $reads;
+                $this->save();
+            }
+        } else {
+            $this->update([
+                'is_read' => true,
+                'read_at' => Carbon::now(),
+            ]);
+        }
+    }
+
+    /**
+     * V2-20 & V4: Kiểm tra trạng thái đã đọc theo từng người dùng
+     */
+    public function isReadBy(?int $userId = null): bool
+    {
+        if ($this->user_id !== null) {
+            return (bool)$this->is_read;
+        }
+        if (!$userId) {
+            return (bool)$this->is_read;
+        }
+        $reads = is_array($this->read_by_users) ? $this->read_by_users : [];
+        return in_array($userId, $reads) || (bool)$this->is_read;
     }
 }

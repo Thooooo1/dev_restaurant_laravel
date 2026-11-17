@@ -58,6 +58,28 @@ class Table extends Model
     {
         return $this->hasOne(ServiceCall::class, 'table_id')->where('status', ServiceCall::STATUS_PENDING)->latestOfMany();
     }
+
+    /**
+     * V4-P1-36: Lấy token bảo mật QR gắn liền với bàn ăn
+     */
+    public function getQrToken(): string
+    {
+        if (!empty($this->qr_token)) {
+            return (string)$this->qr_token;
+        }
+        return hash('sha256', 'table_qr_salt_' . $this->id . '_' . config('app.key'));
+    }
+
+    /**
+     * V4-P1-36: Xác thực token QR của khách quét tại bàn
+     */
+    public function isValidQrToken(?string $token): bool
+    {
+        if (empty($token)) {
+            return false;
+        }
+        return hash_equals($this->getQrToken(), (string)$token);
+    }
 }
 
 

@@ -7,59 +7,90 @@ use Illuminate\Support\Facades\Log;
 
 class MomoService
 {
-    // Thông tin test chính thức từ Momo GitHub (momo-wallet/payment)
-    const PARTNER_CODE = 'MOMO';
-    const ACCESS_KEY = 'F8BBA842ECF85';
-    const SECRET_KEY = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
-    const REDIRECT_URL = 'http://127.0.0.1:8000/checkout/return';
-    const IPN_URL = 'http://127.0.0.1:8000/checkout/ipn';
+    // Giá trị fallback chỉ dùng cho môi trường local demo / testing kín
+    const SAMPLE_PARTNER_CODE = 'MOMO';
+    const SAMPLE_ACCESS_KEY = 'F8BBA842ECF85';
+    const SAMPLE_SECRET_KEY = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
     const API_ENDPOINT = 'https://test-payment.momo.vn/v2/gateway/api/create';
+
+    public function getPartnerCode(): string
+    {
+        return config('payment.momo.partner_code') ?: env('MOMO_PARTNER_CODE', self::SAMPLE_PARTNER_CODE);
+    }
+
+    public function getAccessKey(): string
+    {
+        return config('payment.momo.access_key') ?: env('MOMO_ACCESS_KEY', self::SAMPLE_ACCESS_KEY);
+    }
+
+    /**
+     * V4-P0-34: Lấy Secret Key an toàn.
+     * Ở môi trường Production, cấm tuyệt đối sử dụng secret key mẫu từ public repo.
+     */
+    public function getSecretKey(): ?string
+    {
+        $key = config('payment.momo.secret_key') ?: env('MOMO_SECRET_KEY');
+        if (config('payment.mode') === 'production') {
+            if (!$key || $key === self::SAMPLE_SECRET_KEY) {
+                return null;
+            }
+        }
+        return $key ?: self::SAMPLE_SECRET_KEY;
+    }
 
     public function createPayment($orderId, $amount, $orderInfo, $extraData = '')
     {
+        $secretKey = $this->getSecretKey();
+        if (!$secretKey) {
+            Log::warning('MoMo createPayment: Secret key is not configured for production.');
+            return [
+                'payUrl' => route('site.momo.sandbox', ['order' => $orderId]),
+                'is_sandbox_simulation' => true,
+                'message' => 'MoMo chưa cấu hình key production, chuyển sang mô phỏng sandbox'
+            ];
+        }
+
+        $partnerCode = $this->getPartnerCode();
+        $accessKey = $this->getAccessKey();
+        $redirectUrl = route('site.momo.return');
+        $ipnUrl = route('site.momo.ipn');
+
         $requestId = time() . '_' . uniqid();
         $orderId = (string) $orderId;
         $amount = (string) round($amount); // Đảm bảo là số nguyên VND
-        $extraData = ''; // Để trống cho đơn giản như ví dụ Momo
-        $orderInfo = 'Thanh toan don hang'; // Thông tin đơn giản
+        $extraData = '';
+        $orderInfo = 'Thanh toan don hang #' . $orderId;
 
-        // Raw Hash chính xác theo thứ tự từ Momo GitHub
-        $rawHash = "accessKey=" . self::ACCESS_KEY . "&" .
+        // Raw Hash chính xác theo chuẩn MoMo
+        $rawHash = "accessKey=" . $accessKey . "&" .
                     "amount=" . $amount . "&" .
                     "extraData=" . $extraData . "&" .
-                    "ipnUrl=" . self::IPN_URL . "&" .
+                    "ipnUrl=" . $ipnUrl . "&" .
                     "orderId=" . $orderId . "&" .
                     "orderInfo=" . $orderInfo . "&" .
-                    "partnerCode=" . self::PARTNER_CODE . "&" .
-                    "redirectUrl=" . self::REDIRECT_URL . "&" .
+                    "partnerCode=" . $partnerCode . "&" .
+                    "redirectUrl=" . $redirectUrl . "&" .
                     "requestId=" . $requestId . "&" .
                     "requestType=captureWallet";
 
-        Log::info('=== MOMO RAW HASH ===');
-        Log::info($rawHash);
-
-        // Tạo chữ ký
-        $signature = hash_hmac('sha256', $rawHash, self::SECRET_KEY);
+        $signature = hash_hmac('sha256', $rawHash, $secretKey);
 
         $data = [
-            'partnerCode' => self::PARTNER_CODE,
+            'partnerCode' => $partnerCode,
             'partnerName' => 'MoMo Payment',
-            'storeId' => 'Test Store',
+            'storeId' => 'CIVILIZE Restaurant',
             'requestId' => $requestId,
             'amount' => $amount,
             'orderId' => $orderId,
             'orderInfo' => $orderInfo,
-            'redirectUrl' => self::REDIRECT_URL,
-            'ipnUrl' => self::IPN_URL,
+            'redirectUrl' => $redirectUrl,
+            'ipnUrl' => $ipnUrl,
             'lang' => 'vi',
             'extraData' => $extraData,
             'requestType' => 'captureWallet',
             'signature' => $signature,
             'autoCapture' => true
         ];
-
-        Log::info('=== MOMO REQUEST ===');
-        Log::info(json_encode($data));
 
         try {
             $httpClient = Http::withHeaders([
@@ -73,10 +104,8 @@ class MomoService
                 $httpClient = $httpClient->withoutVerifying();
             }
 
-            $response = $httpClient->timeout(5)->post(self::API_ENDPOINT, $data);
-
-            Log::info('=== MOMO RESPONSE ===');
-            Log::info($response->body());
+            $endpoint = config('payment.momo.endpoint') ?: self::API_ENDPOINT;
+            $response = $httpClient->timeout(5)->post($endpoint, $data);
 
             if ($response->successful() && !empty($response->json()) && !empty($response->json()['payUrl'])) {
                 return $response->json();
@@ -99,22 +128,30 @@ class MomoService
             return false;
         }
 
-        $rawHash = "accessKey=" . self::ACCESS_KEY . "&" .
-                    "amount=" . $data['amount'] . "&" .
-                    "extraData=" . $data['extraData'] . "&" .
-                    "message=" . $data['message'] . "&" .
-                    "orderId=" . $data['orderId'] . "&" .
-                    "orderInfo=" . $data['orderInfo'] . "&" .
-                    "orderType=" . $data['orderType'] . "&" .
-                    "partnerCode=" . $data['partnerCode'] . "&" .
-                    "payType=" . $data['payType'] . "&" .
-                    "requestId=" . $data['requestId'] . "&" .
-                    "responseTime=" . $data['responseTime'] . "&" .
-                    "resultCode=" . $data['resultCode'] . "&" .
-                    "transId=" . $data['transId'];
+        $secretKey = $this->getSecretKey();
+        if (!$secretKey) {
+            Log::error('MoMo verifyPayment rejected: Production secret key missing or sample key used.');
+            return false;
+        }
 
-        $signature = hash_hmac('sha256', $rawHash, self::SECRET_KEY);
+        $accessKey = $this->getAccessKey();
 
-        return $signature === $data['signature'];
+        $rawHash = "accessKey=" . $accessKey . "&" .
+                    "amount=" . ($data['amount'] ?? '') . "&" .
+                    "extraData=" . ($data['extraData'] ?? '') . "&" .
+                    "message=" . ($data['message'] ?? '') . "&" .
+                    "orderId=" . ($data['orderId'] ?? '') . "&" .
+                    "orderInfo=" . ($data['orderInfo'] ?? '') . "&" .
+                    "orderType=" . ($data['orderType'] ?? '') . "&" .
+                    "partnerCode=" . ($data['partnerCode'] ?? '') . "&" .
+                    "payType=" . ($data['payType'] ?? '') . "&" .
+                    "requestId=" . ($data['requestId'] ?? '') . "&" .
+                    "responseTime=" . ($data['responseTime'] ?? '') . "&" .
+                    "resultCode=" . ($data['resultCode'] ?? '') . "&" .
+                    "transId=" . ($data['transId'] ?? '');
+
+        $signature = hash_hmac('sha256', $rawHash, $secretKey);
+
+        return hash_equals($signature, (string)$data['signature']);
     }
 }

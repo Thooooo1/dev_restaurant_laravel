@@ -74,6 +74,14 @@ class TableOrderService
     }
 
     /**
+     * Alias thuận tiện gọi thêm món cho bàn
+     */
+    public static function addItemsToTable(int|string $tableId, array $items, ?int $turn = null): Order
+    {
+        return static::addItemsToTableOrder($tableId, $items, $turn);
+    }
+
+    /**
      * Thêm món vào đơn hàng duy nhất của bàn (Gộp số lượng nếu món đã tồn tại)
      */
     public static function addItemsToTableOrder(int|string $tableId, array $items, ?int $turn = null): Order
@@ -131,7 +139,9 @@ class TableOrderService
 
                 if ($pendingDetail) {
                     $pendingDetail->qty += $qty;
-                    $pendingDetail->amount = $pendingDetail->price * $pendingDetail->qty;
+                    // V4-P2-45: Đồng bộ theo giá mới nhất từ Product
+                    $pendingDetail->price = $price;
+                    $pendingDetail->amount = $price * $pendingDetail->qty;
                     $pendingDetail->save();
                 } else {
                     Orderdetail::create([
