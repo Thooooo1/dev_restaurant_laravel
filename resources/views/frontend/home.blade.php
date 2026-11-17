@@ -5,7 +5,8 @@
         <script type="text/javascript">
             $(document).ready(function () {
                 if ($('.home-hero-slider').length) {
-                    $('.home-hero-slider').slick({
+                    var $slider = $('.home-hero-slider');
+                    $slider.slick({
                         infinite: true,
                         slidesToShow: 1,
                         slidesToScroll: 1,
@@ -19,10 +20,21 @@
                         pauseOnDotsHover: true,
                         arrows: true,
                         dots: true,
+                        appendDots: $('.hero-dots-slot'),
                         swipe: true,
                         touchMove: true,
                         prevArrow: '<button type="button" class="slick-prev flex items-center justify-center cursor-pointer" aria-label="Lướt sang trang trước" title="Lướt sang trái"><i class="fas fa-chevron-left"></i></button>',
                         nextArrow: '<button type="button" class="slick-next flex items-center justify-center cursor-pointer" aria-label="Lướt sang trang sau" title="Lướt sang phải"><i class="fas fa-chevron-right"></i></button>'
+                    });
+
+                    // Nút bấm lướt trái / phải ở thanh điều khiển dưới đáy
+                    $(document).on('click', '.hero-bar-prev', function (e) {
+                        e.preventDefault();
+                        $slider.slick('slickPrev');
+                    });
+                    $(document).on('click', '.hero-bar-next', function (e) {
+                        e.preventDefault();
+                        $slider.slick('slickNext');
                     });
                 }
             });
@@ -67,7 +79,7 @@
                             ? asset('images/banner/' . $imgFile)
                             : asset('images/banner/' . $fallback['image']);
                     @endphp
-                    <div class="hero-slide-item relative w-full min-h-[580px] sm:min-h-[660px] lg:min-h-[720px] flex items-end outline-none">
+                    <div class="hero-slide-item relative w-full h-full min-h-[480px] sm:min-h-[540px] lg:min-h-[580px] flex items-center outline-none">
                         <!-- High-Res Background Image -->
                         <div class="absolute inset-0 overflow-hidden">
                             <img src="{{ $imgUrl }}" 
@@ -79,7 +91,7 @@
                         </div>
 
                         <!-- Slide Content: Căn chỉnh ngắt dòng hợp lý, chuẩn ý nghĩa, không bị rớt từ cụt ngủn -->
-                        <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 pt-28 sm:pt-36 pb-16 sm:pb-20 lg:pb-24">
+                        <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 pt-16 sm:pt-20 pb-20 sm:pb-24">
                             <div class="max-w-4xl text-left text-white">
 
                                 @php
@@ -126,6 +138,28 @@
                         </div>
                     </div>
                 @endforeach
+            </div>
+
+            <!-- Thanh điều khiển chuyển trang trái/phải & chấm slide dưới đáy -->
+            <div class="hero-carousel-bar absolute bottom-5 sm:bottom-7 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-stone-950/85 border border-white/30 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.65)]">
+                <!-- Nút chuyển sang trái -->
+                <button type="button" 
+                        class="hero-bar-prev w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white/90 hover:text-white bg-white/10 hover:bg-[#F47716] active:scale-90 transition-all cursor-pointer focus:outline-none" 
+                        aria-label="Lướt sang trái / Trang trước" 
+                        title="Trang trước">
+                    <i class="fas fa-chevron-left text-xs sm:text-sm"></i>
+                </button>
+
+                <!-- Vùng chứa các chấm trang (Dots Slot) -->
+                <div class="hero-dots-slot flex items-center"></div>
+
+                <!-- Nút chuyển sang phải -->
+                <button type="button" 
+                        class="hero-bar-next w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white/90 hover:text-white bg-white/10 hover:bg-[#F47716] active:scale-90 transition-all cursor-pointer focus:outline-none" 
+                        aria-label="Lướt sang phải / Trang sau" 
+                        title="Trang sau">
+                    <i class="fas fa-chevron-right text-xs sm:text-sm"></i>
+                </button>
             </div>
         </section>
 

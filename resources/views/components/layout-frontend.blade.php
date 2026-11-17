@@ -19,11 +19,26 @@
     <link rel="apple-touch-icon" href="{{ asset('images/logo/logo.png') }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/logo/logo.png') }}">
     
-    <!-- PWA Service Worker Registration -->
+    <!-- PWA Service Worker Registration (Tự động xóa cache trên localhost để luôn hiển thị giao diện mới nhất) -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').catch(function() {});
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                        for (let registration of registrations) {
+                            registration.unregister();
+                        }
+                    });
+                    if (window.caches) {
+                        caches.keys().then(function(names) {
+                            for (let name of names) caches.delete(name);
+                        });
+                    }
+                } else {
+                    navigator.serviceWorker.register('/sw.js').then(function(reg) {
+                        reg.update();
+                    }).catch(function() {});
+                }
             });
         }
     </script>
@@ -93,26 +108,28 @@
     <link rel="stylesheet" href="{{ asset('fonts/fonts.css') }}">
 
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
-                        serif: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#FFF7ED',
-                            100: '#FFEDD5',
-                            200: '#FED7AA',
-                            500: '#F47716',
-                            600: '#EA580C',
-                            700: '#C25E00',
-                            800: '#9A3412',
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            sans: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+                            serif: ['"Inter"', 'system-ui', '-apple-system', 'sans-serif'],
+                        },
+                        colors: {
+                            brand: {
+                                50: '#FFF7ED',
+                                100: '#FFEDD5',
+                                200: '#FED7AA',
+                                500: '#F47716',
+                                600: '#EA580C',
+                                700: '#C25E00',
+                                800: '#9A3412',
+                            }
                         }
                     }
                 }
-            }
+            };
         }
     </script>
     <style>
@@ -231,16 +248,16 @@
             position: absolute !important;
             top: 50% !important;
             transform: translateY(-50%) !important;
-            z-index: 45 !important;
-            width: 42px !important;
-            height: 42px !important;
+            z-index: 50 !important;
+            width: 44px !important;
+            height: 44px !important;
             border-radius: 9999px !important;
-            background: rgba(18, 18, 18, 0.72) !important;
+            background: rgba(18, 18, 18, 0.88) !important;
             backdrop-filter: blur(10px) !important;
             -webkit-backdrop-filter: blur(10px) !important;
-            border: 1.5px solid rgba(255, 255, 255, 0.3) !important;
-            color: #ffffff !important;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45) !important;
+            border: 2.5px solid #F47716 !important;
+            color: #F47716 !important;
+            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.7), 0 0 16px rgba(244, 119, 22, 0.45) !important;
             cursor: pointer !important;
             outline: none !important;
             padding: 0 !important;
@@ -259,12 +276,12 @@
 
         .home-hero-slider .slick-prev i,
         .home-hero-slider .slick-next i {
-            color: #ffffff !important;
-            font-size: 15px !important;
+            color: #F47716 !important;
+            font-size: 16px !important;
             line-height: 1 !important;
             display: inline-block !important;
             pointer-events: none !important;
-            transition: transform 0.2s ease !important;
+            transition: all 0.2s ease !important;
         }
 
         /* Hover & Focus state */
@@ -273,10 +290,15 @@
         .home-hero-slider .slick-prev:focus-visible,
         .home-hero-slider .slick-next:focus-visible {
             background: #F47716 !important;
-            border-color: #F47716 !important;
+            border-color: #ffffff !important;
             color: #ffffff !important;
-            box-shadow: 0 8px 25px rgba(244, 119, 22, 0.55), 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-            transform: translateY(-50%) scale(1.1) !important;
+            box-shadow: 0 8px 30px rgba(244, 119, 22, 0.9), 0 4px 14px rgba(0, 0, 0, 0.6) !important;
+            transform: translateY(-50%) scale(1.12) !important;
+        }
+
+        .home-hero-slider .slick-prev:hover i,
+        .home-hero-slider .slick-next:hover i {
+            color: #ffffff !important;
         }
 
         .home-hero-slider .slick-prev:hover i {
@@ -323,25 +345,73 @@
             }
         }
 
-        /* Hero Carousel Modern Capsule Dots */
-        .home-hero-slider .slick-dots {
+        /* Hero Carousel Control Bar (Bottom Bar) */
+        .hero-carousel-bar {
+            position: absolute !important;
             bottom: 24px !important;
-            z-index: 35 !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 50 !important;
+            user-select: none;
+            background: rgba(18, 18, 18, 0.92) !important;
+            border: 2px solid rgba(244, 119, 22, 0.75) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 20px rgba(244, 119, 22, 0.4) !important;
+        }
+
+        .hero-carousel-bar .hero-bar-prev,
+        .hero-carousel-bar .hero-bar-next {
+            outline: none !important;
+            background: rgba(244, 119, 22, 0.15) !important;
+            border: 1.5px solid #F47716 !important;
+            color: #F47716 !important;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .hero-carousel-bar .hero-bar-prev i,
+        .hero-carousel-bar .hero-bar-next i {
+            color: #F47716 !important;
+            transition: color 0.2s ease !important;
+        }
+
+        .hero-carousel-bar .hero-bar-prev:hover,
+        .hero-carousel-bar .hero-bar-next:hover {
+            border-color: #ffffff !important;
+            background: #F47716 !important;
+            box-shadow: 0 0 16px rgba(244, 119, 22, 0.9) !important;
+            transform: scale(1.1) !important;
+        }
+
+        .hero-carousel-bar .hero-bar-prev:hover i,
+        .hero-carousel-bar .hero-bar-next:hover i {
+            color: #ffffff !important;
+        }
+
+        .hero-carousel-bar .hero-bar-prev:active,
+        .hero-carousel-bar .hero-bar-next:active {
+            transform: scale(0.9) !important;
+        }
+
+        /* Hero Carousel Dots inside .hero-dots-slot */
+        .hero-dots-slot .slick-dots,
+        .home-hero-slider .slick-dots {
+            position: static !important;
             display: flex !important;
             justify-content: center !important;
             align-items: center !important;
             gap: 8px !important;
+            padding: 0 4px !important;
+            margin: 0 !important;
+            list-style: none !important;
             width: auto !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            padding: 6px 14px !important;
-            background: rgba(15, 15, 15, 0.55) !important;
-            backdrop-filter: blur(8px) !important;
-            -webkit-backdrop-filter: blur(8px) !important;
-            border-radius: 9999px !important;
-            border: 1px solid rgba(255, 255, 255, 0.18) !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+            bottom: auto !important;
+            left: auto !important;
+            transform: none !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
         }
+
+        .hero-dots-slot .slick-dots li,
         .home-hero-slider .slick-dots li {
             margin: 0 !important;
             width: 10px !important;
@@ -352,12 +422,14 @@
             justify-content: center !important;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
+
+        .hero-dots-slot .slick-dots li button,
         .home-hero-slider .slick-dots li button {
             width: 10px !important;
             height: 10px !important;
             padding: 0 !important;
             border-radius: 9999px !important;
-            background: rgba(255, 255, 255, 0.5) !important;
+            background: rgba(255, 255, 255, 0.45) !important;
             border: none !important;
             outline: none !important;
             cursor: pointer !important;
@@ -365,19 +437,27 @@
             line-height: 0 !important;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
+
+        .hero-dots-slot .slick-dots li button:before,
         .home-hero-slider .slick-dots li button:before {
             display: none !important;
             content: '' !important;
         }
+
+        .hero-dots-slot .slick-dots li button:hover,
         .home-hero-slider .slick-dots li button:hover {
             background: rgba(255, 255, 255, 0.95) !important;
             transform: scale(1.25) !important;
         }
+
+        .hero-dots-slot .slick-dots li.slick-active,
         .home-hero-slider .slick-dots li.slick-active {
-            width: 28px !important;
+            width: 26px !important;
         }
+
+        .hero-dots-slot .slick-dots li.slick-active button,
         .home-hero-slider .slick-dots li.slick-active button {
-            width: 28px !important;
+            width: 26px !important;
             height: 10px !important;
             border-radius: 9999px !important;
             background: #F47716 !important;
@@ -423,7 +503,6 @@
         }
     </style>
 
-    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     {{ $header ?? '' }}
 </head>
 

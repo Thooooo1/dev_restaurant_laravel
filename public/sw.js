@@ -1,4 +1,4 @@
-const CACHE_NAME = 'civilize-cache-v2';
+const CACHE_NAME = 'civilize-cache-v3';
 const STATIC_ASSETS = [
     '/',
     '/images/logo/logo.png',
@@ -16,12 +16,12 @@ self.addEventListener('install', (event) => {
     );
 });
 
-// Activate: Clean up old caches
+// Activate: Clean up old caches immediately
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => {
             return Promise.all(
-                keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
+                keys.map((key) => caches.delete(key))
             );
         }).then(() => self.clients.claim())
     );
@@ -32,8 +32,13 @@ self.addEventListener('fetch', (event) => {
     const request = event.request;
     const url = new URL(request.url);
 
-    // Skip non-GET requests and browser extensions
-    if (request.method !== 'GET' || !url.protocol.startsWith('http')) {
+    // Skip non-GET requests, browser extensions, and local development (always fresh on localhost)
+    if (
+        request.method !== 'GET' ||
+        !url.protocol.startsWith('http') ||
+        url.hostname === 'localhost' ||
+        url.hostname === '127.0.0.1'
+    ) {
         return;
     }
 
