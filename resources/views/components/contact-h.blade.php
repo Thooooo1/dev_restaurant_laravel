@@ -86,25 +86,25 @@
                     </div>
                 </div>
 
-                <!-- Social Icons: Vuông bo nhẹ chuẩn Ảnh 2 -->
+                <!-- Social Icons: Vuông bo nhẹ, chuyển màu chuẩn app khi hover -->
                 <div class="pt-6 border-t border-stone-100 flex items-center gap-2.5">
                     <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" 
-                       class="w-9 h-9 rounded-none sm:rounded-sm border border-stone-200 hover:border-[#1877F2] hover:bg-[#1877F2]/10 text-stone-600 hover:text-[#1877F2] flex items-center justify-center transition-colors text-xs" 
+                       class="hover-social-fb w-9 h-9 rounded-none sm:rounded-sm bg-white border border-stone-200 text-stone-700 flex items-center justify-center transition-all duration-300 shadow-2xs text-xs" 
                        title="Facebook">
                         <i class="fab fa-facebook-f"></i>
                     </a>
                     <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" 
-                       class="w-9 h-9 rounded-none sm:rounded-sm border border-stone-200 hover:border-[#E4405F] hover:bg-[#E4405F]/10 text-stone-600 hover:text-[#E4405F] flex items-center justify-center transition-colors text-xs" 
+                       class="hover-social-insta w-9 h-9 rounded-none sm:rounded-sm bg-white border border-stone-200 text-stone-700 flex items-center justify-center transition-all duration-300 shadow-2xs text-xs" 
                        title="Instagram">
                         <i class="fab fa-instagram"></i>
                     </a>
                     <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" 
-                       class="w-9 h-9 rounded-none sm:rounded-sm border border-stone-200 hover:border-black hover:bg-black/10 text-stone-600 hover:text-black flex items-center justify-center transition-colors text-xs" 
+                       class="hover-social-tiktok w-9 h-9 rounded-none sm:rounded-sm bg-white border border-stone-200 text-stone-700 flex items-center justify-center transition-all duration-300 shadow-2xs text-xs" 
                        title="TikTok">
                         <i class="fab fa-tiktok"></i>
                     </a>
                     <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" 
-                       class="w-9 h-9 rounded-none sm:rounded-sm border border-stone-200 hover:border-[#FF0000] hover:bg-[#FF0000]/10 text-stone-600 hover:text-[#FF0000] flex items-center justify-center transition-colors text-xs" 
+                       class="hover-social-yt w-9 h-9 rounded-none sm:rounded-sm bg-white border border-stone-200 text-stone-700 flex items-center justify-center transition-all duration-300 shadow-2xs text-xs" 
                        title="YouTube">
                         <i class="fab fa-youtube"></i>
                     </a>

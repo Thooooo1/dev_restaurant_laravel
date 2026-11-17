@@ -98,6 +98,13 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
         }
+
+        .hover-social-fb:hover i,
+        .hover-social-insta:hover i,
+        .hover-social-tiktok:hover i,
+        .hover-social-yt:hover i {
+            color: #ffffff !important;
+        }
     </style>
 
     <!-- Google Fonts: Inter (Cực kỳ sắc nét, rõ ràng, dễ nhìn nhất trên mọi màn hình máy tính & điện thoại) -->
