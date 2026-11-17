@@ -800,9 +800,21 @@ class CartController extends Controller
                 $tableId = session('table_id');
 
                 // Nếu đang ngồi tại bàn, kiểm tra đơn hàng đang hoạt động để gộp món (Single Active Table Order)
-                $existingOrder = $tableId ? \App\Services\TableOrderService::getActiveOrder($tableId) : null;
+                // Áp dụng lockForUpdate và kiểm tra trạng thái thanh toán để chống race condition và không cho gộp món vào đơn đã thanh toán
+                $existingOrder = $tableId 
+                    ? Order::where('table_id', $tableId)
+                        ->whereNull('deleted_at')
+                        ->whereIn('status', [\App\Enums\OrderStatus::PENDING, \App\Enums\OrderStatus::PROCESSING])
+                        ->lockForUpdate()
+                        ->latest('id')
+                        ->first() 
+                    : null;
 
                 if ($existingOrder) {
+                    if ($existingOrder->isPaid() || $existingOrder->payment_status === Order::PAYMENT_PAID) {
+                        throw new \DomainException('Đơn hàng của bàn này đã thanh toán xong, không thể gọi thêm món. Vui lòng mở phiên gọi món mới.');
+                    }
+
                     $order = $existingOrder;
                     if ($request->payment_method == 'TaiBan') {
                         $order->payment_method = 'TaiBan';

@@ -160,10 +160,12 @@ class NotificationController extends Controller
             ];
         });
 
-        // Biến đổi serviceCalls sang format hiển thị
+        // Biến đổi serviceCalls sang format hiển thị (chống XSS)
         $formattedCalls = $serviceCalls->map(function ($call) {
-            $tableName = $call->table ? $call->table->name : ($call->order_id ? "Đơn online #{$call->order_id}" : ($call->customer_name ?: 'Khách vãng lai'));
-            $floorName = ($call->table && $call->table->floor) ? $call->table->floor->name : null;
+            $rawTable = $call->table ? $call->table->name : ($call->order_id ? "Đơn online #{$call->order_id}" : ($call->customer_name ?: 'Khách vãng lai'));
+            $rawFloor = ($call->table && $call->table->floor) ? $call->table->floor->name : null;
+            $tableName = e($rawTable);
+            $floorName = $rawFloor ? e($rawFloor) : null;
             $typeInfo = $call->type_info;
 
             $posUrl = $call->table_id 
@@ -171,17 +173,17 @@ class NotificationController extends Controller
                 : ($call->order_id ? route('admin.order.orderdetail', $call->order_id) : route('admin.table-order.index'));
 
             return [
-                'id' => $call->id,
+                'id' => (int)$call->id,
                 'table_id' => $call->table_id,
                 'table_name' => $tableName,
                 'floor_name' => $floorName,
                 'full_table_name' => $floorName ? "{$tableName} ({$floorName})" : $tableName,
                 'type' => $call->call_type,
-                'type_label' => $call->call_type_label ?: $typeInfo['label'],
+                'type_label' => e($call->call_type_label ?: $typeInfo['label']),
                 'icon' => $typeInfo['icon'],
                 'color' => $typeInfo['color'],
-                'note' => $call->note,
-                'customer_name' => $call->customer_name,
+                'note' => $call->note ? e($call->note) : null,
+                'customer_name' => $call->customer_name ? e($call->customer_name) : null,
                 'created_at' => $call->created_at->toIso8601String(),
                 'time_ago' => $call->created_at->locale('vi')->diffForHumans(),
                 'pos_url' => $posUrl,
@@ -190,15 +192,15 @@ class NotificationController extends Controller
 
         // Biến đổi newOrders sang format hiển thị
         $formattedOrders = $newOrders->map(function ($order) {
-            $tableName = $order->table ? $order->table->name : ($order->orderStyle == 2 ? 'Đơn giao hàng' : 'Đơn mang về');
-            $floorName = ($order->table && $order->table->floor) ? $order->table->floor->name : null;
+            $tableName = $order->table ? e($order->table->name) : ($order->orderStyle == 2 ? 'Đơn giao hàng' : 'Đơn mang về');
+            $floorName = ($order->table && $order->table->floor) ? e($order->table->floor->name) : null;
 
             return [
-                'id' => $order->id,
+                'id' => (int)$order->id,
                 'table_id' => $order->table_id,
                 'order_style' => $order->orderStyle,
                 'title' => $order->table ? "Bàn {$tableName} vừa gọi thêm món" : "Đơn hàng mới #{$order->id}",
-                'subtitle' => $floorName ? "Vị trí: {$floorName}" : ($order->name ? "Khách: {$order->name}" : ''),
+                'subtitle' => $floorName ? "Vị trí: {$floorName}" : ($order->name ? "Khách: " . e($order->name) : ''),
                 'total_price' => number_format($order->total_price, 0, ',', '.') . 'đ',
                 'time_ago' => $order->updated_at->locale('vi')->diffForHumans(),
                 'url' => $order->table_id ? route('admin.table-order.order', $order->table_id) : route('admin.order.orderdetail', $order->id),
@@ -208,12 +210,12 @@ class NotificationController extends Controller
         // Biến đổi newBookings sang format hiển thị
         $formattedBookings = $newBookings->map(function ($b) {
             return [
-                'id' => $b->id,
-                'customer_name' => $b->name,
-                'phone' => $b->phone,
-                'people' => $b->number_of_people,
+                'id' => (int)$b->id,
+                'customer_name' => e($b->name),
+                'phone' => e($b->phone),
+                'people' => (int)$b->number_of_people,
                 'booking_date' => Carbon::parse($b->booking_date)->format('d/m/Y'),
-                'booking_time' => $b->booking_time,
+                'booking_time' => e($b->booking_time),
                 'time_ago' => $b->created_at->locale('vi')->diffForHumans(),
                 'url' => route('admin.booking.detail', $b->id),
             ];
@@ -302,10 +304,15 @@ class NotificationController extends Controller
      */
     public function markAsRead(Request $request, $id)
     {
-        $noti = SystemNotification::find($id);
-        if ($noti) {
-            $noti->markAsRead();
+        $user = Auth::user();
+        $noti = SystemNotification::forUser($user)->find($id);
+        if (!$noti) {
+            if (SystemNotification::where('id', $id)->exists()) {
+                return response()->json(['success' => false, 'message' => 'Bạn không có quyền thao tác trên thông báo này.'], 403);
+            }
+            return response()->json(['success' => false, 'message' => 'Thông báo không tồn tại.'], 404);
         }
+        $noti->markAsRead();
         return response()->json(['success' => true]);
     }
 

@@ -335,4 +335,205 @@ class SecurityAuditCodeReviewFixesTest extends TestCase
         // Chỉ có đúng 1 transaction được ghi
         $this->assertEquals(1, PaymentTransaction::where('order_id', $order->id)->count());
     }
+
+    /**
+     * Test V2-P1-19: ServiceCall Controller loại bỏ thẻ HTML và xác thực chặt chẽ call_type
+     */
+    public function test_v2_p1_19_service_call_sanitizes_html_and_validates_type(): void
+    {
+        // 1. Gửi HTML độc hại trong note và customer_name
+        $response = $this->postJson(route('site.service-call.store'), [
+            'table_id' => $this->table->id,
+            'call_type' => 'call_waiter',
+            'note' => 'Cần hỗ trợ <script>alert("xss")</script> ngay',
+            'customer_name' => '<b>Hacker</b>',
+            'phone' => '0912345678',
+        ]);
+
+        $response->assertStatus(200);
+        $callId = $response->json('call.id') ?? $response->json('call_id');
+        $this->assertNotNull($callId);
+
+        $savedCall = \App\Models\ServiceCall::find($callId);
+        $this->assertStringNotContainsString('<script>', $savedCall->note);
+        $this->assertStringNotContainsString('<b>', $savedCall->customer_name);
+
+        // 2. Gửi call_type không hợp lệ phải bị từ chối 422
+        $invalidResponse = $this->postJson(route('site.service-call.store'), [
+            'table_id' => $this->table->id,
+            'call_type' => 'invalid_malicious_type',
+        ]);
+        $invalidResponse->assertStatus(422);
+    }
+
+    /**
+     * Test V2-P1-20: Khách hàng / khách vãng lai không thể đánh dấu đã đọc thông báo của nhân viên
+     */
+    public function test_v2_p1_20_customer_cannot_mark_employee_notifications_as_read(): void
+    {
+        // Tạo thông báo nội bộ của nhân viên
+        $staffNoti = \App\Models\Notification::create([
+            'user_id' => null,
+            'role' => 'employee',
+            'type' => 'service_call',
+            'title' => 'Bàn 5 gọi nhân viên',
+            'message' => 'Yêu cầu hỗ trợ',
+            'is_read' => false,
+        ]);
+
+        // Khách vãng lai (chưa đăng nhập) thử markAsRead
+        Auth::logout();
+        $guestResponse = $this->postJson("/notifications/{$staffNoti->id}/read");
+        $guestResponse->assertStatus(403);
+
+        // Khách hàng thông thường thử markAsRead
+        $custResponse = $this->actingAs($this->customer)->postJson("/notifications/{$staffNoti->id}/read");
+        $custResponse->assertStatus(403);
+        $this->assertFalse($staffNoti->fresh()->is_read);
+
+        // Nhân viên đăng nhập được phép markAsRead
+        $employee = User::create([
+            'username' => 'emp_' . uniqid(),
+            'fullname' => 'Staff Member',
+            'phone' => '098' . random_int(1000000, 9999999),
+            'password' => Hash::make('password123'),
+            'roles' => 'employee',
+            'status' => 1,
+        ]);
+
+        $empResponse = $this->actingAs($employee)->postJson("/notifications/{$staffNoti->id}/read");
+        $empResponse->assertStatus(200);
+        $this->assertTrue($staffNoti->fresh()->is_read);
+    }
+
+    /**
+     * Test V2-P1-22: Không thể checkout gộp thêm món vào đơn bàn đã thanh toán
+     */
+    public function test_v2_p1_22_checkout_rejects_merging_into_paid_table_order(): void
+    {
+        // Tạo đơn hàng tại bàn đã thanh toán (payment_status = paid)
+        $paidOrder = Order::create([
+            'table_id' => $this->table->id,
+            'user_id' => $this->customer->id,
+            'name' => $this->customer->fullname,
+            'phone' => $this->customer->phone,
+            'address' => 'Tại quán',
+            'total_price' => 50000,
+            'status' => 1, // Processing
+            'payment_status' => Order::PAYMENT_PAID,
+            'paid_at' => Carbon::now(),
+            'created_by' => 1,
+        ]);
+
+        $cartKey = "cart_" . $this->customer->id;
+        session([
+            'table_id' => $this->table->id,
+            $cartKey => [
+                $this->product->id => [
+                    'id' => $this->product->id,
+                    'name' => $this->product->name,
+                    'slug' => $this->product->slug,
+                    'price' => (float)$this->product->price,
+                    'qty' => 1,
+                    'discount' => 0,
+                    'image' => $this->product->image,
+                ]
+            ]
+        ]);
+
+        // Thử thực hiện checkout khi bàn đã thanh toán
+        $response = $this->actingAs($this->customer)->post(route('site.checkout'), [
+            'payment_method' => 'TaiBan',
+            'name' => $this->customer->fullname,
+            'phone' => $this->customer->phone,
+        ]);
+
+        // Phải bị từ chối với thông báo lỗi
+        $response->assertSessionHas('error');
+        $this->assertEquals(0, Orderdetail::where('order_id', $paidOrder->id)->where('product_id', $this->product->id)->count());
+    }
+
+    /**
+     * Test V2-P2-23: Đăng ký thành viên ngăn chặn lỗ hổng Open Redirect
+     */
+    public function test_v2_p2_23_registration_rejects_open_redirect(): void
+    {
+        $uniquePhone = '098' . random_int(1000000, 9999999);
+        $response = $this->post(route('site.doregister'), [
+            'fullname' => 'New User Test',
+            'username' => 'newuser_' . uniqid(),
+            'phone' => $uniquePhone,
+            'email' => 'newuser_' . uniqid() . '@civilize.vn',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'redirect' => 'https://evil.com/phishing',
+        ]);
+
+        // Không được redirect sang external domain evil.com
+        $response->assertRedirect(route('site.home'));
+    }
+
+    /**
+     * Test V2-P2-24: Đặt lại đơn (Reorder) lấy giá niêm yết hiện tại và bỏ qua món ngừng kinh doanh
+     */
+    public function test_v2_p2_24_reorder_uses_live_pricing_and_ignores_inactive_products(): void
+    {
+        // 1. Món A còn kinh doanh nhưng giá đã tăng từ 50k lên 80k
+        $this->product->update(['price_sale' => 80000, 'price_buy' => 80000, 'status' => 1]);
+
+        // 2. Món B đã tạm dừng kinh doanh (status = 0)
+        $inactiveProduct = Product::create([
+            'name' => 'Món Đã Ngừng ' . uniqid(),
+            'slug' => 'mon-ngung-' . uniqid(),
+            'price' => 30000,
+            'price_buy' => 20000,
+            'price_sale' => 30000,
+            'qty' => 0,
+            'status' => 0,
+            'category_id' => 1,
+            'brand_id' => 1,
+        ]);
+
+        // Tạo đơn hàng cũ đã hoàn thành
+        $oldOrder = Order::create([
+            'user_id' => $this->customer->id,
+            'name' => $this->customer->fullname,
+            'phone' => $this->customer->phone,
+            'address' => 'Tại quán',
+            'total_price' => 80000,
+            'status' => 2, // Đã hoàn thành (cho phép reorder)
+            'payment_status' => Order::PAYMENT_PAID,
+            'created_by' => 1,
+        ]);
+
+        Orderdetail::create([
+            'order_id' => $oldOrder->id,
+            'product_id' => $this->product->id,
+            'price' => 50000, // Giá cũ trong lịch sử
+            'qty' => 2,
+            'amount' => 100000,
+        ]);
+
+        Orderdetail::create([
+            'order_id' => $oldOrder->id,
+            'product_id' => $inactiveProduct->id,
+            'price' => 30000,
+            'qty' => 1,
+            'amount' => 30000,
+        ]);
+
+        $response = $this->actingAs($this->customer)->get(route('site.orders.reorder', $oldOrder->id));
+        $response->assertRedirect(route('site.cart'));
+
+        $cartKey = "cart_" . $this->customer->id;
+        $cart = session($cartKey);
+
+        // Món A phải có trong giỏ hàng với giá mới (80.000đ) thay vì giá cũ (50.000đ)
+        $this->assertArrayHasKey($this->product->id, $cart);
+        $this->assertEquals(80000, $cart[$this->product->id]['price']);
+        $this->assertEquals(2, $cart[$this->product->id]['qty']);
+
+        // Món B ngừng phục vụ phải bị loại trừ khỏi giỏ hàng
+        $this->assertArrayNotHasKey($inactiveProduct->id, $cart);
+    }
 }

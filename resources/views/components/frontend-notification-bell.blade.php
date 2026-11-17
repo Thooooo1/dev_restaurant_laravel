@@ -91,6 +91,16 @@
     let currentUnreadCount = 0;
     let isFirstLoad = true;
 
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     function getTypeLabel(type) {
         switch(type) {
             case 'booking':
@@ -226,26 +236,32 @@
             items.forEach(item => {
                 const isUnread = !item.is_read;
                 const bgClass = isUnread ? 'bg-stone-50 hover:bg-stone-100/70 font-medium' : 'bg-white hover:bg-stone-50';
+                const safeTitle = escapeHtml(item.title);
+                const safeMessage = escapeHtml(item.message);
+                const safeTypeLabel = escapeHtml(getTypeLabel(item.type));
+                const safeTimeAgo = escapeHtml(item.time_ago);
+                const safeId = parseInt(item.id, 10) || 0;
+                const safeUrl = escapeHtml(item.url || 'javascript:void(0)');
                 
                 html += `
                     <div class="p-3.5 flex items-start gap-3 transition-colors cursor-pointer ${bgClass} relative group border-b border-stone-100 last:border-b-0" 
-                         id="noti-item-${item.id}"
-                         onclick="window.handleNotificationClick(${item.id}, '${item.url}', event)">
+                         id="noti-item-${safeId}"
+                         onclick="window.handleNotificationClick(${safeId}, '${safeUrl.replace(/'/g, "\\'")}', event)">
                         
                         <div class="flex-1 min-w-0 pr-2">
                             <div class="flex items-center justify-between gap-2 mb-1">
                                 <span class="text-[11px] font-bold text-stone-900 uppercase tracking-wide">
-                                    ${getTypeLabel(item.type)}
+                                    ${safeTypeLabel}
                                 </span>
                                 <span class="text-[11px] text-stone-400 shrink-0 font-normal">
-                                    ${item.time_ago}
+                                    ${safeTimeAgo}
                                 </span>
                             </div>
                             <h4 class="text-xs ${isUnread ? 'font-bold text-stone-900' : 'font-semibold text-stone-700'} leading-snug">
-                                ${item.title}
+                                ${safeTitle}
                             </h4>
                             <p class="text-[11.5px] text-stone-600 line-clamp-2 leading-relaxed mt-1">
-                                ${item.message}
+                                ${safeMessage}
                             </p>
                         </div>
 

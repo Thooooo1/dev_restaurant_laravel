@@ -201,8 +201,11 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         $redirectUrl = $request->input('redirect') ?: session()->pull('url.intended');
-        if ($redirectUrl) {
-            return redirect($redirectUrl)->with('success', 'Đăng ký thành viên thành công! Chào mừng ' . $user->fullname . ' đến với CIVILIZE.');
+        // Chống lỗ hổng Open Redirect sau đăng ký: Chỉ chấp nhận đường dẫn nội bộ hợp lệ
+        if ($redirectUrl && is_string($redirectUrl)) {
+            if (str_starts_with($redirectUrl, '/') && !str_starts_with($redirectUrl, '//') && !str_contains($redirectUrl, '\\') && !str_contains($redirectUrl, ':')) {
+                return redirect($redirectUrl)->with('success', 'Đăng ký thành viên thành công! Chào mừng ' . $user->fullname . ' đến với CIVILIZE.');
+            }
         }
 
         return redirect()->route('site.home')->with('success', 'Đăng ký thành viên thành công! Chào mừng ' . $user->fullname . ' đến với CIVILIZE.');

@@ -111,7 +111,7 @@ class OrderController extends Controller
             return redirect()->route('site.login')->with('error', 'Bạn cần đăng nhập để đặt lại đơn hàng.');
         }
 
-        $order = Order::with('orderDetails')->where('id', $id)->where('user_id', $userId)->first();
+        $order = Order::with('orderDetails.product')->where('id', $id)->where('user_id', $userId)->first();
 
         if (!$order) {
             return redirect()->route('site.orders')->with('error', 'Đơn hàng không tồn tại.');
@@ -121,23 +121,52 @@ class OrderController extends Controller
             return redirect()->route('site.orders.detail', $id)->with('error', 'Đơn hàng không thể đặt lại.');
         }
 
-        $cart = session()->get("cart_$userId", []);
+        $cartKey = "cart_$userId";
+        $cart = session()->get($cartKey, []);
+        $addedCount = 0;
+        $skippedCount = 0;
 
         foreach ($order->orderDetails as $detail) {
-            $cart[$detail->product_id] = [
-                'name' => $detail->product->name,
-                'slug' => $detail->product->slug,
-                'id' => $detail->product_id,
-                'price' => $detail->price,
-                'qty' => $detail->qty,
-                'image' => $detail->product->image,
-                'discount' => $detail->discount,
-            ];
+            $product = $detail->product;
+            // Bỏ qua nếu món không còn tồn tại hoặc đã ngừng kinh doanh
+            if (!$product || (int)$product->status !== 1) {
+                $skippedCount++;
+                continue;
+            }
+
+            // Đồng bộ giá mới nhất từ cơ sở dữ liệu thay vì dùng giá cũ trong lịch sử đơn
+            $currentPrice = (float)$product->price;
+            $qtyToAdd = max(1, (int)$detail->qty);
+
+            if (isset($cart[$product->id])) {
+                $cart[$product->id]['qty'] += $qtyToAdd;
+                $cart[$product->id]['price'] = $currentPrice;
+            } else {
+                $cart[$product->id] = [
+                    'name' => $product->name,
+                    'slug' => $product->slug,
+                    'id' => $product->id,
+                    'price' => $currentPrice,
+                    'qty' => $qtyToAdd,
+                    'image' => $product->image,
+                    'discount' => 0,
+                ];
+            }
+            $addedCount++;
         }
 
-        session()->put("cart_$userId", $cart);
+        session()->put($cartKey, $cart);
 
-        return redirect()->route('site.cart')->with('success', 'Đã thêm vào giỏ hàng.');
+        if ($addedCount === 0) {
+            return redirect()->route('site.orders.detail', $id)->with('error', 'Tất cả món trong đơn này hiện đã tạm ngừng phục vụ hoặc không còn kinh doanh.');
+        }
+
+        $message = "Đã thêm {$addedCount} món vào giỏ hàng với giá niêm yết hiện tại.";
+        if ($skippedCount > 0) {
+            $message .= " ({$skippedCount} món tạm ngừng phục vụ đã được bỏ qua).";
+        }
+
+        return redirect()->route('site.cart')->with('success', $message);
     }
 
 

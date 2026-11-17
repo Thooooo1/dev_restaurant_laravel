@@ -44,10 +44,26 @@ class ServiceCallController extends Controller
             'table_floor_name' => $table->floor ? $table->floor->name : null,
         ]);
 
-        $callType = $request->input('call_type', 'call_waiter');
+        // V2-P1-19: Validate input và chống Stored XSS triệt để
         $types = ServiceCall::TYPES;
-        $callTypeLabel = $request->input('call_type_label') ?: ($types[$callType]['label'] ?? 'Gọi nhân viên phục vụ');
-        $note = $request->input('note');
+        $request->validate([
+            'call_type' => ['nullable', 'string', \Illuminate\Validation\Rule::in(array_keys($types))],
+            'note' => ['nullable', 'string', 'max:500'],
+            'customer_name' => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:20'],
+        ]);
+
+        $callType = $request->input('call_type', 'call_waiter');
+        if (!isset($types[$callType])) {
+            $callType = 'call_waiter';
+        }
+
+        // Luôn sử dụng label từ allowlist định nghĩa trên server, tuyệt đối không dùng raw label từ client
+        $callTypeLabel = $types[$callType]['label'] ?? 'Gọi nhân viên phục vụ';
+        $note = $request->input('note') ? strip_tags(trim($request->input('note'))) : null;
+        $rawCustName = $request->input('customer_name') ?: (Auth::check() ? Auth::user()->name : null);
+        $customerName = $rawCustName ? strip_tags(trim($rawCustName)) : null;
+        $phone = $request->input('phone') ? preg_replace('/[^0-9]/', '', (string)$request->input('phone')) : (Auth::check() ? Auth::user()->phone : null);
 
         // Tìm active order nếu có
         $activeOrder = Order::where('table_id', $tableId)
@@ -75,8 +91,8 @@ class ServiceCallController extends Controller
         $serviceCall = ServiceCall::create([
             'table_id' => $tableId,
             'order_id' => $activeOrder ? $activeOrder->id : null,
-            'customer_name' => $request->input('customer_name') ?: (Auth::check() ? Auth::user()->name : ($activeOrder ? $activeOrder->name : null)),
-            'phone' => $request->input('phone') ?: (Auth::check() ? Auth::user()->phone : ($activeOrder ? $activeOrder->phone : null)),
+            'customer_name' => $customerName ?: ($activeOrder ? $activeOrder->name : null),
+            'phone' => $phone ?: ($activeOrder ? $activeOrder->phone : null),
             'call_type' => $callType,
             'call_type_label' => $callTypeLabel,
             'note' => $note,

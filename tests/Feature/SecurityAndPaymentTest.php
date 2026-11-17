@@ -64,23 +64,36 @@ class SecurityAndPaymentTest extends TestCase
     {
         Auth::logout();
 
-        $admin = User::where('roles', 'admin')->where('status', 1)->first();
-        $table = Table::first();
+        $admin = User::firstOrCreate(
+            ['phone' => '0987654321'],
+            [
+                'name' => 'Admin Sec Fixture',
+                'fullname' => 'Admin Sec Fixture',
+                'username' => 'admin_sec_fixture',
+                'email' => 'admin_sec_fixture@civilize.vn',
+                'password' => bcrypt('AdminPass123!'),
+                'roles' => 'admin',
+                'status' => 1,
+            ]
+        );
+        $table = Table::firstOrCreate(
+            ['name' => 'Bàn Test Sec A1'],
+            [
+                'status' => 1,
+                'capacity' => 4,
+            ]
+        );
 
-        if ($admin && $table) {
-            $response = $this->post(route('site.table.start', $table->id), [
-                'phone' => $admin->phone,
-                'name' => 'Khách Giả Mạo Admin',
-            ]);
+        $response = $this->post(route('site.table.start', $table->id), [
+            'phone' => $admin->phone,
+            'name' => 'Khách Giả Mạo Admin',
+        ]);
 
-            // Trạng thái đăng nhập phải không chứa quyền Admin
-            if (Auth::check()) {
-                $this->assertNotEquals('admin', Auth::user()->roles);
-            } else {
-                $this->assertFalse(Auth::check());
-            }
+        // Trạng thái đăng nhập phải không chứa quyền Admin
+        if (Auth::check()) {
+            $this->assertNotEquals('admin', Auth::user()->roles);
         } else {
-            $this->assertTrue(true);
+            $this->assertFalse(Auth::check());
         }
     }
 
@@ -89,18 +102,25 @@ class SecurityAndPaymentTest extends TestCase
      */
     public function test_forgot_password_with_admin_phone_is_rejected(): void
     {
-        $admin = User::where('roles', 'admin')->where('status', 1)->first();
+        $admin = User::firstOrCreate(
+            ['phone' => '0987654321'],
+            [
+                'name' => 'Admin Sec Fixture',
+                'fullname' => 'Admin Sec Fixture',
+                'username' => 'admin_sec_fixture',
+                'email' => 'admin_sec_fixture@civilize.vn',
+                'password' => bcrypt('AdminPass123!'),
+                'roles' => 'admin',
+                'status' => 1,
+            ]
+        );
 
-        if ($admin) {
-            $response = $this->post(route('site.send_otp'), [
-                'phone' => $admin->phone,
-            ]);
+        $response = $this->post(route('site.send_otp'), [
+            'phone' => $admin->phone,
+        ]);
 
-            // Phải bị redirect về với thông báo lỗi
-            $response->assertSessionHas('error');
-        } else {
-            $this->assertTrue(true);
-        }
+        // Phải bị redirect về với thông báo lỗi
+        $response->assertSessionHas('error');
     }
 
     /**

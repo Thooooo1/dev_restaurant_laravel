@@ -118,18 +118,17 @@ class NotificationController extends Controller
     public function markAsRead(Request $request, $id)
     {
         $user = Auth::user();
-        $notification = Notification::find($id);
+        $notification = Notification::forUser($user)->find($id);
 
         if (!$notification) {
+            // Kiểm tra xem thông báo có tồn tại trong hệ thống nhưng không thuộc phạm vi quyền của user không
+            if (Notification::where('id', $id)->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bạn không có quyền thao tác trên thông báo này.'
+                ], 403);
+            }
             return response()->json(['success' => false, 'message' => 'Thông báo không tồn tại.'], 404);
-        }
-
-        // Kiểm tra quyền sở hữu thông báo: người dùng chỉ được đánh dấu thông báo của chính mình hoặc thông báo chung của vai trò mình
-        if ($notification->user_id !== null && (!$user || (int)$notification->user_id !== (int)$user->id)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Bạn không có quyền thao tác trên thông báo này.'
-            ], 403);
         }
 
         $notification->markAsRead();

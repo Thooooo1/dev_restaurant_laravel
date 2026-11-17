@@ -879,6 +879,17 @@
     <div id="liveToastContainer" class="fixed top-14 right-5 z-[9999] flex flex-col gap-2 pointer-events-none max-w-sm w-full"></div>
 
     <script>
+        // V2-P1-19: XSS Prevention Helper
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         const profileBtn = document.getElementById('profileDropdownBtn');
         const profileMenu = document.getElementById('profileDropdownMenu');
 
@@ -1019,29 +1030,36 @@
             }, 10000);
         }
 
-        // Hiển thị toast thông báo nhắc nhở nổi trực tiếp góc phải
+        // Hiển thị toast thông báo nhắc nhở nổi trực tiếp góc phải (Đã escape chống XSS)
         function showLiveToast(call) {
             if (!liveToastContainer) return;
             const toast = document.createElement('div');
             toast.className = 'pointer-events-auto bg-white rounded-xl shadow-2xl border-l-4 border-[#F47716] border-y border-r border-orange-100 p-3.5 transform transition-all duration-300 translate-x-full opacity-0 flex items-start gap-3';
-            toast.id = 'live-toast-' + call.id;
+            toast.id = 'live-toast-' + parseInt(call.id, 10);
+
+            const safeTableName = escapeHtml(call.full_table_name);
+            const safeTimeAgo = escapeHtml(call.time_ago);
+            const safeTypeLabel = escapeHtml(call.type_label);
+            const safeNote = call.note ? escapeHtml(call.note) : '';
+            const safePosUrl = encodeURI(call.pos_url || '#');
+            const safeCallId = parseInt(call.id, 10) || 0;
 
             toast.innerHTML = `
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex items-center gap-1.5 min-w-0">
                             <span class="inline-block w-2 h-2 rounded-full bg-[#F47716] animate-pulse shrink-0"></span>
-                            <span class="text-xs font-bold text-gray-900 truncate">${call.full_table_name}</span>
+                            <span class="text-xs font-bold text-gray-900 truncate">${safeTableName}</span>
                         </div>
-                        <span class="text-[10px] text-gray-400 whitespace-nowrap">${call.time_ago}</span>
+                        <span class="text-[10px] text-gray-400 whitespace-nowrap">${safeTimeAgo}</span>
                     </div>
-                    <p class="text-xs font-semibold text-[#F47716] mt-0.5">${call.type_label}</p>
-                    ${call.note ? `<p class="text-[11px] text-gray-600 mt-1 italic line-clamp-2 bg-orange-50/50 p-1 rounded">"${call.note}"</p>` : ''}
+                    <p class="text-xs font-semibold text-[#F47716] mt-0.5">${safeTypeLabel}</p>
+                    ${safeNote ? `<p class="text-[11px] text-gray-600 mt-1 italic line-clamp-2 bg-orange-50/50 p-1 rounded">"${safeNote}"</p>` : ''}
                     <div class="flex items-center gap-2 mt-2">
-                        <button type="button" onclick="completeCall(${call.id}, this)" class="px-2.5 py-1 bg-[#52C41A] hover:bg-[#389E0D] text-white text-[11px] font-bold rounded shadow-xs transition-colors cursor-pointer">
+                        <button type="button" onclick="completeCall(${safeCallId}, this)" class="px-2.5 py-1 bg-[#52C41A] hover:bg-[#389E0D] text-white text-[11px] font-bold rounded shadow-xs transition-colors cursor-pointer">
                             ✓ Đã phục vụ
                         </button>
-                        <a href="${call.pos_url}" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-medium rounded transition-colors">
+                        <a href="${safePosUrl}" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-[11px] font-medium rounded transition-colors">
                             Xem bàn
                         </a>
                     </div>
@@ -1177,21 +1195,28 @@
 
                 let html = '';
                 calls.forEach(call => {
+                    const safeTableName = escapeHtml(call.full_table_name);
+                    const safeTimeAgo = escapeHtml(call.time_ago);
+                    const safeTypeLabel = escapeHtml(call.type_label);
+                    const safeNote = call.note ? escapeHtml(call.note) : '';
+                    const safePosUrl = encodeURI(call.pos_url || '#');
+                    const safeCallId = parseInt(call.id, 10) || 0;
+
                     html += `
-                        <div class="p-3 hover:bg-[#FAFAFA] transition-colors block border-b border-[#F0F0F0] last:border-b-0" id="noti-call-item-${call.id}">
+                        <div class="p-3 hover:bg-[#FAFAFA] transition-colors block border-b border-[#F0F0F0] last:border-b-0" id="noti-call-item-${safeCallId}">
                             <div class="flex items-center justify-between gap-2 mb-1">
-                                <span class="font-bold text-[rgba(0,0,0,0.85)] text-xs">${call.full_table_name}</span>
-                                <span class="text-[10px] text-[rgba(0,0,0,0.45)] shrink-0">${call.time_ago}</span>
+                                <span class="font-bold text-[rgba(0,0,0,0.85)] text-xs">${safeTableName}</span>
+                                <span class="text-[10px] text-[rgba(0,0,0,0.45)] shrink-0">${safeTimeAgo}</span>
                             </div>
                             <div class="flex items-center gap-2 mb-2">
-                                <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium bg-[#F5F5F5] text-[rgba(0,0,0,0.65)] border-[#E8E8E8]">${call.type_label}</span>
-                                ${call.note ? `<span class="text-[11px] text-[rgba(0,0,0,0.65)] italic line-clamp-1">"${call.note}"</span>` : ''}
+                                <span class="inline-flex items-center text-[10px] px-1.5 py-0.5 rounded border font-medium bg-[#F5F5F5] text-[rgba(0,0,0,0.65)] border-[#E8E8E8]">${safeTypeLabel}</span>
+                                ${safeNote ? `<span class="text-[11px] text-[rgba(0,0,0,0.65)] italic line-clamp-1">"${safeNote}"</span>` : ''}
                             </div>
                             <div class="flex items-center gap-2">
-                                <button type="button" onclick="completeCall(${call.id}, this)" class="px-2.5 py-1 bg-[#52C41A] hover:bg-[#389E0D] text-white text-[11px] font-medium rounded transition-colors cursor-pointer">
+                                <button type="button" onclick="completeCall(${safeCallId}, this)" class="px-2.5 py-1 bg-[#52C41A] hover:bg-[#389E0D] text-white text-[11px] font-medium rounded transition-colors cursor-pointer">
                                     Đã phục vụ
                                 </button>
-                                <a href="${call.pos_url}" class="px-2.5 py-1 bg-white border border-[#D9D9D9] hover:border-[#F47716] hover:text-[#F47716] text-[rgba(0,0,0,0.65)] text-[11px] font-medium rounded transition-colors">
+                                <a href="${safePosUrl}" class="px-2.5 py-1 bg-white border border-[#D9D9D9] hover:border-[#F47716] hover:text-[#F47716] text-[rgba(0,0,0,0.65)] text-[11px] font-medium rounded transition-colors">
                                     Mở bàn
                                 </a>
                             </div>
