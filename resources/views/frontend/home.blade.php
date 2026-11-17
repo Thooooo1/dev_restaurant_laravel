@@ -10,13 +10,19 @@
                         slidesToShow: 1,
                         slidesToScroll: 1,
                         fade: true,
+                        speed: 600,
                         cssEase: 'cubic-bezier(0.7, 0, 0.3, 1)',
                         autoplay: true,
                         autoplaySpeed: 5000,
+                        pauseOnHover: true,
+                        pauseOnFocus: true,
+                        pauseOnDotsHover: true,
                         arrows: true,
                         dots: true,
-                        prevArrow: '<button type="button" class="slick-prev hidden sm:flex absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-stone-900/80 hover:bg-[#F47716] text-white items-center justify-center transition-colors shadow-lg cursor-pointer"><i class="fas fa-chevron-left text-sm sm:text-base"></i></button>',
-                        nextArrow: '<button type="button" class="slick-next hidden sm:flex absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-12 sm:h-12 rounded-lg bg-stone-900/80 hover:bg-[#F47716] text-white items-center justify-center transition-colors shadow-lg cursor-pointer"><i class="fas fa-chevron-right text-sm sm:text-base"></i></button>'
+                        swipe: true,
+                        touchMove: true,
+                        prevArrow: '<button type="button" class="slick-prev flex items-center justify-center cursor-pointer" aria-label="Lướt sang trang trước" title="Lướt sang trái"><i class="fas fa-chevron-left"></i></button>',
+                        nextArrow: '<button type="button" class="slick-next flex items-center justify-center cursor-pointer" aria-label="Lướt sang trang sau" title="Lướt sang phải"><i class="fas fa-chevron-right"></i></button>'
                     });
                 }
             });
