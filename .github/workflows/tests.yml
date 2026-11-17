@@ -44,18 +44,21 @@ jobs:
 
     - name: Run Database Migrations
       env:
+        APP_ENV: testing
         DB_CONNECTION: mysql
         DB_HOST: 127.0.0.1
         DB_PORT: 3306
         DB_DATABASE: test_civilize
         DB_USERNAME: root
         DB_PASSWORD: root
+        SEEDER_ADMIN_PASSWORD: CivilizeAdmin@2026!
       run: |
         php artisan migrate --force
         php artisan db:seed --force
 
     - name: Execute Automated Feature & Security Tests
       env:
+        APP_ENV: testing
         DB_CONNECTION: mysql
         DB_HOST: 127.0.0.1
         DB_PORT: 3306
@@ -63,4 +66,5 @@ jobs:
         DB_USERNAME: root
         DB_PASSWORD: root
         PAYMENT_WEBHOOK_TOKEN: testing_ci_webhook_secret_key
+        SEEDER_ADMIN_PASSWORD: CivilizeAdmin@2026!
       run: php artisan test

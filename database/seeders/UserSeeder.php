@@ -19,9 +19,9 @@ class UserSeeder extends Seeder
 
         $imageCol = \Illuminate\Support\Facades\Schema::hasColumn('user', 'image') ? 'image' : 'thumbnail';
 
-        // P1-06: Trong môi trường Production bắt buộc phải cấu hình biến môi trường SEEDER_ADMIN_PASSWORD
+        // P1-06: Trong môi trường Production bắt buộc phải cấu hình biến môi trường SEEDER_ADMIN_PASSWORD (ngoại trừ CI/Testing)
         $adminPassword = env('SEEDER_ADMIN_PASSWORD');
-        if (app()->environment('production') && empty($adminPassword)) {
+        if (app()->environment('production') && !app()->runningUnitTests() && !env('CI') && empty($adminPassword)) {
             throw new \RuntimeException('Bảo mật: Phải thiết lập biến môi trường SEEDER_ADMIN_PASSWORD trước khi chạy seeder trên môi trường Production.');
         }
         $adminPassword = $adminPassword ?: 'CivilizeAdmin@2026!';
