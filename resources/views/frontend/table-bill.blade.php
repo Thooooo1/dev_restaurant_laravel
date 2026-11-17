@@ -24,8 +24,8 @@
                         {{ $table->floor ? $table->floor->name : 'Sảnh' }} • Hóa đơn #{{ $order->id }} • {{ $order->created_at ? $order->created_at->format('H:i - d/m/Y') : date('H:i - d/m/Y') }}
                     </p>
 
-                    <!-- Dấu Mộc Đã Thanh Toán (nếu status = 1 hoặc 2) -->
-                    @if ($order->status == 1 || $order->status == 2)
+                    <!-- P2-09: Dấu Mộc Đã Thanh Toán chuẩn hóa theo payment_status / isPaid() -->
+                    @if ($order->isPaid() || $order->payment_status === \App\Models\Order::PAYMENT_PAID)
                         <div class="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 text-stone-700 border border-stone-200 text-xs font-semibold">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>ĐÃ THANH TOÁN ({{ $order->payment_method ?: 'VietQR' }})</span>

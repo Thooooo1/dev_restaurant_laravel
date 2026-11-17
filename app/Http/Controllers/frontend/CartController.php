@@ -453,8 +453,16 @@ class CartController extends Controller
             return response()->json(['success' => false, 'message' => 'Giỏ hàng của bạn đang trống. Vui lòng chọn món trước.'], 400);
         }
 
-        // Lấy số bàn: từ request hoặc từ session
-        $tableId = $request->input('table_id') ?: session('table_id');
+        // P1-07: Ràng buộc số bàn với session hiện tại, chống giả mạo table_id từ client
+        $sessionTableId = session('table_id');
+        $requestTableId = $request->input('table_id');
+        if ($sessionTableId && $requestTableId && (int)$sessionTableId !== (int)$requestTableId && !(Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bạn đang phục vụ tại bàn ' . session('table_name') . ', không thể gửi món cho bàn khác.'
+            ], 403);
+        }
+        $tableId = $sessionTableId ?: $requestTableId;
         if (!$tableId) {
             return response()->json([
                 'success' => false,
@@ -764,16 +772,21 @@ class CartController extends Controller
 
         try {
             $order = \Illuminate\Support\Facades\DB::transaction(function () use ($request, $cart) {
-                // 1. Khóa và kiểm tra tồn kho (Tránh Race Condition và bán vượt tồn)
+                // 1. Khóa, kiểm tra trạng thái và đồng bộ giá bán mới nhất từ DB (P2-16)
                 $lockedProducts = [];
                 foreach ($cart as $productId => $details) {
                     $product = Product::where('id', $productId)->lockForUpdate()->first();
                     if (!$product) {
                         throw new \Exception("Món ăn ID #{$productId} không tồn tại hoặc đã ngừng kinh doanh.");
                     }
+                    if ((int)$product->status !== 1) {
+                        throw new \Exception("Món '{$product->name}' hiện đã tạm ngừng phục vụ.");
+                    }
                     if ($product->qty < $details['qty']) {
                         throw new \Exception("Món '{$product->name}' hiện chỉ còn {$product->qty} phần trong kho, không đủ số lượng bạn đặt ({$details['qty']} phần).");
                     }
+                    // Đồng bộ giá mới nhất từ database tránh mua theo giá cũ bị cache trong session
+                    $cart[$productId]['price'] = (float)$product->price;
                     $lockedProducts[$productId] = $product;
                 }
 
@@ -918,6 +931,18 @@ class CartController extends Controller
     public function vietqrPay($orderId, \App\Services\VietQRService $vietQRService)
     {
         $order = Order::with('orderDetails.product')->findOrFail($orderId);
+
+        // P2-10: Kiểm tra quyền sở hữu và phiên truy cập hóa đơn thanh toán VietQR
+        $userId = Auth::id();
+        $isOwner = ($userId && (int)$order->user_id === (int)$userId);
+        $isTableSession = (session('table_id') && (int)session('table_order_id') === (int)$order->id);
+        $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
+        $isSessionOrder = (session('last_order_id') && (int)session('last_order_id') === (int)$order->id);
+
+        if (!$isOwner && !$isTableSession && !$isStaffOrAdmin && !$isSessionOrder) {
+            abort(403, 'Bạn không có quyền truy cập mã thanh toán của hóa đơn này.');
+        }
+
         $memo = 'DH' . $order->id;
         $qrUrl = $vietQRService->generateQrUrl($order->total_price, $memo);
         $bankInfo = $vietQRService->getBankInfo();
@@ -928,15 +953,56 @@ class CartController extends Controller
     public function momoSandboxPay($orderId)
     {
         $order = Order::findOrFail($orderId);
+
+        // P2-10: Kiểm tra quyền sở hữu
+        $userId = Auth::id();
+        $isOwner = ($userId && (int)$order->user_id === (int)$userId);
+        $isTableSession = (session('table_id') && (int)session('table_order_id') === (int)$order->id);
+        $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
+        $isSessionOrder = (session('last_order_id') && (int)session('last_order_id') === (int)$order->id);
+
+        if (!$isOwner && !$isTableSession && !$isStaffOrAdmin && !$isSessionOrder) {
+            abort(403, 'Bạn không có quyền truy cập giao diện thanh toán của hóa đơn này.');
+        }
+
         return view('frontend.momo_sandbox', compact('order'));
     }
 
     public function momoSandboxConfirm(Request $request, $orderId)
     {
         $order = Order::findOrFail($orderId);
+
+        // P2-10: Kiểm tra quyền sở hữu
+        $userId = Auth::id();
+        $isOwner = ($userId && (int)$order->user_id === (int)$userId);
+        $isTableSession = (session('table_id') && (int)session('table_order_id') === (int)$order->id);
+        $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
+        $isSessionOrder = (session('last_order_id') && (int)session('last_order_id') === (int)$order->id);
+
+        if (!$isOwner && !$isTableSession && !$isStaffOrAdmin && !$isSessionOrder) {
+            abort(403, 'Bạn không có quyền xác nhận thanh toán của hóa đơn này.');
+        }
+
+        $order->payment_status = Order::PAYMENT_PAID;
+        $order->paid_at = $order->paid_at ?? now();
+        $order->revenue_recognized_at = $order->revenue_recognized_at ?? now();
         $order->status = 1;
         $order->payment_method = 'Momo';
         $order->save();
+
+        try {
+            \App\Models\PaymentTransaction::firstOrCreate([
+                'order_id' => $order->id,
+                'reference_code' => 'MOMO_SANDBOX_' . $order->id,
+            ], [
+                'amount' => (int)$order->total_price,
+                'content' => 'Thanh toan MoMo Sandbox',
+                'gateway' => 'momo',
+                'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::warning('MoMo Sandbox transaction log error: ' . $e->getMessage());
+        }
 
         self::clearCartSession();
 
@@ -949,9 +1015,29 @@ class CartController extends Controller
         if (isset($data['signature']) && $momoService->verifyPayment($data)) {
             $order = Order::find($data['orderId']);
             if ($order && $data['resultCode'] == 0) {
+                // P1-08: Đồng bộ trạng thái thanh toán và ghi transaction
+                $order->payment_status = Order::PAYMENT_PAID;
+                $order->paid_at = $order->paid_at ?? now();
+                $order->revenue_recognized_at = $order->revenue_recognized_at ?? now();
                 $order->status = 1;
                 $order->payment_method = 'Momo';
                 $order->save();
+
+                $transId = $data['transId'] ?? ($data['requestId'] ?? ('MOMO_' . $order->id));
+                try {
+                    \App\Models\PaymentTransaction::firstOrCreate([
+                        'order_id' => $order->id,
+                        'reference_code' => (string)$transId,
+                    ], [
+                        'amount' => (int)$order->total_price,
+                        'content' => 'Thanh toan MoMo truc tuyen',
+                        'gateway' => 'momo',
+                        'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+                    ]);
+                } catch (\Throwable $e) {
+                    \Log::warning('MoMo Return transaction log error: ' . $e->getMessage());
+                }
+
                 self::clearCartSession();
                 return redirect()->route('site.thanks')->with('success', 'Thanh toán Momo thành công!');
             }
@@ -964,10 +1050,29 @@ class CartController extends Controller
         $data = $request->all();
         if (isset($data['signature']) && $momoService->verifyPayment($data)) {
             $order = Order::find($data['orderId']);
-            if ($order && $data['resultCode'] == 0 && $order->status != 1) {
+            if ($order && $data['resultCode'] == 0) {
+                // P1-08: Đồng bộ trạng thái thanh toán và ghi transaction
+                $order->payment_status = Order::PAYMENT_PAID;
+                $order->paid_at = $order->paid_at ?? now();
+                $order->revenue_recognized_at = $order->revenue_recognized_at ?? now();
                 $order->status = 1;
                 $order->payment_method = 'Momo';
                 $order->save();
+
+                $transId = $data['transId'] ?? ($data['requestId'] ?? ('MOMO_' . $order->id));
+                try {
+                    \App\Models\PaymentTransaction::firstOrCreate([
+                        'order_id' => $order->id,
+                        'reference_code' => (string)$transId,
+                    ], [
+                        'amount' => (int)$order->total_price,
+                        'content' => 'Thanh toan MoMo IPN',
+                        'gateway' => 'momo',
+                        'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+                    ]);
+                } catch (\Throwable $e) {
+                    \Log::warning('MoMo IPN transaction log error: ' . $e->getMessage());
+                }
             }
             return response()->json(['message' => 'Success']);
         }

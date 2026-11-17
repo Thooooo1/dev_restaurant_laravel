@@ -83,10 +83,17 @@ class PaymentWebhookController extends Controller
             ?? $request->input('orderInfo') 
             ?? '');
 
-        $referenceCode = (string) ($request->input('referenceCode') 
+        $rawRef = $request->input('referenceCode') 
             ?? $request->input('referenceNumber') 
-            ?? $request->input('id') 
-            ?? uniqid('PAY_'));
+            ?? $request->input('id');
+
+        if (!empty($rawRef)) {
+            $referenceCode = (string)$rawRef;
+        } else {
+            // P2-17: Nếu gateway không gửi transaction ID, sinh fingerprint ổn định từ payload
+            // thay vì uniqid() ngẫu nhiên, giúp cơ chế idempotency không bị bypass khi webhook retry
+            $referenceCode = 'FP_' . substr(hash('sha256', $amount . '_' . trim($content) . '_' . ($request->input('transactionDate') ?? date('YmdH'))), 0, 24);
+        }
 
         Log::info('Nhận Webhook Thanh Toán Hợp Lệ:', [
             'amount' => (int) round($amount),

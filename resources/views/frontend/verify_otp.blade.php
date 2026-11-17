@@ -15,8 +15,8 @@
                     <h2 class="text-2xl sm:text-3xl font-black font-serif text-stone-900 tracking-tight">Nhập Mã OTP</h2>
                 </div>
 
-                {{-- HIỂN THỊ OTP TO RÕ, ĐẬM CHẤT ARCHITECTURAL --}}
-                @if (isset($otp_display))
+                {{-- HIỂN THỊ OTP CHỈ TRONG MÔI TRƯỜNG THỬ NGHIỆM LOCAL/DEMO --}}
+                @if (!empty($otp_display))
                     <div class="bg-amber-50/80 border border-amber-300 text-stone-900 p-4 rounded-none sm:rounded-sm mb-6 text-center shadow-2xs">
                         <div class="text-[10px] font-bold uppercase tracking-widest text-amber-800 bg-amber-200/60 inline-block px-2.5 py-1 mb-2 rounded-xs">[Môi Trường Thử Nghiệm - Mã OTP Mô Phỏng Qua SMS]</div>
                         <div class="text-xs font-bold uppercase tracking-widest text-[#C25E00] mb-1">Mã OTP Của Quý Khách</div>

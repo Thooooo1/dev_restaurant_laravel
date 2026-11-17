@@ -25,7 +25,7 @@ class UpdateProductRequest extends FormRequest
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:product,slug,' . $this->route('product'), 
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'qty' => 'required|integer|min:1',
+            'qty' => 'required|integer|min:0',
             'price_buy' => 'required|numeric|min:0',
             'price_sale' => 'required|numeric|min:0|lt:price_buy',
         ];
@@ -47,7 +47,7 @@ class UpdateProductRequest extends FormRequest
             'image.max' => 'Dung lượng hình ảnh không được vượt quá 2MB.',
             'qty.required' => 'Số lượng sản phẩm là bắt buộc.',
             'qty.integer' => 'Số lượng phải là số nguyên.',
-            'qty.min' => 'Số lượng phải lớn hơn 0.',
+            'qty.min' => 'Số lượng không được âm.',
             'price_buy.required' => 'Giá gốc bắt buộc phải nhập.',
             'price_buy.numeric' => 'Giá gốc phải là số.',
             'price_buy.min' => 'Giá gốc không được âm.',

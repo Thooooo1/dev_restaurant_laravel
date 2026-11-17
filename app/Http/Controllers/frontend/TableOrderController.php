@@ -63,12 +63,11 @@ class TableOrderController extends Controller
             $phone = preg_replace('/[^0-9]/', '', (string)$phone);
             session(['customer_phone' => $phone]);
 
-            // Tự động đăng nhập nếu đã có tài khoản thành viên (CHỈ DÀNH CHO KHÁCH HÀNG, TUYỆT ĐỐI KHÔNG TỰ ĐĂNG NHẬP ADMIN/EMPLOYEE)
+            // P0-02: Lưu số điện thoại vào phiên để tích điểm / gắn đơn hàng.
+            // Tuyệt đối KHÔNG tự động đăng nhập Auth::login() để chống chiếm quyền tài khoản qua SĐT.
             $user = User::where('phone', $phone)->first();
-            if ($user && !Auth::check()) {
-                if ($user->roles === 'customer') {
-                    Auth::login($user);
-                }
+            if ($user && empty($customerName)) {
+                session(['customer_name' => $user->fullname ?? $user->username]);
             }
         }
 
@@ -117,31 +116,25 @@ class TableOrderController extends Controller
             return redirect()->route('site.home')->with('error', 'Bàn không tồn tại.');
         }
 
-        // Lấy hoặc đồng bộ đơn hàng duy nhất của bàn
-        $cartKey = Auth::check() ? 'cart_' . Auth::id() : 'cart_guest_' . session()->getId();
-        $cart = session()->get($cartKey, []);
+        // P2-10: Kiểm tra quyền sở hữu và phiên truy cập bàn ăn
+        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id);
+        $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
 
-        if (!empty($cart)) {
-            $items = [];
-            foreach ($cart as $productId => $details) {
-                $items[] = [
-                    'product_id' => $productId,
-                    'qty' => (int)$details['qty'],
-                    'price' => (float)$details['price'],
-                ];
-            }
-            $order = \App\Services\TableOrderService::addItemsToTableOrder($id, $items);
+        // P2-12: Phương thức GET thuần túy hiển thị mã QR, không tạo side effect làm thay đổi DB
+        $order = \App\Services\TableOrderService::getActiveOrder($id);
+        if ($order) {
             session(['table_order_id' => $order->id]);
-            \App\Http\Controllers\frontend\CartController::clearCartSession();
-        } else {
-            $order = \App\Services\TableOrderService::getActiveOrder($id);
-            if ($order) {
-                session(['table_order_id' => $order->id]);
-            }
         }
 
         if (!$order) {
             return redirect()->route('site.product.gridview')->with('error', 'Chưa có món ăn nào để thanh toán. Mời quý khách chọn món trước.');
+        }
+
+        $isOrderOwner = (Auth::check() && (int)Auth::id() === (int)$order->user_id);
+        $isSessionOrder = (session('table_order_id') && (int)session('table_order_id') === (int)$order->id);
+
+        if (!$isTableSession && !$isStaffOrAdmin && !$isOrderOwner && !$isSessionOrder) {
+            return redirect()->route('site.home')->with('error', 'Bạn không có quyền truy cập thanh toán của bàn này.');
         }
 
         // Tải chi tiết đơn hàng
@@ -154,17 +147,8 @@ class TableOrderController extends Controller
         }
 
         $subtotal = \App\Services\PricingService::getOrderSubtotal($order->id);
-        $finalAmount = \App\Services\PricingService::recalculateOrderTotal($order->id, true);
+        $finalAmount = (float)$order->total_price > 0 ? (float)$order->total_price : \App\Services\PricingService::recalculateOrderTotal($order->id, true);
         $discountAmount = max(0, $subtotal - $finalAmount);
-
-        $order->total_price = $finalAmount;
-        $order->save();
-
-        // Cập nhật trạng thái bàn Có khách
-        if ($table->status != 1) {
-            $table->status = 1;
-            $table->save();
-        }
 
         // Sinh mã VietQR chuyển khoản
         $memo = "BAN{$id} DH{$order->id}";
@@ -190,6 +174,10 @@ class TableOrderController extends Controller
     public function confirmPayment(Request $request, $id)
     {
         $table = Table::find($id);
+        if (!$table) {
+            return redirect()->route('site.home')->with('error', 'Bàn không tồn tại.');
+        }
+
         $orderId = $request->input('order_id', session('table_order_id'));
 
         $order = null;
@@ -208,16 +196,45 @@ class TableOrderController extends Controller
             return redirect()->route('site.home')->with('error', 'Không tìm thấy hóa đơn cần thanh toán.');
         }
 
-        $paymentMethod = $request->input('payment_method', 'VietQR');
-        $actualTotal = (float) \App\Services\PricingService::recalculateOrderTotal($order->id, true);
+        // P0-04: Ràng buộc chặt chẽ Order ID với Table ID và Session
+        if ((int)$order->table_id !== (int)$id) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Hóa đơn không thuộc bàn này.'], 403);
+            }
+            return redirect()->back()->with('error', 'Hóa đơn không thuộc bàn này.');
+        }
+
+        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id);
+        $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
+        $isOrderOwner = (Auth::check() && (int)Auth::id() === (int)$order->user_id);
+
+        if (!$isTableSession && !$isStaffOrAdmin && !$isOrderOwner) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Bạn không có quyền thực hiện thao tác trên bàn này.'], 403);
+            }
+            return redirect()->back()->with('error', 'Bạn không có quyền thực hiện thao tác trên bàn này.');
+        }
+
+        // P0-04 Idempotency: Nếu đơn hàng ĐÃ THANH TOÁN, giữ nguyên paid_at và không tạo transaction thừa
+        if ($order->payment_status === Order::PAYMENT_PAID || $order->isPaid()) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'already_paid' => true,
+                    'message' => 'Hóa đơn này đã được thanh toán thành công trước đó.',
+                    'redirect' => route('site.table.bill', $id)
+                ]);
+            }
+            return redirect()->route('site.table.bill', $id)->with('info', 'Hóa đơn này đã được thanh toán thành công trước đó.');
+        }
 
         // Chặn khách tự xác nhận đã thanh toán trên môi trường production nếu ngân hàng chưa gửi webhook
-        if (config('payment.mode') !== 'demo') {
+        if (config('payment.mode') !== 'demo' && !$isStaffOrAdmin) {
             $hasSuccessTx = \App\Models\PaymentTransaction::where('order_id', $order->id)
                 ->where('status', \App\Models\PaymentTransaction::STATUS_SUCCESS)
                 ->exists();
 
-            if (!$hasSuccessTx && $order->payment_status !== Order::PAYMENT_PAID) {
+            if (!$hasSuccessTx) {
                 \App\Models\ServiceCall::firstOrCreate([
                     'table_id' => $id,
                     'call_type' => 'bill',
@@ -237,48 +254,65 @@ class TableOrderController extends Controller
             }
         }
 
-        // Cập nhật đơn hàng thành Đã thanh toán
-        $order->payment_status = Order::PAYMENT_PAID;
-        $order->paid_at = now();
-        $order->revenue_recognized_at = now();
-        $order->payment_method = ($paymentMethod === 'VietQR' || $paymentMethod == 2) ? 2 : $paymentMethod;
-        $order->total_price = $actualTotal > 0 ? $actualTotal : $order->total_price;
-        $order->has_new_items = false;
-        $order->save();
-
+        $paymentMethod = $request->input('payment_method', 'VietQR');
         $refCode = 'VIETQR_TABLE_' . $order->id . '_' . time();
 
-        // Ghi nhận nhật ký PaymentTransaction
-        try {
-            \App\Models\PaymentTransaction::create([
-                'order_id' => $order->id,
-                'reference_code' => $refCode,
-                'amount' => (int) $order->total_price,
-                'content' => 'Khách hàng xác nhận thanh toán VietQR tại bàn',
-                'gateway' => 'vietqr',
-                'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
-                'raw_payload' => json_encode([
-                    'table_id' => $id,
-                    'confirmed_at' => (string)now(),
-                ]),
-            ]);
-        } catch (\Throwable $e) {}
+        // Cập nhật trạng thái và ghi transaction an toàn trong DB Transaction với lockForUpdate
+        \Illuminate\Support\Facades\DB::transaction(function () use ($order, $id, $paymentMethod, $refCode) {
+            /** @var Order $lockedOrder */
+            $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first();
+            if (!$lockedOrder || $lockedOrder->payment_status === Order::PAYMENT_PAID) {
+                return;
+            }
 
-        // Đánh dấu hoàn tất yêu cầu tính tiền của bàn này nếu có
-        try {
-            \App\Models\ServiceCall::where('table_id', $order->table_id)
-                ->where('call_type', 'bill')
-                ->where('status', \App\Models\ServiceCall::STATUS_PENDING)
-                ->update([
-                    'status' => \App\Models\ServiceCall::STATUS_HANDLED,
-                    'handled_at' => now(),
+            $actualTotal = (float) \App\Services\PricingService::recalculateOrderTotal($lockedOrder->id, true);
+
+            $lockedOrder->payment_status = Order::PAYMENT_PAID;
+            $lockedOrder->paid_at = now();
+            $lockedOrder->revenue_recognized_at = now();
+            $lockedOrder->payment_method = ($paymentMethod === 'VietQR' || $paymentMethod == 2) ? 2 : $paymentMethod;
+            $lockedOrder->total_price = $actualTotal > 0 ? $actualTotal : $lockedOrder->total_price;
+            $lockedOrder->has_new_items = false;
+            $lockedOrder->save();
+
+            // Ghi nhận nhật ký PaymentTransaction
+            try {
+                \App\Models\PaymentTransaction::create([
+                    'order_id' => $lockedOrder->id,
+                    'reference_code' => $refCode,
+                    'amount' => (int) $lockedOrder->total_price,
+                    'content' => 'Khách hàng xác nhận thanh toán VietQR tại bàn',
+                    'gateway' => 'vietqr',
+                    'status' => \App\Models\PaymentTransaction::STATUS_SUCCESS,
+                    'raw_payload' => json_encode([
+                        'table_id' => $id,
+                        'confirmed_at' => (string)now(),
+                    ]),
                 ]);
-        } catch (\Throwable $e) {}
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('PaymentTransaction creation error: ' . $e->getMessage());
+            }
+
+            // Đánh dấu hoàn tất yêu cầu tính tiền của bàn này nếu có
+            try {
+                \App\Models\ServiceCall::where('table_id', $lockedOrder->table_id)
+                    ->where('call_type', 'bill')
+                    ->where('status', \App\Models\ServiceCall::STATUS_PENDING)
+                    ->update([
+                        'status' => \App\Models\ServiceCall::STATUS_HANDLED,
+                        'handled_at' => now(),
+                    ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('ServiceCall update error: ' . $e->getMessage());
+            }
+        });
 
         // Báo dòng tiền thời gian thực cho Admin, Nhân viên và Khách hàng
         try {
             \App\Services\NotificationService::notifyPaymentSuccess($order, (float)$order->total_price, $refCode, 'VietQR');
-        } catch (\Exception $e) {}
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('NotificationService error: ' . $e->getMessage());
+        }
 
         // Xóa triệt để giỏ hàng và reset đơn hàng đã thanh toán
         \App\Http\Controllers\frontend\CartController::clearCartSession();
@@ -315,6 +349,16 @@ class TableOrderController extends Controller
 
         if (!$order) {
             return redirect()->route('site.table.scan', $id)->with('info', 'Bàn hiện chưa có đơn hàng đang hoạt động.');
+        }
+
+        // P2-10: Kiểm tra quyền xem hóa đơn (Phiên bàn hiện tại, chủ đơn hàng, hoặc quản trị viên/nhân viên)
+        $isTableSession = (session('table_id') && (int)session('table_id') === (int)$id);
+        $isStaffOrAdmin = (Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee()));
+        $isOrderOwner = (Auth::check() && (int)Auth::id() === (int)$order->user_id);
+        $isSessionOrder = (session('table_order_id') && (int)session('table_order_id') === (int)$order->id);
+
+        if (!$isTableSession && !$isStaffOrAdmin && !$isOrderOwner && !$isSessionOrder) {
+            return redirect()->route('site.home')->with('error', 'Bạn không có quyền xem hóa đơn của bàn này.');
         }
 
         $orderDetails = $order->orderDetails;

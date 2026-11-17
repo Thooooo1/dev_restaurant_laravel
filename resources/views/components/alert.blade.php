@@ -166,7 +166,7 @@
 @if(session('error'))
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            window.showAppToast("{!! addslashes(session('error')) !!}", 'error', 1800);
+            window.showAppToast(@json(session('error')), 'error', 1800);
         });
     </script>
 @endif
@@ -174,7 +174,7 @@
 @if(session('warning'))
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            window.showAppToast("{!! addslashes(session('warning')) !!}", 'warning', 1600);
+            window.showAppToast(@json(session('warning')), 'warning', 1600);
         });
     </script>
 @endif
@@ -182,7 +182,7 @@
 @if(session('info'))
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            window.showAppToast("{!! addslashes(session('info')) !!}", 'info', {{ request()->is('admin*') ? 2000 : 1600 }});
+            window.showAppToast(@json(session('info')), 'info', {{ request()->is('admin*') ? 2000 : 1600 }});
         });
     </script>
 @endif

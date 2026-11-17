@@ -109,60 +109,20 @@ class AuthController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Vui lòng nhập số điện thoại!']);
         }
 
-        // Priority 1: Check Order
-        // Find order with normalized phone
-        $orders = Order::where('status', 0)->whereNotNull('table_id')->get();
-        $order = null;
-        foreach ($orders as $o) {
-            $dbPhone = preg_replace('/[^0-9]/', '', $o->phone);
-            if ($dbPhone === $phone) {
-                $order = $o;
-                break;
-            }
-        }
-
-        if ($order && $order->user_id) {
-            $user = User::find($order->user_id);
-            if ($user) {
-                // CHẶN BẢO MẬT A1: Nếu là Admin hoặc Nhân viên, bắt buộc phải nhập mật khẩu
-                if ($user->roles !== 'customer') {
-                    return response()->json([
-                        'status' => 'require_password',
-                        'fullname' => $user->fullname ?? 'Ban quản trị'
-                    ]);
-                }
-
-                Auth::login($user);
-                session()->put('user_site', $user);
-                
-                // LUÔN XÓA TẤT CẢ SESSION BÀN KHI ĐĂNG NHẬP BÌNH THƯỜNG, CHỈ GIỮ KHI QUA QR CODE
-                if (!session()->has('is_table_order')) {
-                    session()->forget('table_id');
-                    session()->forget('table_order_id');
-                    session()->forget('table_name');
-                    session()->forget('is_table_order');
-                }
-                
-                return response()->json([
-                    'status' => 'success',
-                    'redirect' => route('site.home')
-                ]);
-            }
-        }
-
-        // Priority 2: Check User
+        // Priority 1: Check if user exists by phone
         $users = User::where('status', 1)->get();
         $user = null;
         foreach ($users as $u) {
-            $dbPhone = preg_replace('/[^0-9]/', '', $u->phone);
+            $dbPhone = preg_replace('/[^0-9]/', '', (string)$u->phone);
             if ($dbPhone === $phone) {
                 $user = $u;
                 break;
             }
         }
 
+        // P0-03: Tuyệt đối không tự động đăng nhập Auth::login() khi chỉ nhập số điện thoại
+        // Mọi tài khoản (kể cả khách hàng đang có đơn tại bàn) đều phải xác thực mật khẩu
         if ($user) {
-            // Nếu là Admin/Nhân viên hoặc đã có mật khẩu: Bắt buộc yêu cầu mật khẩu
             if ($user->roles !== 'customer' || !empty($user->password)) {
                 return response()->json([
                     'status' => 'require_password',
@@ -175,13 +135,13 @@ class AuthController extends Controller
                     'phone' => $phone
                 ]);
             }
-        } else {
-            return response()->json([
-                'status' => 'not_registered',
-                'phone' => $phone,
-                'message' => 'Số điện thoại này chưa có tài khoản tại nhà hàng.'
-            ]);
         }
+
+        return response()->json([
+            'status' => 'not_registered',
+            'phone' => $phone,
+            'message' => 'Số điện thoại này chưa có tài khoản tại nhà hàng.'
+        ]);
     }
 
 
@@ -384,18 +344,31 @@ class AuthController extends Controller
 
         // Tạo OTP bảo mật bằng random_int (chuẩn mật mã)
         $otpCode = random_int(100000, 999999);
-        $user->otp_code = $otpCode;
-        $user->otp_expires_at = Carbon::now()->addMinutes(10);
-        $user->save();
+        $expiresAt = Carbon::now()->addMinutes(10);
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('user', 'otp_code')) {
+            $user->otp_code = $otpCode;
+            $user->otp_expires_at = $expiresAt;
+            $user->save();
+        } else {
+            \Illuminate\Support\Facades\Cache::put('otp_' . $user->phone, [
+                'code' => (string)$otpCode,
+                'expires_at' => $expiresAt,
+            ], 600);
+        }
 
         session()->put('otp_attempts', 0);
 
-        // Hiển thị view kèm nhãn mô phỏng SMS phục vụ chấm đồ án
-        return view('frontend.verify_otp', [
+        // P0-01: Chỉ hiển thị nhãn mô phỏng SMS OTP khi chạy môi trường local/testing kín và chế độ demo
+        $isLocalDemo = (app()->environment('local', 'testing') && config('payment.mode') === 'demo');
+        $viewData = [
             'phone' => $user->phone,
-            'otp_code' => $otpCode,
-            'otp_display' => $otpCode
-        ]);
+        ];
+        if ($isLocalDemo) {
+            $viewData['otp_display'] = (string)$otpCode;
+        }
+
+        return view('frontend.verify_otp', $viewData);
     }
 
 
@@ -420,13 +393,27 @@ class AuthController extends Controller
             return redirect()->route('site.forgot_password')->with('error', 'Bạn đã nhập sai mã OTP quá 5 lần. Vui lòng yêu cầu mã mới.');
         }
 
-        if ((string)$user->otp_code !== (string)$request->otp_code) {
+        $storedCode = null;
+        $expiresAt = null;
+
+        if (\Illuminate\Support\Facades\Schema::hasColumn('user', 'otp_code')) {
+            $storedCode = (string)$user->otp_code;
+            $expiresAt = $user->otp_expires_at ? Carbon::parse($user->otp_expires_at) : null;
+        } else {
+            $cached = \Illuminate\Support\Facades\Cache::get('otp_' . $user->phone);
+            if ($cached) {
+                $storedCode = (string)$cached['code'];
+                $expiresAt = Carbon::parse($cached['expires_at']);
+            }
+        }
+
+        if ($storedCode === null || $storedCode !== (string)$request->otp_code) {
             session()->put('otp_attempts', $attempts + 1);
             $remaining = 5 - ($attempts + 1);
             return back()->with('error', "Mã OTP không đúng. Bạn còn {$remaining} lần thử.");
         }
 
-        if (Carbon::now()->greaterThan($user->otp_expires_at)) {
+        if ($expiresAt && Carbon::now()->greaterThan($expiresAt)) {
             return back()->with('error', 'Mã OTP đã hết hạn.');
         }
 
@@ -455,8 +442,12 @@ class AuthController extends Controller
         /** @var \App\Models\User $user */
         $user = User::where('phone', $phone)->first();
         $user->password = Hash::make($request->password);
-        $user->otp_code = null;
-        $user->otp_expires_at = null;
+        if (\Illuminate\Support\Facades\Schema::hasColumn('user', 'otp_code')) {
+            $user->otp_code = null;
+            $user->otp_expires_at = null;
+        } else {
+            \Illuminate\Support\Facades\Cache::forget('otp_' . $user->phone);
+        }
         $user->save();
 
         session()->forget('reset_password_phone');

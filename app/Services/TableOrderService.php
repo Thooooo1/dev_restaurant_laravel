@@ -91,6 +91,13 @@ class TableOrderService
 
             $currentTurn = $turn ?? $order->order_turn ?? 1;
 
+            // P1-05: Sắp xếp ID món tăng dần để tránh Deadlock khi nhiều bàn cùng đặt món đồng thời
+            usort($items, function ($a, $b) {
+                $idA = (int)($a['product_id'] ?? $a['id'] ?? 0);
+                $idB = (int)($b['product_id'] ?? $b['id'] ?? 0);
+                return $idA <=> $idB;
+            });
+
             foreach ($items as $item) {
                 $productId = $item['product_id'] ?? $item['id'];
                 $qty = (int)($item['qty'] ?? $item['quantity'] ?? 1);
@@ -98,10 +105,19 @@ class TableOrderService
                     continue;
                 }
 
-                $prod = \App\Models\Product::find($productId);
+                // P1-05: Khóa sản phẩm với lockForUpdate và kiểm tra tồn kho đồng bộ
+                $prod = \App\Models\Product::where('id', $productId)->lockForUpdate()->first();
                 if (!$prod || (int)$prod->status !== 1) {
                     continue; // Bỏ qua món ngừng bán hoặc không tồn tại (D-09)
                 }
+
+                if ($prod->qty < $qty) {
+                    throw new \DomainException("Món '{$prod->name}' không đủ số lượng phục vụ (còn {$prod->qty}, yêu cầu {$qty}).");
+                }
+
+                // Trừ tồn kho an toàn cho đơn gọi món tại bàn
+                $prod->qty = max(0, $prod->qty - $qty);
+                $prod->save();
 
                 // Cập nhật giá bán mới nhất từ DB
                 $price = (float)$prod->price;

@@ -23,22 +23,24 @@ class OrderHistoryController extends Controller
             ->paid()
             ->with(['user', 'orderDetails']);
 
+        // P2-13: Thống nhất mốc tính doanh thu theo chuẩn dồn tích (revenue_recognized_at / paid_at)
+        $dateExpr = 'COALESCE(revenue_recognized_at, paid_at, created_at)';
+
         // Filter by Year
         if ($year) {
-            $query->whereYear('created_at', $year);
+            $query->whereRaw("YEAR({$dateExpr}) = ?", [$year]);
         }
 
         // Filter by Quarter
         if ($quarter) {
             $startMonth = ($quarter - 1) * 3 + 1;
             $endMonth = $startMonth + 2;
-            $query->whereMonth('created_at', '>=', $startMonth)
-                  ->whereMonth('created_at', '<=', $endMonth);
+            $query->whereRaw("MONTH({$dateExpr}) >= ? AND MONTH({$dateExpr}) <= ?", [$startMonth, $endMonth]);
         }
 
         // Filter by Month
         if ($month) {
-            $query->whereMonth('created_at', $month);
+            $query->whereRaw("MONTH({$dateExpr}) = ?", [$month]);
         }
 
         // Calculate total revenue for the filtered set using final recognized total_price
