@@ -173,7 +173,9 @@
                              data-table-name="{{ $table->name }}"
                              data-floor-name="{{ $floor->name }}"
                              data-status="{{ $isOccupied ? 'occupied' : 'empty' }}"
-                             data-is-locked="{{ $isLocked ? 'true' : 'false' }}">
+                             data-is-locked="{{ $isLocked ? 'true' : 'false' }}"
+                             data-seats="{{ $table->seats }}"
+                             data-guests="{{ $isOccupied && $order ? ($order->number_of_guests ?? 1) : 0 }}">
                              
                             <!-- THẺ BÀN ĂN: Thiết kế chuẩn POS hiện đại, thanh thoát, không lồng ô bo viền -->
                             <div class="bg-white rounded-lg border transition-all duration-200 flex flex-col justify-between min-h-[210px] relative overflow-hidden shadow-2xs hover:shadow-md hover:-translate-y-0.5
@@ -233,26 +235,29 @@
                                         @endif
 
                                         <!-- In mã QR để bàn -->
-                                        <a href="{{ route('admin.table.qr', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-600 flex items-center justify-center text-xs transition-colors" title="In mã QR để bàn">
+                                        <a href="{{ route('admin.table.qr', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="In mã QR để bàn">
                                             <i class="fa-solid fa-qrcode"></i>
                                         </a>
 
                                         @if($isLocked)
-                                            <button type="button" onclick="event.stopPropagation(); confirmUnmerge({{ $table->id }})" class="w-7 h-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-rose-600 flex items-center justify-center text-xs transition-colors" title="Hủy ghép bàn">
+                                            <button type="button" onclick="event.stopPropagation(); confirmUnmerge({{ $table->id }})" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Hủy ghép bàn">
                                                 ✕
                                             </button>
                                         @elseif(!$isOccupied)
-                                            <button type="button" onclick="event.stopPropagation(); showMergeModal({{ $table->id }}, '{{ $table->name }}', '{{ $floor->name }}')" class="w-7 h-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-blue-600 flex items-center justify-center text-xs transition-colors" title="Ghép bàn với bàn khác">
+                                            <button type="button" onclick="event.stopPropagation(); showMergeModal({{ $table->id }}, '{{ $table->name }}', '{{ $floor->name }}', false)" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Ghép bàn vào bàn khác">
                                                 <i class="fa-solid fa-link"></i>
                                             </button>
                                             @if(Auth::user()->isAdmin())
-                                                <a href="{{ route('admin.table.edit', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#F47716] flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
+                                                <a href="{{ route('admin.table.edit', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
                                                     <i class="fa-solid fa-pen"></i>
                                                 </a>
                                             @endif
                                         @else
+                                            <button type="button" onclick="event.stopPropagation(); showMergeModal({{ $table->id }}, '{{ $table->name }}', '{{ $floor->name }}', true)" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Ghép thêm bàn vào bàn này">
+                                                <i class="fa-solid fa-link"></i>
+                                            </button>
                                             @if(Auth::user()->isAdmin())
-                                                <a href="{{ route('admin.table.edit', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-[#F47716] flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
+                                                <a href="{{ route('admin.table.edit', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
                                                     <i class="fa-solid fa-pen"></i>
                                                 </a>
                                             @endif
@@ -411,34 +416,65 @@
         </div>
     </div>
 
-    <!-- Modal Ghép bàn -->
-    <div class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 backdrop-blur-2xs" id="mergeTableModal">
-        <div class="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-auto border border-gray-200">
-            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-white text-gray-900 rounded-t-xl">
-                <h3 class="text-base font-bold text-gray-900 tracking-tight" id="mergeSourceTableName">Ghép Bàn Ăn</h3>
-                <button onclick="closeModal('mergeTableModal')" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors cursor-pointer text-sm">
+    <!-- Modal Ghép bàn: Thiết kế tối giản, thanh lịch, đơn sắc (không màu mè) -->
+    <div class="fixed inset-0 bg-black/40 z-50 hidden items-center justify-center p-4" id="mergeTableModal">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden border border-stone-200">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 border-b border-stone-200 flex items-center justify-between bg-white text-stone-900">
+                <div>
+                    <h3 class="text-sm font-bold text-stone-900 tracking-tight" id="mergeModalTitle">Ghép Bàn Ăn</h3>
+                    <p class="text-[11px] text-stone-500 mt-0.5" id="mergeModalSubtitle">Liên kết các bàn dùng chung một hóa đơn</p>
+                </div>
+                <button type="button" onclick="closeModal('mergeTableModal')" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-700 transition-colors cursor-pointer text-sm">
                     ✕
                 </button>
             </div>
             
+            <!-- Modal Body -->
             <div class="p-5 space-y-4 text-xs">
                 <input type="hidden" id="mergeSourceTableId">
+                <input type="hidden" id="mergeIsSourceOccupied" value="false">
+                <input type="hidden" id="mergeSourceTableName">
+                <input type="hidden" id="mergeSourceFloorName">
                 
-                <div>
-                    <label class="block font-bold text-gray-700 mb-1.5">
-                        Chọn bàn muốn ghép vào (Bàn đang phục vụ khách):
+                <!-- Khi có bàn khả dụng để ghép -->
+                <div id="mergeSelectContainer">
+                    <label class="block font-medium text-stone-800 mb-1.5" id="mergeSelectLabel">
+                        Chọn bàn muốn ghép vào:
                     </label>
-                    <select class="w-full px-3.5 py-2.5 rounded-lg border border-gray-300 focus:border-[#F47716] focus:outline-none transition-all text-xs bg-white" id="mergeTargetTableId">
-                        <option value="">-- Đang tải danh sách bàn có khách... --</option>
+                    <select class="w-full px-3.5 py-2.5 rounded-lg border border-stone-300 focus:border-stone-800 focus:outline-none transition-all text-xs bg-white text-stone-800" id="mergeTargetTableId">
+                        <option value="">-- Đang tải danh sách bàn... --</option>
                     </select>
+                    <p class="text-[11px] text-stone-400 mt-1.5" id="mergeSelectHint">
+                        Bàn được ghép sẽ cùng sử dụng chung thực đơn và thanh toán trên một hóa đơn.
+                    </p>
+                </div>
+
+                <!-- Khi chưa có bàn phù hợp để ghép -->
+                <div id="mergeEmptyNotice" class="hidden">
+                    <div class="p-3.5 rounded-lg bg-stone-50 border border-stone-200 space-y-2">
+                        <div class="text-stone-800 font-medium text-xs">
+                            <span id="mergeEmptyNoticeTitle">Chưa có bàn nào đang phục vụ khách</span>
+                        </div>
+                        <p class="text-xs text-stone-600 leading-relaxed" id="mergeEmptyNoticeDesc">
+                            Chức năng ghép bàn dùng để mở rộng thêm chỗ cho một bàn đang có khách dùng bữa. Hiện tại tất cả các bàn đều đang trống.
+                        </p>
+                    </div>
+
+                    <div class="pt-2" id="mergeEmptyActionBox">
+                        <button type="button" id="btnOpenCurrentTableFromMerge" class="w-full px-4 py-2.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs transition-colors cursor-pointer text-center">
+                            <span>Mở bàn này và tạo đơn ngay</span>
+                        </button>
+                    </div>
                 </div>
             </div>
             
-            <div class="px-5 py-3.5 bg-gray-50 border-t border-gray-100 flex gap-3 text-xs">
-                <button type="button" onclick="closeModal('mergeTableModal')" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-100 transition-colors cursor-pointer">
+            <!-- Modal Footer -->
+            <div class="px-5 py-3.5 bg-stone-50 border-t border-stone-200 flex gap-3 text-xs" id="mergeModalFooter">
+                <button type="button" onclick="closeModal('mergeTableModal')" class="flex-1 px-4 py-2.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100 text-stone-700 font-medium transition-colors cursor-pointer">
                     Hủy
                 </button>
-                <button type="button" onclick="submitMergeTable()" class="flex-1 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-xs cursor-pointer uppercase tracking-wider">
+                <button type="button" id="btnSubmitMerge" onclick="submitMergeTable()" class="flex-1 px-4 py-2.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-medium transition-colors cursor-pointer">
                     Xác nhận ghép
                 </button>
             </div>
@@ -780,34 +816,128 @@
             }
         }
 
-        // Xử lý ghép bàn
-        function showMergeModal(tableId, tableName, floorName) {
+        // Xử lý ghép bàn: Hỗ trợ cả 2 chiều (bàn trống -> bàn có khách, hoặc bàn có khách -> ghép thêm bàn trống)
+        function showMergeModal(tableId, tableName, floorName, isOccupied) {
             $('#mergeSourceTableId').val(tableId);
-            $('#mergeSourceTableName').text('Ghép: ' + (floorName ? (floorName + ' - ') : '') + tableName);
-            
-            let html = '<option value="">-- Chọn bàn đang phục vụ để ghép vào --</option>';
-            $('.table-card').each(function() {
-                 let id = $(this).data('table-id');
-                 let name = $(this).data('table-name');
-                 let fName = $(this).data('floor-name');
-                 let isLocked = $(this).data('is-locked') === true || $(this).data('is-locked') === 'true';
-                 let status = $(this).data('status');
-                 
-                 if (id != tableId && !isLocked && status === 'occupied') {
-                     html += `<option value="${id}">${(fName ? fName + ' - ' : '') + name}</option>`;
-                 }
-            });
+            $('#mergeIsSourceOccupied').val(isOccupied ? 'true' : 'false');
+            $('#mergeSourceTableName').val(tableName);
+            $('#mergeSourceFloorName').val(floorName);
+
+            let cleanName = (tableName && tableName.toLowerCase().startsWith('bàn')) ? tableName : ('Bàn ' + tableName);
+            let fullName = (floorName ? (floorName + ' - ') : '') + cleanName;
+            let availableCount = 0;
+            let html = '';
+
+            if (isOccupied) {
+                // Đang mở từ một bàn CÓ KHÁCH -> Chọn bàn TRỐNG để ghép thêm vào bàn này
+                $('#mergeModalTitle').text('Ghép thêm bàn: ' + fullName);
+                $('#mergeModalSubtitle').text('Chọn bàn trống để mở rộng không gian cho bàn này');
+                $('#mergeSelectLabel').text('Chọn bàn trống muốn ghép vào ' + cleanName + ':');
+                $('#mergeSelectHint').text('Bàn trống được chọn sẽ dùng chung thực đơn và tính tiền chung vào ' + cleanName + '.');
+                
+                html = '<option value="">-- Chọn bàn trống để ghép vào --</option>';
+                $('.table-card').each(function() {
+                    let id = $(this).data('table-id');
+                    let name = $(this).data('table-name');
+                    let fName = $(this).data('floor-name');
+                    let isLocked = $(this).data('is-locked') === true || $(this).data('is-locked') === 'true';
+                    let status = $(this).data('status');
+                    let seats = $(this).data('seats') || '';
+                    
+                    if (id != tableId && !isLocked && status === 'empty') {
+                        availableCount++;
+                        let seatText = seats ? (', ' + seats + ' chỗ') : '';
+                        html += `<option value="${id}">${(fName ? fName + ' - ' : '') + name} (Trống${seatText})</option>`;
+                    }
+                });
+
+                if (availableCount === 0) {
+                    $('#mergeSelectContainer').addClass('hidden');
+                    $('#mergeEmptyNotice').removeClass('hidden');
+                    $('#btnSubmitMerge').addClass('hidden');
+                    $('#mergeEmptyNoticeTitle').text('Không có bàn trống phù hợp');
+                    $('#mergeEmptyNoticeDesc').text('Tất cả các bàn khác trong nhà hàng đều đang có khách hoặc đã được ghép.');
+                    $('#mergeEmptyActionBox').addClass('hidden');
+                } else {
+                    $('#mergeSelectContainer').removeClass('hidden');
+                    $('#mergeEmptyNotice').addClass('hidden');
+                    $('#btnSubmitMerge').removeClass('hidden');
+                }
+            } else {
+                // Đang mở từ một bàn TRỐNG -> Chọn bàn ĐANG PHỤC VỤ để ghép vào
+                $('#mergeModalTitle').text('Ghép bàn: ' + fullName);
+                $('#mergeModalSubtitle').text('Ghép bàn trống này vào một bàn đang có khách dùng bữa');
+                $('#mergeSelectLabel').text('Chọn bàn đang phục vụ khách để ghép cùng:');
+                $('#mergeSelectHint').text(cleanName + ' sẽ dùng chung thực đơn và thanh toán trên hóa đơn của bàn được chọn.');
+
+                html = '<option value="">-- Chọn bàn đang phục vụ khách --</option>';
+                $('.table-card').each(function() {
+                    let id = $(this).data('table-id');
+                    let name = $(this).data('table-name');
+                    let fName = $(this).data('floor-name');
+                    let isLocked = $(this).data('is-locked') === true || $(this).data('is-locked') === 'true';
+                    let status = $(this).data('status');
+                    let guests = $(this).data('guests') || 0;
+                    
+                    if (id != tableId && !isLocked && status === 'occupied') {
+                        availableCount++;
+                        let guestText = guests > 0 ? (', ' + guests + ' khách') : '';
+                        html += `<option value="${id}">${(fName ? fName + ' - ' : '') + name} (Đang phục vụ${guestText})</option>`;
+                    }
+                });
+
+                if (availableCount === 0) {
+                    $('#mergeSelectContainer').addClass('hidden');
+                    $('#mergeEmptyNotice').removeClass('hidden');
+                    $('#btnSubmitMerge').addClass('hidden');
+                    $('#mergeEmptyNoticeTitle').text('Chưa có bàn nào đang phục vụ khách');
+                    $('#mergeEmptyNoticeDesc').text('Chức năng ghép bàn dùng để liên kết thêm bàn vào một bàn đang có khách dùng bữa. Hiện tại tất cả các bàn trong nhà hàng đều đang trống.');
+                    $('#mergeEmptyActionBox').removeClass('hidden');
+                    $('#btnOpenCurrentTableFromMerge').off('click').on('click', function() {
+                        closeModal('mergeTableModal');
+                        $('#modalTableName').text('Mở Bàn: ' + (floorName ? (floorName + ' - ') : '') + tableName);
+                        $('#selectedTableId').val(tableId);
+                        $('#customerPhone').val('');
+                        $('#customerName').val('');
+                        $('#customerName').prop('readonly', false);
+                        $('#numberOfGuests').val('1');
+                        openModal('registerTableModal');
+                    });
+                } else {
+                    $('#mergeSelectContainer').removeClass('hidden');
+                    $('#mergeEmptyNotice').addClass('hidden');
+                    $('#btnSubmitMerge').removeClass('hidden');
+                }
+            }
+
             $('#mergeTargetTableId').html(html);
             openModal('mergeTableModal');
         }
 
         function submitMergeTable() {
-            let sourceId = $('#mergeSourceTableId').val();
-            let targetId = $('#mergeTargetTableId').val();
-            if (!targetId) {
+            let currentTableId = $('#mergeSourceTableId').val();
+            let isCurrentOccupied = $('#mergeIsSourceOccupied').val() === 'true';
+            let selectedTableId = $('#mergeTargetTableId').val();
+
+            if (!selectedTableId) {
                 if (typeof toastr !== 'undefined') toastr.error('Vui lòng chọn bàn để ghép');
                 return;
             }
+
+            // Backend mergeTable:
+            // source_table_id: Bàn TRỐNG (sẽ bị khóa locked_order_id)
+            // target_table_id: Bàn ĐANG CÓ KHÁCH (chứa active order)
+            let sourceId, targetId;
+            if (isCurrentOccupied) {
+                sourceId = selectedTableId;
+                targetId = currentTableId;
+            } else {
+                sourceId = currentTableId;
+                targetId = selectedTableId;
+            }
+
+            let $btn = $('#btnSubmitMerge');
+            $btn.prop('disabled', true).text('Đang xử lý...');
 
             $.ajax({
                 url: '{{ route("admin.table-order.mergeTable") }}',
@@ -824,10 +954,13 @@
                         setTimeout(function() { location.reload(); }, 500);
                     } else {
                         if (typeof toastr !== 'undefined') toastr.error(response.message);
+                        $btn.prop('disabled', false).text('Xác nhận ghép');
                     }
                 },
-                error: function() {
-                    if (typeof toastr !== 'undefined') toastr.error('Có lỗi xảy ra');
+                error: function(xhr) {
+                    let msg = (xhr.responseJSON && xhr.responseJSON.message) ? xhr.responseJSON.message : 'Có lỗi xảy ra khi ghép bàn';
+                    if (typeof toastr !== 'undefined') toastr.error(msg);
+                    $btn.prop('disabled', false).text('Xác nhận ghép');
                 }
             });
         }
