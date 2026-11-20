@@ -18,13 +18,11 @@
                         pauseOnHover: true,
                         pauseOnFocus: true,
                         pauseOnDotsHover: true,
-                        arrows: true,
+                        arrows: false,
                         dots: true,
                         appendDots: $('.hero-dots-slot'),
                         swipe: true,
-                        touchMove: true,
-                        prevArrow: '<button type="button" class="slick-prev flex items-center justify-center cursor-pointer" aria-label="Lướt sang trang trước" title="Lướt sang trái"><i class="fas fa-chevron-left"></i></button>',
-                        nextArrow: '<button type="button" class="slick-next flex items-center justify-center cursor-pointer" aria-label="Lướt sang trang sau" title="Lướt sang phải"><i class="fas fa-chevron-right"></i></button>'
+                        touchMove: true
                     });
 
                     // Nút bấm lướt trái / phải ở thanh điều khiển dưới đáy
@@ -79,7 +77,7 @@
                             ? asset('images/banner/' . $imgFile)
                             : asset('images/banner/' . $fallback['image']);
                     @endphp
-                    <div class="hero-slide-item relative w-full h-full min-h-[480px] sm:min-h-[540px] lg:min-h-[580px] flex items-center outline-none">
+                    <div class="hero-slide-item relative w-full h-full min-h-[540px] sm:min-h-[600px] md:min-h-[640px] lg:min-h-[680px] flex items-center outline-none">
                         <!-- High-Res Background Image -->
                         <div class="absolute inset-0 overflow-hidden">
                             <img src="{{ $imgUrl }}" 
@@ -90,9 +88,9 @@
                             <div class="absolute inset-0 bg-gradient-to-r from-stone-950/80 via-transparent to-transparent w-full md:w-2/3"></div>
                         </div>
 
-                        <!-- Slide Content: Căn chỉnh ngắt dòng hợp lý, chuẩn ý nghĩa, không bị rớt từ cụt ngủn -->
-                        <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 pt-16 sm:pt-20 pb-20 sm:pb-24">
-                            <div class="max-w-4xl text-left text-white">
+                        <!-- Slide Content: Căn chỉnh lùi xuống dưới thoáng đãng, không bị sát header mép trên -->
+                        <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10 pt-28 sm:pt-32 md:pt-36 lg:pt-40 pb-24 sm:pb-28">
+                            <div class="max-w-4xl text-left text-white mt-4 sm:mt-6">
 
                                 @php
                                     // Tách dòng có nghĩa tự nhiên theo '&' để 2 vế câu cân xứng, tránh rớt từ đơn lẻ
@@ -107,8 +105,8 @@
                                     }
                                 @endphp
 
-                                <!-- Headline Đẹp mắt, ngắt dòng chuẩn ý nghĩa, không bị rớt chữ -->
-                                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] xl:text-[62px] font-black text-white mb-5 leading-[1.18] tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] max-w-4xl" style="text-wrap: balance;">
+                                <!-- Headline Đẹp mắt, lùi xuống dưới hợp lý, không bị chạm mép header -->
+                                <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-[46px] xl:text-[52px] font-black text-white mb-4 sm:mb-5 leading-[1.25] tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] max-w-3xl" style="text-wrap: balance;">
                                     @if ($titleLine2)
                                         <span class="block">{{ $titleLine1 }}</span>
                                         <span class="block text-white/95">{{ $titleLine2 }}</span>
@@ -117,8 +115,8 @@
                                     @endif
                                 </h1>
 
-                                <!-- Subtitle Chữ To Hơn & Dễ Đọc -->
-                                <p class="text-base sm:text-lg md:text-xl lg:text-[20px] text-white/90 font-medium leading-relaxed max-w-2xl mb-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" style="text-wrap: pretty;">
+                                <!-- Subtitle Chữ Rõ Ràng & Dễ Đọc -->
+                                <p class="text-sm sm:text-base md:text-lg lg:text-[18px] text-white/90 font-medium leading-relaxed max-w-2xl mb-7 sm:mb-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" style="text-wrap: pretty;">
                                     {{ $descText }}
                                 </p>
 

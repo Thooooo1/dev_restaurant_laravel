@@ -832,11 +832,12 @@ class TableOrderController extends Controller
                             $product,
                             -$qty,
                             'pos_order_add',
-                            $order->id,
-                            $existing->id,
-                            null,
                             "pos_save_order_{$order->id}_{$existing->id}_" . uniqid(),
-                            $userId
+                            [
+                                'order_id' => $order->id,
+                                'order_detail_id' => $existing->id,
+                                'actor_id' => $userId,
+                            ]
                         );
 
                         OrderItemLog::create([
@@ -868,11 +869,12 @@ class TableOrderController extends Controller
                             $product,
                             -$qty,
                             'pos_order_add',
-                            $order->id,
-                            $detail->id,
-                            null,
                             "pos_save_order_new_{$order->id}_{$detail->id}_" . uniqid(),
-                            $userId
+                            [
+                                'order_id' => $order->id,
+                                'order_detail_id' => $detail->id,
+                                'actor_id' => $userId,
+                            ]
                         );
 
                         OrderItemLog::create([
@@ -904,6 +906,12 @@ class TableOrderController extends Controller
                 'success' => false,
                 'message' => $e->getMessage()
             ], 422);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Lỗi saveTableOrder: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Lỗi xử lý đơn hàng: ' . $e->getMessage()
+            ], 500);
         }
     }
 

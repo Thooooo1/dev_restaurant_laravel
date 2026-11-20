@@ -242,110 +242,15 @@
             content: '' !important;
         }
 
-        /* Floating Circular Navigation Arrows (Left & Right) */
+        /* Ẩn hoàn toàn các nút mũi tên tròn nổi 2 bên mép slider để giao diện tinh gọn, không che ảnh */
         .home-hero-slider .slick-prev,
         .home-hero-slider .slick-next {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            position: absolute !important;
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            z-index: 50 !important;
-            width: 44px !important;
-            height: 44px !important;
-            border-radius: 9999px !important;
-            background: rgba(18, 18, 18, 0.88) !important;
-            backdrop-filter: blur(10px) !important;
-            -webkit-backdrop-filter: blur(10px) !important;
-            border: 2.5px solid #F47716 !important;
-            color: #F47716 !important;
-            box-shadow: 0 6px 22px rgba(0, 0, 0, 0.7), 0 0 16px rgba(244, 119, 22, 0.45) !important;
-            cursor: pointer !important;
-            outline: none !important;
-            padding: 0 !important;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            user-select: none !important;
-            touch-action: manipulation;
-        }
-
-        .home-hero-slider .slick-prev {
-            left: 12px !important;
-        }
-
-        .home-hero-slider .slick-next {
-            right: 12px !important;
-        }
-
-        .home-hero-slider .slick-prev i,
-        .home-hero-slider .slick-next i {
-            color: #F47716 !important;
-            font-size: 16px !important;
-            line-height: 1 !important;
-            display: inline-block !important;
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
             pointer-events: none !important;
-            transition: all 0.2s ease !important;
-        }
-
-        /* Hover & Focus state */
-        .home-hero-slider .slick-prev:hover,
-        .home-hero-slider .slick-next:hover,
-        .home-hero-slider .slick-prev:focus-visible,
-        .home-hero-slider .slick-next:focus-visible {
-            background: #F47716 !important;
-            border-color: #ffffff !important;
-            color: #ffffff !important;
-            box-shadow: 0 8px 30px rgba(244, 119, 22, 0.9), 0 4px 14px rgba(0, 0, 0, 0.6) !important;
-            transform: translateY(-50%) scale(1.12) !important;
-        }
-
-        .home-hero-slider .slick-prev:hover i,
-        .home-hero-slider .slick-next:hover i {
-            color: #ffffff !important;
-        }
-
-        .home-hero-slider .slick-prev:hover i {
-            transform: translateX(-2px) !important;
-        }
-
-        .home-hero-slider .slick-next:hover i {
-            transform: translateX(2px) !important;
-        }
-
-        /* Active / Click / Tap state */
-        .home-hero-slider .slick-prev:active,
-        .home-hero-slider .slick-next:active {
-            background: #EA580C !important;
-            border-color: #EA580C !important;
-            transform: translateY(-50%) scale(0.92) !important;
-        }
-
-        /* Responsive Desktop & Tablet Sizing */
-        @media (min-width: 640px) {
-            .home-hero-slider .slick-prev,
-            .home-hero-slider .slick-next {
-                width: 52px !important;
-                height: 52px !important;
-            }
-            .home-hero-slider .slick-prev {
-                left: 28px !important;
-            }
-            .home-hero-slider .slick-next {
-                right: 28px !important;
-            }
-            .home-hero-slider .slick-prev i,
-            .home-hero-slider .slick-next i {
-                font-size: 19px !important;
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .home-hero-slider .slick-prev {
-                left: 36px !important;
-            }
-            .home-hero-slider .slick-next {
-                right: 36px !important;
-            }
+            width: 0 !important;
+            height: 0 !important;
         }
 
         /* Hero Carousel Control Bar (Bottom Bar) */
