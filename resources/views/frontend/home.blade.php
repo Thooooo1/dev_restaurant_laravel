@@ -20,19 +20,9 @@
                         pauseOnDotsHover: true,
                         arrows: false,
                         dots: true,
-                        appendDots: $('.hero-dots-slot'),
+                        appendDots: $('.hero-dots-container'),
                         swipe: true,
                         touchMove: true
-                    });
-
-                    // Nút bấm lướt trái / phải ở thanh điều khiển dưới đáy
-                    $(document).on('click', '.hero-bar-prev', function (e) {
-                        e.preventDefault();
-                        $slider.slick('slickPrev');
-                    });
-                    $(document).on('click', '.hero-bar-next', function (e) {
-                        e.preventDefault();
-                        $slider.slick('slickNext');
                     });
                 }
             });
@@ -138,27 +128,8 @@
                 @endforeach
             </div>
 
-            <!-- Thanh điều khiển chuyển trang trái/phải & chấm slide dưới đáy (Thiết kế Kính Mờ Tối Giản) -->
-            <div class="hero-carousel-bar">
-                <!-- Nút chuyển sang trái -->
-                <button type="button" 
-                        class="hero-bar-prev" 
-                        aria-label="Lướt sang trái / Trang trước" 
-                        title="Trang trước">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-
-                <!-- Vùng chứa các chấm trang (Dots Slot) -->
-                <div class="hero-dots-slot"></div>
-
-                <!-- Nút chuyển sang phải -->
-                <button type="button" 
-                        class="hero-bar-next" 
-                        aria-label="Lướt sang phải / Trang sau" 
-                        title="Trang sau">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
+            <!-- Dãy chấm chuyển slide tối giản dưới đáy (Minimalist Hero Dots) -->
+            <div class="hero-dots-container absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-40 flex items-center justify-center pointer-events-auto"></div>
         </section>
 
         <!-- ======================================================== -->

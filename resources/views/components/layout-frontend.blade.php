@@ -253,77 +253,25 @@
             height: 0 !important;
         }
 
-        /* Hero Carousel Control Bar (Thanh điều khiển đáy dạng Kính Mờ Tối Giản, Không Viền Lồng) */
-        .hero-carousel-bar {
+        /* Hero Carousel Dots (Chỉ hiển thị các chấm slide tối giản, thanh lịch, không khung viền) */
+        .hero-dots-container {
             position: absolute !important;
             bottom: 24px !important;
             left: 50% !important;
             transform: translateX(-50%) !important;
-            z-index: 50 !important;
+            z-index: 40 !important;
             user-select: none;
-            display: inline-flex !important;
-            align-items: center !important;
-            gap: 10px !important;
-            padding: 6px 14px !important;
-            border-radius: 9999px !important;
-            background: rgba(18, 18, 18, 0.65) !important;
-            backdrop-filter: blur(12px) !important;
-            -webkit-backdrop-filter: blur(12px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.18) !important;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55) !important;
+            pointer-events: auto;
         }
 
-        .hero-carousel-bar .hero-bar-prev,
-        .hero-carousel-bar .hero-bar-next {
-            outline: none !important;
-            border: none !important;
-            background: transparent !important;
-            width: 26px !important;
-            height: 26px !important;
-            border-radius: 9999px !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            color: rgba(255, 255, 255, 0.75) !important;
-            cursor: pointer !important;
-            padding: 0 !important;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        }
-
-        .hero-carousel-bar .hero-bar-prev i,
-        .hero-carousel-bar .hero-bar-next i {
-            font-size: 11px !important;
-            line-height: 1 !important;
-            color: rgba(255, 255, 255, 0.75) !important;
-            transition: color 0.2s ease !important;
-        }
-
-        .hero-carousel-bar .hero-bar-prev:hover,
-        .hero-carousel-bar .hero-bar-next:hover {
-            background: rgba(255, 255, 255, 0.16) !important;
-            color: #ffffff !important;
-            transform: scale(1.1) !important;
-        }
-
-        .hero-carousel-bar .hero-bar-prev:hover i,
-        .hero-carousel-bar .hero-bar-next:hover i {
-            color: #ffffff !important;
-        }
-
-        .hero-carousel-bar .hero-bar-prev:active,
-        .hero-carousel-bar .hero-bar-next:active {
-            transform: scale(0.92) !important;
-        }
-
-        /* Hero Carousel Dots inside .hero-dots-slot */
-        .hero-dots-slot .slick-dots,
+        .hero-dots-container .slick-dots,
         .home-hero-slider .slick-dots {
             position: static !important;
             display: inline-flex !important;
             justify-content: center !important;
             align-items: center !important;
-            gap: 8px !important;
-            padding: 0 2px !important;
+            gap: 10px !important;
+            padding: 0 !important;
             margin: 0 !important;
             list-style: none !important;
             width: auto !important;
@@ -335,11 +283,11 @@
             box-shadow: none !important;
         }
 
-        .hero-dots-slot .slick-dots li,
+        .hero-dots-container .slick-dots li,
         .home-hero-slider .slick-dots li {
             margin: 0 !important;
-            width: 8px !important;
-            height: 8px !important;
+            width: 10px !important;
+            height: 10px !important;
             padding: 0 !important;
             display: inline-flex !important;
             align-items: center !important;
@@ -347,45 +295,46 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
-        .hero-dots-slot .slick-dots li button,
+        .hero-dots-container .slick-dots li button,
         .home-hero-slider .slick-dots li button {
-            width: 8px !important;
-            height: 8px !important;
+            width: 10px !important;
+            height: 10px !important;
             padding: 0 !important;
             border-radius: 9999px !important;
-            background: rgba(255, 255, 255, 0.38) !important;
+            background: rgba(255, 255, 255, 0.45) !important;
             border: none !important;
             outline: none !important;
             cursor: pointer !important;
             font-size: 0 !important;
             line-height: 0 !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45) !important;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
-        .hero-dots-slot .slick-dots li button:before,
+        .hero-dots-container .slick-dots li button:before,
         .home-hero-slider .slick-dots li button:before {
             display: none !important;
             content: '' !important;
         }
 
-        .hero-dots-slot .slick-dots li button:hover,
+        .hero-dots-container .slick-dots li button:hover,
         .home-hero-slider .slick-dots li button:hover {
-            background: rgba(255, 255, 255, 0.9) !important;
-            transform: scale(1.2) !important;
+            background: #ffffff !important;
+            transform: scale(1.25) !important;
         }
 
-        .hero-dots-slot .slick-dots li.slick-active,
+        .hero-dots-container .slick-dots li.slick-active,
         .home-hero-slider .slick-dots li.slick-active {
-            width: 24px !important;
+            width: 28px !important;
         }
 
-        .hero-dots-slot .slick-dots li.slick-active button,
+        .hero-dots-container .slick-dots li.slick-active button,
         .home-hero-slider .slick-dots li.slick-active button {
-            width: 24px !important;
-            height: 8px !important;
+            width: 28px !important;
+            height: 10px !important;
             border-radius: 9999px !important;
             background: #F47716 !important;
-            box-shadow: 0 0 10px rgba(244, 119, 22, 0.8) !important;
+            box-shadow: 0 0 12px rgba(244, 119, 22, 0.85) !important;
         }
 
         html {
