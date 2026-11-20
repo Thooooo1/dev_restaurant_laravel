@@ -105,8 +105,8 @@
                                     }
                                 @endphp
 
-                                <!-- Headline Đẹp mắt, lùi xuống dưới hợp lý, không bị chạm mép header -->
-                                <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-[46px] xl:text-[52px] font-black text-white mb-4 sm:mb-5 leading-[1.25] tracking-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] max-w-3xl" style="text-wrap: balance;">
+                                <!-- Headline Đẹp mắt, to rõ, ấn tượng, không bị chạm mép header -->
+                                <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-[56px] xl:text-[64px] font-black text-white mb-4 sm:mb-5 leading-[1.18] tracking-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] max-w-4xl" style="text-wrap: balance;">
                                     @if ($titleLine2)
                                         <span class="block">{{ $titleLine1 }}</span>
                                         <span class="block text-white/95">{{ $titleLine2 }}</span>
@@ -116,7 +116,7 @@
                                 </h1>
 
                                 <!-- Subtitle Chữ Rõ Ràng & Dễ Đọc -->
-                                <p class="text-sm sm:text-base md:text-lg lg:text-[18px] text-white/90 font-medium leading-relaxed max-w-2xl mb-7 sm:mb-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" style="text-wrap: pretty;">
+                                <p class="text-base sm:text-lg md:text-xl lg:text-[20px] text-white/90 font-medium leading-relaxed max-w-2xl mb-7 sm:mb-8 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]" style="text-wrap: pretty;">
                                     {{ $descText }}
                                 </p>
 
@@ -138,25 +138,25 @@
                 @endforeach
             </div>
 
-            <!-- Thanh điều khiển chuyển trang trái/phải & chấm slide dưới đáy -->
-            <div class="hero-carousel-bar absolute bottom-5 sm:bottom-7 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-stone-950/85 border border-white/30 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.65)]">
+            <!-- Thanh điều khiển chuyển trang trái/phải & chấm slide dưới đáy (Thiết kế Kính Mờ Tối Giản) -->
+            <div class="hero-carousel-bar">
                 <!-- Nút chuyển sang trái -->
                 <button type="button" 
-                        class="hero-bar-prev w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white/90 hover:text-white bg-white/10 hover:bg-[#F47716] active:scale-90 transition-all cursor-pointer focus:outline-none" 
+                        class="hero-bar-prev" 
                         aria-label="Lướt sang trái / Trang trước" 
                         title="Trang trước">
-                    <i class="fas fa-chevron-left text-xs sm:text-sm"></i>
+                    <i class="fas fa-chevron-left"></i>
                 </button>
 
                 <!-- Vùng chứa các chấm trang (Dots Slot) -->
-                <div class="hero-dots-slot flex items-center"></div>
+                <div class="hero-dots-slot"></div>
 
                 <!-- Nút chuyển sang phải -->
                 <button type="button" 
-                        class="hero-bar-next w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white/90 hover:text-white bg-white/10 hover:bg-[#F47716] active:scale-90 transition-all cursor-pointer focus:outline-none" 
+                        class="hero-bar-next" 
                         aria-label="Lướt sang phải / Trang sau" 
                         title="Trang sau">
-                    <i class="fas fa-chevron-right text-xs sm:text-sm"></i>
+                    <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
         </section>
