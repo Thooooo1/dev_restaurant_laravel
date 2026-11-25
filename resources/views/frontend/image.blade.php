@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-stone-50/60 min-h-screen">
+    <div class="bg-stone-50/60 min-h-screen">
         <!-- Page Hero Header with Breadcrumbs -->
         <x-page-hero 
             title="Hình Ảnh Không Gian Quán" 
@@ -71,5 +71,5 @@
                 @endif
             </div>
         </section>
-    </main>
+    </div>
 </x-layout-frontend>

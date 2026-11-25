@@ -62,17 +62,25 @@ abstract class TestCase extends BaseTestCase
             'status' => 1,
             'roles' => 'customer',
         ]);
-        \App\Models\Floor::firstOrCreate(['id' => 1], [
-            'name' => 'Tầng 1',
-        ]);
+        $defaultFloor = \App\Models\Floor::find(1);
+        if (!$defaultFloor) {
+            $defaultFloor = new \App\Models\Floor();
+            $defaultFloor->id = 1;
+            $defaultFloor->name = 'Tầng 1';
+            $defaultFloor->save();
+        }
 
-        \App\Models\Table::firstOrCreate(['id' => 1], [
-            'floor_id' => 1,
-            'name' => 'Bàn 1.01',
-            'seats' => 4,
-            'sort_order' => 1,
-            'status' => 1,
-        ]);
+        $defaultTable = \App\Models\Table::find(1);
+        if (!$defaultTable) {
+            $defaultTable = new \App\Models\Table();
+            $defaultTable->id = 1;
+            $defaultTable->floor_id = $defaultFloor->id;
+            $defaultTable->name = 'Bàn 1.01';
+            $defaultTable->seats = 4;
+            $defaultTable->sort_order = 1;
+            $defaultTable->status = 1;
+            $defaultTable->save();
+        }
 
         if (!\App\Models\Category::where('id', 1)->exists()) {
             $cat = new \App\Models\Category();

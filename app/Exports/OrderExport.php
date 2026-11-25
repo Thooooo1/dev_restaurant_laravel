@@ -39,22 +39,29 @@ class OrderExport
         $totalAmount = 0;
 
         foreach ($orders as $order) {
-            $orderStyle = 'Tại bàn';
-            if ($order->orderStyle == 2) {
-                $orderStyle = 'Giao hàng';
-            } elseif ($order->orderStyle == 3) {
-                $orderStyle = 'Mang đi';
+            $orderStyle = $order->table_id ? 'Tại bàn' : 'Giao hàng';
+            if (!$order->table_id) {
+                if ((int) $order->orderStyle === Order::STYLE_POS) {
+                    $orderStyle = 'Tại quầy';
+                } elseif ((int) $order->orderStyle === Order::STYLE_TAKEAWAY) {
+                    $orderStyle = 'Mang đi';
+                } elseif ((int) $order->orderStyle === Order::STYLE_DELIVERY) {
+                    $orderStyle = 'Giao hàng';
+                }
             }
 
             $tableName = $order->table ? ($order->table->name . ($order->table->floor ? ' (' . $order->table->floor->name . ')' : '')) : 'Đơn giao / Mang đi';
 
-            $pm = $order->payment_method;
+            $pm = (string) ($order->payment_method ?? '');
+            $pmLower = strtolower(trim($pm));
             $pmText = 'Chưa thanh toán';
-            if ($pm == '1' || $pm == 'cash') {
-                $pmText = 'Tiền mặt';
-            } elseif ($pm == '2' || $pm == 'vietqr' || $pm == 'bank_transfer') {
+            if ($pm === '1' || $pmLower === 'cash' || $pmLower === 'cod') {
+                $pmText = $pmLower === 'cod' ? 'Tiền mặt (COD)' : 'Tiền mặt';
+            } elseif ($pm === '2' || str_contains($pmLower, 'vietqr') || $pmLower === 'bank_transfer') {
                 $pmText = 'Chuyển khoản VietQR';
-            } elseif (!empty($pm)) {
+            } elseif ($pm === '3' || $pmLower === 'card') {
+                $pmText = 'Quẹt thẻ POS';
+            } elseif ($pm !== '') {
                 $pmText = $pm;
             }
 
@@ -64,7 +71,7 @@ class OrderExport
                     $statusText = 'Chờ xử lý / Đang phục vụ';
                     break;
                 case 1:
-                    $statusText = 'Đang vận chuyển / Đã thanh toán';
+                    $statusText = 'Đang xử lý / Đang giao';
                     break;
                 case 2:
                     $statusText = 'Hoàn thành';
@@ -73,11 +80,11 @@ class OrderExport
                     $statusText = 'Đã hủy';
                     break;
                 case 4:
-                    $statusText = 'Đã trả hàng';
+                    $statusText = 'Đã hoàn tiền';
                     break;
             }
 
-            $itemsCount = $order->orderDetails->sum('qty');
+            $itemsCount = $order->orderDetails->where('status', '!=', 'cancelled')->sum('qty');
             $price = (int)$order->total_price;
             $totalAmount += $price;
 

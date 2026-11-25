@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-stone-50/60 min-h-screen">  
+    <div class="bg-stone-50/60 min-h-screen">  
         <!-- Page Hero Header with Breadcrumbs -->
         <x-page-hero 
             title="Cẩm nang ẩm thực & Chuyện quán" 
@@ -13,5 +13,5 @@
                 <x-list-blog />
             </div>
         </section>
-    </main>
+    </div>
 </x-layout-frontend>

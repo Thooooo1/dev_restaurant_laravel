@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <!-- Page Breadcrumb & Header -->
         <x-page-hero 
             title="Lịch Sử & Theo Dõi Đơn Hàng" 
@@ -124,7 +124,7 @@
                                                 <div class="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
                                                     <div class="flex items-center gap-3.5 min-w-0">
                                                         <div class="w-12 h-12 rounded-none sm:rounded-sm bg-stone-100 border border-stone-200/80 overflow-hidden shrink-0">
-                                                            <img src="{{ asset('images/product/' . ($detail->product?->image ?? 'default-product.png')) }}" 
+                                                            <img src="{{ $detail->product?->image_url ?? asset('images/default-product.png') }}" 
                                                                  alt="{{ $detail->product?->name }}" 
                                                                  class="w-full h-full object-cover">
                                                         </div>
@@ -179,7 +179,7 @@
                 @endforeach
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
         function showTab(status) {

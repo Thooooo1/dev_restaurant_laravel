@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-stone-50/60 min-h-screen">
+    <div class="bg-stone-50/60 min-h-screen">
         
         <section class="py-10 sm:py-14">
             <div class="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
@@ -206,7 +206,7 @@
             </div>
         </section>
 
-    </main>
+    </div>
 
     <!-- JavaScript chuyển đổi tab bộ phận tương tác mượt mà -->
     <script>

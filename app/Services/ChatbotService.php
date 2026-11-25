@@ -210,7 +210,7 @@ class ChatbotService
     }
 
     /**
-     * Tool Definitions for Gemini 1.5 Flash Function Calling
+     * Tool Definitions for Gemini Function Calling
      */
     protected function getToolDeclarations(): array
     {
@@ -969,12 +969,11 @@ class ChatbotService
     }
 
     /**
-     * LLM Agent Pipeline with Gemini 1.5 Flash Function Calling
+     * LLM Agent Pipeline with Gemini 4 Function Calling
      */
     protected function generateWithGeminiAgent(string $userMessage, $recentMessages, ?CustomerAiProfile $profile, array $context): ?array
     {
         $apiKey = config('services.gemini.api_key') ?: env('GEMINI_API_KEY');
-        $model = config('services.gemini.model') ?: env('GEMINI_MODEL', 'gemini-2.5-flash');
 
         try {
             $hotline = $this->getSetting('hotline', '0338 990 538');
@@ -1079,12 +1078,13 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 ]
             ];
 
-            // Danh sách model ưu tiên (Sử dụng model thế hệ mạnh nhất gemini-3.5-flash, dự phòng linh hoạt sang gemini-2.5-flash)
-            $configuredModel = config('services.gemini.model') ?: env('GEMINI_MODEL', 'gemini-3.5-flash');
+            // Danh sách model ưu tiên (mặc định dùng Gemini 4 Hydrogen mạnh nhất khả dụng, tự dự phòng sang Gemini 3.8 / 3.5 Flash)
+            $configuredModel = config('services.gemini.model') ?: env('GEMINI_MODEL', 'gemini-4-hydrogen');
             $rawCandidates = array_values(array_unique(array_filter([
                 $configuredModel,
+                'gemini-4-hydrogen',
+                'gemini-3.8-flash',
                 'gemini-3.5-flash',
-                'gemini-2.5-flash',
             ])));
 
             // Lọc bỏ nhanh các model đang bị tạm ngưng do hết quota (429) hoặc không tồn tại (404)
@@ -1092,7 +1092,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 return !\Illuminate\Support\Facades\Cache::has('gemini_model_exhausted_' . $m);
             }));
             if (empty($candidateModels)) {
-                $candidateModels = ['gemini-2.5-flash'];
+                $candidateModels = ['gemini-3.5-flash'];
             }
 
             $headers = [
@@ -1100,7 +1100,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 'x-goog-api-key' => $apiKey
             ];
 
-            // VÒNG LẶP ĐA LƯỢT TOOL CALLING (TỐI ĐA 2 LƯỢT ĐỂ BẢO ĐẢM TỐC ĐỘ SIÊU NHANH)
+            // VÒNG LẶP ĐA LƯỢT TOOL CALLING (TỐI ĐA 2 LƯỢT)
             $maxTurns = 2;
             $currentTurn = 0;
             $allDishes = [];
@@ -1111,8 +1111,8 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
             $startTime = microtime(true);
 
             while ($currentTurn < $maxTurns) {
-                // Kiểm soát trần thời gian tổng thể (tối đa 15s cho toàn bộ pipeline Gemini đa lượt)
-                if ((microtime(true) - $startTime) > 15.0) {
+                // Kiểm soát trần thời gian tổng thể (tối đa 28s cho toàn bộ pipeline Gemini 4 đa lượt)
+                if ((microtime(true) - $startTime) > 28.0) {
                     break;
                 }
 
@@ -1122,20 +1122,24 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 // Nếu lượt 1 đã kết nối thành công với model nào ($activeModel), lượt 2 dùng luôn model đó
                 $modelsToTry = $activeModel ? [$activeModel] : $candidateModels;
 
-                // Thử các model trong danh sách ưu tiên với timeout 7s
+                // Thử các model trong danh sách ưu tiên với timeout phù hợp cho Gemini 4 thinking
                 foreach ($modelsToTry as $m) {
                     $url = "https://generativelanguage.googleapis.com/v1beta/models/{$m}:generateContent";
+                    $generationConfig = [
+                        'temperature' => 0.4,
+                        'maxOutputTokens' => 2048,
+                    ];
+                    if (str_starts_with($m, 'gemini-4-')) {
+                        $generationConfig['thinkingConfig'] = ['thinkingLevel' => 'LOW'];
+                    }
                     try {
-                        $res = Http::withHeaders($headers)->timeout(7)->post($url, [
+                        $res = Http::withHeaders($headers)->timeout(15)->post($url, [
                             'systemInstruction' => [
                                 'parts' => [['text' => $systemInstruction]]
                             ],
                             'contents' => $contents,
                             'tools' => $toolsPayload,
-                            'generationConfig' => [
-                                'temperature' => 0.4,
-                                'maxOutputTokens' => 1000
-                            ]
+                            'generationConfig' => $generationConfig,
                         ]);
 
                         if ($res->successful()) {
@@ -1173,7 +1177,7 @@ NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ TUYỆT ĐỐI):
                 foreach ($parts as $p) {
                     if (!empty($p['functionCall'])) {
                         $functionCalls[] = $p['functionCall'];
-                    } elseif (!empty($p['text'])) {
+                    } elseif (!empty($p['text']) && empty($p['thought'])) {
                         $replyText .= $p['text'];
                     }
                 }

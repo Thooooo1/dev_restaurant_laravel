@@ -26,32 +26,38 @@ class RevenueExport
             ->paid()
             ->with(['user', 'orderDetails.product']);
 
+        $dateExpr = 'COALESCE(revenue_recognized_at, paid_at, created_at)';
+
         if ($this->year) {
-            $query->whereYear('created_at', $this->year);
+            $query->whereRaw("YEAR({$dateExpr}) = ?", [$this->year]);
         }
 
         if ($this->quarter) {
             $startMonth = ($this->quarter - 1) * 3 + 1;
             $endMonth = $startMonth + 2;
-            $query->whereMonth('created_at', '>=', $startMonth)
-                  ->whereMonth('created_at', '<=', $endMonth);
+            $query->whereRaw("MONTH({$dateExpr}) >= ? AND MONTH({$dateExpr}) <= ?", [$startMonth, $endMonth]);
         }
 
         if ($this->month) {
-            $query->whereMonth('created_at', $this->month);
+            $query->whereRaw("MONTH({$dateExpr}) = ?", [$this->month]);
         }
 
-        $orders = $query->orderBy('created_at', 'desc')->get();
+        $orders = $query->orderByRaw("{$dateExpr} desc")->get();
 
-        // Flatten data for the report
+        // Flatten data for the report (bỏ qua món đã hủy, dùng total_price đã đối soát để khớp doanh thu thực nhận)
         $data = [];
-        $totalRevenue = 0;
+        $totalRevenue = (float) $orders->sum('total_price');
 
         foreach ($orders as $order) {
+            $recognizedAt = $order->revenue_recognized_at ?? $order->paid_at ?? $order->created_at;
+            $formattedDate = $recognizedAt ? \Carbon\Carbon::parse($recognizedAt)->format('d/m/Y H:i') : '';
             foreach ($order->orderDetails as $detail) {
+                if ($detail->status === 'cancelled') {
+                    continue;
+                }
                 $data[] = [
                     'order_id' => $order->id,
-                    'created_at' => $order->created_at->format('d/m/Y H:i'),
+                    'created_at' => $formattedDate,
                     'customer_name' => $order->customer_name,
                     'phone' => $order->customer_phone,
                     'product_name' => $detail->product->name ?? 'N/A',
@@ -59,7 +65,6 @@ class RevenueExport
                     'price' => $detail->price,
                     'amount' => $detail->amount,
                 ];
-                $totalRevenue += $detail->amount;
             }
         }
 

@@ -99,7 +99,7 @@ class MenuSeeder extends Seeder
             ],
             [
                 'name' => 'Tin tức',
-                'link' => '/tin-tuc',
+                'link' => '/bai-viet',
                 'type' => 'custom',
                 'position' => 'mainmenu',
                 'table_id' => null,
@@ -127,7 +127,7 @@ class MenuSeeder extends Seeder
             ],
             [
                 'name' => 'Điều khoản sử dụng',
-                'link' => '/dieu-khoan-du-dung',
+                'link' => '/dieu-khoan-su-dung',
                 'type' => 'chinh-sach',
                 'position' => 'footermenu',
                 'table_id' => null,

@@ -170,7 +170,7 @@
                                 $imgSrc = !empty($product->image) && file_exists(public_path('images/product/' . $product->image))
                                     ? asset('images/product/' . $product->image)
                                     : asset('images/default-product.png');
-                                $effectivePrice = $hasDiscount ? $product->price_sale : $product->price_buy;
+                                $effectivePrice = $product->price_sale > 0 ? $product->price_sale : $product->price_buy;
                             @endphp
                             <div class="menu-live-search-card group relative bg-white rounded-none sm:rounded-sm overflow-hidden border border-stone-200 hover:border-stone-400 shadow-2xs hover:shadow-xs transition-all duration-200 flex flex-col justify-between h-full"
                                  data-name="{{ $cleanName }}"
@@ -228,7 +228,7 @@
                                                 </div>
                                             @else
                                                 <div class="text-stone-900 font-black text-sm sm:text-base leading-tight">
-                                                    {{ number_format($product->price_buy, 0, ',', '.') }}đ
+                                                    {{ number_format($effectivePrice, 0, ',', '.') }}đ
                                                 </div>
                                             @endif
                                         </div>
@@ -287,7 +287,8 @@
                         $imgSrc = !empty($p->image) && file_exists(public_path('images/product/' . $p->image))
                             ? asset('images/product/' . $p->image)
                             : asset('images/default-product.png');
-                        $pDisplay = number_format($hasDiscount ? $p->price_sale : $p->price_buy, 0, ',', '.') . 'đ';
+                        $pEffective = $p->price_sale > 0 ? $p->price_sale : $p->price_buy;
+                        $pDisplay = number_format($pEffective, 0, ',', '.') . 'đ';
                         $pOld = $hasDiscount ? number_format($p->price_buy, 0, ',', '.') . 'đ' : '';
                     @endphp
                     {

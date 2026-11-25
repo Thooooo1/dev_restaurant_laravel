@@ -436,7 +436,6 @@
                         </div>
                     </form>
                 </div>
-                @endif
 
                 <!-- Thẻ Nhật ký điều phối & Giao hàng (Audit Trail) -->
                 <div class="ant-card p-5">

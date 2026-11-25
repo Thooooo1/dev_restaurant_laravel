@@ -63,7 +63,9 @@ Route::get('/tim-kiem-nhanh', [SanPhamController::class, 'quickSearch'])->middle
 
 // Blog
 Route::get('/bai-viet', [BaivietController::class, 'index'])->name('site.blog');
+Route::get('/tin-tuc', [BaivietController::class, 'index'])->name('site.news');
 Route::get('/chi-tiet-bai-viet/{slug}', [BaivietController::class, 'blog_detail'])->name('site.blog.detail');
+Route::redirect('/dieu-khoan-du-dung', '/dieu-khoan-su-dung', 301);
 
 // Image Gallery
 Route::get('/hinh-anh', [HinhAnhController::class, 'index'])->name('site.image');

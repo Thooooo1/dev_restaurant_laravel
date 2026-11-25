@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-gradient-to-b from-[#FAF8F5] via-stone-50 to-stone-100 min-h-screen pb-16">
+    <div class="bg-gradient-to-b from-[#FAF8F5] via-stone-50 to-stone-100 min-h-screen pb-16">
         <x-page-hero 
             title="Hóa Đơn Bàn Ăn Điện Tử" 
             subtitle="Theo dõi chi tiết các món ăn đã gọi, trạng thái chuẩn bị của nhà bếp và thanh toán trực tiếp qua mã VietQR." 
@@ -49,6 +49,9 @@
                     </div>
 
                     @foreach ($orderDetails as $item)
+                        @if ($item->status === 'cancelled')
+                            @continue
+                        @endif
                         <div class="py-3 flex items-center justify-between gap-2">
                             <div class="min-w-0 flex-1 pr-2">
                                 <span class="font-bold text-stone-900 block truncate text-xs sm:text-sm">
@@ -62,7 +65,7 @@
                             <div class="flex items-center gap-3 shrink-0">
                                 <!-- Badge Trạng thái món ăn: Tối giản, không sặc sỡ -->
                                 <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-700 border border-stone-200">
-                                    {{ $item->status == 'completed' ? 'Đã lên bàn' : ($item->status == 'cooking' ? 'Đang nấu' : 'Chờ bếp') }}
+                                    {{ in_array($item->status, ['served', 'completed']) ? 'Đã lên bàn' : ($item->status == 'cooking' ? 'Đang nấu' : ($item->status == 'confirmed' ? 'Đã xác nhận' : 'Chờ bếp')) }}
                                 </span>
 
                                 <span class="font-bold text-stone-900 w-20 text-right text-xs sm:text-sm">
@@ -94,7 +97,7 @@
                 </div>
 
                 <!-- NẾU CHƯA THANH TOÁN: HIỂN THỊ KHUNG QUÉT MÃ VIETQR NHANH -->
-                @if ($order->status == 0)
+                @if (!$order->isPaid() && $order->payment_status !== \App\Models\Order::PAYMENT_PAID && (int)$order->status !== 3)
                     <div class="p-6 bg-stone-50 border-t border-stone-200 text-center">
                         <span class="text-xs font-bold text-stone-800 block mb-3">
                             Quét mã VietQR chuyển khoản thanh toán hóa đơn:
@@ -130,7 +133,7 @@
                         </a>
                     </div>
 
-                    @if ($order->status == 1 || $order->status == 2)
+                    @if ($order->isPaid() || $order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->status == 2)
                         <form method="POST" action="{{ route('site.table.end') }}" class="inline">
                             @csrf
                             <button type="submit" class="py-2 px-3.5 rounded bg-stone-900 hover:bg-stone-800 text-white font-bold uppercase tracking-wider text-[11px] transition-colors cursor-pointer">
@@ -143,5 +146,5 @@
             </div>
 
         </div>
-    </main>
+    </div>
 </x-layout-frontend>

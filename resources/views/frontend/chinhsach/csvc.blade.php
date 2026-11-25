@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <x-page-hero 
             title="Chính Sách Vận Chuyển & Giao Món" 
             subtitle="Quy trình giao nhận món ăn nóng hổi, bảo quản kỹ lưỡng đến tận tay thực khách." 
@@ -56,5 +56,5 @@
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 </x-layout-frontend>

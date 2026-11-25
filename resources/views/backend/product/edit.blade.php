@@ -109,7 +109,7 @@
                                 <label for="image">Hình</label>
                                 <input type="file" name="image" id="image" class="form-control @error('image') is-invalid @enderror">
                                 @if ($product->image)
-                                    <img src="{{ asset('images/product/' . $product->image) }}"
+                                    <img src="{{ $product->image_url }}"
                                         alt="{{ $product->name }}" class="img-thumbnail mt-2" width="200">
                                 @endif
                                 @error('image')

@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <x-page-hero 
             title="Chính Sách An Toàn Thực Phẩm" 
             subtitle="CIVILIZE Restaurant cam kết bảo vệ sức khỏe thực khách với nguồn nguyên liệu tươi sạch, xuất xứ minh bạch." 
@@ -44,5 +44,5 @@
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 </x-layout-frontend>

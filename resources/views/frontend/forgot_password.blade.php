@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#FAF8F5] min-h-[calc(100vh-200px)] flex items-center justify-center py-10 sm:py-16 px-4">
+    <div class="bg-[#FAF8F5] min-h-[calc(100vh-200px)] flex items-center justify-center py-10 sm:py-16 px-4">
         <div class="w-full max-w-md">
             <div class="bg-white p-7 sm:p-9 rounded-none sm:rounded-sm border-t-4 border-t-[#C25E00] border-x border-b border-stone-200/90 shadow-md">
                 <div class="text-center mb-6">
@@ -55,5 +55,5 @@
                 </form>
             </div>
         </div>
-    </main>
+    </div>
 </x-layout-frontend>

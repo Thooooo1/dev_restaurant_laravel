@@ -9,7 +9,7 @@
         };
     @endphp
 
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <!-- Page Breadcrumb & Header -->
         <x-page-hero 
             :title="'Đơn Hàng #ORD-' . $order->id" 
@@ -224,7 +224,7 @@
                                         <td class="py-4">
                                             <div class="flex items-center gap-3">
                                                 <div class="w-12 h-12 rounded-none sm:rounded-sm bg-stone-100 border border-stone-200/80 overflow-hidden shrink-0">
-                                                    <img src="{{ asset('images/product/' . ($detail->product?->image ?? 'default-product.png')) }}" 
+                                                    <img src="{{ $detail->product?->image_url ?? asset('images/default-product.png') }}" 
                                                          alt="{{ $detail->product?->name }}" 
                                                          class="w-full h-full object-cover">
                                                 </div>
@@ -290,7 +290,7 @@
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <!-- Modal Cancel Order -->
     <div id="cancelModal" class="fixed inset-0 bg-stone-950/60 backdrop-blur-xs hidden flex items-center justify-center z-[999999] p-4" style="z-index: 999999 !important;">

@@ -10,7 +10,7 @@
                 data-brand="{{ $product->brand_id }}" data-category="{{ $product->category_id }}">
                 <div>
                     <div class="relative overflow-hidden rounded-none sm:rounded-sm bg-stone-100 aspect-square">
-                        <img src="{{ $product->image ? asset('/images/product/' . $product->image) : asset('/images/default-product.png') }}"
+                        <img src="{{ $product->image_url }}"
                             alt="{{ $product->name }}"
                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                         

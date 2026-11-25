@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <x-page-hero 
             title="Chính Sách Liên Hệ & Hỗ Trợ" 
             subtitle="Đội ngũ chăm sóc khách hàng CIVILIZE Restaurant luôn sẵn sàng lắng nghe và phục vụ quý khách." 
@@ -61,5 +61,5 @@
                 </form>
             </div>
         </div>
-    </main>
+    </div>
 </x-layout-frontend>

@@ -348,7 +348,7 @@ class CartController extends Controller
                     return response()->json(['success' => false, 'message' => 'Không tìm thấy bàn ăn trên hệ thống.'], 404);
                 }
 
-                if ($table->status == 0) {
+                if ($table->status == 2) {
                     return response()->json(['success' => false, 'message' => "Bàn {$table->name} hiện đang tạm khóa hoặc bảo trì. Vui lòng chọn bàn khác!"], 422);
                 }
 
@@ -415,7 +415,7 @@ class CartController extends Controller
                     $activeOrder = $t->orders->first();
                     $isOccupied = ($activeOrder && $t->id != $currentTableId && $activeOrder->id != $currentOrderId);
                     $isMine = ($t->id == $currentTableId);
-                    $isDisabled = ($t->status == 0);
+                    $isDisabled = ($t->status == 2);
 
                     return [
                         'id' => $t->id,
@@ -842,10 +842,11 @@ class CartController extends Controller
                     }
                     $order->channel = \App\Models\Order::CHANNEL_DINE_IN;
 
-                    // Thêm hoặc gộp số lượng món ăn vào đơn hàng hiện tại
+                    // Thêm hoặc gộp số lượng món ăn chưa báo bếp vào đơn hàng hiện tại
                     foreach ($cart as $productId => $details) {
                         $existingDetail = \App\Models\Orderdetail::where('order_id', $order->id)
                             ->where('product_id', $productId)
+                            ->where('status', 'pending')
                             ->first();
 
                         if ($existingDetail) {

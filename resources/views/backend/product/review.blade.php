@@ -6,8 +6,8 @@
             <div class="row g-0">
                 {{-- Hình ảnh sản phẩm --}}
                 <div class="col-md-4 text-center p-3">
-                    <img src="{{ asset('/images/product/' . $product->image) }}" class="img-fluid rounded shadow"
-                        alt="{{ $product->image }}" style="max-height: 250px; object-fit: cover;">
+                    <img src="{{ $product->image_url }}" class="img-fluid rounded shadow"
+                        alt="{{ $product->name }}" style="max-height: 250px; object-fit: cover;">
                 </div>
 
                 {{-- Thông tin sản phẩm --}}

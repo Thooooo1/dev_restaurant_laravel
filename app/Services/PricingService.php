@@ -21,7 +21,7 @@ class PricingService
         return [
             'base_fee' => (int) ($settings['shipping_base_fee'] ?? 25000),
             'free_threshold' => (int) ($settings['shipping_free_threshold'] ?? 500000),
-            'max_km' => (int) ($settings['shipping_max_distance_km'] ?? 15),
+            'max_km' => (int) ($settings['max_delivery_distance_km'] ?? $settings['shipping_max_distance_km'] ?? 15),
         ];
     }
 

@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#F8FAFC] min-h-screen py-6 sm:py-8">
+    <div class="bg-[#F8FAFC] min-h-screen py-6 sm:py-8">
         <div class="max-w-[1200px] mx-auto px-4 sm:px-6 w-full">
             
             <!-- ======================================================== -->
@@ -288,7 +288,7 @@
             </div>
 
         </div>
-    </main>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

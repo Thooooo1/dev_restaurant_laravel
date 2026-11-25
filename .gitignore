@@ -34,4 +34,5 @@ cookies.txt
 config-tunnel.yml
 tunnel.log
 *.key
+/scratch/
 

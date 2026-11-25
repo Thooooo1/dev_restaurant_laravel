@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <x-page-hero 
             title="Chính Sách Bảo Mật Thông Tin" 
             subtitle="CIVILIZE cam kết bảo vệ dữ liệu cá nhân và thông tin đặt bàn của quý khách an toàn tuyệt đối." 
@@ -64,5 +64,5 @@
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 </x-layout-frontend>

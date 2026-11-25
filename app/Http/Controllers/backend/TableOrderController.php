@@ -54,8 +54,9 @@ class TableOrderController extends Controller
         $emptyCount = max(0, $totalTables - $occupiedCount);
         $totalServingAmount = 0;
         foreach ($orders as $ord) {
-            $sum = $ord->orderDetails->sum('amount');
-            $totalServingAmount += ($ord->total_price > 0 ? $ord->total_price : $sum);
+            $sum = $ord->orderDetails->where('status', '!=', 'cancelled')->sum('amount');
+            $disc = (int) round($sum * 0.1);
+            $totalServingAmount += ($ord->total_price > 0 ? $ord->total_price : max(0, $sum - $disc));
         }
 
         $posStats = [
@@ -425,7 +426,7 @@ class TableOrderController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            // V4-P1-37: Đồng bộ chính sách tồn kho giữa POS và QR
+            // V4-P1-37: Đồng bộ chính sách tồn kho giữa POS và QR qua Sổ giao dịch (Inventory Ledger)
             $addQty = (int)$request->qty;
             if ($product->qty < $addQty) {
                 return response()->json([
@@ -433,8 +434,13 @@ class TableOrderController extends Controller
                     'message' => "Món '{$product->name}' không đủ số lượng phục vụ (còn {$product->qty}, yêu cầu {$addQty})."
                 ], 422);
             }
-            $product->qty = max(0, $product->qty - $addQty);
-            $product->save();
+            \App\Services\InventoryService::applyMovement(
+                $product->id,
+                -$addQty,
+                'pos_add_item',
+                "pos_add_{$order->id}_{$product->id}_" . uniqid('', true),
+                ['order_id' => $order->id, 'actor_id' => Auth::id()]
+            );
 
             $price = $product->price_sale > 0 ? $product->price_sale : $product->price_buy;
             $discount = 0;
@@ -493,8 +499,8 @@ class TableOrderController extends Controller
                 ]);
             }
 
-            // Tính lại tổng tiền chính xác trong transaction qua PricingService
-            $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
+            // Tính lại tổng tiền chính xác (bao gồm ưu đãi 10% tại bàn) qua PricingService
+            $order->total_price = \App\Services\PricingService::recalculateOrderTotal($order->id, true);
             $order->has_new_items = true;
             $order->save();
 
@@ -571,8 +577,8 @@ class TableOrderController extends Controller
                 $orderDetail->delete();
             }
 
-            // Tính lại tổng tiền hóa đơn trong transaction qua PricingService
-            $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
+            // Tính lại tổng tiền hóa đơn (bao gồm ưu đãi 10% tại bàn) qua PricingService
+            $order->total_price = \App\Services\PricingService::recalculateOrderTotal($order->id, true);
             $order->save();
 
             return response()->json([
@@ -659,8 +665,8 @@ class TableOrderController extends Controller
                 $orderDetail->amount = ($orderDetail->price - $orderDetail->discount) * $newQty;
                 $orderDetail->save();
 
-                // Tính lại tổng tiền hóa đơn trong transaction qua PricingService
-                $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
+                // Tính lại tổng tiền hóa đơn (bao gồm ưu đãi 10% tại bàn) qua PricingService
+                $order->total_price = \App\Services\PricingService::recalculateOrderTotal($order->id, true);
                 $order->save();
             }
 
@@ -750,8 +756,8 @@ class TableOrderController extends Controller
                     }
                 }
 
-                // Tính lại tổng tiền qua PricingService
-                $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
+                // Tính lại tổng tiền (bao gồm ưu đãi 10% tại bàn) qua PricingService
+                $order->total_price = \App\Services\PricingService::recalculateOrderTotal($order->id, true);
                 $order->save();
 
                 return response()->json([
@@ -892,8 +898,8 @@ class TableOrderController extends Controller
                     }
                 }
 
-                // Tính lại tổng tiền qua PricingService
-                $order->total_price = \App\Services\PricingService::getOrderSubtotal($order->id);
+                // Tính lại tổng tiền (bao gồm ưu đãi 10% tại bàn) qua PricingService
+                $order->total_price = \App\Services\PricingService::recalculateOrderTotal($order->id, true);
                 $order->save();
 
                 return response()->json([
@@ -986,9 +992,12 @@ class TableOrderController extends Controller
             ->with('product')
             ->orderBy('id', 'ASC')
             ->get();
-        $totalAmount = $orderDetails->sum('amount');
+        $subtotalAmount = (int) $orderDetails->sum('amount');
+        $discountAmount = (int) round($subtotalAmount * 0.1);
+        $totalAmount = max(0, $subtotalAmount - $discountAmount);
+        $bankInfo = app(\App\Services\VietQRService::class)->getBankInfo();
         $categories = Category::whereNull('deleted_at')->orderBy('name')->get();
-        return view('backend.table-order.payment', compact('table', 'order', 'orderDetails', 'totalAmount', 'categories'));
+        return view('backend.table-order.payment', compact('table', 'order', 'orderDetails', 'subtotalAmount', 'discountAmount', 'totalAmount', 'bankInfo', 'categories'));
     }
 
     public function processPayment(Request $request)
@@ -1022,10 +1031,8 @@ class TableOrderController extends Controller
                 ], 400);
             }
 
-            // Tính lại chính xác tổng tiền từ các chi tiết món hợp lệ trong DB (tuyệt đối không tin tưởng client)
-            $actualTotal = (float) Orderdetail::where('order_id', $order->id)
-                ->where('status', '!=', 'cancelled')
-                ->sum('amount');
+            // Tính lại chính xác tổng tiền (bao gồm ưu đãi 10% tại bàn) từ các chi tiết món hợp lệ trong DB (tuyệt đối không tin tưởng client)
+            $actualTotal = (float) \App\Services\PricingService::recalculateOrderTotal($order->id, true);
 
             $order->status = OrderStatus::COMPLETED; // Đã thanh toán / Hoàn tất dùng bữa
             $order->payment_method = $request->payment_method;
@@ -1121,12 +1128,6 @@ class TableOrderController extends Controller
                 ], 422);
             }
 
-            // Kiểm tra xem order có món ăn không
-            $orderDetails = Orderdetail::where('order_id', $order->id)->count();
-            if ($orderDetails > 0) {
-                return response()->json(['success' => false, 'message' => 'Không thể đổi bàn vì đã có món ăn']);
-            }
-
             $newTableId = (int)$request->new_table_id;
             $oldTableId = (int)$order->table_id;
 
@@ -1160,17 +1161,32 @@ class TableOrderController extends Controller
             $order->table_id = $newTable->id;
             $order->save();
 
-            // Giải phóng bàn cũ và kích hoạt bàn mới
+            // Chuyển các yêu cầu gọi phục vụ đang chờ của đơn sang bàn mới
+            \App\Models\ServiceCall::where('order_id', $order->id)
+                ->whereIn('status', [\App\Models\ServiceCall::STATUS_PENDING, \App\Models\ServiceCall::STATUS_PROCESSING])
+                ->update(['table_id' => $newTable->id]);
+
+            // Giải phóng bàn cũ, chuyển phiên QR & kích hoạt bàn mới
+            $visitToken = null;
+            $visitStartedAt = null;
             if ($oldTableId && $lockedTables->has($oldTableId)) {
                 $oldTable = $lockedTables->get($oldTableId);
+                $visitToken = $oldTable->visit_token;
+                $visitStartedAt = $oldTable->visit_started_at;
                 $oldTable->status = 0;
                 $oldTable->locked_order_id = null;
+                $oldTable->visit_token = null;
+                $oldTable->visit_started_at = null;
                 $oldTable->save();
             }
 
             Table::where('locked_order_id', $order->id)->where('id', '!=', $newTable->id)->update(['locked_order_id' => null]);
             $newTable->status = 1;
             $newTable->locked_order_id = $order->id;
+            if ($visitToken) {
+                $newTable->visit_token = $visitToken;
+                $newTable->visit_started_at = $visitStartedAt ?? now();
+            }
             $newTable->save();
 
             return response()->json(['success' => true, 'message' => 'Đổi bàn thành công']);

@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-stone-50/60 min-h-screen">
+    <div class="bg-stone-50/60 min-h-screen">
         <!-- Page Hero Header with Breadcrumbs -->
         <x-page-hero 
             :title="$post->title" 
@@ -72,5 +72,5 @@
                 </div>
             </div>
         </article>
-    </main>
+    </div>
 </x-layout-frontend>

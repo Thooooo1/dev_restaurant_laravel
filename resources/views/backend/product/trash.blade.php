@@ -26,8 +26,8 @@
                                     <input type="checkbox" id="checkId" value="1" name="checkId[]">
                                 </td>
                                 <td class="text-center">
-                                    <img src="{{ asset('/images/product/' . $product->image) }}" class="img-fluid"
-                                        alt="{{ $product->image }}">
+                                    <img src="{{ $product->image_url }}" class="img-fluid"
+                                        alt="{{ $product->name }}">
                                 </td>
                                 <td>{{ $product->name }}</td>
                                 <td>{{ $product->description }}</td>

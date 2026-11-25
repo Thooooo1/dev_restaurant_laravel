@@ -87,9 +87,16 @@
                     <span>Mở mã QR</span>
                 </button>
             </div>
-            <div class="flex items-center gap-3 sm:justify-end">
-                <span class="text-sm font-bold text-gray-500 uppercase tracking-wide">Tổng tiền thanh toán:</span>
-                <span class="text-3xl font-black font-mono text-[#F47716]" id="total-amount-header">{{ number_format($totalAmount, 0, ',', '.') }} ₫</span>
+            <div class="flex flex-col items-end gap-1">
+                <div class="flex items-center gap-3 text-xs text-gray-500">
+                    <span>Tạm tính: <strong class="font-mono text-gray-700" id="subtotal-amount-header">{{ number_format($subtotalAmount ?? $totalAmount, 0, ',', '.') }} ₫</strong></span>
+                    <span>•</span>
+                    <span class="text-emerald-700">Ưu đãi tại bàn (-10%): <strong class="font-mono" id="discount-amount-header">-{{ number_format($discountAmount ?? 0, 0, ',', '.') }} ₫</strong></span>
+                </div>
+                <div class="flex items-center gap-3 sm:justify-end">
+                    <span class="text-sm font-bold text-gray-500 uppercase tracking-wide">Tổng tiền thanh toán:</span>
+                    <span class="text-3xl font-black font-mono text-[#F47716]" id="total-amount-header">{{ number_format($totalAmount, 0, ',', '.') }} ₫</span>
+                </div>
             </div>
         </div>
 
@@ -128,6 +135,22 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+
+        <!-- Summary Breakdown -->
+        <div class="mt-4 p-4 bg-[#FAFAFA] border border-[#F0F0F0] rounded-xl flex flex-col items-end gap-1.5 text-sm">
+            <div class="flex items-center justify-between w-full sm:w-80 text-gray-600">
+                <span>Tạm tính món ăn:</span>
+                <span class="font-mono font-semibold text-gray-800" id="subtotal-amount-display">{{ number_format($subtotalAmount ?? $totalAmount, 0, ',', '.') }} ₫</span>
+            </div>
+            <div class="flex items-center justify-between w-full sm:w-80 text-emerald-700">
+                <span>Ưu đãi đặt món tại bàn (-10%):</span>
+                <span class="font-mono font-semibold" id="discount-amount-display">-{{ number_format($discountAmount ?? 0, 0, ',', '.') }} ₫</span>
+            </div>
+            <div class="flex items-center justify-between w-full sm:w-80 pt-2 border-t border-gray-200 font-bold text-base text-gray-900">
+                <span>Thành tiền thanh toán:</span>
+                <span class="font-mono text-xl text-[#F47716]" id="total-amount-display">{{ number_format($totalAmount, 0, ',', '.') }} ₫</span>
+            </div>
         </div>
 
         <!-- Bottom Action Toolbar -->
@@ -269,15 +292,15 @@
                                 </div>
                                 <div class="flex items-center justify-between pt-1 border-t border-gray-100">
                                     <span class="text-gray-500">Ngân hàng:</span>
-                                    <span class="font-bold text-gray-800">{{ config('vietqr.bank_name') }}</span>
+                                    <span class="font-bold text-gray-800">{{ $bankInfo['bank_name'] ?? config('vietqr.bank_name') }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-gray-500">Số tài khoản:</span>
-                                    <span class="font-mono font-bold text-gray-800">{{ config('vietqr.account_no') }}</span>
+                                    <span class="font-mono font-bold text-gray-800">{{ $bankInfo['account_no'] ?? config('vietqr.account_no') }}</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-gray-500">Chủ tài khoản:</span>
-                                    <span class="font-bold text-gray-800 uppercase">{{ config('vietqr.account_name') }}</span>
+                                    <span class="font-bold text-gray-800 uppercase">{{ $bankInfo['account_name'] ?? config('vietqr.account_name') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -302,23 +325,28 @@
         let originalQuantities = {}; // Lưu giá trị số lượng ban đầu
         let posPollInterval = null;
 
-        function openVietQrModal() {
-            // Tính tổng tiền hiện tại
-            let currentTotal = 0;
+        function calculatePayableSummary() {
+            let subtotal = 0;
             document.querySelectorAll('#paymentTable tbody tr').forEach(tr => {
                 const price = parseFloat(tr.dataset.price) || 0;
                 const qtyInput = tr.querySelector('.qty-input');
                 const qty = qtyInput ? parseInt(qtyInput.value) : 1;
-                currentTotal += price * qty;
+                if (!isNaN(price) && !isNaN(qty) && qty > 0) {
+                    subtotal += price * qty;
+                }
             });
+            const discount = Math.round(subtotal * 0.1);
+            const total = Math.max(0, subtotal - discount);
+            return { subtotal, discount, total };
+        }
 
-            if (currentTotal <= 0) {
-                currentTotal = {{ (int)$totalAmount }};
-            }
+        function openVietQrModal() {
+            const summary = calculatePayableSummary();
+            const currentTotal = summary.total > 0 ? summary.total : {{ (int)$totalAmount }};
 
-            const bankId = '{{ config("vietqr.bank_id") }}';
-            const accountNo = '{{ config("vietqr.account_no") }}';
-            const accountName = encodeURIComponent('{{ config("vietqr.account_name") }}');
+            const bankId = '{{ $bankInfo["bank_id"] ?? config("vietqr.bank_id") }}';
+            const accountNo = '{{ $bankInfo["account_no"] ?? config("vietqr.account_no") }}';
+            const accountName = encodeURIComponent('{{ $bankInfo["account_name"] ?? config("vietqr.account_name") }}');
             const memo = 'BAN{{ $table->id }}';
 
             const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${currentTotal}&addInfo=${memo}&accountName=${accountName}`;
@@ -509,13 +537,8 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang giả lập Webhook...';
 
-            let currentTotal = 0;
-            document.querySelectorAll('#paymentTable tbody tr').forEach(tr => {
-                const price = parseFloat(tr.dataset.price) || 0;
-                const qtyInput = tr.querySelector('.qty-input');
-                const qty = qtyInput ? parseInt(qtyInput.value) : 1;
-                currentTotal += price * qty;
-            });
+            const summary = calculatePayableSummary();
+            const currentTotal = summary.total > 0 ? summary.total : {{ (int)$totalAmount }};
 
             fetch('{{ route("api.payment.simulate-webhook") }}', {
                 method: 'POST',
@@ -525,7 +548,7 @@
                 },
                 body: JSON.stringify({
                     order_id: {{ $order->id }},
-                    amount: currentTotal > 0 ? currentTotal : {{ (int)$totalAmount }}
+                    amount: currentTotal
                 })
             })
             .then(res => res.json())
@@ -600,9 +623,11 @@
                 return true;
             }
 
-            const printBtn = document.querySelector('button[onclick="handlePrintInvoice()"]');
-            printBtn.disabled = true;
-            printBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            const printBtn = document.querySelector('button[onclick="printProvisionalBill()"]');
+            if (printBtn) {
+                printBtn.disabled = true;
+                printBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
 
             $.ajax({
                 url: '{{ route("admin.table-order.updateTableOrderQuantities") }}',
@@ -620,19 +645,25 @@
                             originalQuantities[item.id] = item.qty;
                         });
                         // Enable nút in sau khi lưu xong
-                        printBtn.disabled = false;
-                        printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        if (printBtn) {
+                            printBtn.disabled = false;
+                            printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
                         location.reload();
                     } else {
                         toastr.error(res.message);
-                        printBtn.disabled = false;
-                        printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        if (printBtn) {
+                            printBtn.disabled = false;
+                            printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
                     }
                 },
                 error: function(err) {
                     toastr.error('Lỗi cập nhật đơn hàng');
-                    printBtn.disabled = false;
-                    printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    if (printBtn) {
+                        printBtn.disabled = false;
+                        printBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
                 }
             });
 
@@ -701,7 +732,7 @@
             const paymentMethodText = paymentMethodValue === '2' ? 'Chuyển khoản VietQR' : 'Tiền mặt';
 
             const items = [];
-            let total = 0;
+            let subtotal = 0;
 
             document.querySelectorAll('#paymentTable tbody tr').forEach((tr, idx) => {
                 const name = tr.dataset.name || 'Món ăn';
@@ -710,7 +741,7 @@
                 const qty = qtyInput ? parseInt(qtyInput.value) : 1;
                 if (isNaN(price) || isNaN(qty) || qty < 1) return;
                 const amount = price * qty;
-                total += amount;
+                subtotal += amount;
                 items.push({ stt: idx + 1, name, price, qty, amount });
             });
 
@@ -718,6 +749,9 @@
                 toastr.warning('Chưa có món nào để in hoá đơn');
                 return;
             }
+
+            const discount = Math.round(subtotal * 0.1);
+            const total = Math.max(0, subtotal - discount);
 
             const customerName = @json($order->customer_name);
             const customerPhone = @json($order->customer_phone);
@@ -735,6 +769,8 @@
                 customerPhone,
                 paymentMethodText,
                 items,
+                subtotal,
+                discount,
                 total,
                 isFinal
             });
@@ -758,8 +794,8 @@
                 return;
             }
 
-            // Tính tổng tiền hiện tại
-            let currentTotal = 0;
+            // Tính tổng tiền hiện tại (bao gồm ưu đãi 10% tại bàn)
+            let subtotal = 0;
             const items = [];
             rows.forEach(tr => {
                 const id = tr.dataset.id;
@@ -767,8 +803,9 @@
                 const qtyInput = tr.querySelector('.qty-input');
                 const qty = qtyInput ? parseInt(qtyInput.value) : 1;
                 items.push({ id, qty });
-                currentTotal += price * qty;
+                subtotal += price * qty;
             });
+            const currentTotal = Math.max(0, subtotal - Math.round(subtotal * 0.1));
 
             // Lưu số lượng trước, sau đó thanh toán
             $.ajax({
@@ -822,6 +859,8 @@
                 customerPhone,
                 paymentMethodText,
                 items,
+                subtotal,
+                discount,
                 total,
                 isFinal
             } = data;
@@ -839,6 +878,8 @@
                 `;
             }).join('');
 
+            const subtotalText = `${nf.format(subtotal ?? total)} đ`;
+            const discountText = `-${nf.format(discount ?? 0)} đ`;
             const totalText = `${nf.format(total)} đ`;
             const title = isFinal ? 'HÓA ĐƠN THANH TOÁN' : 'PHIẾU TẠM TÍNH';
             const metaFloorTable = `${floorName ? `Tầng: <strong>${escapeHtml(floorName)}</strong> | ` : ''}Bàn: <strong>${escapeHtml(tableName)}</strong>`;
@@ -847,9 +888,9 @@
             const metaPayment = `Phương thức thanh toán: <strong>${escapeHtml(paymentMethodText)}</strong>`;
             const metaTime = `Thời gian: <strong>${escapeHtml(createdAt || '')}</strong>`;
 
-            const bankId = '{{ config("vietqr.bank_id") }}';
-            const accountNo = '{{ config("vietqr.account_no") }}';
-            const accountName = encodeURIComponent('{{ config("vietqr.account_name") }}');
+            const bankId = '{{ $bankInfo["bank_id"] ?? config("vietqr.bank_id") }}';
+            const accountNo = '{{ $bankInfo["account_no"] ?? config("vietqr.account_no") }}';
+            const accountName = encodeURIComponent('{{ $bankInfo["account_name"] ?? config("vietqr.account_name") }}');
             const qrImageHtml = (!isFinal || paymentMethodText.includes('Chuyển khoản')) ? `
                 <div style="text-align: center; margin-top: 10px; border-top: 1px dashed #000; padding-top: 8px;">
                     <div style="font-weight: bold; font-size: 11px; margin-bottom: 4px;">QUÉT MÃ VIETQR ĐỂ THANH TOÁN</div>
@@ -910,6 +951,14 @@
       </tbody>
       <tfoot>
         <tr>
+          <td colspan="4" class="l">Tạm tính</td>
+          <td class="a">${subtotalText}</td>
+        </tr>
+        <tr>
+          <td colspan="4" class="l">Ưu đãi tại bàn (-10%)</td>
+          <td class="a">${discountText}</td>
+        </tr>
+        <tr>
           <td colspan="4" class="l sum">Tổng cộng</td>
           <td class="a sum">${totalText}</td>
         </tr>
@@ -946,18 +995,25 @@
         }
 
         function updateTotal() {
-            let total = 0;
-            document.querySelectorAll('#paymentTable tbody tr').forEach(tr => {
-                const qtyInput = tr.querySelector('.qty-input');
-                const qty = parseInt(qtyInput.value);
-                const price = parseInt(tr.dataset.price);
-                if (!isNaN(qty) && qty > 0) {
-                    total += price * qty;
-                }
-            });
-            const formattedTotal = new Intl.NumberFormat('vi-VN').format(total) + ' ₫';
-            document.getElementById('total-amount-display').innerText = formattedTotal;
-            document.getElementById('total-amount-header').innerText = formattedTotal;
+            const { subtotal, discount, total } = calculatePayableSummary();
+            const nf = new Intl.NumberFormat('vi-VN');
+            const formattedSubtotal = nf.format(subtotal) + ' ₫';
+            const formattedDiscount = '-' + nf.format(discount) + ' ₫';
+            const formattedTotal = nf.format(total) + ' ₫';
+
+            const subDisp = document.getElementById('subtotal-amount-display');
+            const discDisp = document.getElementById('discount-amount-display');
+            const totalDisp = document.getElementById('total-amount-display');
+            const subHdr = document.getElementById('subtotal-amount-header');
+            const discHdr = document.getElementById('discount-amount-header');
+            const totalHdr = document.getElementById('total-amount-header');
+
+            if (subDisp) subDisp.innerText = formattedSubtotal;
+            if (discDisp) discDisp.innerText = formattedDiscount;
+            if (totalDisp) totalDisp.innerText = formattedTotal;
+            if (subHdr) subHdr.innerText = formattedSubtotal;
+            if (discHdr) discHdr.innerText = formattedDiscount;
+            if (totalHdr) totalHdr.innerText = formattedTotal;
         }
 
         function confirmDeleteItem(id) {

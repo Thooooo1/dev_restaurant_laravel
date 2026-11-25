@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <x-page-hero 
             title="Cổng Thanh Toán MoMo" 
             subtitle="Giao dịch thanh toán trực tuyến bảo mật thông qua ví điện tử MoMo." 
@@ -80,5 +80,5 @@
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 </x-layout-frontend>

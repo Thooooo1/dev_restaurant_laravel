@@ -10,6 +10,8 @@ class Product extends Model
     use SoftDeletes;
     protected $table = 'product';
 
+    protected $appends = ['image_url'];
+
     protected $fillable = [
         'category_id',
         'brand_id',
@@ -107,6 +109,15 @@ class Product extends Model
         if (static::$hasImageColumn) {
             $this->attributes['image'] = $value;
         }
+    }
+
+    public function getImageUrlAttribute(): string
+    {
+        $img = $this->image;
+        if (!empty($img) && file_exists(public_path('images/product/' . $img))) {
+            return asset('images/product/' . $img);
+        }
+        return asset('images/default-product.png');
     }
 
     public function getPriceAttribute(): float

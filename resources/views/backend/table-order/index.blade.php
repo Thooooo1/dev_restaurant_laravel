@@ -159,9 +159,11 @@
                             $dishesCount = 0;
                             $tableAmount = 0;
                             if ($isOccupied && $order) {
-                                $dishesCount = $order->orderDetails->sum('qty');
-                                $sub = $order->orderDetails->sum('amount');
-                                $tableAmount = $order->total_price > 0 ? $order->total_price : $sub;
+                                $activeDetails = $order->orderDetails->where('status', '!=', 'cancelled');
+                                $dishesCount = $activeDetails->sum('qty');
+                                $sub = $activeDetails->sum('amount');
+                                $disc = (int) round($sub * 0.1);
+                                $tableAmount = $order->total_price > 0 ? $order->total_price : max(0, $sub - $disc);
                             }
 
                             $tableServiceCall = $activeServiceCalls[$table->id] ?? null;

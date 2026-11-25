@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-gradient-to-b from-[#FAF8F5] via-stone-50 to-stone-100 min-h-screen pb-16">
+    <div class="bg-gradient-to-b from-[#FAF8F5] via-stone-50 to-stone-100 min-h-screen pb-16">
         <x-page-hero 
             title="Thanh Toán VietQR Tại Bàn" 
             subtitle="Quý khách mở ứng dụng ngân hàng bất kỳ để quét mã QR thanh toán tức thì mà không cần chờ thu ngân in hóa đơn giấy." 
@@ -176,7 +176,7 @@
             </div>
 
         </div>
-    </main>
+    </div>
 
     <script>
         function copyToClipboard(text, successMsg) {

@@ -83,8 +83,9 @@ class DistanceService
     /**
      * Check if customer address is within allowed distance
      */
-    public function isWithinDeliveryRange($address, $maxDistance = 5)
+    public function isWithinDeliveryRange($address, $maxDistance = null)
     {
+        $maxDistance = $maxDistance ?? PricingService::getShippingSettings()['max_km'];
         try {
             $coordinates = $this->geocodeAddress($address);
 
@@ -121,7 +122,7 @@ class DistanceService
                 'success' => true,
                 'message' => ($distance <= $maxDistance) 
                     ? 'Địa chỉ trong phạm vi giao hàng tiêu chuẩn.' 
-                    : 'Địa chỉ xa hơn 5km, nhà hàng sẽ liên hệ thông báo phí ship ưu đãi.',
+                    : "Địa chỉ xa hơn {$maxDistance}km, nhà hàng sẽ liên hệ thông báo phí ship ưu đãi.",
                 'distance' => round($distance, 1),
             ];
         } catch (\Exception $e) {

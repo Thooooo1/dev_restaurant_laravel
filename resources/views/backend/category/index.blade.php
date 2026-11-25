@@ -107,7 +107,12 @@
                                         #{{ $category->id }}
                                     </td>
                                     <td class="text-center py-2" style="text-align: center !important;">
-                                        <img src="{{ asset('/images/category/' . $category->image) }}" class="w-11 h-11 object-cover rounded border border-[#F0F0F0] mx-auto bg-slate-50" alt="{{ $category->name }}" onerror="this.src='{{ asset('/images/default-product.png') }}'">
+                                        @php
+                                            $catImg = !empty($category->image) && file_exists(public_path('images/category/' . $category->image))
+                                                ? asset('/images/category/' . $category->image)
+                                                : asset('/images/default-product.png');
+                                        @endphp
+                                        <img src="{{ $catImg }}" class="w-11 h-11 object-cover rounded border border-[#F0F0F0] mx-auto bg-slate-50" alt="{{ $category->name }}">
                                     </td>
                                     <td class="text-left" style="text-align: left !important;">
                                         <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $category->name }}</div>

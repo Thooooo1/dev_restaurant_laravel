@@ -69,7 +69,7 @@ class CategorySeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Bánh trang miệng',
+                'name' => 'Bánh tráng miệng',
                 'slug' => 'banh-trang-mieng',
                 'parent_id' => 1, 
                 'sort_order' => 5,

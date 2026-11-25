@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <!-- Page Breadcrumb & Header -->
         <x-page-hero 
             :title="$product->name" 
@@ -77,6 +77,9 @@
                         </h1>
 
                         <!-- Pricing Presentation -->
+                        @php
+                            $effectivePrice = $product->price_sale > 0 ? $product->price_sale : $product->price_buy;
+                        @endphp
                         <div class="flex items-baseline gap-3 mb-5 pb-5 border-b border-stone-100">
                             @if ($hasDiscount)
                                 <span class="text-3xl font-bold text-[#C25E00] tracking-tight">
@@ -88,9 +91,9 @@
                                 <span class="text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded">
                                     Tiết kiệm {{ number_format($discountAmount, 0, ',', '.') }}₫
                                 </span>
-                            @elseif (!empty($product->price_buy) && $product->price_buy > 0)
+                            @elseif (!empty($effectivePrice) && $effectivePrice > 0)
                                 <span class="text-3xl font-bold text-[#C25E00] tracking-tight">
-                                    {{ number_format($product->price_buy, 0, ',', '.') }}₫
+                                    {{ number_format($effectivePrice, 0, ',', '.') }}₫
                                 </span>
                             @else
                                 <span class="text-2xl font-bold text-[#C25E00]">
@@ -338,7 +341,7 @@
                 </div>
             @endif
         </div>
-    </main>
+    </div>
 
     <script>
         function updateQuantity(delta) {

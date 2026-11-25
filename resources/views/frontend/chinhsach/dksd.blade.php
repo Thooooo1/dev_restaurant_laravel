@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <x-page-hero 
             title="Điều Khoản Sử Dụng Dịch Vụ" 
             subtitle="Quy định và quyền lợi của quý khách khi trải nghiệm ẩm thực và dịch vụ tại CIVILIZE Restaurant." 
@@ -35,5 +35,5 @@
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 </x-layout-frontend>

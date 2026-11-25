@@ -25,7 +25,8 @@
                 <div class="relative">
                     <input type="text" 
                            name="search" 
-                           class="polaris-input text-xs w-full pl-8 pr-3" 
+                           class="polaris-input text-xs w-full pr-3"
+                           style="padding-left: 2.125rem;"
                            placeholder="Tìm theo tên món ăn (nhấn Enter để tìm)..." 
                            value="{{ request('search') }}">
                     <i class="fa-solid fa-magnifying-glass text-gray-400 text-xs absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
@@ -88,7 +89,7 @@
                                 #{{ $product->id }}
                             </td>
                             <td class="text-center py-2" style="text-align: center !important;">
-                                <img src="{{ asset('/images/product/' . $product->image) }}" class="w-11 h-11 object-cover rounded border border-[#F0F0F0] mx-auto bg-slate-50" alt="{{ $product->name }}" onerror="this.src='{{ asset('/images/default-product.png') }}'">
+                                <img src="{{ $product->image_url }}" class="w-11 h-11 object-cover rounded border border-[#F0F0F0] mx-auto bg-slate-50" alt="{{ $product->name }}" onerror="this.src='{{ asset('/images/default-product.png') }}'">
                             </td>
                             <td class="text-left" style="text-align: left !important;">
                                 <div class="font-semibold text-xs text-[rgba(0,0,0,0.85)]">{{ $product->name }}</div>

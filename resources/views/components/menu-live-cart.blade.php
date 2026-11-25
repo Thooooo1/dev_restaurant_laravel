@@ -262,8 +262,8 @@
                         <span class="font-semibold text-stone-800 block truncate">{{ $kItem->product->name ?? 'Món đã chọn' }}</span>
                         <span class="text-[10px] text-stone-500">Số lượng: x{{ $kItem->qty }} • {{ number_format($kItem->price, 0, ',', '.') }}₫</span>
                     </div>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold shrink-0 {{ $kItem->status == 'completed' ? 'bg-emerald-100 text-emerald-700' : ($kItem->status == 'cooking' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700') }}">
-                        {{ $kItem->status == 'completed' ? 'Đã lên bàn' : ($kItem->status == 'cooking' ? 'Đang nấu' : 'Chờ bếp nhận') }}
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold shrink-0 {{ in_array($kItem->status, ['served', 'completed']) ? 'bg-emerald-100 text-emerald-700' : ($kItem->status == 'cooking' ? 'bg-blue-100 text-blue-700' : ($kItem->status == 'cancelled' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700')) }}">
+                        {{ in_array($kItem->status, ['served', 'completed']) ? 'Đã lên bàn' : ($kItem->status == 'cooking' ? 'Đang nấu' : ($kItem->status == 'confirmed' ? 'Đã xác nhận' : ($kItem->status == 'cancelled' ? 'Đã hủy' : 'Chờ bếp nhận'))) }}
                     </span>
                 </div>
             @endforeach
@@ -445,7 +445,7 @@
                                 $isCurrentSelected = ($tableId == $t->id);
                                 $activeOrder = $t->orders->first();
                                 $isOccupied = ($activeOrder && $t->id != $tableId && $activeOrder->id != $tableOrderId);
-                                $isDisabled = ($t->status == 0);
+                                $isDisabled = ($t->status == 2);
                             @endphp
 
                             @if ($isDisabled)

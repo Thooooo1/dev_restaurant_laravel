@@ -7,7 +7,7 @@
         $isTableActive = session('is_table_order') && !$isStaff;
     @endphp
 
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <!-- Page Breadcrumb & Header -->
         <x-page-hero 
             :title="$isTableActive ? ('Gọi Món Bàn ' . session('table_name')) : 'Giỏ Hàng Giao Tận Nơi'" 
@@ -160,7 +160,12 @@
                                         <!-- Dish info -->
                                         <div class="flex items-center gap-4 flex-1 min-w-0">
                                             <a href="{{ route('site.product.detail', $item['slug']) }}" class="shrink-0 w-20 h-20 rounded-none sm:rounded-sm overflow-hidden bg-stone-100 border border-stone-200/80">
-                                                <img src="{{ asset('images/product/' . $item['image']) }}" 
+                                                @php
+                                                    $cartItemImg = !empty($item['image']) && file_exists(public_path('images/product/' . $item['image']))
+                                                        ? asset('images/product/' . $item['image'])
+                                                        : asset('images/default-product.png');
+                                                @endphp
+                                                <img src="{{ $cartItemImg }}" 
                                                      alt="{{ $item['name'] }}" 
                                                      class="w-full h-full object-cover">
                                             </a>
@@ -380,7 +385,7 @@
                 </div>
             @endif
         </div>
-    </main>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

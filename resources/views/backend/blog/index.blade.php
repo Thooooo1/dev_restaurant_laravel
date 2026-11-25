@@ -21,7 +21,7 @@
                                     <span><strong>Lọc theo:</strong></span>
                                 </div>
                                 <div class="col-auto">
-                                    <input type="text" name="search" class="form-control" placeholder="Tìm kiếm sản phẩm..." value="">
+                                    <input type="text" name="search" class="form-control" placeholder="Tìm kiếm bài viết..." value="{{ request('search') }}">
                                 </div>
                                 <div class="col-auto">
                                     <select name="topic" class="form-control">

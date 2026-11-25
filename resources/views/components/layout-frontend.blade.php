@@ -42,10 +42,6 @@
     {{--
     <script src="/Scripts/js/jquery-2.0.0.min.js" type="text/javascript"></script> --}}
 
-    <!-- Bootstrap4 files-->
-    <script src="/Scripts/js/bootstrap.bundle.min.js" type="text/javascript"></script>
-    <link href="/Content/css/bootstrap.css" rel="stylesheet" type="text/css" />
-
     <!-- Local Vite Bundled Assets (Tailwind CSS, Font Awesome 6 Icons, Offline-ready) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- Slick CSS (Local offline-ready) -->

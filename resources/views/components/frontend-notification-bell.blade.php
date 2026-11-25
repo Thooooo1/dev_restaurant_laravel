@@ -270,7 +270,6 @@
                     </div>
                 `;
             });
-            });
         }
 
         document.querySelectorAll('.frontNotiList').forEach(container => {

@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <x-page-hero 
             title="Thiết Lập Mật Khẩu Mới" 
             :breadcrumbs="[
@@ -53,5 +53,5 @@
                 </form>
             </div>
         </div>
-    </main>
+    </div>
 </x-layout-frontend>

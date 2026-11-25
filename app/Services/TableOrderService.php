@@ -123,10 +123,6 @@ class TableOrderService
                     throw new \DomainException("Món '{$prod->name}' không đủ số lượng phục vụ (còn {$prod->qty}, yêu cầu {$qty}).");
                 }
 
-                // Trừ tồn kho an toàn cho đơn gọi món tại bàn
-                $prod->qty = max(0, $prod->qty - $qty);
-                $prod->save();
-
                 // Cập nhật giá bán mới nhất từ DB
                 $price = (float)$prod->price;
 
@@ -143,8 +139,9 @@ class TableOrderService
                     $pendingDetail->price = $price;
                     $pendingDetail->amount = $price * $pendingDetail->qty;
                     $pendingDetail->save();
+                    $targetDetailId = $pendingDetail->id;
                 } else {
-                    Orderdetail::create([
+                    $createdDetail = Orderdetail::create([
                         'order_id' => $order->id,
                         'product_id' => $productId,
                         'qty' => $qty,
@@ -154,7 +151,17 @@ class TableOrderService
                         'order_turn' => $currentTurn,
                         'status' => 'pending',
                     ]);
+                    $targetDetailId = $createdDetail->id;
                 }
+
+                // Trừ tồn kho an toàn & ghi sổ biến động cho đơn gọi món tại bàn
+                \App\Services\InventoryService::applyMovement(
+                    $prod->id,
+                    -$qty,
+                    'table_order_placed',
+                    "table_order_{$order->id}_turn_{$currentTurn}_detail_{$targetDetailId}_" . uniqid('', true),
+                    ['order_id' => $order->id, 'order_detail_id' => $targetDetailId]
+                );
             }
 
             $order->total_price = \App\Services\PricingService::recalculateOrderTotal($order->id, true);

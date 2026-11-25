@@ -96,7 +96,7 @@
                             </div>
                         @else
                             <div class="text-stone-900 font-black text-base sm:text-lg leading-tight">
-                                {{ number_format($product->price_buy, 0, ',', '.') }}đ
+                                {{ number_format($product->price_sale ?: $product->price_buy, 0, ',', '.') }}đ
                             </div>
                         @endif
                     </div>

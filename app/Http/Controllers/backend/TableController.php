@@ -54,10 +54,13 @@ class TableController extends Controller
             ]);
         }
 
-        // Chuẩn hóa danh sách món ăn
+        // Chuẩn hóa danh sách món ăn (loại trừ món đã hủy)
         $dishes = [];
         $subtotal = 0;
         foreach ($order->orderDetails as $detail) {
+            if ($detail->status === 'cancelled') {
+                continue;
+            }
             $product = $detail->product;
             $imgName = $product ? ($product->image ?? $product->thumbnail) : null;
             $thumb = ($imgName && file_exists(public_path('images/product/' . $imgName))) 
@@ -66,15 +69,15 @@ class TableController extends Controller
 
             $statusText = 'Chờ bếp';
             $statusBadge = 'bg-amber-100 text-amber-700 border-amber-200';
-            if ($detail->status == 1) {
-                $statusText = 'Đang chế biến';
+            if (in_array($detail->status, ['confirmed', 'cooking', 1, '1'])) {
+                $statusText = $detail->status === 'confirmed' ? 'Đã xác nhận' : 'Đang chế biến';
                 $statusBadge = 'bg-blue-100 text-blue-700 border-blue-200';
-            } elseif ($detail->status == 2) {
+            } elseif (in_array($detail->status, ['served', 'completed', 2, '2'])) {
                 $statusText = 'Đã lên bàn';
                 $statusBadge = 'bg-emerald-100 text-emerald-700 border-emerald-200';
             }
 
-            $amount = $detail->amount > 0 ? $detail->amount : ($detail->price * $detail->qty);
+            $amount = $detail->amount !== null ? (float)$detail->amount : ($detail->price * $detail->qty);
             $subtotal += $amount;
 
             $dishes[] = [

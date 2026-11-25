@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-[#FAF8F5] min-h-[calc(100vh-200px)] flex items-center justify-center py-10 sm:py-16 px-4">
+    <div class="bg-[#FAF8F5] min-h-[calc(100vh-200px)] flex items-center justify-center py-10 sm:py-16 px-4">
         <div class="w-full max-w-md">
             <div class="bg-white p-7 sm:p-9 rounded-2xl sm:rounded-3xl border border-stone-200/90 shadow-xl">
                 <!-- Header -->
@@ -59,7 +59,7 @@
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
         function refreshCsrfToken() {

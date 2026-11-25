@@ -2,11 +2,13 @@
     @php
         $cartKey = Auth::check() ? ('cart_' . Auth::id()) : ('cart_guest_' . session()->getId());
         $cart = $cart ?? session()->get($cartKey, session()->get('cart', []));
-        $cartTotal = array_sum(array_map(fn($item) => $item['price'] * $item['qty'], $cart));
         $isTableOrder = (session('is_table_order') && session('table_id'));
+        $pricingSummary = \App\Services\PricingService::calculateCartSummary($cart, (bool) $isTableOrder);
+        $cartTotal = $pricingSummary['subtotal'];
+        $shippingSettings = \App\Services\PricingService::getShippingSettings();
     @endphp
 
-    <main class="bg-[#FAF8F5] min-h-screen pb-16">
+    <div class="bg-[#FAF8F5] min-h-screen pb-16">
         <!-- Page Breadcrumb & Header -->
         <x-page-hero 
             :title="$isTableOrder ? 'Xác Nhận Gọi Món Tại Bàn' : 'Thanh Toán Đơn Hàng'" 
@@ -180,18 +182,27 @@
                             <div class="pt-4 border-t border-stone-100 space-y-2.5 text-xs sm:text-sm">
                                 <div class="flex items-center justify-between text-stone-600">
                                     <span>Tạm tính món ăn:</span>
-                                    <span class="font-bold text-stone-900">{{ number_format($cartTotal, 0, ',', '.') }}₫</span>
+                                    <span class="font-bold text-stone-900">{{ $pricingSummary['subtotal_formatted'] }}</span>
                                 </div>
-                                @if(!$isTableOrder)
+                                @if($isTableOrder)
+                                    <div class="flex items-center justify-between text-emerald-700">
+                                        <span>Ưu đãi đặt món tại bàn (-10%):</span>
+                                        <span class="font-bold">-{{ $pricingSummary['discount_formatted'] }}</span>
+                                    </div>
+                                @else
                                     <div class="flex items-center justify-between text-stone-600">
-                                        <span>Phí giao hàng:</span>
-                                        <span class="text-emerald-700 font-semibold">Miễn phí giao (bán kính 5km)</span>
+                                        <span>Phí giao hàng (miễn phí từ {{ number_format($shippingSettings['free_threshold'], 0, ',', '.') }}₫):</span>
+                                        @if($pricingSummary['shipping_fee'] === 0)
+                                            <span class="text-emerald-700 font-semibold">Miễn phí (0₫)</span>
+                                        @else
+                                            <span class="font-bold text-stone-900">{{ $pricingSummary['shipping_fee_formatted'] }}</span>
+                                        @endif
                                     </div>
                                 @endif
                                 <div class="pt-3 border-t border-stone-100 flex items-baseline justify-between">
                                     <span class="font-bold text-stone-900 text-sm">Tổng thanh toán:</span>
                                     <span class="font-serif text-2xl font-bold text-[#C25E00]">
-                                        {{ number_format($cartTotal, 0, ',', '.') }}₫
+                                        {{ $pricingSummary['total_formatted'] }}
                                     </span>
                                 </div>
                             </div>
@@ -213,7 +224,7 @@
                 </div>
             </form>
         </div>
-    </main>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

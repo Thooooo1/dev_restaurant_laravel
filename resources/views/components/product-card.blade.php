@@ -55,6 +55,9 @@
         </div>
 
         <div class="pt-2 border-t border-stone-100 flex items-center justify-between mt-auto">
+            @php
+                $effectivePrice = $product->price_sale > 0 ? $product->price_sale : $product->price_buy;
+            @endphp
             <div>
                 @if ($hasDiscount)
                     <div class="flex items-baseline gap-1.5">
@@ -65,9 +68,9 @@
                             {{ number_format($product->price_buy, 0, ',', '.') }}₫
                         </span>
                     </div>
-                @elseif (!empty($product->price_buy) && $product->price_buy > 0)
+                @elseif (!empty($effectivePrice) && $effectivePrice > 0)
                     <span class="text-orange-600 font-extrabold text-sm sm:text-base">
-                        {{ number_format($product->price_buy, 0, ',', '.') }}₫
+                        {{ number_format($effectivePrice, 0, ',', '.') }}₫
                     </span>
                 @else
                     <span class="text-orange-600 font-bold text-xs sm:text-sm">

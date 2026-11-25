@@ -40,7 +40,11 @@ class ProductController extends Controller
             ->limit(4)
             ->get();
 
-        $blogs = Post::where('new', 1)->limit(3)->get();
+        $blogQuery = Post::where('status', 1);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('post', 'new')) {
+            $blogQuery->where('new', 1);
+        }
+        $blogs = $blogQuery->orderBy('created_at', 'desc')->limit(3)->get();
         return view("frontend.product-detail", compact('product', 'relatedProducts', 'relatedBrandProducts', 'blogs', 'reviews'));
     }
 
@@ -76,6 +80,7 @@ class ProductController extends Controller
 
         $items = $products->map(function ($item) {
             $hasDiscount = !empty($item->price_sale) && !empty($item->price_buy) && ($item->price_sale < $item->price_buy);
+            $effectivePrice = $item->price_sale > 0 ? $item->price_sale : $item->price_buy;
             $imgSrc = !empty($item->image) && file_exists(public_path('images/product/' . $item->image))
                 ? asset('images/product/' . $item->image)
                 : asset('images/default-product.png');
@@ -85,7 +90,7 @@ class ProductController extends Controller
                 'name' => $item->name,
                 'slug' => $item->slug,
                 'category_name' => $item->category_name,
-                'price_formatted' => number_format($hasDiscount ? $item->price_sale : $item->price_buy, 0, ',', '.') . '₫',
+                'price_formatted' => number_format($effectivePrice, 0, ',', '.') . '₫',
                 'old_price_formatted' => $hasDiscount ? number_format($item->price_buy, 0, ',', '.') . '₫' : null,
                 'has_discount' => $hasDiscount,
                 'image' => $imgSrc,

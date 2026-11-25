@@ -42,11 +42,11 @@
                         <i class="fa-solid fa-money-bill-wave text-xs"></i>
                         <span>Thanh toán</span>
                     </a>
+                    <button type="button" class="ant-btn ant-btn-sm text-amber-600" onclick="showChangeTableModal()">
+                        <i class="fa-solid fa-exchange-alt text-xs"></i>
+                        <span>Đổi bàn</span>
+                    </button>
                     @if(!$hasAnyItems)
-                        <button type="button" class="ant-btn ant-btn-sm text-amber-600" onclick="showChangeTableModal()">
-                            <i class="fa-solid fa-exchange-alt text-xs"></i>
-                            <span>Đổi bàn</span>
-                        </button>
                         <button type="button" class="ant-btn ant-btn-danger ant-btn-sm" onclick="confirmCancelTable()">
                             <i class="fa-solid fa-xmark text-xs"></i>
                             <span>Hủy bàn</span>
@@ -214,7 +214,7 @@
                 </div>
 
                 <!-- Products Grid -->
-                <div id="productsList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 overflow-y-auto" style="max-height: 600px;">
+                <div id="productsList" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 overflow-y-auto items-start content-start" style="max-height: 600px; grid-auto-rows: max-content;">
                     <!-- Products will be loaded here via Ajax -->
                 </div>
             </div>
@@ -371,7 +371,7 @@
                                 allProducts.push(product);
                             }
 
-                            let imagePath = product.image ? '{{ asset("/images/product") }}/' + product.image : '{{ asset("/images/default-product.png") }}';
+                            let imagePath = product.image_url || '{{ asset("/images/default-product.png") }}';
                             html += `
                                 <div class="product-card" onclick="addProductToOrder(${product.id})">
                                     <img src="${imagePath}" class="product-img" alt="${product.name}" onerror="this.src='{{ asset("/images/default-product.png") }}'">
@@ -697,6 +697,9 @@
                 return;
             }
 
+            const discount = Math.round(total * 0.1);
+            const finalTotal = Math.max(0, total - discount);
+
             const html = generateCustomerBillHTML({
                 floor: '{{ $table->floor->name ?? '' }}',
                 table: '{{ $table->name }}',
@@ -704,7 +707,9 @@
                 customer_phone: @json($order->customer_phone),
                 order_id: currentOrderId,
                 items: billItems,
-                total: total
+                subtotal: total,
+                discount: discount,
+                total: finalTotal
             });
 
             directPrintHTML(html);
@@ -712,7 +717,7 @@
         }
 
         function generateCustomerBillHTML(data) {
-            const { floor, table, customer_name, customer_phone, order_id, items, total } = data;
+            const { floor, table, customer_name, customer_phone, order_id, items, subtotal, discount, total } = data;
             const now = new Date();
             const pad = n => String(n).padStart(2, '0');
             const dateStr = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
@@ -774,7 +779,15 @@
                     </tbody>
                 </table>
                 <div class="total-section">
-                    <div class="total-row">
+                    <div class="info-line">
+                        <span>Tạm tính:</span>
+                        <span>${nf.format(subtotal ?? total)} ₫</span>
+                    </div>
+                    <div class="info-line" style="color: #047857;">
+                        <span>Ưu đãi tại bàn (-10%):</span>
+                        <span>-${nf.format(discount ?? 0)} ₫</span>
+                    </div>
+                    <div class="total-row" style="margin-top: 4px;">
                         <span>TỔNG CỘNG:</span>
                         <span>${nf.format(total)} ₫</span>
                     </div>

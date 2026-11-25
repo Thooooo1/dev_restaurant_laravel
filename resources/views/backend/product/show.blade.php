@@ -50,7 +50,7 @@
                         <tr>
                             <td>Hình ảnh</td>
                             <td>
-                                <img src="{{ asset('images/product/' . $product->image) }}" alt="product Image" style="max-width: 200px;">
+                                <img src="{{ $product->image_url }}" alt="product Image" style="max-width: 200px;">
                             </td>
                         </tr>
                         <tr>

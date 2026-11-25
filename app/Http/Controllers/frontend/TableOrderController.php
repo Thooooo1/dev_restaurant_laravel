@@ -30,11 +30,14 @@ class TableOrderController extends Controller
 
         // V4-P1-36: Chỉ cấp quyền phiên bàn và tải order nếu quét đúng token QR hoặc là nhân viên/quản trị
         if ($hasValidToken || $isStaffOrAdmin) {
+            if ($hasValidToken && empty($table->visit_token)) {
+                $table->startNewVisit();
+            }
+            \App\Services\TableAccessService::setTableVerified($table, $table->visit_token);
             session([
                 'table_id' => $id,
                 'table_name' => $table->name,
                 'is_table_order' => true,
-                'table_verified_' . $id => true,
             ]);
 
             // 2. Tìm đơn hàng đang hoạt động của bàn này (status = 0: chờ xử lý, 1: đang phục vụ)
@@ -96,7 +99,10 @@ class TableOrderController extends Controller
         ]);
 
         if ($isVerified) {
-            session(['table_verified_' . $id => true]);
+            if ($table->isValidQrToken($token) && empty($table->visit_token)) {
+                $table->startNewVisit();
+            }
+            \App\Services\TableAccessService::setTableVerified($table, $table->visit_token);
 
             // V4-P1-36: Chỉ gắn table_order_id nếu phiên bàn đã được xác thực bằng token QR
             $activeOrder = Order::where('table_id', $id)
@@ -232,6 +238,7 @@ class TableOrderController extends Controller
         }
 
         // Chặn khách tự xác nhận đã thanh toán trên môi trường production nếu ngân hàng chưa gửi webhook
+        $isStaffOrAdmin = Auth::check() && (Auth::user()->isAdmin() || Auth::user()->isEmployee());
         if (config('payment.mode') !== 'demo' && !$isStaffOrAdmin) {
             $hasSuccessTx = \App\Models\PaymentTransaction::where('order_id', $order->id)
                 ->where('status', \App\Models\PaymentTransaction::STATUS_SUCCESS)

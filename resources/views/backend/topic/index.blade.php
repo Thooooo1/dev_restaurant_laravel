@@ -65,7 +65,7 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <button type="submit" name="create" class="btn btn-success">Thêm từ khóa</button>
+                                <button type="submit" name="create" class="btn btn-success">Thêm chủ đề</button>
                             </div>
                         </form>
                     </div>

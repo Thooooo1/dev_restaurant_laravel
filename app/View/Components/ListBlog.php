@@ -41,8 +41,8 @@ class ListBlog extends Component
 
         // 2. Món ăn đặc sắc gợi ý từ nhà hàng
         $signatureDishes = Product::where('status', 1)
-            ->where('price_buy', '>', 0)
-            ->whereNotNull('image')
+            ->where('price_sale', '>', 0)
+            ->whereNotNull('thumbnail')
             ->orderBy('id', 'desc')
             ->limit(2)
             ->get();

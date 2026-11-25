@@ -1,5 +1,5 @@
 <x-layout-frontend>
-    <main class="bg-gradient-to-b from-[#FAF8F5] via-stone-50 to-stone-100 min-h-screen pb-16">
+    <div class="bg-gradient-to-b from-[#FAF8F5] via-stone-50 to-stone-100 min-h-screen pb-16">
         <x-page-hero 
             title="Gọi Món & Thanh Toán Tại Bàn" 
             subtitle="Quý khách quét mã QR để chọn món trực tiếp, gửi vào bếp và quét mã VietQR thanh toán nhanh chóng." 
@@ -179,7 +179,7 @@
             </div>
 
         </div>
-    </main>
+    </div>
 
     <script>
         function quickCallService(tableId, type, note) {

@@ -83,7 +83,7 @@ class InventoryService
         return [
             'product_id' => $productId,
             'product_name' => $product->name,
-            'current_quantity' => (int)$product->quantity,
+            'current_quantity' => (int)$product->qty,
             'net_movement_delta' => $totalMovements,
             'movement_count' => $movementCount,
         ];
