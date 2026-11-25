@@ -39,10 +39,17 @@ class ListBlog extends Component
             ->limit(4)
             ->get();
 
-        // 2. Món ăn đặc sắc gợi ý từ nhà hàng
-        $signatureDishes = Product::where('status', 1)
-            ->where('price_sale', '>', 0)
-            ->whereNotNull('thumbnail')
+        // 2. Món ăn đặc sắc gợi ý từ nhà hàng (tương thích cả cột thumbnail lẫn image trên mọi DB)
+        $imgCol = \Illuminate\Support\Facades\Schema::hasColumn('product', 'thumbnail')
+            ? 'thumbnail'
+            : (\Illuminate\Support\Facades\Schema::hasColumn('product', 'image') ? 'image' : null);
+
+        $signatureQuery = Product::where('status', 1)
+            ->where('price_sale', '>', 0);
+        if ($imgCol) {
+            $signatureQuery->whereNotNull($imgCol);
+        }
+        $signatureDishes = $signatureQuery
             ->orderBy('id', 'desc')
             ->limit(2)
             ->get();
