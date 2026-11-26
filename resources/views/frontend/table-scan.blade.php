@@ -15,67 +15,72 @@
             <!-- THẺ THÔNG TIN BÀN PHỤC VỤ -->
             <div class="bg-white rounded-xl sm:rounded-2xl border border-stone-200/90 shadow-xl overflow-hidden mb-6 transition-all">
                 
-                <!-- Header Thẻ Bàn -->
-                <div class="p-6 bg-gradient-to-r from-stone-900 via-stone-800 to-stone-900 text-white relative overflow-hidden">
-                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-[#C25E00]/15 rounded-full blur-xl pointer-events-none"></div>
-                    
-                    <div class="flex items-center justify-between relative z-10">
+                <!-- Header Thẻ Bàn (Tối giản chữ đen nền trắng, tương phản rõ nét) -->
+                <div class="p-6 bg-white border-b border-stone-200 text-stone-900">
+                    <div class="flex items-center justify-between gap-4">
                         <div>
-                            <span class="text-[11px] uppercase tracking-widest text-orange-300 font-extrabold block">Vị Trí Của Bạn</span>
-                            <h1 class="text-2xl sm:text-3xl font-serif font-black text-white tracking-tight">
+                            <span class="text-[11px] uppercase tracking-widest text-stone-500 font-bold block mb-1">Vị Trí Của Bạn</span>
+                            <h1 class="text-2xl sm:text-3xl font-serif font-black text-stone-900 tracking-tight" style="color: #111827 !important;">
                                 {{ $table->name }}
                             </h1>
-                            <p class="text-xs text-stone-300 mt-0.5">
+                            <p class="text-xs text-stone-600 mt-1">
                                 <span>{{ $table->floor ? $table->floor->name : 'Khu vực sảnh' }}</span>
                                 <span>•</span>
                                 <span>{{ $table->seats ?? 4 }} chỗ ngồi</span>
                             </p>
                         </div>
 
-                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-stone-100 text-stone-900 border border-stone-300 shrink-0">
                             Đã kết nối
                         </span>
                     </div>
 
                     <!-- Banner Ưu Đãi 10% -->
-                    <div class="mt-4 pt-3.5 border-t border-stone-700/60 flex items-center justify-between text-xs">
-                        <div class="text-amber-300 font-bold">
-                            <span>Ưu đãi độc quyền: Tự động giảm 10% tại bàn</span>
+                    <div class="mt-4 pt-3.5 border-t border-stone-200 flex items-center justify-between text-xs">
+                        <div class="text-stone-800 font-semibold">
+                            <span>Ưu đãi: Tự động giảm 10% khi gọi món tại bàn</span>
                         </div>
-                        <span class="px-2 py-0.5 bg-amber-400/20 text-amber-300 rounded text-[10px] font-extrabold uppercase">
-                            VIP ORDER
+                        <span class="px-2 py-0.5 bg-stone-900 text-white rounded text-[10px] font-bold uppercase tracking-wider">
+                            TẠI BÀN
                         </span>
                     </div>
                 </div>
 
                 <!-- NỘI DUNG CHÍNH: NẾU BÀN ĐÃ CÓ ĐƠN HÀNG ĐANG PHỤC VỤ -->
                 @if (isset($activeOrder) && $activeOrder)
-                    <div class="p-6 bg-amber-50/50 border-b border-amber-100">
+                    @php
+                        $activeScanDetails = $activeOrder->orderDetails->where('status', '!=', 'cancelled');
+                        $scanQty = $activeScanDetails->sum('qty');
+                        $scanSubtotal = $activeScanDetails->sum('amount');
+                        $scanDiscount = (int) round($scanSubtotal * 0.1);
+                        $scanTotal = max(0, $scanSubtotal - $scanDiscount);
+                    @endphp
+                    <div class="p-6 bg-stone-50/70 border-b border-stone-200">
                         <div class="flex items-center justify-between mb-3">
                             <div class="flex items-center gap-2">
-                                <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                                <span class="w-2 h-2 rounded-full bg-stone-900"></span>
                                 <h3 class="font-bold text-stone-900 text-sm">Bàn đang có đơn phục vụ</h3>
                             </div>
-                            <span class="text-xs font-mono font-bold text-stone-500">Mã đơn #{{ $activeOrder->id }}</span>
+                            <span class="text-xs font-mono font-bold text-stone-600">Mã đơn #{{ $activeOrder->id }}</span>
                         </div>
 
-                        <div class="p-4 bg-white rounded-lg border border-amber-200/80 shadow-xs mb-4">
+                        <div class="p-4 bg-white rounded-lg border border-stone-200 shadow-xs mb-4">
                             <div class="flex items-center justify-between text-xs text-stone-600 mb-2">
                                 <span>Số món đã gọi:</span>
-                                <strong class="text-stone-900 font-bold">{{ $activeOrder->orderDetails->sum('qty') }} món ăn & đồ uống</strong>
+                                <strong class="text-stone-900 font-bold">{{ $scanQty }} món ăn & đồ uống</strong>
                             </div>
                             <div class="flex items-center justify-between text-xs text-stone-600 mb-2">
                                 <span>Tạm tính bữa ăn:</span>
-                                <span class="text-stone-800 line-through">{{ number_format($activeOrder->orderDetails->sum('amount'), 0, ',', '.') }}₫</span>
+                                <span class="text-stone-800 line-through">{{ number_format($scanSubtotal, 0, ',', '.') }}₫</span>
                             </div>
-                            <div class="flex items-center justify-between text-xs text-emerald-700 mb-2">
-                                <span>Giảm giá đặt bàn (10%):</span>
-                                <strong class="font-bold">-{{ number_format(round($activeOrder->orderDetails->sum('amount') * 0.1), 0, ',', '.') }}₫</strong>
+                            <div class="flex items-center justify-between text-xs text-stone-700 mb-2">
+                                <span>Giảm giá tại bàn (10%):</span>
+                                <strong class="font-bold text-stone-900">-{{ number_format($scanDiscount, 0, ',', '.') }}₫</strong>
                             </div>
-                            <div class="pt-2 border-t border-stone-100 flex items-center justify-between text-sm">
+                            <div class="pt-2 border-t border-stone-200 flex items-center justify-between text-sm">
                                 <span class="font-bold text-stone-900">Tổng thanh toán:</span>
-                                <span class="text-lg font-black text-orange-600">
-                                    {{ number_format(max(0, $activeOrder->orderDetails->sum('amount') - round($activeOrder->orderDetails->sum('amount') * 0.1)), 0, ',', '.') }}₫
+                                <span class="text-lg font-black text-stone-900">
+                                    {{ number_format($scanTotal, 0, ',', '.') }}₫
                                 </span>
                             </div>
                         </div>
