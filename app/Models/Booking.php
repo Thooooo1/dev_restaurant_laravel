@@ -17,5 +17,11 @@ class Booking extends Model
         'booking_time',
         'note',
         'status',
+        'table_id',
     ];
+
+    public function table()
+    {
+        return $this->belongsTo(Table::class, 'table_id');
+    }
 }

@@ -5,7 +5,9 @@ namespace App\Http\Controllers\backend;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Booking;
+use App\Models\Table;
 use App\Services\NotificationService;
+use Illuminate\Support\Facades\Schema;
 
 class BookingController extends Controller
 {
@@ -31,7 +33,9 @@ class BookingController extends Controller
             return redirect()->route('admin.booking.index')->with('error', 'Đặt bàn không tồn tại');
         }
 
-        return view('backend.booking.edit', compact('booking'));
+        $tables = Table::with('floor')->orderBy('sort_order')->orderBy('id')->get();
+
+        return view('backend.booking.edit', compact('booking', 'tables'));
     }
 
     public function update(Request $request, $id)
@@ -43,9 +47,13 @@ class BookingController extends Controller
 
         $request->validate([
             'status' => 'required|integer|min:1|max:4',
+            'table_id' => 'nullable|exists:tables,id',
         ]);
 
         $booking->status = $request->status;
+        if (Schema::hasColumn('bookings', 'table_id')) {
+            $booking->table_id = $request->filled('table_id') ? (int)$request->table_id : null;
+        }
         $booking->save();
 
         // Bắn thông báo cập nhật kết quả đặt bàn cho khách hàng

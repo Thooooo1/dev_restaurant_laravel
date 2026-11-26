@@ -102,16 +102,28 @@
         </div>
 
         <!-- Status Filter Buttons & Search -->
-        <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-between sm:justify-end">
-            <div class="flex items-center bg-gray-100 p-0.5 rounded-md">
-                <button type="button" onclick="filterStatus('all')" class="status-filter-btn px-2.5 py-1 rounded-sm font-bold bg-white text-gray-900 shadow-2xs transition-all cursor-pointer" data-status="all">
+        <div class="flex items-center gap-2 flex-wrap w-full lg:w-auto justify-between lg:justify-end">
+            <div class="flex items-center flex-wrap gap-1 bg-gray-100 p-1 rounded-lg">
+                <button type="button" onclick="filterStatus('all')" class="status-filter-btn px-2.5 py-1 rounded-md font-bold bg-[#F47716] text-white shadow-2xs transition-all cursor-pointer" data-status="all">
                     Tất cả
                 </button>
-                <button type="button" onclick="filterStatus('occupied')" class="status-filter-btn px-2.5 py-1 rounded-sm font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="occupied">
-                    Có khách ({{ $posStats['occupied'] }})
+                <button type="button" onclick="filterStatus('empty')" class="status-filter-btn px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="empty">
+                    Bàn trống ({{ $posStats['empty'] ?? 0 }})
                 </button>
-                <button type="button" onclick="filterStatus('empty')" class="status-filter-btn px-2.5 py-1 rounded-sm font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="empty">
-                    Bàn trống ({{ $posStats['empty'] }})
+                <button type="button" onclick="filterStatus('serving')" class="status-filter-btn px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="serving">
+                    Đang phục vụ ({{ $posStats['serving'] ?? 0 }})
+                </button>
+                <button type="button" onclick="filterStatus('reserved')" class="status-filter-btn px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="reserved">
+                    Đã đặt trước ({{ $posStats['reserved'] ?? 0 }})
+                </button>
+                <button type="button" onclick="filterStatus('new_items')" class="status-filter-btn px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="new_items">
+                    Có món mới ({{ $posStats['new_items'] ?? 0 }})
+                </button>
+                <button type="button" onclick="filterStatus('service_call')" class="status-filter-btn px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="service_call">
+                    Yêu cầu phục vụ ({{ $posStats['service_calls'] ?? 0 }})
+                </button>
+                <button type="button" onclick="filterStatus('waiting_payment')" class="status-filter-btn px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer" data-status="waiting_payment">
+                    Chờ thanh toán ({{ $posStats['waiting_payment'] ?? 0 }})
                 </button>
             </div>
 
@@ -146,13 +158,33 @@
                         @php
                             $isOccupied = isset($activeOrders[$table->id]);
                             $order = $isOccupied ? $activeOrders[$table->id] : null;
-                            $hasNewItems = $isOccupied ? ($order->has_new_items ?? false) : false;
-                            
+                            $hasNewItems = $isOccupied ? (bool)($order->has_new_items ?? false) : false;
+
                             $isLocked = false;
                             $mergedOrder = null;
                             if (!$isOccupied && $table->locked_order_id && isset($ordersById[$table->locked_order_id])) {
-                                 $isLocked = true;
-                                 $mergedOrder = $ordersById[$table->locked_order_id];
+                                $isLocked = true;
+                                $mergedOrder = $ordersById[$table->locked_order_id];
+                            }
+
+                            $tableServiceCall = $activeServiceCalls[$table->id] ?? null;
+                            $isPaid = $isOccupied && ($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid());
+                            $isWaitingPayment = $isOccupied && !$isPaid && (($tableServiceCall && $tableServiceCall->call_type === 'bill') || $order->payment_status === 'awaiting_payment');
+                            $reservedBooking = (!$isOccupied && !$isLocked && isset($reservedBookings)) ? ($reservedBookings[$table->id] ?? null) : null;
+                            $isReserved = ($reservedBooking !== null);
+
+                            if ($isPaid) {
+                                $occupancyStatus = 'paid';
+                            } elseif ($isWaitingPayment) {
+                                $occupancyStatus = 'waiting_payment';
+                            } elseif ($isOccupied) {
+                                $occupancyStatus = 'serving';
+                            } elseif ($isLocked) {
+                                $occupancyStatus = 'locked';
+                            } elseif ($isReserved) {
+                                $occupancyStatus = 'reserved';
+                            } else {
+                                $occupancyStatus = 'empty';
                             }
 
                             // Tính toán món & doanh thu của bàn
@@ -166,130 +198,171 @@
                                 $tableAmount = $order->total_price > 0 ? $order->total_price : max(0, $sub - $disc);
                             }
 
-                            $tableServiceCall = $activeServiceCalls[$table->id] ?? null;
                             $totalSeats = $table->seats + ($lockedSeats[$order->id ?? 0] ?? 0);
+                            $guestsCount = $isOccupied && $order ? ($order->number_of_guests ?? 1) : 0;
                         @endphp
-                        
-                        <div class="table-card group" 
+
+                        <div class="table-card group"
                              data-table-id="{{ $table->id }}"
                              data-table-name="{{ $table->name }}"
                              data-floor-name="{{ $floor->name }}"
                              data-status="{{ $isOccupied ? 'occupied' : 'empty' }}"
+                             data-occupancy="{{ $occupancyStatus }}"
+                             data-has-new-items="{{ $hasNewItems ? '1' : '0' }}"
+                             data-has-service-call="{{ $tableServiceCall ? '1' : '0' }}"
                              data-is-locked="{{ $isLocked ? 'true' : 'false' }}"
                              data-seats="{{ $table->seats }}"
-                             data-guests="{{ $isOccupied && $order ? ($order->number_of_guests ?? 1) : 0 }}">
-                             
-                            <!-- THẺ BÀN ĂN: Thiết kế chuẩn POS hiện đại, thanh thoát, không lồng ô bo viền -->
-                            <div class="bg-white rounded-lg border transition-all duration-200 flex flex-col justify-between min-h-[210px] relative overflow-hidden shadow-2xs hover:shadow-md hover:-translate-y-0.5
-                                @if($hasNewItems) border-rose-400 ring-1 ring-rose-300
-                                @elseif($isOccupied && ($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid())) border-emerald-300 bg-emerald-50/10
-                                @elseif($isOccupied) border-orange-200 bg-orange-50/10
-                                @elseif($isLocked) border-indigo-200 bg-indigo-50/10
+                             data-guests="{{ $guestsCount }}">
+
+                            <!-- THẺ BÀN ĂN: Tách bạch Trạng thái sử dụng bàn (Header) và Trạng thái yêu cầu phục vụ (Body) -->
+                            <div class="bg-white rounded-lg border transition-all duration-200 flex flex-col justify-between min-h-[225px] relative overflow-hidden shadow-2xs hover:shadow-md hover:-translate-y-0.5
+                                @if($occupancyStatus === 'waiting_payment') border-purple-200
+                                @elseif($occupancyStatus === 'reserved') border-blue-200
+                                @elseif($occupancyStatus === 'serving') border-orange-200
+                                @elseif($occupancyStatus === 'locked') border-indigo-200
                                 @else border-gray-200 hover:border-gray-300 @endif">
 
-                                <!-- Top Color Accent Strip (Thanh trạng thái đầu thẻ bàn) -->
-                                <div class="h-1.5 w-full 
-                                    @if($hasNewItems) bg-rose-500 animate-pulse
-                                    @elseif($isOccupied && ($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid())) bg-emerald-500
-                                    @elseif($isOccupied) bg-amber-500
-                                    @elseif($isLocked) bg-indigo-500
+                                <!-- Top Color Accent Strip (Theo trạng thái sử dụng bàn) -->
+                                <div class="h-1.5 w-full
+                                    @if($occupancyStatus === 'waiting_payment') bg-purple-500
+                                    @elseif($occupancyStatus === 'reserved') bg-blue-500
+                                    @elseif($occupancyStatus === 'serving') bg-amber-500
+                                    @elseif($occupancyStatus === 'locked') bg-indigo-500
                                     @else bg-emerald-500 @endif">
                                 </div>
 
-                                <!-- Header Thẻ Bàn: Tên bàn to rõ, số ghế và nhãn trạng thái tinh gọn -->
-                                <div class="p-4 pb-3 border-b border-gray-100 flex items-start justify-between">
-                                    <div>
-                                        <h3 class="text-xl sm:text-2xl font-black text-gray-900 tracking-tight leading-tight">
+                                <!-- Header Thẻ Bàn: Hàng trên (Tên bàn + Nút thao tác), Hàng dưới (Trạng thái sử dụng + Số chỗ/khách) -->
+                                <div class="p-4 pb-3 border-b border-gray-100">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <h3 class="text-xl font-black text-gray-900 tracking-tight leading-tight whitespace-nowrap">
                                             {{ $table->name }}
                                         </h3>
-                                        <span class="text-xs text-gray-400 font-medium block mt-1 whitespace-nowrap">
-                                            {{ $totalSeats }} chỗ ngồi
-                                        </span>
+
+                                        <!-- Actions nhỏ trên góc phải -->
+                                        <div class="flex items-center gap-0.5 shrink-0">
+                                            <!-- In mã QR để bàn -->
+                                            <a href="{{ route('admin.table.qr', $table->id) }}" class="w-6 h-6 rounded-md hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="In mã QR để bàn">
+                                                <i class="fa-solid fa-qrcode"></i>
+                                            </a>
+
+                                            @if($isLocked)
+                                                <button type="button" onclick="event.stopPropagation(); confirmUnmerge({{ $table->id }})" class="w-6 h-6 rounded-md hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Hủy ghép bàn">
+                                                    ✕
+                                                </button>
+                                            @elseif(!$isOccupied)
+                                                <button type="button" onclick="event.stopPropagation(); showMergeModal({{ $table->id }}, '{{ $table->name }}', '{{ $floor->name }}', false)" class="w-6 h-6 rounded-md hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Ghép bàn vào bàn khác">
+                                                    <i class="fa-solid fa-link"></i>
+                                                </button>
+                                                @if(Auth::user()->isAdmin())
+                                                    <a href="{{ route('admin.table.edit', $table->id) }}" class="w-6 h-6 rounded-md hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
+                                                        <i class="fa-solid fa-pen"></i>
+                                                    </a>
+                                                @endif
+                                            @else
+                                                <button type="button" onclick="event.stopPropagation(); showMergeModal({{ $table->id }}, '{{ $table->name }}', '{{ $floor->name }}', true)" class="w-6 h-6 rounded-md hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Ghép thêm bàn vào bàn này">
+                                                    <i class="fa-solid fa-link"></i>
+                                                </button>
+                                                @if(Auth::user()->isAdmin())
+                                                    <a href="{{ route('admin.table.edit', $table->id) }}" class="w-6 h-6 rounded-md hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
+                                                        <i class="fa-solid fa-pen"></i>
+                                                    </a>
+                                                @endif
+                                            @endif
+                                        </div>
                                     </div>
 
-                                    <!-- Status Text & Actions (Thanh lịch, dấu chấm đồng bộ màu với thanh trạng thái) -->
-                                    <div class="flex items-center gap-2">
-                                        @if($hasNewItems)
-                                            <span class="inline-flex items-center gap-1 text-xs font-bold text-rose-600">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                                                Món mới
-                                            </span>
-                                        @elseif($isOccupied && ($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid()))
-                                            <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
+                                    <!-- Trạng thái sử dụng bàn (độc lập với yêu cầu phục vụ) -->
+                                    <div class="mt-1.5">
+                                        @if($occupancyStatus === 'paid')
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 whitespace-nowrap">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                                 Đã thanh toán
                                             </span>
-                                        @elseif($isOccupied)
-                                            <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-600">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                                Có khách
+                                        @elseif($occupancyStatus === 'waiting_payment')
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-purple-600 whitespace-nowrap">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                                                Chờ thanh toán
                                             </span>
-                                        @elseif($isLocked)
-                                            <span class="inline-flex items-center gap-1 text-xs font-medium text-indigo-600">
+                                        @elseif($occupancyStatus === 'serving')
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 whitespace-nowrap">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                                Đang phục vụ
+                                            </span>
+                                        @elseif($occupancyStatus === 'locked')
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 whitespace-nowrap">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
                                                 Đã ghép
                                             </span>
+                                        @elseif($occupancyStatus === 'reserved')
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 whitespace-nowrap">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                                                Đã đặt trước
+                                            </span>
                                         @else
-                                            <span class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600">
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 whitespace-nowrap">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                                Trống
+                                                Bàn trống
                                             </span>
                                         @endif
-
-                                        <!-- In mã QR để bàn -->
-                                        <a href="{{ route('admin.table.qr', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="In mã QR để bàn">
-                                            <i class="fa-solid fa-qrcode"></i>
-                                        </a>
-
-                                        @if($isLocked)
-                                            <button type="button" onclick="event.stopPropagation(); confirmUnmerge({{ $table->id }})" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Hủy ghép bàn">
-                                                ✕
-                                            </button>
-                                        @elseif(!$isOccupied)
-                                            <button type="button" onclick="event.stopPropagation(); showMergeModal({{ $table->id }}, '{{ $table->name }}', '{{ $floor->name }}', false)" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Ghép bàn vào bàn khác">
-                                                <i class="fa-solid fa-link"></i>
-                                            </button>
-                                            @if(Auth::user()->isAdmin())
-                                                <a href="{{ route('admin.table.edit', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
-                                                    <i class="fa-solid fa-pen"></i>
-                                                </a>
-                                            @endif
-                                        @else
-                                            <button type="button" onclick="event.stopPropagation(); showMergeModal({{ $table->id }}, '{{ $table->name }}', '{{ $floor->name }}', true)" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Ghép thêm bàn vào bàn này">
-                                                <i class="fa-solid fa-link"></i>
-                                            </button>
-                                            @if(Auth::user()->isAdmin())
-                                                <a href="{{ route('admin.table.edit', $table->id) }}" class="w-7 h-7 rounded-lg hover:bg-stone-100 text-stone-400 hover:text-stone-800 flex items-center justify-center text-xs transition-colors" title="Sửa tên bàn / số ghế">
-                                                    <i class="fa-solid fa-pen"></i>
-                                                </a>
-                                            @endif
-                                        @endif
                                     </div>
+
+                                    <span class="text-xs text-gray-400 font-medium block mt-1 whitespace-nowrap">
+                                        {{ $totalSeats }} chỗ ngồi @if($isOccupied) · {{ $guestsCount }} khách @endif
+                                    </span>
                                 </div>
 
-                                <!-- Body Thẻ Bàn: Hiển thị đầy đủ thông tin ăn uống & số tiền tạm tính -->
+                                <!-- Body Thẻ Bàn: Trạng thái yêu cầu phục vụ tách riêng + Thông tin bữa ăn -->
                                 <div class="p-4 py-3 flex-1 flex flex-col justify-center">
                                     @if($isOccupied)
                                         <div class="space-y-2">
-                                            <div class="flex items-center justify-between text-stone-500 text-xs font-medium">
-                                                <span>{{ $order->number_of_guests ?? 1 }} khách</span>
-                                                <span>{{ $order->created_at ? $order->created_at->format('H:i') : '' }}</span>
-                                            </div>
+                                            <!-- Nhãn yêu cầu phục vụ tách riêng -->
+                                            @if($hasNewItems || $tableServiceCall)
+                                                <div class="flex flex-wrap items-center gap-1.5">
+                                                    @if($hasNewItems)
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700">
+                                                            Có món mới
+                                                        </span>
+                                                    @endif
+                                                    @if($tableServiceCall && $tableServiceCall->call_type === 'bill')
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-100 text-purple-700">
+                                                            Khách yêu cầu tính tiền
+                                                        </span>
+                                                    @elseif($tableServiceCall)
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-100 text-[#C25E00]">
+                                                            {{ $tableServiceCall->type_info['label'] }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            @endif
 
-                                            <div class="flex items-center justify-between py-1.5 border-y border-stone-100">
-                                                <span class="font-bold text-stone-800 text-xs sm:text-sm">
+                                            <div class="flex items-center justify-between py-1 border-b border-stone-100">
+                                                <span class="font-semibold text-stone-800 text-xs sm:text-sm">
                                                     {{ $dishesCount }} món đang dùng
                                                 </span>
-                                                <button type="button" onclick="event.stopPropagation(); openDishesModal({{ $table->id }})" 
+                                                <button type="button" onclick="event.stopPropagation(); openDishesModal({{ $table->id }})"
                                                         class="text-blue-600 hover:text-blue-800 font-bold cursor-pointer text-xs hover:underline"
                                                         title="Xem danh sách chi tiết các món bàn đang gọi">
                                                     Xem chi tiết »
                                                 </button>
                                             </div>
 
-                                            <!-- Tổng tiền tạm tính: Chữ đậm, to, rõ ràng, chuẩn màu cam thương hiệu #F47716 -->
-                                            <div class="text-xl font-black text-[#F47716] tracking-tight pt-1">
-                                                {{ number_format($tableAmount, 0, ',', '.') }}₫
+                                            <!-- Tổng tiền tạm tính -->
+                                            <div class="flex items-center justify-between pt-0.5">
+                                                <span class="text-xl font-black {{ $occupancyStatus === 'waiting_payment' ? 'text-stone-900' : 'text-[#F47716]' }} tracking-tight">
+                                                    {{ number_format($tableAmount, 0, ',', '.') }}₫
+                                                </span>
+                                                <span class="text-[11px] text-stone-400 font-medium">
+                                                    {{ $order->created_at ? $order->created_at->format('H:i') : '' }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @elseif($isReserved)
+                                        <div class="py-2 text-xs space-y-1.5">
+                                            <div class="font-semibold text-gray-800">
+                                                Giờ đến: <span class="font-bold text-blue-700">{{ \Carbon\Carbon::parse($reservedBooking->booking_time)->format('H:i') }}</span>
+                                            </div>
+                                            <div class="text-gray-500">
+                                                Đang chờ khách ({{ $reservedBooking->name }} · {{ $reservedBooking->number_of_people }} khách)
                                             </div>
                                         </div>
                                     @elseif($isLocked)
@@ -306,34 +379,34 @@
                                     @endif
                                 </div>
 
-                                <!-- Service Call Banner (Nếu khách đang rung chuông) -->
+                                <!-- Service Call Bar (Thao tác đánh dấu đã xử lý yêu cầu) -->
                                 @if($tableServiceCall)
-                                    <div class="px-3 py-1.5 bg-[#F47716] text-white text-xs font-bold flex items-center justify-between" id="serviceCallBar-{{ $table->id }}">
+                                    <div class="px-3 py-1.5 {{ $tableServiceCall->call_type === 'bill' ? 'bg-purple-600' : 'bg-[#F47716]' }} text-white text-xs font-bold flex items-center justify-between" id="serviceCallBar-{{ $table->id }}">
                                         <span class="truncate mr-1.5" title="{{ $tableServiceCall->note ?? $tableServiceCall->type_info['label'] }}">
-                                            {{ $tableServiceCall->type_info['label'] }}
+                                            {{ $tableServiceCall->call_type === 'bill' ? 'Khách yêu cầu tính tiền' : $tableServiceCall->type_info['label'] }}
                                         </span>
-                                        <button type="button" 
-                                                onclick="event.stopPropagation(); resolveTableServiceCall({{ $tableServiceCall->id }}, {{ $table->id }})" 
-                                                class="bg-white text-[#F47716] hover:bg-orange-50 px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap cursor-pointer shadow-2xs">
+                                        <button type="button"
+                                                onclick="event.stopPropagation(); resolveTableServiceCall({{ $tableServiceCall->id }}, {{ $table->id }})"
+                                                class="bg-white {{ $tableServiceCall->call_type === 'bill' ? 'text-purple-700 hover:bg-purple-50' : 'text-[#F47716] hover:bg-orange-50' }} px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap cursor-pointer shadow-2xs">
                                             Đã xong
                                         </button>
                                     </div>
                                 @endif
 
-                                <!-- Footer Nút Bấm: Thao tác to rõ, chuẩn POS cảm ứng & chuột -->
+                                <!-- Footer Nút Bấm -->
                                 <div class="p-3 bg-gray-50 border-t border-gray-100 flex items-center gap-2">
                                     @if($isOccupied)
-                                        <a href="{{ route('admin.table-order.order', $table->id) }}" 
+                                        <a href="{{ route('admin.table-order.order', $table->id) }}"
                                            class="flex-1 py-2 px-3 bg-white hover:bg-orange-50 border border-gray-200 hover:border-orange-200 text-gray-800 hover:text-[#F47716] font-bold rounded-md text-xs sm:text-sm text-center transition-colors shadow-2xs">
                                             Gọi món
                                         </a>
-                                        @if($order->payment_status === \App\Models\Order::PAYMENT_PAID || $order->isPaid())
-                                            <a href="{{ route('admin.table-order.payment', $table->id) }}" 
+                                        @if($isPaid)
+                                            <a href="{{ route('admin.table-order.payment', $table->id) }}"
                                                class="flex-1 py-2 px-3 bg-stone-900 hover:bg-stone-800 text-white font-bold rounded-md text-xs sm:text-sm text-center transition-colors shadow-2xs">
                                                 Hoàn tất & Trả bàn
                                             </a>
                                         @else
-                                            <a href="{{ route('admin.table-order.payment', $table->id) }}" 
+                                            <a href="{{ route('admin.table-order.payment', $table->id) }}"
                                                class="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-md text-xs sm:text-sm text-center transition-colors shadow-2xs">
                                                 Thanh toán
                                             </a>
@@ -342,10 +415,15 @@
                                         <span class="w-full text-center text-xs text-gray-400 py-2">
                                             Đã ghép đơn chung
                                         </span>
+                                    @elseif($isReserved)
+                                        <button type="button"
+                                                onclick="handleTableClick({{ $table->id }}, '{{ $table->name }}', false, '{{ $floor->name }}', false, '{{ addslashes($reservedBooking->phone) }}', '{{ addslashes($reservedBooking->name) }}', {{ (int)$reservedBooking->number_of_people }})"
+                                                class="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md text-xs sm:text-sm text-center transition-all cursor-pointer shadow-2xs">
+                                            Nhận bàn & Gọi món
+                                        </button>
                                     @else
-                                        <!-- Bàn trống: Nút Mở bàn -->
-                                        <button type="button" 
-                                                onclick="handleTableClick({{ $table->id }}, '{{ $table->name }}', false, '{{ $floor->name }}', false)" 
+                                        <button type="button"
+                                                onclick="handleTableClick({{ $table->id }}, '{{ $table->name }}', false, '{{ $floor->name }}', false)"
                                                 class="w-full py-2 px-3 bg-stone-900 hover:bg-[#F47716] text-white font-bold rounded-md text-xs sm:text-sm text-center transition-all cursor-pointer shadow-2xs">
                                             Mở bàn & Gọi món
                                         </button>
@@ -565,13 +643,13 @@
             applyAllFilters();
         }
 
-        // Filter Status (All, Occupied, Empty)
+        // Filter Status (Tất cả, Bàn trống, Đang phục vụ, Đã đặt trước, Có món mới, Yêu cầu phục vụ, Chờ thanh toán)
         function filterStatus(status) {
             currentStatusFilter = status;
             document.querySelectorAll('.status-filter-btn').forEach(btn => {
                 const bs = btn.getAttribute('data-status');
                 if (bs === currentStatusFilter) {
-                    btn.className = 'status-filter-btn px-2.5 py-1 rounded-md font-bold bg-white text-gray-900 shadow-2xs transition-all cursor-pointer';
+                    btn.className = 'status-filter-btn px-2.5 py-1 rounded-md font-bold bg-[#F47716] text-white shadow-2xs transition-all cursor-pointer';
                 } else {
                     btn.className = 'status-filter-btn px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition-all cursor-pointer';
                 }
@@ -593,10 +671,26 @@
                 
                 let visibleCardsInFloor = 0;
                 sec.querySelectorAll('.table-card').forEach(card => {
-                    const status = card.getAttribute('data-status');
+                    const occupancy = card.getAttribute('data-occupancy');
+                    const hasNewItems = card.getAttribute('data-has-new-items') === '1';
+                    const hasServiceCall = card.getAttribute('data-has-service-call') === '1';
                     const name = card.getAttribute('data-table-name').toLowerCase();
 
-                    const statusMatches = (currentStatusFilter === 'all' || currentStatusFilter === status);
+                    let statusMatches = true;
+                    if (currentStatusFilter === 'empty') {
+                        statusMatches = (occupancy === 'empty');
+                    } else if (currentStatusFilter === 'serving') {
+                        statusMatches = (occupancy === 'serving');
+                    } else if (currentStatusFilter === 'reserved') {
+                        statusMatches = (occupancy === 'reserved');
+                    } else if (currentStatusFilter === 'waiting_payment') {
+                        statusMatches = (occupancy === 'waiting_payment');
+                    } else if (currentStatusFilter === 'new_items') {
+                        statusMatches = hasNewItems;
+                    } else if (currentStatusFilter === 'service_call') {
+                        statusMatches = hasServiceCall;
+                    }
+
                     const nameMatches = (!currentSearchQuery || name.includes(currentSearchQuery));
 
                     if (floorMatches && statusMatches && nameMatches) {
@@ -797,7 +891,7 @@
         });
 
         // Xử lý click vào bàn
-        function handleTableClick(tableId, tableName, isOccupied, floorName, isLocked) {
+        function handleTableClick(tableId, tableName, isOccupied, floorName, isLocked, presetPhone = '', presetName = '', presetGuests = 1) {
             currentTableId = tableId;
             
             if (isLocked) {
@@ -810,10 +904,10 @@
             } else {
                 $('#modalTableName').text('Mở Bàn: ' + (floorName ? (floorName + ' - ') : '') + tableName);
                 $('#selectedTableId').val(tableId);
-                $('#customerPhone').val('');
-                $('#customerName').val('');
+                $('#customerPhone').val(presetPhone || '');
+                $('#customerName').val(presetName || '');
                 $('#customerName').prop('readonly', false);
-                $('#numberOfGuests').val('1');
+                $('#numberOfGuests').val(presetGuests || 1);
                 openModal('registerTableModal');
             }
         }

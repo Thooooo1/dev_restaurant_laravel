@@ -14,40 +14,41 @@ class TableSeeder extends Seeder
         }
 
         $tables = [];
-        
-        // Tầng 1 (8 bàn)
-        for ($i = 1; $i <= 8; $i++) {
+        $tableNumber = 1;
+
+        // Tầng 1 (8 bàn: Bàn 1 -> Bàn 8)
+        for ($i = 1; $i <= 8; $i++, $tableNumber++) {
             $tables[] = [
                 'floor_id' => 1,
-                'name' => "Bàn 1.0$i",
+                'name' => "Bàn {$tableNumber}",
                 'seats' => rand(2, 6),
-                'sort_order' => $i,
+                'sort_order' => $tableNumber,
                 'status' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
         }
 
-        // Tầng 2 (6 bàn VIP)
-        for ($i = 1; $i <= 6; $i++) {
+        // Tầng 2 (6 bàn: Bàn 9 -> Bàn 14)
+        for ($i = 1; $i <= 6; $i++, $tableNumber++) {
             $tables[] = [
                 'floor_id' => 2,
-                'name' => "Bàn VIP 2.0$i",
+                'name' => "Bàn {$tableNumber}",
                 'seats' => rand(6, 12),
-                'sort_order' => $i,
+                'sort_order' => $tableNumber,
                 'status' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
         }
 
-        // Tầng 3 (6 bàn sân thượng)
-        for ($i = 1; $i <= 6; $i++) {
+        // Tầng 3 (6 bàn: Bàn 15 -> Bàn 20)
+        for ($i = 1; $i <= 6; $i++, $tableNumber++) {
             $tables[] = [
                 'floor_id' => 3,
-                'name' => "Bàn Rooftop 3.0$i",
+                'name' => "Bàn {$tableNumber}",
                 'seats' => rand(2, 8),
-                'sort_order' => $i,
+                'sort_order' => $tableNumber,
                 'status' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),

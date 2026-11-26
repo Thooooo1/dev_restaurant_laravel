@@ -24,6 +24,17 @@
                             <option value="4" {{ $booking->status == 4 ? 'selected' : '' }}>Đã hủy</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="table_id">Gán bàn giữ chỗ (tùy chọn):</label>
+                        <select name="table_id" id="table_id" class="form-control">
+                            <option value="">-- Chưa gán bàn --</option>
+                            @foreach(($tables ?? []) as $t)
+                                <option value="{{ $t->id }}" {{ (int)($booking->table_id ?? 0) === (int)$t->id ? 'selected' : '' }}>
+                                    {{ $t->name }} ({{ $t->floor->name ?? 'Tầng' }} • {{ $t->seats }} chỗ)
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-success">Cập nhật</button>
                 </form>
             </div>

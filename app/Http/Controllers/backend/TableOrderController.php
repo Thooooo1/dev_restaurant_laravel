@@ -10,12 +10,14 @@ use App\Models\Orderdetail;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\User;
+use App\Models\Booking;
 use App\Models\OrderItemLog;
 use App\Enums\OrderStatus;
 use App\Http\Requests\StoreTableOrderRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class TableOrderController extends Controller
 {
@@ -49,10 +51,55 @@ class TableOrderController extends Controller
              ->get()
              ->keyBy('table_id');
 
-        $totalTables = Table::count();
+        // Lấy danh sách đặt bàn đã xác nhận có gán bàn (từ hôm nay trở đi)
+        $reservedBookings = collect();
+        if (Schema::hasColumn('bookings', 'table_id')) {
+            $reservedBookings = Booking::whereNull('deleted_at')
+                ->where('status', 2)
+                ->whereNotNull('table_id')
+                ->whereDate('booking_date', '>=', now()->toDateString())
+                ->orderBy('booking_date', 'ASC')
+                ->orderBy('booking_time', 'ASC')
+                ->get()
+                ->unique('table_id')
+                ->keyBy('table_id');
+        }
+
+        $allTables = $floors->flatMap->tables;
+        $totalTables = $allTables->count();
         $occupiedCount = $orders->count();
-        $emptyCount = max(0, $totalTables - $occupiedCount);
+        $emptyCount = 0;
+        $servingCount = 0;
+        $reservedCount = 0;
+        $newItemsCount = 0;
+        $waitingPaymentCount = 0;
         $totalServingAmount = 0;
+
+        foreach ($allTables as $tbl) {
+            $ord = $activeOrders[$tbl->id] ?? null;
+            $call = $activeServiceCalls[$tbl->id] ?? null;
+            $isLocked = (!$ord && $tbl->locked_order_id && isset($ordersById[$tbl->locked_order_id]));
+
+            if ($ord) {
+                $isPaid = ($ord->payment_status === Order::PAYMENT_PAID || $ord->isPaid());
+                $isWaitingPay = !$isPaid && (($call && $call->call_type === 'bill') || $ord->payment_status === 'awaiting_payment');
+                if ($isWaitingPay) {
+                    $waitingPaymentCount++;
+                } elseif (!$isPaid) {
+                    $servingCount++;
+                }
+                if (!empty($ord->has_new_items)) {
+                    $newItemsCount++;
+                }
+            } elseif (!$isLocked) {
+                if (isset($reservedBookings[$tbl->id])) {
+                    $reservedCount++;
+                } else {
+                    $emptyCount++;
+                }
+            }
+        }
+
         foreach ($orders as $ord) {
             $sum = $ord->orderDetails->where('status', '!=', 'cancelled')->sum('amount');
             $disc = (int) round($sum * 0.1);
@@ -63,11 +110,23 @@ class TableOrderController extends Controller
             'total' => $totalTables,
             'occupied' => $occupiedCount,
             'empty' => $emptyCount,
+            'serving' => $servingCount,
+            'reserved' => $reservedCount,
+            'new_items' => $newItemsCount,
+            'waiting_payment' => $waitingPaymentCount,
             'serving_revenue' => $totalServingAmount,
             'service_calls' => $activeServiceCalls->count(),
         ];
 
-        return view('backend.table-order.index', compact('floors', 'activeOrders', 'ordersById', 'lockedSeats', 'activeServiceCalls', 'posStats'));
+        return view('backend.table-order.index', compact(
+            'floors',
+            'activeOrders',
+            'ordersById',
+            'lockedSeats',
+            'activeServiceCalls',
+            'reservedBookings',
+            'posStats'
+        ));
     }
 
     /**
@@ -291,7 +350,9 @@ class TableOrderController extends Controller
             $newUser->gender = $request->input('gender', '1');
             $newUser->phone = $request->phone;
             $newUser->roles = 'customer';
-            $newUser->admin_lever = null;
+            if (Schema::hasColumn('user', 'admin_lever')) {
+                $newUser->admin_lever = null;
+            }
             $newUser->status = 1;
             $newUser->created_by = Auth::id() ?? 1;
             $newUser->save();
@@ -312,6 +373,13 @@ class TableOrderController extends Controller
             'status' => 0, // Đang chờ xử lý
             'created_by' => Auth::id(),
         ]);
+
+        if (Schema::hasColumn('bookings', 'table_id')) {
+            Booking::where('table_id', $request->table_id)
+                ->where('status', 2)
+                ->whereDate('booking_date', '<=', now()->toDateString())
+                ->update(['status' => 3]);
+        }
 
         return redirect()->route('admin.table-order.index')->with('success', 'Đăng ký bàn thành công');
     }

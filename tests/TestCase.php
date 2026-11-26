@@ -75,7 +75,7 @@ abstract class TestCase extends BaseTestCase
             $defaultTable = new \App\Models\Table();
             $defaultTable->id = 1;
             $defaultTable->floor_id = $defaultFloor->id;
-            $defaultTable->name = 'Bàn 1.01';
+            $defaultTable->name = 'Bàn 1';
             $defaultTable->seats = 4;
             $defaultTable->sort_order = 1;
             $defaultTable->status = 1;
