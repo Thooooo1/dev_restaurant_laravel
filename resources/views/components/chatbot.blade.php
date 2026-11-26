@@ -46,8 +46,8 @@
                 </button>
                 <button id="chatbot-clear-btn" 
                         class="w-7.5 h-7.5 rounded-full bg-black/15 hover:bg-black/30 text-white flex items-center justify-center transition text-xs cursor-pointer" 
-                        title="Làm mới cuộc trò chuyện">
-                    <i class="fa-solid fa-rotate-right"></i>
+                        title="Xóa lịch sử trò chuyện">
+                    <i class="fa-solid fa-trash-can"></i>
                 </button>
                 <button id="chatbot-close-btn" 
                         class="w-7.5 h-7.5 rounded-full bg-black/15 hover:bg-black/30 text-white flex items-center justify-center transition text-sm cursor-pointer" 
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     clearBtn.addEventListener('click', () => {
-        if (confirm('Bạn có muốn làm mới toàn bộ cuộc trò chuyện không?')) {
+        if (confirm('Bạn có muốn xóa toàn bộ lịch sử trò chuyện không?')) {
             messageList = [];
             localStorage.removeItem(STORAGE_KEY);
             localStorage.removeItem('civilize_chatbot_messages'); // Xóa cả key cũ
