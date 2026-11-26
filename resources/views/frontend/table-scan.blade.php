@@ -93,10 +93,10 @@
                                 Gọi Thêm Món Ngay
                             </a>
 
-                            <!-- Quẹt mã VietQR thanh toán luôn -->
+                            <!-- Thanh toán ngay qua VietQR -->
                             <a href="{{ route('site.table.payment.qr', $table->id) }}" 
                                class="py-3 px-4 rounded bg-stone-900 hover:bg-black text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all flex items-center justify-center text-center border border-stone-800">
-                                Quẹt VietQR Trả Tiền
+                                Thanh Toán Ngay
                             </a>
                         </div>
 
