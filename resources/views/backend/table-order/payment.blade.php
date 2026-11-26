@@ -33,15 +33,12 @@
             <!-- Right: Action Buttons -->
             <div class="flex items-center gap-2 flex-wrap">
                 <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-sm">
-                    <i class="fa-solid fa-arrow-left text-xs"></i>
                     <span>Quay lại</span>
                 </a>
                 <button type="button" class="ant-btn ant-btn-sm" id="btnEditMode" onclick="toggleEditMode()">
-                    <i class="fa-solid fa-pen-to-square text-xs"></i>
                     <span id="btnEditModeText">Sửa SL</span>
                 </button>
                 <button type="button" class="ant-btn ant-btn-sm" onclick="printProvisionalBill()">
-                    <i class="fa-solid fa-print text-xs"></i>
                     <span>In hoá đơn</span>
                 </button>
                 <button type="button" class="ant-btn ant-btn-primary ant-btn-sm font-semibold" onclick="handleConfirmPayment()">

@@ -27,28 +27,23 @@
                 </div>
 
                 <div class="flex items-center gap-2 flex-wrap">
-                    <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-sm" id="backBtn">
-                        <i class="fa-solid fa-arrow-left text-xs"></i>
+                    <a href="{{ route('admin.table-order.index') }}" class="ant-btn ant-btn-sm cursor-pointer" id="backBtn">
                         <span>Bàn khác</span>
                     </a>
                     <button type="button" class="ant-btn ant-btn-sm" id="printKitchenBtn" onclick="printKitchen()">
                         <span>Báo bếp</span>
                     </button>
                     <button type="button" class="ant-btn ant-btn-sm {{ $hasAnyItems ? '' : 'opacity-50 pointer-events-none' }}" id="printBillBtn" onclick="printTableBill()">
-                        <i class="fa-solid fa-print text-xs"></i>
                         <span>In tạm tính</span>
                     </button>
                     <a href="{{ route('admin.table-order.payment', $table->id) }}" class="ant-btn ant-btn-primary ant-btn-sm {{ $hasAnyItems ? '' : 'opacity-50 pointer-events-none' }}" id="payBtn">
-                        <i class="fa-solid fa-money-bill-wave text-xs"></i>
                         <span>Thanh toán</span>
                     </a>
                     <button type="button" class="ant-btn ant-btn-sm text-amber-600" onclick="showChangeTableModal()">
-                        <i class="fa-solid fa-exchange-alt text-xs"></i>
                         <span>Đổi bàn</span>
                     </button>
                     @if(!$hasAnyItems)
                         <button type="button" class="ant-btn ant-btn-danger ant-btn-sm" onclick="confirmCancelTable()">
-                            <i class="fa-solid fa-xmark text-xs"></i>
                             <span>Hủy bàn</span>
                         </button>
                     @endif
@@ -59,8 +54,7 @@
 
     @if($order->has_new_items)
         <div class="mb-4 bg-[#FFFBE6] border border-[#FFE58F] text-[#D46B08] px-4 py-2.5 rounded text-xs flex items-center justify-between">
-            <span class="flex items-center gap-2">
-                <i class="fa-solid fa-bell text-amber-500 animate-bounce"></i>
+            <span>
                 <strong>Thông báo bếp:</strong> Khách hàng vừa gửi thêm món mới từ thực đơn QR. Vui lòng kiểm tra và báo bếp!
             </span>
             <button type="button" class="text-xs text-amber-700 hover:underline font-medium" onclick="$(this).parent().fadeOut()">Đã xem</button>
@@ -233,7 +227,6 @@
                     <div class="grid grid-cols-3 gap-3">
                         @foreach($availableTables as $tbl)
                             <div class="change-table-item p-3 border border-[#D9D9D9] rounded text-center cursor-pointer hover:border-[#F47716] hover:bg-orange-50/30 transition-all" onclick="selectTable({{ $tbl->id }})" data-table-id="{{ $tbl->id }}">
-                                <i class="fa-solid fa-chair text-gray-400 mb-1 text-lg"></i>
                                 <div class="font-semibold text-xs text-slate-800">{{ $tbl->name }}</div>
                                 <div class="text-[10px] text-slate-400">{{ $tbl->floor->name ?? '' }}</div>
                             </div>
