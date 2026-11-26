@@ -95,8 +95,8 @@
     </div>
 </div>
 
-<!-- Audio Chime for Realistic Chat Notification -->
-<audio id="chatbot-chime" preload="auto">
+<!-- Audio Chime for Realistic Chat Notification (lazy load only on interaction) -->
+<audio id="chatbot-chime" preload="none">
     <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
 </audio>
 

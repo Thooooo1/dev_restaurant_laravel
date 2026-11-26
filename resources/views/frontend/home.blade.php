@@ -3,8 +3,8 @@
     <x-slot:footer>
         <!-- Slick Slider Scripts -->
         <script type="text/javascript">
-            $(document).ready(function () {
-                if ($('.home-hero-slider').length) {
+            window.addEventListener('DOMContentLoaded', function () {
+                if (window.jQuery && $('.home-hero-slider').length) {
                     var $slider = $('.home-hero-slider');
                     $slider.slick({
                         infinite: true,
@@ -72,6 +72,7 @@
                         <div class="absolute inset-0 overflow-hidden">
                             <img src="{{ $imgUrl }}" 
                                  alt="{{ $titleText }}" 
+                                 {!! $index === 0 ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"' !!}
                                  class="w-full h-full object-cover brightness-[0.78] scale-100 transition-transform duration-700 ease-out">
                             <!-- Gradient Scrim tối dần xuống dưới giúp chữ to ở nửa dưới cực kỳ rõ nét -->
                             <div class="absolute inset-0 bg-gradient-to-t from-stone-950/95 via-stone-950/50 to-stone-950/20"></div>
@@ -157,8 +158,10 @@
                     <!-- Dịch vụ 1: Tiệc Gia Đình -->
                     <div class="group bg-white rounded-none sm:rounded-sm overflow-hidden border border-stone-200 hover:border-stone-400 shadow-2xs hover:shadow-xs transition-all duration-300">
                         <div class="relative aspect-[16/10] overflow-hidden bg-stone-100">
-                            <img src="{{ asset('images/gallery/space_family.jpg') }}?v={{ time() }}" 
+                            <img src="{{ asset('images/gallery/space_family.jpg') }}" 
                                  alt="Không gian tiệc gia đình ấm cúng" 
+                                 loading="lazy"
+                                 decoding="async"
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
                             <div class="absolute bottom-2.5 right-2.5 bg-stone-950/75 text-white font-medium text-[11px] px-2.5 py-0.5 rounded-none sm:rounded-xs shadow-xs">
                                 4 – 16 khách
@@ -179,6 +182,8 @@
                         <div class="relative aspect-[16/10] overflow-hidden bg-stone-100">
                             <img src="{{ asset('images/gallery/space_vip.jpg') }}" 
                                  alt="Góc bàn tiệc bạn bè và phòng VIP" 
+                                 loading="lazy"
+                                 decoding="async"
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
                             <div class="absolute bottom-2.5 right-2.5 bg-stone-950/75 text-white font-medium text-[11px] px-2.5 py-0.5 rounded-none sm:rounded-xs shadow-xs">
                                 6 – 20 khách
@@ -199,6 +204,8 @@
                         <div class="relative aspect-[16/10] overflow-hidden bg-stone-100">
                             <img src="{{ asset('images/gallery/space_event.jpg') }}" 
                                  alt="Sảnh tiệc sinh nhật và liên hoan công ty" 
+                                 loading="lazy"
+                                 decoding="async"
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
                             <div class="absolute bottom-2.5 right-2.5 bg-stone-950/75 text-white font-medium text-[11px] px-2.5 py-0.5 rounded-none sm:rounded-xs shadow-xs">
                                 20 – 60 khách

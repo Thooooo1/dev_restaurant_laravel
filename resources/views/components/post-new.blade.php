@@ -25,6 +25,8 @@
                             <a href="{{ route('site.blog.detail', ['slug' => $item->slug]) }}" class="block w-full h-full">
                                 <img src="{{ $imgSrc }}" 
                                      alt="{{ $item->title }}"
+                                     loading="lazy"
+                                     decoding="async"
                                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
                             </a>
                             <div class="absolute top-2.5 left-2.5 bg-stone-900/90 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-none sm:rounded-xs shadow-xs">

@@ -10,20 +10,22 @@ use App\Models\Product;
 
 class HomeProductCategory extends Component
 {
-    /**
-     * Create a new component instance.
-     */
     public $category_item;
-    public function __construct($categoryitem)
+    public $preloaded_products;
+
+    public function __construct($categoryitem, $products = null)
     {
         $this->category_item = $categoryitem;
+        $this->preloaded_products = $products;
     }
 
-    /**
-     * Get the view / contents that represent the component.
-     */
     public function render(): View|Closure|string
     {
+        if ($this->preloaded_products !== null) {
+            $products = $this->preloaded_products;
+            return view('components.home-product-category', compact('products'));
+        }
+
         $category = $this->category_item;
 
         if (isset($category->category_ids) && is_array($category->category_ids)) {
@@ -40,7 +42,8 @@ class HomeProductCategory extends Component
             }
         }
 
-        $products = Product::where('status', '=', 1)
+        $products = Product::with('category')
+            ->where('status', '=', 1)
             ->whereIn('category_id', $list_catid)
             ->limit(8)
             ->get();

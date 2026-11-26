@@ -65,24 +65,9 @@
                 </button>
             </div>
 
-            <!-- Search Grid hiển thị toàn bộ món khớp tìm kiếm -->
-            <div id="home-search-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                @if (isset($allProducts))
-                    @foreach ($allProducts as $product)
-                        @php
-                            $cleanName = mb_strtolower($product->name, 'UTF-8');
-                            $asciiName = Str::lower(Str::ascii($product->name));
-                            $catName = $product->category ? mb_strtolower($product->category->name, 'UTF-8') : '';
-                        @endphp
-                        <div class="home-search-item" 
-                             data-name="{{ $cleanName }}" 
-                             data-ascii="{{ $asciiName }}"
-                             data-cat="{{ $catName }}">
-                            <x-product-card :productitem="$product" />
-                        </div>
-                    @endforeach
-                @endif
-            </div>
+            <!-- Search Grid: Render động bằng JS khi gõ tìm kiếm (tránh tải trước 100+ ảnh ẩn khi mới vào trang) -->
+            <div id="home-search-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
+            <script type="application/json" id="home-products-json">@json($searchCatalog ?? [])</script>
 
             <!-- Empty Search State khi không có món nào khớp -->
             <div id="home-search-empty" class="hidden text-center py-12 px-4 bg-[#FAF7F2] rounded-none sm:rounded-sm border border-stone-200">
@@ -113,7 +98,7 @@
                 <div id="cat-pane-{{ $categoryitem->id }}" 
                      class="category-pane-content transition-opacity duration-300 hidden">
                     <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-                        <x-home-product-category :categoryitem="$categoryitem" />
+                        <x-home-product-category :categoryitem="$categoryitem" :products="isset($categoryProductsMap) ? ($categoryProductsMap[$categoryitem->id] ?? null) : null" />
                     </div>
                 </div>
             @endforeach
@@ -188,9 +173,83 @@
         const searchCountText = document.getElementById('home-search-count-text');
         const searchEmpty = document.getElementById('home-search-empty');
         const searchGrid = document.getElementById('home-search-grid');
-        const searchItems = document.querySelectorAll('.home-search-item');
         const clearBtn = document.getElementById('home-search-clear-btn');
         const resetBtn = document.getElementById('home-search-reset-btn');
+
+        let homeProductsCatalog = [];
+        try {
+            const jsonEl = document.getElementById('home-products-json');
+            if (jsonEl && jsonEl.textContent) {
+                homeProductsCatalog = JSON.parse(jsonEl.textContent);
+            }
+        } catch (e) {
+            homeProductsCatalog = [];
+        }
+
+        function escapeHomeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function buildHomeProductCard(p) {
+            const safeName = escapeHomeHtml(p.name);
+            const safeCat = escapeHomeHtml(p.cat);
+            const safeUrl = escapeHomeHtml(p.url);
+            const safeImg = escapeHomeHtml(p.img);
+            let badges = '';
+            if (p.has_discount) {
+                badges += `<span class="bg-red-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-none sm:rounded-2xs shadow-xs tracking-wider uppercase">-${p.discount_pct}%</span>`;
+            }
+            if (p.new_p === 1) {
+                badges += `<span class="bg-amber-500 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-none sm:rounded-2xs shadow-xs uppercase tracking-wider">Bán chạy</span>`;
+            }
+
+            let priceHtml = '';
+            if (p.has_discount) {
+                priceHtml = `<div class="flex items-baseline gap-1.5"><span class="text-orange-600 font-extrabold text-sm sm:text-base">${escapeHomeHtml(p.price_fmt)}</span><span class="text-stone-400 text-xs line-through">${escapeHomeHtml(p.old_price_fmt)}</span></div>`;
+            } else if (p.has_price) {
+                priceHtml = `<span class="text-orange-600 font-extrabold text-sm sm:text-base">${escapeHomeHtml(p.price_fmt)}</span>`;
+            } else {
+                priceHtml = `<span class="text-orange-600 font-bold text-xs sm:text-sm">Liên hệ giá</span>`;
+            }
+
+            return `
+                <div class="home-search-item">
+                    <div class="product-card group relative bg-white rounded-none sm:rounded-sm overflow-hidden border border-stone-150 hover:border-stone-300 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col justify-between h-full">
+                        <div class="relative aspect-[4/3] w-full overflow-hidden bg-stone-100">
+                            <a href="${safeUrl}" class="block w-full h-full">
+                                <img src="${safeImg}" alt="${safeName}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
+                            </a>
+                            <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5 pointer-events-none">${badges}</div>
+                            <div class="absolute inset-0 bg-stone-950/35 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center pointer-events-none group-hover:pointer-events-auto p-3">
+                                <a href="${safeUrl}" class="px-3.5 py-1.5 rounded-none sm:rounded-sm bg-white/95 text-stone-900 hover:bg-[#C25E00] hover:text-white font-bold text-xs uppercase tracking-wider shadow-md transition-all duration-200 inline-flex items-center gap-1.5">
+                                    <i class="fa-regular fa-eye text-xs"></i>
+                                    <span>Xem chi tiết</span>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="p-3.5 sm:p-4 flex flex-col justify-between flex-grow">
+                            <div>
+                                ${safeCat ? `<div class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1">${safeCat}</div>` : ''}
+                                <h4 class="font-bold text-stone-900 text-sm sm:text-[15px] leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-orange-600 transition-colors mb-2">
+                                    <a href="${safeUrl}">${safeName}</a>
+                                </h4>
+                            </div>
+                            <div class="pt-2 border-t border-stone-100 flex items-center justify-between mt-auto">
+                                <div>${priceHtml}</div>
+                                <button type="button" onclick="window.addToCartGlobal ? window.addToCartGlobal(${p.id}, this) : null" class="px-3 py-1 rounded-sm bg-stone-900 hover:bg-[#C25E00] text-white font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-2xs" title="Thêm vào giỏ">
+                                    <span>+ Chọn</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }
 
         function executeSearch(query) {
             const rawQ = (query || '').toLowerCase().trim();
@@ -201,41 +260,32 @@
                 return;
             }
 
-            // Tạm ẩn danh mục mặc định
             if (catTabs) catTabs.classList.add('hidden');
             if (catPanesWrapper) catPanesWrapper.classList.add('hidden');
 
-            // Bật khung kết quả tìm kiếm
             if (searchResultsPane) searchResultsPane.classList.remove('hidden');
             if (searchQueryText) searchQueryText.textContent = `"${query}"`;
 
-            let matchCount = 0;
-            searchItems.forEach(item => {
-                const rawName = item.getAttribute('data-name') || '';
-                const asciiName = item.getAttribute('data-ascii') || '';
-                const catName = item.getAttribute('data-cat') || '';
-                const asciiCat = removeVietnameseTones(catName);
+            const matched = homeProductsCatalog.filter(p =>
+                (p.raw && p.raw.includes(rawQ)) ||
+                (p.ascii && p.ascii.includes(asciiQ)) ||
+                (p.cat_raw && p.cat_raw.includes(rawQ)) ||
+                (p.cat_ascii && p.cat_ascii.includes(asciiQ))
+            );
 
-                const isMatch = rawName.includes(rawQ) || 
-                                asciiName.includes(asciiQ) || 
-                                catName.includes(rawQ) || 
-                                asciiCat.includes(asciiQ);
+            if (searchCountText) searchCountText.textContent = `${matched.length} món`;
 
-                if (isMatch) {
-                    item.style.display = '';
-                    matchCount++;
-                } else {
-                    item.style.display = 'none';
+            if (matched.length === 0) {
+                if (searchGrid) {
+                    searchGrid.innerHTML = '';
+                    searchGrid.classList.add('hidden');
                 }
-            });
-
-            if (searchCountText) searchCountText.textContent = `${matchCount} món`;
-
-            if (matchCount === 0) {
-                if (searchGrid) searchGrid.classList.add('hidden');
                 if (searchEmpty) searchEmpty.classList.remove('hidden');
             } else {
-                if (searchGrid) searchGrid.classList.remove('hidden');
+                if (searchGrid) {
+                    searchGrid.innerHTML = matched.map(buildHomeProductCard).join('');
+                    searchGrid.classList.remove('hidden');
+                }
                 if (searchEmpty) searchEmpty.classList.add('hidden');
             }
         }

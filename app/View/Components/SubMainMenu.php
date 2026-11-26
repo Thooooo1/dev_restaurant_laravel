@@ -4,32 +4,36 @@ namespace App\View\Components;
 
 use Closure;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\View\Component;
 use App\Models\Menu;
 
 class SubMainMenu extends Component
 {
-    /**
-     * Create a new component instance.
-     */
     public $menu_item;
-    public function __construct($menuitem)
+    public $sub_menus;
+
+    public function __construct($menuitem, $submenus = null)
     {
         $this->menu_item = $menuitem;
+        $this->sub_menus = $submenus;
     }
 
-    /**
-     * Get the view / contents that represent the component.
-     */
     public function render(): View|Closure|string
     {
-        $menu =$this->menu_item;
-        $args=[
-            ['status','=',1],
-            ['position','=','mainmenu'],
-            ['parent_id','=',$menu->id]
-        ];
-        $menus = Menu::where($args)->orderBy('sort_order','DESC')->get();
-        return view('components.sub-main-menu',compact('menus','menu'));
+        $menu = $this->menu_item;
+        if ($this->sub_menus !== null) {
+            $menus = $this->sub_menus;
+        } else {
+            $menuTree = Cache::remember('frontend_mainmenu_tree_v1', 300, function () {
+                return Menu::where('status', 1)
+                    ->where('position', 'mainmenu')
+                    ->orderBy('sort_order', 'DESC')
+                    ->get()
+                    ->groupBy('parent_id');
+            });
+            $menus = $menuTree->get($menu->id, collect());
+        }
+        return view('components.sub-main-menu', compact('menus', 'menu'));
     }
 }

@@ -19,9 +19,9 @@
     <link rel="apple-touch-icon" href="{{ asset('images/logo/logo.png') }}">
     <link rel="shortcut icon" type="image/x-icon" href="{{ asset('images/logo/logo.png') }}">
     
-    <!-- PWA Service Worker Cache Killer (Tự động xóa mọi cache cũ để luôn thấy giao diện mới nhất) -->
+    <!-- PWA Service Worker Cache Killer (Chạy nền sau khi trang đã tải xong để không chặn render) -->
     <script>
-        (function() {
+        window.addEventListener('load', function() {
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.getRegistrations().then(function(registrations) {
                     for (let registration of registrations) {
@@ -36,11 +36,8 @@
                     }
                 });
             }
-        })();
+        });
     </script>
-    <!-- jQuery -->
-    {{--
-    <script src="/Scripts/js/jquery-2.0.0.min.js" type="text/javascript"></script> --}}
 
     <!-- Local Vite Bundled Assets (Tailwind CSS, Font Awesome 6 Icons, Offline-ready) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -48,12 +45,12 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('plugins/slick/slick.css') }}" />
     <link rel="stylesheet" type="text/css" href="{{ asset('plugins/slick/slick-theme.css') }}" />
 
-    <!-- jQuery & Slick JS (Local offline-ready) -->
-    <script type="text/javascript" src="{{ asset('plugins/jquery/jquery.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('plugins/slick/slick.min.js') }}"></script>
+    <!-- jQuery & Slick JS (defer để không chặn render HTML ban đầu) -->
+    <script type="text/javascript" src="{{ asset('plugins/jquery/jquery.min.js') }}" defer></script>
+    <script type="text/javascript" src="{{ asset('plugins/slick/slick.min.js') }}" defer></script>
 
     <link rel="stylesheet" href="{{ asset('plugins/toastr/toastr.min.css') }}">
-    <script src="{{ asset('plugins/toastr/toastr.min.js') }}"></script>
+    <script src="{{ asset('plugins/toastr/toastr.min.js') }}" defer></script>
 
     <!-- Nhúng Alpine.js nếu chưa có -->
     <script src="{{ asset('assets/alpinejs@3.x.x/dist/cdn.min.js') }}" defer></script>
@@ -815,6 +812,8 @@
                                title="{{ $item['title'] }}">
                                 <img src="{{ asset($item['img']) }}" 
                                      alt="{{ $item['title'] }}" 
+                                     loading="lazy"
+                                     decoding="async"
                                      class="w-full h-full object-cover group-hover:scale-115 transition-transform duration-500">
                                 <div class="absolute inset-0 bg-orange-600/0 group-hover:bg-orange-600/40 transition-colors duration-300 flex items-center justify-center">
                                     <i class="fas fa-utensils text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-xs"></i>
@@ -989,9 +988,6 @@
 
     <!-- PWA Install Banner (Máy tính & Điện thoại) -->
     <x-pwa-install-banner />
-
-    <script src="{{ asset('plugins/bootstrap/js/bootstrap.js') }}"></script>
-    <script src="{{ asset('plugins/bootstrap/js/boot.js') }}"></script>
 </body>
 
 </html>

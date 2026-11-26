@@ -4,6 +4,8 @@ namespace App\View\Components;
 
 use Closure;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\Component;
 use App\Models\Post;
 
@@ -22,20 +24,24 @@ class PostNew extends Component
      */
     public function render(): View|Closure|string
     {
-        $query = Post::where('status', 1);
-        if (\Illuminate\Support\Facades\Schema::hasColumn('post', 'new')) {
-            $query->where('new', 1);
-        }
-        $posts = $query->orderBy('created_at', 'desc')
-            ->limit(3)
-            ->get();
-
-        if ($posts->isEmpty()) {
-            $posts = Post::where('status', 1)
-                ->orderBy('created_at', 'desc')
+        $posts = Cache::remember('frontend_home_posts_new_v1', 300, function () {
+            $query = Post::where('status', 1);
+            if (Schema::hasColumn('post', 'new')) {
+                $query->where('new', 1);
+            }
+            $items = $query->orderBy('created_at', 'desc')
                 ->limit(3)
                 ->get();
-        }
-        return view('components.post-new',compact('posts'));
+
+            if ($items->isEmpty()) {
+                $items = Post::where('status', 1)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(3)
+                    ->get();
+            }
+            return $items;
+        });
+
+        return view('components.post-new', compact('posts'));
     }
 }

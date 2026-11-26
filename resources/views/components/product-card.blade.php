@@ -12,6 +12,8 @@
         <a href="{{ route('site.product.detail', ['slug' => $product->slug]) }}" class="block w-full h-full">
             <img src="{{ $imgSrc }}" 
                  alt="{{ $product->name }}"
+                 loading="lazy"
+                 decoding="async"
                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out">
         </a>
 
