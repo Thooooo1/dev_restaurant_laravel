@@ -23,12 +23,21 @@ class MainMenu extends Component
      */
     public function render(): View|Closure|string
     {
-        $menuTree = Cache::remember('frontend_mainmenu_tree_v1', 300, function () {
-            return Menu::where('status', 1)
+        $menuTree = Cache::remember('frontend_mainmenu_tree_v2', 300, function () {
+            $all = Menu::where('status', 1)
                 ->where('position', 'mainmenu')
-                ->orderBy('sort_order', 'DESC')
-                ->get()
-                ->groupBy('parent_id');
+                ->get();
+
+            $grouped = $all->groupBy('parent_id');
+            if ($grouped->has(0)) {
+                $grouped[0] = $grouped[0]->sortBy([['sort_order', 'asc'], ['id', 'asc']])->values();
+            }
+            foreach ($grouped as $pid => $items) {
+                if ((int) $pid !== 0) {
+                    $grouped[$pid] = $items->sortByDesc('sort_order')->values();
+                }
+            }
+            return $grouped;
         });
 
         $menus = $menuTree->get(0, collect());

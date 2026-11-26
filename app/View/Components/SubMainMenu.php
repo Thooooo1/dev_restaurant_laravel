@@ -25,7 +25,7 @@ class SubMainMenu extends Component
         if ($this->sub_menus !== null) {
             $menus = $this->sub_menus;
         } else {
-            $menuTree = Cache::remember('frontend_mainmenu_tree_v1', 300, function () {
+            $menuTree = Cache::remember('frontend_mainmenu_tree_v2', 300, function () {
                 return Menu::where('status', 1)
                     ->where('position', 'mainmenu')
                     ->orderBy('sort_order', 'DESC')
